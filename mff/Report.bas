@@ -10,13 +10,20 @@
 ' My.Sys.Forms.ReportBand
 '===============================================================================
 Namespace My.Sys.Forms
-	'Guards ReportBand.Parent against re-entering Report.AddBand while Report.AddBand is
-	'itself the one assigning FBands(InsertAt)->Parent = @This to tag the freshly-inserted
-	'slot - without this, that assignment would call back into AddBand, which inserts
-	'ANOTHER (now-duplicated) band and assigns Parent again, and so on. Only a Parent
-	'assignment coming from outside AddBand (e.g. "Dim b As New ReportBand : b.Parent = Rep")
-	'should actually add the band.
+	'Guards ReportBand.Parent against re-entering ReportBandCollection.Add while Add is
+	'itself the one assigning NewB->Parent = Parent to tag the freshly-inserted slot -
+	'without this, that assignment would call back into Add, which inserts ANOTHER
+	'(now-duplicated) band and assigns Parent again, and so on. Only a Parent assignment
+	'coming from outside Add (e.g. "Dim b As New ReportBand : b.Parent = Rep") should
+	'actually add the band.
 	Dim Shared As Boolean RB_InAddBand
+
+	'True while a change is being pushed from one side to the other: either ReportBand.Height
+	'is resizing its Report (Report.Move must then just move, not hand the difference to the
+	'last band again), or Report.Move is giving the last band its new Height (ReportBand.Height
+	'must then just store it, not resize the Report a second time). Without it the two would
+	'keep calling each other.
+	Dim Shared As Boolean RB_Syncing
 
 	Private Property ReportBand.Parent As Report Ptr
 		Return FParent
@@ -24,16 +31,72 @@ Namespace My.Sys.Forms
 
 	Private Property ReportBand.Parent(Value As Report Ptr)
 		FParent = Value
-		'Value = 0 happens from Report.RemoveBand (FBands(Index)->Parent = 0) to clear the
-		'slot - calling AddBand(@This) on a null Report there would be a null-pointer call,
-		'so skip the same way inside-AddBand re-entrancy is skipped.
-		If Value <> 0 AndAlso Not RB_InAddBand Then Value->AddBand(@This)
+		'Value = 0 happens when a band is being torn down, to clear the slot - calling
+		'Bands.Add(@This) on a null Report there would be a null-pointer call, so skip the
+		'same way inside-Add re-entrancy is skipped.
+		If Value <> 0 AndAlso Not RB_InAddBand Then Value->Bands.Add(@This)
+	End Property
+
+	Private Property ReportBand.Height As Integer
+		Return FHeight
+	End Property
+
+	Private Property ReportBand.Height(Value As Integer)
+		'Not attached to a Report yet (a brand-new band, or one whose properties are being
+		'restored from a stream before its Parent is set, or the template band handed to
+		'Bands.Add): nothing to re-flow, so just store the value as given. A freshly
+		'constructed band is 0px tall on purpose - Bands.Add(NewBand) uses that to know it
+		'should fall back to its default 32/24px.
+		Dim As Report Ptr Rep = FParent
+		If Rep = 0 Then
+			FHeight = Value
+			Return
+		End If
+		'Parent is set but this band isn't (yet) one of Rep's own - e.g. Bands.Add stores a
+		'copy, not this instance - so there's still nothing below it to re-flow.
+		Dim As Integer Index = Rep->Bands.IndexOf(@This)
+		If Index < 0 Then
+			FHeight = Value
+			Return
+		End If
+		'Report.Move is the one driving this change (it is handing the last band whatever
+		'Report.Height gained/lost and resizes the Report itself right afterwards, already
+		'having kept Value >= 8) - just store it.
+		If RB_Syncing Then
+			FHeight = Value
+			Return
+		End If
+
+		If Value < 8 Then Value = 8 'a band can never shrink to zero/negative height
+		Dim As Integer Delta = Value - FHeight
+		If Delta = 0 Then Return
+		Dim As Integer OldBottom = Rep->Bands.TopOf(Index) + FHeight
+		FHeight = Value
+
+		'The report's own Height always follows the sum of its bands: growing/shrinking one
+		'band grows/shrinks Report by the same Delta (every band below just slides, and the
+		'last band is NOT touched - see Report.Move for the reverse direction). Order matters because Bands.ShiftControlsFrom re-clamps every control to
+		'Report.Height:
+		' - growing: enlarge Report FIRST, so the controls being pushed down aren't clamped
+		'   back up against the old (too small) bottom edge;
+		' - shrinking: shift the controls up FIRST, and only then shrink Report, so nothing is
+		'   clamped against the new bottom edge before it has moved out of the way.
+		RB_Syncing = True 'Report.Move must not hand this Delta to the last band again
+		If Delta > 0 Then
+			Rep->Height = Rep->Height + Delta
+			Rep->Bands.ShiftControlsFrom(OldBottom, Delta)
+		Else
+			Rep->Bands.ShiftControlsFrom(OldBottom, Delta)
+			Rep->Height = Rep->Height + Delta
+		End If
+		RB_Syncing = False
+		Rep->Invalidate
 	End Property
 
 	Constructor ReportBand
 		FParent       = 0
 		BandType      = rbtDetail
-		Height        = 0
+		FHeight       = 0
 		GroupField    = 0
 		NewPageBefore = False
 		NewPageAfter  = False
@@ -42,14 +105,14 @@ Namespace My.Sys.Forms
 
 	Destructor ReportBand
 		If GroupField Then WDeAllocate(GroupField) : GroupField = 0
-		'If FParent <> 0 Then Cast(Report Ptr, FParent)->RemoveBand(@This)
+		'If FParent <> 0 Then Cast(Report Ptr, FParent)->Bands.Remove(@This)
 	End Destructor
 
 	#ifndef ReadProperty_Off
 		Private Function ReportBand.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "bandtype":      Return @BandType
-			Case "height":        Return @Height
+			Case "height":        Return @FHeight
 			Case "groupfield":    Return Cast(Any Ptr, GroupField)
 			Case "newpagebefore": Return @NewPageBefore
 			Case "newpageafter":  Return @NewPageAfter
@@ -63,7 +126,10 @@ Namespace My.Sys.Forms
 		Private Function ReportBand.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			Select Case LCase(PropertyName)
 			Case "bandtype":        If Value <> 0 Then This.BandType = *Cast(ReportBandType Ptr, Value)
-			Case "height":          If Value <> 0 Then This.Height = QInteger(Value)
+			Case "height":
+				'The Height property itself re-flows the bands below (and grows/shrinks the
+				'Report) once this band belongs to a Report - see ReportBand.Height.
+				If Value <> 0 Then This.Height = QInteger(Value)
 			Case "groupfield":      If Value <> 0 Then WLet(This.GroupField, QWString(Value))
 			Case "newpagebefore":   If Value <> 0 Then This.NewPageBefore = QBoolean(Value)
 			Case "newpageafter":    If Value <> 0 Then This.NewPageAfter = QBoolean(Value)
@@ -583,8 +649,6 @@ End Namespace
 ' My.Sys.Forms.Report - the single band-based report design surface
 '===============================================================================
 Namespace My.Sys.Forms
-	Const RPT_EDGE_ZONE As Integer = 4 'grab tolerance, in pixels, around a band's bottom edge
-
 	#ifdef __USE_WINAPI__
 		Private Sub Report.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
@@ -602,6 +666,8 @@ Namespace My.Sys.Forms
 	End Sub
 
 	Constructor Report
+		Bands.Parent     = @This
+		Bands.Components = @FComponents
 		With This
 			#ifdef __USE_GTK__
 				widget = gtk_layout_new(NULL, NULL)
@@ -636,30 +702,17 @@ Namespace My.Sys.Forms
 		FDocument.DocumentName = "Report"
 	End Constructor
 
+	'Nothing to do here any more - Bands is a plain (non-pointer) ReportBandCollection member,
+	'so FreeBASIC automatically runs its Destructor (which calls Bands.Clear, freeing every
+	'band) right after this Destructor's body finishes, the same way Panel's own Destructor
+	'still runs afterwards for everything else.
 	Destructor Report
-		For i As Integer = 0 To FBands.Count - 1
-			Dim As ReportBand Ptr b = QReportBandPtr(FBands.Item(i))
-			If b Then Delete b
-		Next
-		FBands.Clear
 	End Destructor
-
-	Private Function Report.DesignAreaLeft() As Integer
-		Return BAND_LIST_WIDTH
-	End Function
-
-	Private Function Report.BandTop(Index As Integer) As Integer
-		Dim As Integer y = 0
-		For i As Integer = 0 To Index - 1
-			y += QReportBandPtr(FBands.Item(i))->Height
-		Next
-		Return y
-	End Function
 
 	Private Function Report.BandAt(y As Integer) As Integer
 		Dim As Integer top = 0
-		For i As Integer = 0 To FBands.Count - 1
-			Dim As Integer h = QReportBandPtr(FBands.Item(i))->Height
+		For i As Integer = 0 To Bands.Count - 1
+			Dim As Integer h = Bands.Item(i)->Height
 			If y >= top AndAlso y < top + h Then Return i
 			top += h
 		Next
@@ -667,8 +720,8 @@ Namespace My.Sys.Forms
 	End Function
 
 	Private Function Report.BandCaption(Index As Integer) As String
-		If Index < 0 OrElse Index >= FBands.Count Then Return ""
-		Dim As ReportBand Ptr b = QReportBandPtr(FBands.Item(Index))
+		If Index < 0 OrElse Index >= Bands.Count Then Return ""
+		Dim As ReportBand Ptr b = Bands.Item(Index)
 		Select Case b->BandType
 		Case rbtReportHeader: Return "Report Header"
 		Case rbtPageHeader:   Return "Page Header"
@@ -680,98 +733,42 @@ Namespace My.Sys.Forms
 		End Select
 		Return ""
 	End Function
-	
+
 	Private Sub Report.Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
+		'ReportBand.Height is resizing the Report itself (the Report is following a band, not
+		'the other way round) - the bands are already right, so just move.
+		If RB_Syncing Then
+			Base.Move(cLeft, cTop, cWidth, cHeight)
+			Return
+		End If
+
 		Dim As Integer NewHeight = cHeight
-		Dim As Integer LastIdx = FBands.Count - 1
+		Dim As Integer LastIdx = Bands.Count - 1
 		If LastIdx >= 0 Then
-			Dim As ReportBand Ptr LastBand = QReportBandPtr(FBands.Item(LastIdx))
+			Dim As ReportBand Ptr LastBand = Bands.Item(LastIdx)
 			'Oxirgi banddan boshqa hamma bandlarning umumiy balandligi - bular
 			'Reportning Height'i qanday o'zgarishidan qat'iy nazar joyidan qimirlamaydi.
-			Dim As Integer OtherBandsTop = BandTop(LastIdx)
+			Dim As Integer OtherBandsTop = Bands.TopOf(LastIdx)
 			'Height oxirgi bandni hech bo'lmasa o'zining minimal balandligigacha (8px,
-			'xuddi BandHeight property'sidagidek) qisqartiradigan darajadan pastga
+			'xuddi ReportBand.Height property'sidagidek) qisqartiradigan darajadan pastga
 			'tushmasin.
 			Dim As Integer MinHeight = OtherBandsTop + 8
 			If NewHeight < MinHeight Then NewHeight = MinHeight
 
 			'Farqni to'liq oxirgi bandga beramiz - shu bilan Report.Height o'zgarganda
 			'boshqa bandlar joyida qoladi, faqat oxirgisi cho'ziladi/qisqaradi.
+			RB_Syncing = True 'ReportBand.Height must only store it, not resize the Report again
 			LastBand->Height = NewHeight - OtherBandsTop
+			RB_Syncing = False
 		End If
 		Base.Move(cLeft, cTop, cWidth, NewHeight)
-	End Sub
-	
-	'Keeps a control fully inside Report's own Panel bounds. Works uniformly on either a
-	'plain native Control (e.g. a Label dropped straight onto the surface) or a
-	'ReportControl (ReportField/ReportImage/ReportLine/ReportShape) since both ultimately
-	'reduce to Component, which is all this needs (Left/Top/Width/Height/SetBounds are all
-	'public there) - so this one Sub serves both of ShiftControlsFrom's loops below. None of
-	'these leaf items ever host children of their own, so unlike Report/Panel they have no
-	'reason to extend past their container's Width/Height; letting them do so only leaves
-	'part of the item unreachable/unclickable past the Panel's edge. Left is also floored at
-	'DesignAreaLeft() so an item can't slide under the band-name strip.
-	Private Sub Report.ClampControlBounds(c As Any Ptr)
-		Dim As Component Ptr cc = Cast(Component Ptr, c)
-		If cc = 0 Then Return
-
-		Dim As Integer MinX = DesignAreaLeft()
-		Dim As Integer NewLeft = cc->Left
-		Dim As Integer NewTop  = cc->Top
-		Dim As Integer NewW    = cc->Width
-		Dim As Integer NewH    = cc->Height
-
-		'Never wider/taller than the Panel itself has room for.
-		If NewW > This.Width  - MinX Then NewW = This.Width  - MinX
-		If NewH > This.Height          Then NewH = This.Height
-		If NewW < 1 Then NewW = 1
-		If NewH < 1 Then NewH = 1
-
-		If NewLeft < MinX             Then NewLeft = MinX
-		If NewLeft + NewW > This.Width Then NewLeft = This.Width - NewW
-		If NewLeft < MinX             Then NewLeft = MinX 'Panel narrower than MinX+NewW
-
-		If NewTop < 0                   Then NewTop = 0
-		If NewTop + NewH > This.Height  Then NewTop = This.Height - NewH
-		If NewTop < 0                   Then NewTop = 0 'Panel shorter than NewH
-
-		If NewLeft <> cc->Left OrElse NewTop <> cc->Top OrElse NewW <> cc->Width OrElse NewH <> cc->Height Then
-			cc->SetBounds(NewLeft, NewTop, NewW, NewH)
-		End If
-	End Sub
-
-	'Moves every field control whose Top >= y down/up by Delta pixels, so bands below a
-	'resize/insert/remove point (and everything dropped inside them) re-flow with no gap or
-	'overlap. Also re-clamps every control to the Panel's own bounds afterwards (see
-	'ClampControlBounds) since a Delta can just as easily push a control past Report's
-	'right/bottom edge as it can create the gap/overlap this Sub exists to close.
-	'Two kinds of item can be dropped onto a band, and they live in two different places:
-	'plain native Controls (e.g. a Label) in Controls()/ControlCount as usual, and
-	'ReportField/ReportImage/ReportLine/ReportShape - which Extend ReportControl, i.e.
-	'Component, not Control - in FComponents (inherited straight from Component). Both
-	'loops below are otherwise identical.
-	Private Sub Report.ShiftControlsFrom(y As Integer, Delta As Integer)
-		Dim As Integer n = This.ControlCount
-		For i As Integer = 0 To n - 1
-			Dim As Control Ptr c = This.Controls[i]
-			If c = 0 Then Continue For
-			If Delta <> 0 AndAlso c->Top >= y Then c->SetBounds(c->Left, c->Top + Delta, c->Width, c->Height)
-			ClampControlBounds(c)
-		Next
-
-		Dim As Integer m = This.FComponents.Count
-		For i As Integer = 0 To m - 1
-			Dim As Component Ptr c = Cast(Component Ptr, This.FComponents.Item(i))
-			If c = 0 Then Continue For
-			If Delta <> 0 AndAlso c->Top >= y Then c->SetBounds(c->Left, c->Top + Delta, c->Width, c->Height)
-			ClampControlBounds(c)
-		Next
+		Invalidate
 	End Sub
 
 	'Index into FComponents of the topmost (highest-index, i.e. most-recently-added)
-	'ReportControl whose bounds contain (x, y), or -1 if none - used by
-	'HandleMouseDown to pick which field a click on the design surface selects/starts
-	'dragging.
+	'ReportControl whose bounds contain (x, y), or -1 if none. Pure hit-testing helper -
+	'Designer can call it through reflection if/when it needs to pick which field a click on
+	'the design surface hits.
 	Private Function Report.FieldAt(x As Integer, y As Integer) As Integer
 		For i As Integer = This.FComponents.Count - 1 To 0 Step -1
 			Dim As ReportControl Ptr c = QReportControlPtr(This.FComponents.Item(i))
@@ -782,30 +779,94 @@ Namespace My.Sys.Forms
 		Return -1
 	End Function
 
-	Private Function Report.OnBandEdge(Index As Integer, y As Integer) As Boolean
-		If Index < 0 OrElse Index >= FBands.Count Then Return False
-		Dim As Integer edge = BandTop(Index) + QReportBandPtr(FBands.Item(Index))->Height
-		Return (y >= edge - RPT_EDGE_ZONE) AndAlso (y <= edge + RPT_EDGE_ZONE)
+	'===============================================================================
+	' My.Sys.Forms.ReportBandCollection - owns/manages a Report's bands (mirrors
+	' ReBarBandCollection's role for ReBar's bands - see Report.bi)
+	'===============================================================================
+	Private Function ReportBandCollection.Count() As Integer
+		Return FItems.Count
 	End Function
 
-	Private Function Report.BandCount() As Integer
-		Return FBands.Count
+	Private Property ReportBandCollection.Item(Index As Integer) As ReportBand Ptr
+		If Index < 0 OrElse Index >= FItems.Count Then Return 0
+		Return QReportBandPtr(FItems.Item(Index))
+	End Property
+
+	Private Property ReportBandCollection.Item(Index As Integer, Value As ReportBand Ptr)
+		If Index < 0 OrElse Index >= FItems.Count Then Return
+		FItems.Item(Index) = Value
+	End Property
+
+	Private Function ReportBandCollection.TopOf(Index As Integer) As Integer
+		Dim As Integer y = 0
+		For i As Integer = 0 To Index - 1
+			If i >= FItems.Count Then Exit For
+			y += QReportBandPtr(FItems.Item(i))->Height
+		Next
+		Return y
 	End Function
 
-	Private Function Report.BandByIndex(Index As Integer) As ReportBand Ptr
-		If Index < 0 OrElse Index >= FBands.Count Then Return 0
-		Return QReportBandPtr(FBands.Item(Index))
-	End Function
+	Private Sub ReportBandCollection.ClampControlBounds(c As Any Ptr)
+		Dim As Component Ptr cc = Cast(Component Ptr, c)
+		If cc = 0 OrElse Parent = 0 Then Return
 
-	Private Function Report.AddBand(NewBandType As ReportBandType) As ReportBand Ptr
-		'Insert in canonical print order (the ReportBandType enum's declaration order),
-		'stable relative to existing bands that share the same type (e.g. nested groups).
-		Dim As Integer InsertAt = FBands.Count
-		For i As Integer = 0 To FBands.Count - 1
-			If CInt(QReportBandPtr(FBands.Item(i))->BandType) > CInt(NewBandType) Then InsertAt = i : Exit For
+		Dim As Integer MinX = Report.BAND_LIST_WIDTH
+		Dim As Integer NewLeft = cc->Left
+		Dim As Integer NewTop  = cc->Top
+		Dim As Integer NewW    = cc->Width
+		Dim As Integer NewH    = cc->Height
+
+		'Never wider/taller than the Panel itself has room for.
+		If NewW > Parent->Width - MinX Then NewW = Parent->Width - MinX
+		If NewH > Parent->Height       Then NewH = Parent->Height
+		If NewW < 1 Then NewW = 1
+		If NewH < 1 Then NewH = 1
+
+		If NewLeft < MinX                 Then NewLeft = MinX
+		If NewLeft + NewW > Parent->Width Then NewLeft = Parent->Width - NewW
+		If NewLeft < MinX                 Then NewLeft = MinX 'Panel narrower than MinX+NewW
+
+		If NewTop < 0                       Then NewTop = 0
+		If NewTop + NewH > Parent->Height   Then NewTop = Parent->Height - NewH
+		If NewTop < 0                       Then NewTop = 0 'Panel shorter than NewH
+
+		If NewLeft <> cc->Left OrElse NewTop <> cc->Top OrElse NewW <> cc->Width OrElse NewH <> cc->Height Then
+			cc->SetBounds(NewLeft, NewTop, NewW, NewH)
+		End If
+	End Sub
+
+	Private Sub ReportBandCollection.ShiftControlsFrom(y As Integer, Delta As Integer)
+		If Parent = 0 Then Return
+
+		Dim As Integer n = Parent->ControlCount
+		For i As Integer = 0 To n - 1
+			Dim As Control Ptr c = Parent->Controls[i]
+			If c = 0 Then Continue For
+			If Delta <> 0 AndAlso c->Top >= y Then c->SetBounds(c->Left, c->Top + Delta, c->Width, c->Height)
+			ClampControlBounds(c)
 		Next
 
-		Dim As Integer InsertY = BandTop(InsertAt)
+		If Components = 0 Then Return
+		Dim As Integer m = Components->Count
+		For i As Integer = 0 To m - 1
+			Dim As Component Ptr c = Cast(Component Ptr, Components->Item(i))
+			If c = 0 Then Continue For
+			If Delta <> 0 AndAlso c->Top >= y Then c->SetBounds(c->Left, c->Top + Delta, c->Width, c->Height)
+			ClampControlBounds(c)
+		Next
+	End Sub
+
+	Private Function ReportBandCollection.Add(NewBandType As ReportBandType) As ReportBand Ptr
+		If Parent = 0 Then Return 0
+
+		'Insert in canonical print order (the ReportBandType enum's declaration order),
+		'stable relative to existing bands that share the same type (e.g. nested groups).
+		Dim As Integer InsertAt = FItems.Count
+		For i As Integer = 0 To FItems.Count - 1
+			If CInt(QReportBandPtr(FItems.Item(i))->BandType) > CInt(NewBandType) Then InsertAt = i : Exit For
+		Next
+
+		Dim As Integer InsertY   = TopOf(InsertAt)
 		Dim As Integer NewHeight = IIf(NewBandType = rbtReportHeader OrElse NewBandType = rbtReportFooter OrElse _
 			NewBandType = rbtPageHeader OrElse NewBandType = rbtPageFooter, 32, 24)
 
@@ -817,27 +878,27 @@ Namespace My.Sys.Forms
 		NewB->GroupField    = 0
 		NewB->NewPageBefore = False
 		NewB->NewPageAfter  = False
-		'FBands.Insert shifts every band at/after InsertAt up one slot for us - no manual loop
+		'FItems.Insert shifts every band at/after InsertAt up one slot for us - no manual loop
 		'needed the way the old fixed-size array required.
-		FBands.Insert(InsertAt, NewB)
+		FItems.Insert(InsertAt, NewB)
 		RB_InAddBand = True
-		NewB->Parent        = @This
+		NewB->Parent = Parent
 		RB_InAddBand = False
-		Invalidate
+		Parent->Invalidate
 		Return NewB
 	End Function
-	
-	Private Sub Report.AddBand(NewBand As ReportBand Ptr)
-		If NewBand = 0 Then Return
-		
+
+	Private Sub ReportBandCollection.Add(NewBand As ReportBand Ptr)
+		If Parent = 0 OrElse NewBand = 0 Then Return
+
 		'Insert in canonical print order (the ReportBandType enum's declaration order),
 		'stable relative to existing bands that share the same type (e.g. nested groups).
-		Dim As Integer InsertAt = FBands.Count
-		For i As Integer = 0 To FBands.Count - 1
-			If CInt(QReportBandPtr(FBands.Item(i))->BandType) > CInt(NewBand->BandType) Then InsertAt = i : Exit For
+		Dim As Integer InsertAt = FItems.Count
+		For i As Integer = 0 To FItems.Count - 1
+			If CInt(QReportBandPtr(FItems.Item(i))->BandType) > CInt(NewBand->BandType) Then InsertAt = i : Exit For
 		Next
 
-		Dim As Integer InsertY = BandTop(InsertAt)
+		Dim As Integer InsertY = TopOf(InsertAt)
 		'Respect an explicitly-set Height, but fall back to the same sensible default the
 		'BandType overload uses (32/24px) - a freshly-constructed ReportBand.Height is 0 until
 		'the caller sets it, and a 0-height band would be invisible/undraggable.
@@ -852,7 +913,7 @@ Namespace My.Sys.Forms
 		'Copy every field of the caller's (already-configured) band - not just BandType, so
 		'Height/GroupField/NewPageBefore/NewPageAfter set before "b.Parent = Rep" survive.
 		'A brand-new ReportBand is allocated here (rather than storing NewBand itself) so this
-		'Report always owns and frees its own bands - NewBand stays the caller's to manage.
+		'collection always owns and frees its own bands - NewBand stays the caller's to manage.
 		Dim As ReportBand Ptr NewB = New ReportBand
 		NewB->BandType      = NewBand->BandType
 		NewB->Height        = UseHeight
@@ -860,274 +921,103 @@ Namespace My.Sys.Forms
 		WLet(NewB->GroupField, WGet(NewBand->GroupField))
 		NewB->NewPageBefore = NewBand->NewPageBefore
 		NewB->NewPageAfter  = NewBand->NewPageAfter
-		FBands.Insert(InsertAt, NewB)
+		FItems.Insert(InsertAt, NewB)
 		RB_InAddBand = True
-		NewB->Parent        = @This
+		NewB->Parent = Parent
 		RB_InAddBand = False
-		Invalidate
+		Parent->Invalidate
 	End Sub
 
-	Private Sub Report.RemoveBand(Index As Integer)
-		If Index < 0 OrElse Index >= FBands.Count Then Return
+	Private Sub ReportBandCollection.Remove(Index As Integer)
+		If Parent = 0 OrElse Index < 0 OrElse Index >= FItems.Count Then Return
 
-		Dim As Integer y0 = BandTop(Index)
-		Dim As ReportBand Ptr b = QReportBandPtr(FBands.Item(Index))
+		Dim As Integer y0 = TopOf(Index)
+		Dim As ReportBand Ptr b = QReportBandPtr(FItems.Item(Index))
 		Dim As Integer h  = b->Height
 
 		'Drop every field control that lived inside this band - both plain native Controls
 		'(Controls()/ControlCount) and ReportField/ReportImage/ReportLine/ReportShape
 		'(FComponents, since those Extend ReportControl -> Component, not Control).
-		Dim As Integer n = This.ControlCount
+		Dim As Integer n = Parent->ControlCount
 		For i As Integer = n - 1 To 0 Step -1
-			Dim As Control Ptr c = This.Controls[i]
+			Dim As Control Ptr c = Parent->Controls[i]
 			If c = 0 Then Continue For
 			If c->Top >= y0 AndAlso c->Top < y0 + h Then Delete c
 		Next
-		For i As Integer = This.FComponents.Count - 1 To 0 Step -1
-			Dim As Component Ptr c = Cast(Component Ptr, This.FComponents.Item(i))
-			If c = 0 Then Continue For
-			If c->Top >= y0 AndAlso c->Top < y0 + h Then
-				Delete c 'ReportControl's own Destructor unlinks it from FComponents
-			End If
-		Next
+		If Components <> 0 Then
+			For i As Integer = Components->Count - 1 To 0 Step -1
+				Dim As Component Ptr c = Cast(Component Ptr, Components->Item(i))
+				If c = 0 Then Continue For
+				If c->Top >= y0 AndAlso c->Top < y0 + h Then
+					'Unlink first, then delete: this way no dangling pointer is ever left in
+					'the list, whether or not ReportControl's Destructor unlinks itself too
+					'(its own unlink code is commented out at the moment).
+					Components->Remove(i)
+					Delete c
+				End If
+			Next
+		End If
 
 		'Close the gap: everything below moves up by the removed band's height.
 		ShiftControlsFrom(y0 + h, -h)
 
 		Delete b
-		FBands.Remove(Index) 'shifts every later band down one slot for us
-		?45845, Index
+		FItems.Remove(Index) 'shifts every later band down one slot for us
 
-		Dim As Integer NewCount = FBands.Count
-		Invalidate
+		Parent->Invalidate
 	End Sub
 
-	'Overload: remove a band by pointer (as returned by AddBand) instead of by index. Ignores
-	'Band if it's 0 or doesn't belong to this Report (already removed, or from another Report).
-	Private Sub Report.RemoveBand(Band As ReportBand Ptr)
+	'Overload: remove a band by pointer (as returned by Add) instead of by index. Ignores Band
+	'if it's 0 or doesn't belong to this collection (already removed, or from another Report).
+	Private Sub ReportBandCollection.Remove(Band As ReportBand Ptr)
 		If Band = 0 Then Return
-		Dim As Integer Idx = FBands.IndexOf(Band)
-		If Idx >= 0 Then RemoveBand(Idx)
+		Dim As Integer Idx = IndexOf(Band)
+		If Idx >= 0 Then Remove(Idx)
 	End Sub
 
-	Private Property Report.BandType(Index As Integer) As ReportBandType
-		Return QReportBandPtr(FBands.Item(Index))->BandType
-	End Property
+	Private Sub ReportBandCollection.Clear
+		For i As Integer = 0 To FItems.Count - 1
+			Dim As ReportBand Ptr b = QReportBandPtr(FItems.Item(i))
+			If b Then Delete b
+		Next
+		FItems.Clear
+	End Sub
 
-	Private Property Report.BandType(Index As Integer, Value As ReportBandType)
-		If Index < 0 OrElse Index >= FBands.Count Then Return
-		QReportBandPtr(FBands.Item(Index))->BandType = Value
-		Invalidate
-	End Property
+	Private Function ReportBandCollection.IndexOf(Band As ReportBand Ptr) As Integer
+		If Band = 0 Then Return -1
+		Return FItems.IndexOf(Band)
+	End Function
 
-	Private Property Report.BandHeight(Index As Integer) As Integer
-		If Index < 0 OrElse Index >= FBands.Count Then Return 0
-		Return QReportBandPtr(FBands.Item(Index))->Height
-	End Property
-
-	Private Property Report.BandHeight(Index As Integer, Value As Integer)
-		If Index < 0 OrElse Index >= FBands.Count Then Return
-		Dim As ReportBand Ptr b = QReportBandPtr(FBands.Item(Index))
-		Dim As Integer NewHeight = Value
-		If NewHeight < 8 Then NewHeight = 8 'a band can never shrink to zero/negative height
-		Dim As Integer OldBottom = BandTop(Index) + b->Height
-		Dim As Integer Delta = NewHeight - b->Height
-		b->Height = NewHeight
-		ShiftControlsFrom(OldBottom, Delta)
-		Invalidate
-	End Property
-
-	Private Property Report.BandGroupField(Index As Integer) ByRef As WString
-		If Index < 0 OrElse Index >= FBands.Count Then Return WGet(0)
-		Return WGet(QReportBandPtr(FBands.Item(Index))->GroupField)
-	End Property
-
-	Private Property Report.BandGroupField(Index As Integer, ByRef Value As WString)
-		If Index < 0 OrElse Index >= FBands.Count Then Return
-		WLet(QReportBandPtr(FBands.Item(Index))->GroupField, Value)
-		Invalidate
-	End Property
-
-	Private Property Report.BandNewPageBefore(Index As Integer) As Boolean
-		If Index < 0 OrElse Index >= FBands.Count Then Return False
-		Return QReportBandPtr(FBands.Item(Index))->NewPageBefore
-	End Property
-
-	Private Property Report.BandNewPageBefore(Index As Integer, Value As Boolean)
-		If Index < 0 OrElse Index >= FBands.Count Then Return
-		QReportBandPtr(FBands.Item(Index))->NewPageBefore = Value
-	End Property
-
-	Private Property Report.BandNewPageAfter(Index As Integer) As Boolean
-		If Index < 0 OrElse Index >= FBands.Count Then Return False
-		Return QReportBandPtr(FBands.Item(Index))->NewPageAfter
-	End Property
-
-	Private Property Report.BandNewPageAfter(Index As Integer, Value As Boolean)
-		If Index < 0 OrElse Index >= FBands.Count Then Return
-		QReportBandPtr(FBands.Item(Index))->NewPageAfter = Value
-	End Property
-
-	Private Function Report.IndexOfBandType(BT As ReportBandType) As Integer
-		For i As Integer = 0 To FBands.Count - 1
-			If QReportBandPtr(FBands.Item(i))->BandType = BT Then Return i
+	Private Function ReportBandCollection.IndexOf(BT As ReportBandType) As Integer
+		For i As Integer = 0 To FItems.Count - 1
+			If QReportBandPtr(FItems.Item(i))->BandType = BT Then Return i
 		Next
 		Return -1
 	End Function
+
+	Private Function ReportBandCollection.Contains(Band As ReportBand Ptr) As Boolean
+		Return IndexOf(Band) <> -1
+	End Function
+
+	Private Constructor ReportBandCollection
+	End Constructor
+
+	Private Destructor ReportBandCollection
+		This.Clear
+	End Destructor
 
 	#ifndef ReadProperty_Off
 		Private Function Report.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "bandcount":
 				Static As Integer TmpBandCount
-				TmpBandCount = This.BandCount()
+				TmpBandCount = This.Bands.Count
 				Return @TmpBandCount
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
 			Return 0
 		End Function
 	#endif
-
-	#ifndef WriteProperty_Off
-		Private Function Report.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-			Select Case LCase(PropertyName)
-			Case Else: Return Base.WriteProperty(PropertyName, Value)
-			End Select
-			Return True
-		End Function
-	#endif
-	
-	Private Sub Report.HandleMouseDown(x As Integer, y As Integer)
-		If x < BAND_LIST_WIDTH Then
-			'Clicked a row in the band-name strip - just select it.
-			Dim As Integer Row = y \ BAND_LIST_ROW_H
-			'If Row >= 0 AndAlso Row < FBands.Count Then This.ActiveBand = Row
-			Return
-		End If
-
-		'A ReportField/ReportLabel/ReportImage/ReportLine/ReportShape has no native window to
-		'hit-test a click against on its own (see ReportControl), so Report does it here:
-		'select it and, since the click stayed down, start dragging it from its current
-		'offset to the cursor.
-		Dim As Integer HitField = FieldAt(x, y)
-		If HitField >= 0 Then
-			'This.ActiveField = HitField
-			Dim As ReportControl Ptr c = QReportControlPtr(FComponents.Item(HitField))
-			FDragField    = HitField
-			FDragOffsetX  = x - c->Left
-			FDragOffsetY  = y - c->Top
-			#ifdef __USE_GTK__
-				gtk_grab_add(widget)
-			#else
-				SetCapture(This.Handle)
-			#endif
-			Return
-		End If
-		'This.ActiveField = -1
-
-		'Clicked the design surface - either start a band bottom-edge drag, or select the
-		'band under the cursor (so newly dropped controls land in it).
-		For i As Integer = 0 To FBands.Count - 1
-			If OnBandEdge(i, y) Then
-				FDragBand   = i
-				FDragStartY = y
-				#ifdef __USE_GTK__
-					gtk_grab_add(widget)
-				#else
-					SetCapture(This.Handle)
-				#endif
-				Return
-			End If
-		Next
-		Dim As Integer HitBand = BandAt(y)
-		'If HitBand >= 0 Then This.ActiveBand = HitBand
-	End Sub
-
-	Private Sub Report.HandleMouseMove(x As Integer, y As Integer)
-		If FDragField >= 0 Then
-			Dim As Component Ptr c = Cast(Component Ptr, FComponents.Item(FDragField))
-			If c <> 0 Then
-				c->SetBounds(x - FDragOffsetX, y - FDragOffsetY, c->Width, c->Height)
-				ClampControlBounds(c)
-				Invalidate
-			End If
-		ElseIf FDragBand >= 0 Then
-			Dim As Integer NewHeight = BandHeight(FDragBand) + (y - FDragStartY)
-			If NewHeight < 8 Then NewHeight = 8
-			BandHeight(FDragBand) = NewHeight 'setter shifts everything below automatically
-			FDragStartY = y
-		ElseIf x >= BAND_LIST_WIDTH Then
-			Dim As Boolean OnEdge = False
-			For i As Integer = 0 To FBands.Count - 1
-				If OnBandEdge(i, y) Then OnEdge = True : Exit For
-			Next
-			This.Cursor = IIf(OnEdge, crSizeNS, crArrow)
-		Else
-			This.Cursor = crArrow
-		End If
-	End Sub
-
-	Private Sub Report.HandleMouseUp()
-		If FDragBand = -1 AndAlso FDragField = -1 Then Return
-		#ifdef __USE_GTK__
-			gtk_grab_remove(widget)
-		#else
-			ReleaseCapture()
-		#endif
-		FDragBand  = -1
-		FDragField = -1
-	End Sub
-
-	'Overridden - rather than assigning OnPaint/OnMouseDown/OnMouseMove/OnMouseUp, the way an
-	'ordinary library user of this Report control would - because those On* events belong to
-	'whoever uses Report, not to Report's own internal implementation (see the type-level
-	'comment in Report.bi). Calls Base.ProcessMessage throughout so Panel's own painting and
-	'any On* handlers the library user did set still fire exactly as they normally would;
-	'Report only adds its own design-surface drawing/hit-testing/dragging on top, and only
-	'while This.DesignMode is True.
-	Private Sub Report.ProcessMessage(ByRef Message As Message)
-		#ifdef __USE_GTK__
-			If Message.Event <> 0 Then
-				Select Case Message.Event->type
-				Case GDK_EXPOSE
-					Base.ProcessMessage(Message)
-					'Design-time band-strip/field drawing is NOT done here any more - Designer
-					'itself intercepts this control's expose event and draws it via
-					'Designer.DrawReport, exactly like it already does for ToolBar/ToolPalette.
-					'See the WINAPI branch below for the full rationale. DrawDesignSurface
-					'itself is unchanged and still used for the print/PDF path via DrawBand.
-					Return
-				Case GDK_BUTTON_PRESS
-					If This.DesignMode AndAlso Message.Event->button.button = 1 Then HandleMouseDown(Message.Event->button.x, Message.Event->button.y)
-				Case GDK_MOTION_NOTIFY
-					If This.DesignMode Then HandleMouseMove(Message.Event->motion.x, Message.Event->motion.y)
-				Case GDK_BUTTON_RELEASE
-					If This.DesignMode AndAlso Message.Event->button.button = 1 Then HandleMouseUp()
-				End Select
-			End If
-		#elseif defined(__USE_WINAPI__)
-			Select Case Message.Msg
-			Case WM_PAINT
-				Base.ProcessMessage(Message) 'Panel paints its own background/bevel and fires OnPaint for the library user, if set
-				'Design-time band-strip/field drawing is NOT done here any more - Designer
-				'itself intercepts this control's WM_PAINT and draws it via Designer.DrawReport,
-				'exactly like it already does for ToolBar/ToolPalette (see HookChildProc). That
-				'keeps this drawing on the same single paint cycle Designer's own background/
-				'grid repaint runs on, so there is no ordering race between the two - whereas
-				'calling DrawDesignSurface from here raced with Designer's own FDialog repaint
-				'in a way that sometimes left the band strip painted-over. DrawDesignSurface
-				'itself is unchanged and still used for the print/PDF path via DrawBand.
-				Return
-			Case WM_LBUTTONDOWN
-				If This.DesignMode Then HandleMouseDown(UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)))
-			Case WM_MOUSEMOVE
-				If This.DesignMode Then HandleMouseMove(UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)))
-			Case WM_LBUTTONUP
-				If This.DesignMode Then HandleMouseUp()
-			End Select
-		#endif
-		Base.ProcessMessage(Message)
-	End Sub
 End Namespace
 
 '===============================================================================
@@ -1147,25 +1037,25 @@ Namespace My.Sys.Forms
 	End Property
 
 	Private Function Report.MeasureBand(BandIndex As Integer, ByRef Canvas As My.Sys.Drawing.Canvas) As Integer
-		If BandIndex < 0 Then Return 0
-		Return This.BandHeight(BandIndex)
+		If BandIndex < 0 OrElse BandIndex >= Bands.Count Then Return 0
+		Return Bands.Item(BandIndex)->Height
 	End Function
 
 	'Draws every field control of Report whose Top falls inside BandIndex's vertical span
 	'onto Canvas, offset so the band's own top lines up with the given page position Top and
-	'so the band-list strip's width is stripped back out (page X = design X - DesignAreaLeft).
+	'so the band-list strip's width is stripped back out (page X = design X - BAND_LIST_WIDTH).
 	'RowIndex selects which data row bound fields use (ignored by header/footer bands where
 	'DataField lookups still work if you want running totals, since OnGetFieldValue simply
 	'receives the current RowIndex).
 	Private Sub Report.DrawBand(ByRef Canvas As My.Sys.Drawing.Canvas, BandIndex As Integer, Top As Single, RowIndex As Integer)
-		If BandIndex < 0 Then Exit Sub
+		If BandIndex < 0 OrElse BandIndex >= Bands.Count Then Exit Sub
 		Dim As Report Ptr Rep = @This
 		Dim As Integer BandY0 = 0
 		For i As Integer = 0 To BandIndex - 1
-			BandY0 += Rep->BandHeight(i)
+			BandY0 += Rep->Bands.Item(i)->Height
 		Next
-		Dim As Integer BandY1 = BandY0 + Rep->BandHeight(BandIndex)
-		Dim As Integer OffsetX = Rep->DesignAreaLeft()
+		Dim As Integer BandY1 = BandY0 + Rep->Bands.Item(BandIndex)->Height
+		Dim As Integer OffsetX = BAND_LIST_WIDTH
 
 		Dim As Control Ptr RepCtrl = Cast(Control Ptr, Rep)
 		Dim As Integer n = RepCtrl->ControlCount()
@@ -1304,8 +1194,9 @@ Namespace My.Sys.Forms
 	'GroupFooter band's own GroupField and OnGetFieldValue.
 	Private Function Report.GroupKeyOf(BandIndex As Integer, RowIndex As Integer) ByRef As WString
 		If BandIndex < 0 OrElse OnGetFieldValue = 0 Then Return ""
-		If Len(This.BandGroupField(BandIndex)) = 0 Then Return ""
-		Return OnGetFieldValue(This, This.BandGroupField(BandIndex), RowIndex)
+		Dim As ReportBand Ptr b = Bands.Item(BandIndex)
+		If b = 0 OrElse Len(WGet(b->GroupField)) = 0 Then Return ""
+		Return OnGetFieldValue(This, WGet(b->GroupField), RowIndex)
 	End Function
 
 	'Very small formatter: supports {0:N2} (fixed decimals) and a couple of common
@@ -1370,13 +1261,13 @@ Namespace My.Sys.Forms
 		
 		If Rep = 0 Then HasMorePages = False : Exit Sub
 
-		Dim As Integer ReportHeaderBand = Rep->IndexOfBandType(rbtReportHeader)
-		Dim As Integer ReportFooterBand = Rep->IndexOfBandType(rbtReportFooter)
-		Dim As Integer PageHeaderBand   = Rep->IndexOfBandType(rbtPageHeader)
-		Dim As Integer PageFooterBand   = Rep->IndexOfBandType(rbtPageFooter)
-		Dim As Integer GroupHeaderBand  = Rep->IndexOfBandType(rbtGroupHeader)
-		Dim As Integer GroupFooterBand  = Rep->IndexOfBandType(rbtGroupFooter)
-		Dim As Integer DetailBand       = Rep->IndexOfBandType(rbtDetail)
+		Dim As Integer ReportHeaderBand = Rep->Bands.IndexOf(rbtReportHeader)
+		Dim As Integer ReportFooterBand = Rep->Bands.IndexOf(rbtReportFooter)
+		Dim As Integer PageHeaderBand   = Rep->Bands.IndexOf(rbtPageHeader)
+		Dim As Integer PageFooterBand   = Rep->Bands.IndexOf(rbtPageFooter)
+		Dim As Integer GroupHeaderBand  = Rep->Bands.IndexOf(rbtGroupHeader)
+		Dim As Integer GroupFooterBand  = Rep->Bands.IndexOf(rbtGroupFooter)
+		Dim As Integer DetailBand       = Rep->Bands.IndexOf(rbtDetail)
 
 		Dim As Integer LeftM = Rep->FDocument.PrinterSettings.MarginLeft
 		Dim As Integer TopM  = Rep->FDocument.PrinterSettings.MarginTop
@@ -1537,6 +1428,6 @@ End Namespace
 #ifdef __EXPORT_PROCS__
 	Function ReportBandByIndex cdecl Alias "ReportBandByIndex" (rpt As Any Ptr, Index As Integer) As Any Ptr __EXPORT__
 		If rpt = 0 Then Return 0
-		Return QReport(rpt).BandByIndex(Index)
+		Return QReport(rpt).Bands.Item(Index)
 	End Function
 #endif

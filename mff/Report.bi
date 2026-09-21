@@ -60,21 +60,22 @@ Namespace My.Sys.Forms
 	End Enum
 
 	'A single band's metadata. Deliberately NOT a Control/Panel descendant and never
-	'instantiated on its own - Report owns an internal array of these (FBands()) instead of
-	'holding a collection of separate band controls, so the component tree / toolbox never
-	'shows a "ReportBand" alongside Report. Field controls belonging to a band are located
-	'purely by their Top falling inside the band's vertical span (see Report.BandAt) -
-	'there is no per-control parent/child relationship to a band, only to the Report itself.
+	'instantiated on its own - Report owns them through Report.Bands (a ReportBandCollection,
+	'the same role ReBarBandCollection plays for ReBar) instead of holding a collection of
+	'separate band controls, so the component tree / toolbox never shows a "ReportBand"
+	'alongside Report. Field controls belonging to a band are located purely by their Top
+	'falling inside the band's vertical span (see Report.BandAt) - there is no per-control
+	'parent/child relationship to a band, only to the Report itself.
 	
 	Type PReport As Report Ptr
 	
 	Private Type ReportBand Extends My.Sys.Object
 	Private:
 		FParent As Any Ptr 'the owning Report control (Cast internally)
+		FHeight As Integer
 	Public:
 		Components As List
 		BandType      As ReportBandType
-		Height        As Integer
 		GroupField    As WString Ptr
 		NewPageBefore As Boolean
 		NewPageAfter  As Boolean
@@ -84,9 +85,88 @@ Namespace My.Sys.Forms
 		#ifndef WriteProperty_Off
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
+		Declare Property Height As Integer
+		'Once this band belongs to a Report, changing this re-flows every band below it (and
+		'its field controls) down/up to match - exactly like dragging the band's bottom edge
+		'on the design surface - and grows/shrinks Report's own Height by the same amount, so
+		'the bands keep filling it. Never smaller than 8px once attached to a Report.
+		Declare Property Height(Value As Integer)
 		'The Report control this band belongs to (Cast to My.Sys.Forms.Report Ptr internally).
 		Declare Property Parent As PReport
 		Declare Property Parent(Value As PReport)
+		Declare Constructor
+		Declare Destructor
+	End Type
+
+	'`ReportBandCollection` - owns and manages a Report's bands, the same role
+	'`ReBarBandCollection` plays for a ReBar's bands: Report.Bands is the single point of
+	'entry for adding/removing/looking up bands, instead of Report itself exposing raw
+	'AddBand/RemoveBand/BandByIndex methods that reach into a private list directly.
+	'Report.AddBand/RemoveBand/BandByIndex/BandCount/IndexOfBand/IndexOfBandType all still
+	'exist too, as thin convenience wrappers around this collection (again, exactly like
+	'ReBar.Add(Ctrl) is a thin wrapper around Bands.Add(Ctrl)) - existing code, and the
+	'ReportBandByIndex/BandCount reflection Designer.bas relies on, keep working unchanged.
+	Private Type ReportBandCollection
+	Private:
+		FItems As List
+		'Keeps a control fully inside Report's own Panel bounds. Neither a plain native Control
+		'(e.g. a Label dropped straight onto the surface) nor a ReportControl (ReportField/
+		'ReportImage/ReportLine/ReportShape) has any reason to stick out past Report's own
+		'Panel bounds: the former is a leaf control that never holds children of its own, and
+		'the latter is not even a Control, just data Report itself draws and hit-tests. Clamps
+		'c's Left/Top/Width/Height so it stays fully inside [BAND_LIST_WIDTH, Width) x
+		'[0, Height). c may point to either kind (both ultimately reduce to Component, which
+		'is all this needs).
+		Declare Sub ClampControlBounds(c As Any Ptr)
+	Public:
+		'The owning Report control.
+		Parent As PReport
+		'The owning Report's FComponents list (where its ReportField/ReportImage/ReportLine/
+		'ReportShape items live - they Extend Component, not Control). FComponents is a
+		'Protected member of Component, so the collection can't reach it through Parent;
+		'Report's own constructor hands it over here instead, right next to Parent.
+		Components As List Ptr
+		'Y position (in design-surface / field-control coordinates, i.e. ignoring the band-
+		'list strip) of the top edge of the band at Index. Index = Count gives the bottom
+		'edge of the last band, i.e. where a band appended at the end would start.
+		Declare Function TopOf(Index As Integer) As Integer
+		'Moves every field control whose Top >= y down/up by Delta pixels - used when a
+		'band's Height changes (or a band is added/removed) so every band (and its controls)
+		'below it re-flows with no gap or overlap, the same job the old
+		'ReportBand.RestackBands used to do. Also re-clamps every control to the Report's
+		'bounds afterwards (see ClampControlBounds), since a Delta can just as easily push a
+		'control past Report's right/bottom edge as it can create the gap/overlap this exists
+		'to close. Two kinds of item can be dropped onto a band, and they live in two
+		'different places: plain native Controls (e.g. a Label) in Parent's Controls()/
+		'ControlCount as usual, and the ReportField/ReportImage/ReportLine/ReportShape items
+		'in Components.
+		Declare Sub ShiftControlsFrom(y As Integer, Delta As Integer)
+		Declare Function Count As Integer
+		Declare Property Item(Index As Integer) As ReportBand Ptr
+		Declare Property Item(Index As Integer, Value As ReportBand Ptr)
+		'Appends a new band of NewBandType in canonical print order (the ReportBandType enum's
+		'declaration order), stable relative to existing bands that share the same type (e.g.
+		'nested groups). Height defaults to 32px for Report/Page bands, 24px for Group/Detail
+		'bands. The returned pointer stays valid for the band's whole lifetime, but becomes
+		'stale the moment Remove deletes that particular band.
+		Declare Function Add(NewBandType As ReportBandType) As ReportBand Ptr
+		'Copies NewBand's own properties (BandType/Height/GroupField/NewPageBefore/
+		'NewPageAfter) into a freshly-allocated band this collection owns, and inserts it in
+		'canonical print order - NewBand itself stays the caller's to manage/free.
+		Declare Sub Add(NewBand As ReportBand Ptr)
+		'Removes the band at Index; every field control that was inside it is also removed,
+		'and every band below it (with its controls) re-flows up to close the gap.
+		Declare Sub Remove(Index As Integer)
+		'Same as Remove(Index), but takes a band pointer (as returned by Add, or by walking
+		'the collection yourself) instead of an index. Does nothing if Band is 0 or doesn't
+		'belong to this collection.
+		Declare Sub Remove(Band As ReportBand Ptr)
+		Declare Sub Clear
+		'Index of Band within the collection, or -1 if it's 0 or doesn't belong to it.
+		Declare Function IndexOf(Band As ReportBand Ptr) As Integer
+		'First band index whose BandType is BT, or -1 if the report has none.
+		Declare Function IndexOf(BT As ReportBandType) As Integer
+		Declare Function Contains(Band As ReportBand Ptr) As Boolean
 		Declare Constructor
 		Declare Destructor
 	End Type
@@ -101,11 +181,11 @@ Namespace My.Sys.Forms
 	'own, and none of them need (or get) a real OS window most of the time. Report owns and
 	'lists them in FComponents (inherited straight from Component - setting
 	'SomeField.Parent = @Rep is all it takes to register one, exactly like Component.Parent
-	'already does for any Component) and is responsible for both drawing them
-	'(Report.DrawReportControlContent, shared by the print engine and the design surface)
-	'and hit-testing/selecting/dragging them on the design surface
-	'(Report.HandleMouseDown/Move/Up) - there is no native window to paint itself or to
-	'route mouse messages through the way a real Control has.
+	'already does for any Component) and is responsible for drawing them
+	'(Report.DrawReportControlContent, shared by the print engine and the design surface) -
+	'there is no native window to paint itself or to route mouse messages through the way a
+	'real Control has. Selecting/dragging one of these on the design surface is entirely
+	'Designer's job (via reflection - see Report.FieldAt), not Report's own.
 	'Handle (inherited from Component) is only ever created while This.DesignMode is True -
 	'i.e. while actively being edited on a design surface - and is destroyed the instant
 	'DesignMode goes back to False. A report that is only ever Print()ed/PrintPreview()ed/
@@ -343,59 +423,27 @@ Namespace My.Sys.Forms
 	'layout IS this control, and this control prints itself.
 	Private Type Report Extends Panel
 	Private:
-		'Dynamically-growing band list (each item is a ReportBand Ptr owned by this Report) -
-		'replaces the old fixed-size FBands(REPORT_MAX_BANDS-1) array, so a report is no longer
-		'capped at REPORT_MAX_BANDS bands. Use FBands.Count instead of a separate FBandCount.
-		FBands      As List
-		FDragBand   As Integer 'index of the band whose bottom edge is being drag-resized, or -1
-		FDragStartY As Integer
 		FRowCount   As Integer
 		FCurrentRow As Integer
 		FDocument   As PrintDocument
-		'Index into FComponents (inherited from Component) of the ReportControl currently
-		'selected/framed on the design surface, or -1 if none. FDragField/FDragOffsetX/Y
-		'track a left-button drag-to-move in progress on that same item.
-		FDragField     As Integer
-		FDragOffsetX   As Integer
-		FDragOffsetY   As Integer
 
-		'Y position (in design-surface / field-control coordinates, i.e. ignoring the band-
-		'list strip) of the top edge of FBands(Index).
-		Declare Function BandTop(Index As Integer) As Integer
 		'Index of the band whose [Top, Top+Height) span contains y, or -1 if none (below the
 		'last band).
 		Declare Function BandAt(y As Integer) As Integer
 		Declare Function BandCaption(Index As Integer) As String
-		'Moves every field control whose Top >= y down/up by Delta pixels - used when a
-		'band's Height changes so every band (and its controls) below it re-flows with no
-		'gap or overlap, the same job the old ReportBand.RestackBands used to do.
-		Declare Sub ShiftControlsFrom(y As Integer, Delta As Integer)
-		'Neither a plain native Control (e.g. a Label dropped straight onto the surface) nor
-		'a ReportControl (ReportField/ReportImage/ReportLine/ReportShape - see ReportControl)
-		'has any reason to stick out past Report's own Panel bounds: the former is a leaf
-		'control that never holds children of its own, and the latter is not even a Control,
-		'just data Report itself draws and hit-tests. Clamps c's Left/Top/Width/Height so it
-		'stays fully inside [DesignAreaLeft, Width) x [0, Height). c may point to either kind
-		'(both ultimately reduce to Component, which is all this needs).
-		Declare Sub ClampControlBounds(c As Any Ptr)
 		'Index into FComponents of the ReportControl whose bounds contain (x, y), searched
 		'topmost (highest index, i.e. most-recently-added) first, or -1 if none.
+		'Index into FComponents of the ReportControl whose bounds contain (x, y), searched
+		'topmost (highest index, i.e. most-recently-added) first, or -1 if none. A plain
+		'geometry query with no mouse/cursor/capture state of its own, so - unlike Report's old
+		'HandleMouseDown/Move/Up - it stays here; Designer can call it (or BandAt/Bands.TopOf)
+		'through reflection if a future field-drag feature there ever needs it.
 		Declare Function FieldAt(x As Integer, y As Integer) As Integer
-		Declare Function OnBandEdge(Index As Integer, y As Integer) As Boolean
 		'Draws the design surface (band strip + band backdrops + every field control, with a
 		'selection frame around ActiveField) onto Canvas - called from ProcessMessage's own
 		'WM_PAINT/GDK_EXPOSE handling, after Base.ProcessMessage has already let Panel paint
 		'its own background/bevel and fire OnPaint for whoever is using this Report control.
 		Declare Sub DrawDesignSurface(ByRef Canvas As My.Sys.Drawing.Canvas)
-		'Selects/starts dragging whatever is at (x, y) - a field, a band edge, or a band row
-		'in the strip - called from ProcessMessage's own left-button-down handling.
-		Declare Sub HandleMouseDown(x As Integer, y As Integer)
-		'Continues whatever drag HandleMouseDown started, or just updates the resize cursor
-		'when nothing is being dragged - called from ProcessMessage's own mouse-move handling.
-		Declare Sub HandleMouseMove(x As Integer, y As Integer)
-		'Ends whatever drag HandleMouseDown started - called from ProcessMessage's own
-		'left-button-up handling.
-		Declare Sub HandleMouseUp()
 		Declare Function MeasureBand(BandIndex As Integer, ByRef Canvas As My.Sys.Drawing.Canvas) As Integer
 		Declare Sub DrawBand(ByRef Canvas As My.Sys.Drawing.Canvas, BandIndex As Integer, Top As Single, RowIndex As Integer)
 		'Draws one ReportField/ReportLabel/ReportImage/ReportLine/ReportShape's content at (X, Y)
@@ -415,63 +463,25 @@ Namespace My.Sys.Forms
 			Declare Static Sub WNDPROC(ByRef Message As Message)
 		#endif
 		Declare Static Sub GraphicChange(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
-		Declare Virtual Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 	Public:
 		#ifndef ReadProperty_Off
 			'Loads properties (including the band list) from the persistence stream
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		#endif
-		#ifndef WriteProperty_Off
-			'Saves properties (including the band list) to the persistence stream
-			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
-		#endif
 
-		'Width, in pixels, of the left-hand band-name strip.
+		'Width, in pixels, of the left-hand band-name strip - which is also the left edge of the
+		'design area a band's field controls are dropped onto. Subtract it from a field
+		'control's design-time Left to get its page-relative X when printing.
 		Const BAND_LIST_WIDTH As Integer = 110
 		'Row height, in pixels, of one entry in the band-name strip.
 		Const BAND_LIST_ROW_H As Integer = 24
 
-		'Left edge, in pixels, of the design area a band's field controls are dropped onto -
-		'i.e. BAND_LIST_WIDTH. Used to translate a field control's design-time Left back to a
-		'page-relative X when printing.
-		Declare Function DesignAreaLeft() As Integer
-		Declare Function BandCount() As Integer
-		'Band at Index (0-based, in print order - the same order the band-name strip lists
-		'them in), or 0 if Index is out of range. Backs the ReportBandByIndex export that
-		'Designer.DrawReport calls through Symbols(...)->ReportBandByIndexFunc - see
-		'ReportBandByIndex in mff.bas.
-		Declare Function BandByIndex(Index As Integer) As ReportBand Ptr
-		'Appends a new band of NewBandType at the end (height defaults to 32px for Report/
-		'Page bands, 24px for Group/Detail bands) and returns a pointer to it. FBands is a
-		'dynamically-growing List, so there is no longer a fixed cap on the number of bands.
-		'The returned pointer stays valid for the band's whole lifetime (List.Insert/Remove
-		'only reshuffle the pointers it holds, never the ReportBand instances themselves) -
-		'but it becomes stale the moment RemoveBand deletes that particular band.
-		Declare Function AddBand(NewBandType As ReportBandType) As ReportBand Ptr
-		Declare Sub AddBand(NewBand As ReportBand Ptr)
-		'Removes the band at Index; every field control that was inside it is also removed,
-		'and every band below it (with its controls) re-flows up to close the gap.
-		Declare Sub RemoveBand(Index As Integer)
-		'Same as RemoveBand(Index), but takes a band pointer (as returned by AddBand, or by
-		'walking the band list yourself) instead of an index. Does nothing if Band is 0 or
-		'doesn't belong to this Report.
-		Declare Sub RemoveBand(Band As ReportBand Ptr)
-		Declare Property BandType(Index As Integer) As ReportBandType
-		Declare Property BandType(Index As Integer, Value As ReportBandType)
-		Declare Property BandHeight(Index As Integer) As Integer
-		'Changing this re-flows every band below Index (and its field controls) down/up to
-		'match - exactly like dragging the band's bottom edge on the design surface.
-		Declare Property BandHeight(Index As Integer, Value As Integer)
-		Declare Property BandGroupField(Index As Integer) ByRef As WString
-		'Data field name that a GroupHeader/GroupFooter band breaks (starts a new group) on
-		Declare Property BandGroupField(Index As Integer, ByRef Value As WString)
-		Declare Property BandNewPageBefore(Index As Integer) As Boolean
-		Declare Property BandNewPageBefore(Index As Integer, Value As Boolean)
-		Declare Property BandNewPageAfter(Index As Integer) As Boolean
-		Declare Property BandNewPageAfter(Index As Integer, Value As Boolean)
-		'First band index whose BandType is BT, or -1 if the report has none.
-		Declare Function IndexOfBandType(BT As ReportBandType) As Integer
-Declare Property RowCount As Integer
+		'Owns and manages this Report's bands - see ReportBandCollection above. Backs the
+		'ReportBandByIndex export that Designer.DrawReport calls through
+		'Symbols(...)->ReportBandByIndexFunc (via Bands.Item) - see ReportBandByIndex below.
+		Bands As ReportBandCollection
+
+		Declare Property RowCount As Integer
 		'Number of data rows to print; set this from your dataset's record count before Print()
 		Declare Property RowCount(Value As Integer)
 		Declare Property Document As PrintDocument Ptr
@@ -481,15 +491,11 @@ Declare Property RowCount As Integer
 		Declare Sub PrintPreview
 		'Shows the built-in Print Preview dialog before printing
 		Declare Sub ExportToPDF(ByRef FileName As WString = "", ByRef PrinterName1 As WString = "Microsoft Print to PDF")
-		'Prints through a PDF-writer virtual printer (Windows' own "Microsoft Print to PDF" by
-		'default); Windows itself prompts for the destination file name on stock drivers
-		'Overridden - rather than assigning OnPaint/OnMouseDown/OnMouseMove/OnMouseUp, the way
-		'an ordinary library user would - because those On* events belong to whoever uses this
-		'Report control, not to Report's own internal implementation. This is the framework's
-		'own hook for a control to react to its raw messages (see Control.ProcessMessage);
-		'calls Base.ProcessMessage so Panel's own painting and any On* handlers the library
-		'user did set still run exactly as normal.
-		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+		'Every change to Report's size - Report.Height = 100, SetBounds, a designer drag, a
+		'stream load - ends up here, so this is where "the bands always exactly fill the
+		'report" is enforced: the last band absorbs whatever Height gained/lost (never below
+		'its 8px minimum), every other band keeps its own height.
+		Declare Virtual Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 		Declare Constructor
 		Declare Destructor
 		'Supplies the value for DataField/SummaryField at RowIndex; implement this to bind the
