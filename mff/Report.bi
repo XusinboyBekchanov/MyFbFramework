@@ -73,6 +73,27 @@ Namespace My.Sys.Forms
 	Private:
 		FParent As Any Ptr 'the owning Report control (Cast internally)
 		FHeight As Integer
+		''The owning Report's FComponents list (where its ReportField/ReportImage/ReportLine/
+		''ReportShape items live - they Extend Component, not Control). FComponents is a
+		''Protected member of Component, so the collection can't reach it through Parent;
+		''Report's own constructor hands it over here instead, right next to Parent.
+		'Components As List Ptr
+		'Keeps a control vertically inside the Report: never taller than it, never sticking out
+		'past its bottom edge, never above 0. Left/Width are deliberately left alone - a
+		'vertical re-flow has no business moving anything sideways. c may point to a native
+		'Control or to a ReportControl (both reduce to Component, which is all this needs).
+		Declare Sub ClampControlVertically(c As Any Ptr)
+		'Moves every field control whose Top >= y down/up by Delta pixels - used when a
+		'band's Height changes (or a band is added/removed) so every band (and its controls)
+		'below it re-flows with no gap or overlap, the same job the old
+		'ReportBand.RestackBands used to do. Also re-clamps every control to the Report's
+		'bounds afterwards (see ClampControlVertically), since a Delta can just as easily push a
+		'control past Report's right/bottom edge as it can create the gap/overlap this exists
+		'to close. Two kinds of item can be dropped onto a band, and they live in two
+		'different places: plain native Controls (e.g. a Label) in Parent's Controls()/
+		'ControlCount as usual, and the ReportField/ReportLabel/ReportImage/ReportLine/
+		'ReportShape items in Components (ReportControl.Parent puts them there).
+		Declare Sub ShiftControlsFrom(y As Integer, Delta As Integer)
 	Public:
 		Components As List
 		BandType      As ReportBandType
@@ -85,6 +106,10 @@ Namespace My.Sys.Forms
 		#ifndef WriteProperty_Off
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
+		'Y position (in design-surface / field-control coordinates, i.e. ignoring the band-
+		'list strip) of the top edge of the band at Index. Index = Count gives the bottom
+		'edge of the last band, i.e. where a band appended at the end would start.
+		Declare Function TopOf(Index As Integer) As Integer
 		Declare Property Height As Integer
 		'Once this band belongs to a Report, changing this re-flows every band below it (and
 		'its field controls) down/up to match - exactly like dragging the band's bottom edge
@@ -109,38 +134,9 @@ Namespace My.Sys.Forms
 	Private Type ReportBandCollection
 	Private:
 		FItems As List
-		'Keeps a control fully inside Report's own Panel bounds. Neither a plain native Control
-		'(e.g. a Label dropped straight onto the surface) nor a ReportControl (ReportField/
-		'ReportImage/ReportLine/ReportShape) has any reason to stick out past Report's own
-		'Panel bounds: the former is a leaf control that never holds children of its own, and
-		'the latter is not even a Control, just data Report itself draws and hit-tests. Clamps
-		'c's Left/Top/Width/Height so it stays fully inside [BAND_LIST_WIDTH, Width) x
-		'[0, Height). c may point to either kind (both ultimately reduce to Component, which
-		'is all this needs).
-		Declare Sub ClampControlBounds(c As Any Ptr)
 	Public:
 		'The owning Report control.
 		Parent As PReport
-		'The owning Report's FComponents list (where its ReportField/ReportImage/ReportLine/
-		'ReportShape items live - they Extend Component, not Control). FComponents is a
-		'Protected member of Component, so the collection can't reach it through Parent;
-		'Report's own constructor hands it over here instead, right next to Parent.
-		Components As List Ptr
-		'Y position (in design-surface / field-control coordinates, i.e. ignoring the band-
-		'list strip) of the top edge of the band at Index. Index = Count gives the bottom
-		'edge of the last band, i.e. where a band appended at the end would start.
-		Declare Function TopOf(Index As Integer) As Integer
-		'Moves every field control whose Top >= y down/up by Delta pixels - used when a
-		'band's Height changes (or a band is added/removed) so every band (and its controls)
-		'below it re-flows with no gap or overlap, the same job the old
-		'ReportBand.RestackBands used to do. Also re-clamps every control to the Report's
-		'bounds afterwards (see ClampControlBounds), since a Delta can just as easily push a
-		'control past Report's right/bottom edge as it can create the gap/overlap this exists
-		'to close. Two kinds of item can be dropped onto a band, and they live in two
-		'different places: plain native Controls (e.g. a Label) in Parent's Controls()/
-		'ControlCount as usual, and the ReportField/ReportImage/ReportLine/ReportShape items
-		'in Components.
-		Declare Sub ShiftControlsFrom(y As Integer, Delta As Integer)
 		Declare Function Count As Integer
 		Declare Property Item(Index As Integer) As ReportBand Ptr
 		Declare Property Item(Index As Integer, Value As ReportBand Ptr)
@@ -179,9 +175,10 @@ Namespace My.Sys.Forms
 	'(ReportField/ReportImage/ReportLine/ReportShape). Deliberately Extends Component, NOT
 	'Control/Panel: none of these are containers, none ever hold child controls of their
 	'own, and none of them need (or get) a real OS window most of the time. Report owns and
-	'lists them in FComponents (inherited straight from Component - setting
-	'SomeField.Parent = @Rep is all it takes to register one, exactly like Component.Parent
-	'already does for any Component) and is responsible for drawing them
+	'lists them in FComponents (setting SomeField.Parent = @SomeBand is all it takes to
+	'register one - ReportControl.Parent adds it to its Report's FComponents, since the
+	'Component.Parent it hides would want a Component, not a band) and is responsible for
+	'drawing them
 	'(Report.DrawReportControlContent, shared by the print engine and the design surface) -
 	'there is no native window to paint itself or to route mouse messages through the way a
 	'real Control has. Selecting/dragging one of these on the design surface is entirely
@@ -203,6 +200,8 @@ Namespace My.Sys.Forms
 		'Canvas-based drawing/hit-testing - see the module-level comment above.
 		Declare Sub CreateHandle
 		Declare Sub DestroyHandle
+	Protected:
+		FText      As WString Ptr
 	Public:
 		Declare Property BackColor As Integer
 		Declare Property BackColor(Value As Integer)
@@ -236,7 +235,6 @@ Namespace My.Sys.Forms
 		FSummaryField As WString Ptr
 		FSummaryType  As ReportSummaryType
 		FCanGrow      As Boolean
-		FText         As WString Ptr
 		FAlignment    As Integer
 		FWordWraps    As Boolean
 	Public:
@@ -289,7 +287,6 @@ Namespace My.Sys.Forms
 	'Object, or Xojo's static caption fields.
 	Private Type ReportLabel Extends ReportControl
 	Private:
-		FText      As WString Ptr
 		FAlignment As Integer
 		FWordWraps As Boolean
 	Public:
