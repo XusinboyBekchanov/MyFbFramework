@@ -10,7 +10,9 @@
 '#  Updated and added cross-platform                                           #
 '#  by Xusinboy Bekchanov (2018-2019)                                          #
 '###############################################################################
-
+#ifndef UNICODE
+	#define UNICODE
+#endif
 #include once "WStringList.bi"
 #include once "Dictionary.bi"
 #include once "Form.bi"
@@ -26,7 +28,6 @@ Dim Shared As Dictionary mlKeys
 	#endif
 #elseif defined(__USE_WINAPI__)
 	#include once "win/winver.bi"
-	
 #endif
 #ifdef __USE_GTK4__
 	#define generic_gtk_init() gtk_init()
@@ -221,7 +222,6 @@ Namespace My
 End Namespace
 
 Dim Shared pApp As My.Application Ptr 'Global for entire Application
-
 'Displays a message in a dialog box, waits for the user to click a button, and returns an Integer indicating which button the user clicked.
 Declare Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As WString = "", MsgType As MessageType = MessageType.mtInfo, ButtonsType As ButtonsTypes = ButtonsTypes.btOK) As MessageResult
 Declare Function ML(ByRef V As WString) ByRef As WString
