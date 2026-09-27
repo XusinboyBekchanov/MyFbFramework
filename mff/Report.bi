@@ -71,8 +71,9 @@ Namespace My.Sys.Forms
 	
 	Private Type ReportBand Extends My.Sys.Object
 	Private:
-		FParent As Any Ptr 'the owning Report control (Cast internally)
 		FHeight As Integer
+		FName   As WString Ptr
+		FParent As Any Ptr 'the owning Report control (Cast internally)
 		''The owning Report's FComponents list (where its ReportField/ReportImage/ReportLine/
 		''ReportShape items live - they Extend Component, not Control). FComponents is a
 		''Protected member of Component, so the collection can't reach it through Parent;
@@ -96,11 +97,10 @@ Namespace My.Sys.Forms
 		'band from FromIndex on moves, full stop, no position check needed or wanted.
 		Declare Sub ShiftControlsFrom(FromIndex As Integer, y As Integer, Delta As Integer)
 	Public:
-		Components As List
-		BandType      As ReportBandType
-		GroupField    As WString Ptr
-		NewPageBefore As Boolean
-		NewPageAfter  As Boolean
+		Components      As List
+		BandType        As ReportBandType
+		NewPageBefore   As Boolean
+		NewPageAfter    As Boolean
 		#ifndef ReadProperty_Off
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		#endif
@@ -117,6 +117,8 @@ Namespace My.Sys.Forms
 		'on the design surface - and grows/shrinks Report's own Height by the same amount, so
 		'the bands keep filling it. Never smaller than 8px once attached to a Report.
 		Declare Property Height(Value As Integer)
+		Declare Property Name ByRef As WString
+		Declare Property Name(ByRef Value As WString)
 		'The Report control this band belongs to (Cast to My.Sys.Forms.Report Ptr internally).
 		Declare Property Parent As PReport
 		Declare Property Parent(Value As PReport)
@@ -147,7 +149,7 @@ Namespace My.Sys.Forms
 		'bands. The returned pointer stays valid for the band's whole lifetime, but becomes
 		'stale the moment Remove deletes that particular band.
 		Declare Function Add(NewBandType As ReportBandType) As ReportBand Ptr
-		'Copies NewBand's own properties (BandType/Height/GroupField/NewPageBefore/
+		'Copies NewBand's own properties (BandType/Height/Name/NewPageBefore/
 		'NewPageAfter) into a freshly-allocated band this collection owns, and inserts it in
 		'canonical print order - NewBand itself stays the caller's to manage/free.
 		Declare Sub Add(NewBand As ReportBand Ptr)

@@ -106,19 +106,27 @@ Namespace My.Sys.Forms
 		RB_Syncing = False
 		Rep->Invalidate
 	End Property
+	
+	Private Property ReportBand.Name ByRef As WString
+		Return WGet(FName)
+	End Property
+
+	Private Property ReportBand.Name(ByRef Value As WString)
+		WLet(FName, Value)
+	End Property
 
 	Constructor ReportBand
 		FParent       = 0
 		BandType      = rbtDetail
 		FHeight       = 0
-		GroupField    = 0
+		FName         = 0
 		NewPageBefore = False
 		NewPageAfter  = False
 		WLet(FClassName, "ReportBand")
 	End Constructor
 
 	Destructor ReportBand
-		If GroupField Then WDeAllocate(GroupField) : GroupField = 0
+		If FName Then WDeAllocate(FName) : FName = 0
 		Dim As Integer h     = FHeight
 		Dim As Integer Index = 0
 		If Parent <> 0 Then Index = Parent->Bands.IndexOf(@This)
@@ -158,7 +166,7 @@ Namespace My.Sys.Forms
 			Select Case LCase(PropertyName)
 			Case "bandtype":      Return @BandType
 			Case "height":        Return @FHeight
-			Case "groupfield":    Return Cast(Any Ptr, GroupField)
+			Case "name":    Return Cast(Any Ptr, FName)
 			Case "newpagebefore": Return @NewPageBefore
 			Case "newpageafter":  Return @NewPageAfter
 			Case Else: Return Base.ReadProperty(PropertyName)
@@ -171,11 +179,8 @@ Namespace My.Sys.Forms
 		Private Function ReportBand.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			Select Case LCase(PropertyName)
 			Case "bandtype":        If Value <> 0 Then This.BandType = *Cast(ReportBandType Ptr, Value)
-			Case "height":
-				'The Height property itself re-flows the bands below (and grows/shrinks the
-				'Report) once this band belongs to a Report - see ReportBand.Height.
-				If Value <> 0 Then This.Height = QInteger(Value)
-			Case "groupfield":      If Value <> 0 Then WLet(This.GroupField, QWString(Value))
+			Case "height":          If Value <> 0 Then This.Height = QInteger(Value)
+			Case "name":            If Value <> 0 Then This.Name = QWString(Value)
 			Case "newpagebefore":   If Value <> 0 Then This.NewPageBefore = QBoolean(Value)
 			Case "newpageafter":    If Value <> 0 Then This.NewPageAfter = QBoolean(Value)
 			Case "parent":          This.Parent = Value
@@ -284,6 +289,7 @@ Namespace My.Sys.Forms
 			Select Case LCase(PropertyName)
 			Case "backcolor": Return @FBackColor
 			Case "visible":   Return @FVisible
+			Case "parent":    Return FParent
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
 			Return 0
@@ -809,9 +815,9 @@ Namespace My.Sys.Forms
 		Select Case b->BandType
 		Case rbtReportHeader: Return "Report Header"
 		Case rbtPageHeader:   Return "Page Header"
-		Case rbtGroupHeader:  Return IIf(Len(WGet(b->GroupField)) > 0, "Group Header (" & WGet(b->GroupField) & ")", "Group Header")
+		Case rbtGroupHeader:  Return IIf(Len(WGet(b->Name)) > 0, "Group Header (" & WGet(b->Name) & ")", "Group Header")
 		Case rbtDetail:       Return "Body" 'the Detail band, shown to the user as "Body"
-		Case rbtGroupFooter:  Return IIf(Len(WGet(b->GroupField)) > 0, "Group Footer (" & WGet(b->GroupField) & ")", "Group Footer")
+		Case rbtGroupFooter:  Return IIf(Len(WGet(b->Name)) > 0, "Group Footer (" & WGet(b->Name) & ")", "Group Footer")
 		Case rbtPageFooter:   Return "Page Footer"
 		Case rbtReportFooter: Return "Report Footer"
 		End Select
@@ -958,7 +964,7 @@ Namespace My.Sys.Forms
 		Dim As ReportBand Ptr NewB = _New(ReportBand)
 		NewB->BandType      = NewBandType
 		NewB->Height        = NewHeight
-		NewB->GroupField    = 0
+		NewB->Name          = ""
 		NewB->NewPageBefore = False
 		NewB->NewPageAfter  = False
 		'FItems.Insert shifts every band at/after InsertAt up one slot for us - no manual loop
@@ -1231,8 +1237,8 @@ Namespace My.Sys.Forms
 	Private Function Report.GroupKeyOf(BandIndex As Integer, RowIndex As Integer) ByRef As WString
 		If BandIndex < 0 OrElse OnGetFieldValue = 0 Then Return ""
 		Dim As ReportBand Ptr b = Bands.Item(BandIndex)
-		If b = 0 OrElse Len(WGet(b->GroupField)) = 0 Then Return ""
-		Return OnGetFieldValue(This, WGet(b->GroupField), RowIndex)
+		If b = 0 OrElse Len(b->Name) = 0 Then Return ""
+		Return OnGetFieldValue(This, b->Name, RowIndex)
 	End Function
 
 	'Very small formatter: supports {0:N2} (fixed decimals) and a couple of common
