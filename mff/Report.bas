@@ -114,6 +114,10 @@ Namespace My.Sys.Forms
 	Private Property ReportBand.Name(ByRef Value As WString)
 		WLet(FName, Value)
 	End Property
+	
+	Private Function ReportBand.ToString ByRef As WString
+		Return This.Name
+	End Function
 
 	Constructor ReportBand
 		FParent       = 0
@@ -283,7 +287,7 @@ Namespace My.Sys.Forms
 		FDesignMode = Value
 		If Value Then CreateHandle() Else DestroyHandle()
 	End Property
-
+	
 	#ifndef ReadProperty_Off
 		Private Function ReportControl.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
@@ -1313,8 +1317,8 @@ Namespace My.Sys.Forms
 
 		Dim As Integer LeftM = Rep->FDocument.PrinterSettings.MarginLeft
 		Dim As Integer TopM  = Rep->FDocument.PrinterSettings.MarginTop
-		Dim As Integer PageW = Rep->FDocument.PrinterSettings.PageWidth
-		Dim As Integer PageH = Rep->FDocument.PrinterSettings.PageLength
+		Dim As Integer PageW = Rep->FDocument.PrinterSettings.PrintableWidth
+		Dim As Integer PageH = Rep->FDocument.PrinterSettings.PrintableHeight
 		Dim As Integer BottomM = Rep->FDocument.PrinterSettings.Marginbottom
 		Dim As Integer BottomY = PageH - BottomM
 
@@ -1481,4 +1485,8 @@ End Namespace
 	Sub RemoveReportBand Alias "RemoveReportBand" (Parent As My.Sys.Forms.Report Ptr, Band As My.Sys.Forms.ReportBand Ptr) Export
 		Parent->Bands.Remove Band
 	End Sub
+	
+	Function IsReportControl Alias "IsReportControl" (Cpnt As My.Sys.ComponentModel.Component Ptr) As Boolean Export
+		Return *Cpnt Is My.Sys.Forms.ReportControl
+	End Function
 #endif
