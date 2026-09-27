@@ -2542,7 +2542,7 @@ Namespace My.Sys.Forms
 				Dim As Integer UboundData = UBound(DataArrayPtr, 2)
 				For i As Integer = LBound(DataArrayPtr, 1) To UBound(DataArrayPtr, 1)
 					For j As Integer = LboundData To UboundData
-						Deallocate DataArrayPtr(i, j)
+						_Deallocate(DataArrayPtr(i, j))
 					Next
 				Next
 				ReDim DataArrayPtr(0, 0)
@@ -2569,7 +2569,7 @@ Namespace My.Sys.Forms
 					iPos = Val(ColWidthStr(i))
 					If iPos <= 1 Then iPos = 100
 					Columns.Add *ColTitle(i), , iPos
-					Deallocate ColTitle(i) : ColTitle(i) = 0
+					_Deallocate(ColTitle(i)) : ColTitle(i) = 0
 				Next
 				Erase ColTitle
 				If ReadToArrary Then ReDim DataArrayPtr(0 To items, 0 To ArrayUbound)

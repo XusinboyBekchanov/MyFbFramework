@@ -33,7 +33,7 @@ Namespace My.Sys.Forms
 	#define QReportShape(__Ptr__) (*Cast(ReportShape Ptr, __Ptr__))
 	#define QReport(__Ptr__)      (*Cast(Report Ptr, __Ptr__))
 	'Casts a List.Item(i)/List.IndexOf(...) Any Ptr back to a ReportBand Ptr.
-	#define QReportBandPtr(__Ptr__) Cast(ReportBand Ptr, __Ptr__)
+	#define QReportBand(__Ptr__)  (*Cast(ReportBand Ptr, __Ptr__))
 
 	'What role a band plays when ReportDocument paginates the report - mirrors Crystal
 	'Reports' section types / Xojo's ReportSection kinds. This enum's declaration order IS
@@ -83,17 +83,18 @@ Namespace My.Sys.Forms
 		'vertical re-flow has no business moving anything sideways. c may point to a native
 		'Control or to a ReportControl (both reduce to Component, which is all this needs).
 		Declare Sub ClampControlVertically(c As Any Ptr)
-		'Moves every field control whose Top >= y down/up by Delta pixels - used when a
-		'band's Height changes (or a band is added/removed) so every band (and its controls)
-		'below it re-flows with no gap or overlap, the same job the old
-		'ReportBand.RestackBands used to do. Also re-clamps every control to the Report's
-		'bounds afterwards (see ClampControlVertically), since a Delta can just as easily push a
-		'control past Report's right/bottom edge as it can create the gap/overlap this exists
-		'to close. Two kinds of item can be dropped onto a band, and they live in two
-		'different places: plain native Controls (e.g. a Label) in Parent's Controls()/
-		'ControlCount as usual, and the ReportField/ReportLabel/ReportImage/ReportLine/
-		'ReportShape items in Components (ReportControl.Parent puts them there).
-		Declare Sub ShiftControlsFrom(y As Integer, Delta As Integer)
+		'Moves every control at/after a re-flow point by Delta pixels - used when a band's
+		'Height changes (or a band is added/removed) so every band (and its controls) below
+		'it re-flows with no gap or overlap, the same job the old ReportBand.RestackBands used
+		'to do. Also re-clamps every control to the Report's bounds afterwards (see
+		'ClampControlVertically). Two kinds of item can be dropped onto a band, and each is
+		'told apart differently: plain native Controls (e.g. a Label) in Parent's Controls()/
+		'ControlCount, which have no band of their own, so y (their OLD absolute Top boundary)
+		'is still what decides who moves; and the ReportField/ReportLabel/ReportImage/
+		'ReportLine/ReportShape items each band keeps in its own Components (ReportControl.
+		'Parent puts them there), where membership alone decides - every one of them in a
+		'band from FromIndex on moves, full stop, no position check needed or wanted.
+		Declare Sub ShiftControlsFrom(FromIndex As Integer, y As Integer, Delta As Integer)
 	Public:
 		Components As List
 		BandType      As ReportBandType
@@ -203,6 +204,8 @@ Namespace My.Sys.Forms
 	Protected:
 		FText      As WString Ptr
 	Public:
+		'Font used to draw Text, both at design time and when DrawBand prints this label.
+		Font As My.Sys.Drawing.Font
 		Declare Property BackColor As Integer
 		Declare Property BackColor(Value As Integer)
 		Declare Property Visible As Boolean
@@ -241,7 +244,6 @@ Namespace My.Sys.Forms
 		'Font used to draw Text/the resolved DataField value, both at design time and when
 		'DrawBand prints this field - a plain field of Report's own, since ReportField no
 		'longer inherits one from Label.
-		Font As My.Sys.Drawing.Font
 		#ifndef ReadProperty_Off
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		#endif
@@ -290,13 +292,11 @@ Namespace My.Sys.Forms
 		FAlignment As Integer
 		FWordWraps As Boolean
 	Public:
-		'Font used to draw Text, both at design time and when DrawBand prints this label.
-		Font As My.Sys.Drawing.Font
 		#ifndef ReadProperty_Off
-			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
+			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
-			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			Declare Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		Declare Property Text ByRef As WString
 		'The caption to print
@@ -469,7 +469,7 @@ Namespace My.Sys.Forms
 		'Width, in pixels, of the left-hand band-name strip - which is also the left edge of the
 		'design area a band's field controls are dropped onto. Subtract it from a field
 		'control's design-time Left to get its page-relative X when printing.
-		Const BAND_LIST_WIDTH As Integer = 110
+		Const BAND_LIST_WIDTH As Integer = 20
 		'Row height, in pixels, of one entry in the band-name strip.
 		Const BAND_LIST_ROW_H As Integer = 24
 
