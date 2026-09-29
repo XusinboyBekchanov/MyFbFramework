@@ -2589,17 +2589,13 @@ Namespace My.Sys.Drawing
 				'.dwCharX = .UnScaleX(extend.width)
 				'.dwCharY = .UnScaleY(extend.height)
 			#elseif defined(__USE_WINAPI__)
-				Dim As HDC hd
-				If .ParentControl <> 0 Then
-					hd = GetDC(.ParentControl->Handle)
+				If .Handle Then
+					SelectObject(.Handle, Sender.Handle)
+					GetTextMetrics(.Handle, @.tm)
 				Else
+					Dim As HDC hd
 					hd = GetDC(NULL)
-				End If
-				SelectObject(hd, .Font.Handle)
-				GetTextMetrics(hd, @.tm)
-				If .ParentControl <> 0 Then
-					ReleaseDC(.ParentControl->Handle, hd)
-				Else
+					GetTextMetrics(hd, @.tm)
 					ReleaseDC(NULL, hd)
 				End If
 				.dwCharX = .UnScaleX(.tm.tmAveCharWidth)
