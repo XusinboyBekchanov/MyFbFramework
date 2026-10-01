@@ -569,6 +569,8 @@ Namespace My.Sys.Forms
 	
 	Private Sub Chart.GetTextSize(ByRef text_ As WString, ByVal lWidth As Long, ByVal Height As Long, ByRef oFont As My.Sys.Drawing.Font, ByVal bWordWrap As Boolean, ByRef SZ As SizeF)
 		#ifdef __USE_GTK__
+			Dim As PangoContext Ptr pcontext
+			Dim As PangoLayout Ptr layout
 			Dim As PangoFontDescription Ptr desc
 		#else
 			Dim hBrush As Long
@@ -582,6 +584,8 @@ Namespace My.Sys.Forms
 		Dim BB As RectF, CF As Long, LF As Long
 		
 		#ifdef __USE_GTK__
+			pcontext = gtk_widget_create_pango_context(widget)
+			layout = pango_layout_new(pcontext)
 			desc = pango_font_description_from_string(oFont.Name & " " & oFont.Size)
 			pango_layout_set_font_description (layout, desc)
 		#else
@@ -622,6 +626,8 @@ Namespace My.Sys.Forms
 			SZ.Height = extend2.Height
 			
 			pango_font_description_free (desc)
+			g_object_unref(layout)
+			g_object_unref(pcontext)
 		#else
 			GdipCreateFont(hFontFamily, lFontSize, lFontStyle, UnitPixel, @hFont)
 			
