@@ -207,6 +207,14 @@ Namespace My.Sys.Forms
 		Declare Sub DestroyHandle
 	Protected:
 		FText      As WString Ptr
+		'Pushes FAlignment/FWordWraps onto the native handle/widget (WINAPI: STATIC control's
+		'SS_LEFT/SS_CENTER/SS_RIGHT/SS_LEFTNOWORDWRAP style bits; GTK: GtkLabel's xalign/
+		'justify/line-wrap) - called from CreateHandle (right after the handle/widget is made)
+		'and from the ReportField/ReportLabel Alignment/WordWraps setters, so design-time
+		'display always matches the current property values. No-op for element kinds that
+		'don't map onto a GtkLabel (ReportImage/ReportLine/ReportShape) or before a handle/
+		'widget exists.
+		Declare Sub ApplyAlignmentStyle
 	Public:
 		'Font used to draw Text, both at design time and when DrawBand prints this label.
 		Font As My.Sys.Drawing.Font
@@ -264,7 +272,9 @@ Namespace My.Sys.Forms
 		'Enables automatic text line wrapping
 		Declare Property WordWraps(Value As Boolean)
 		Declare Property DataField ByRef As WString
-		'Name of the data column to print here; setting it shows "[FieldName]" at design time
+		'Name of the data column to print here; setting it shows "[FieldName]" at design time.
+		'The reserved name "PageNumber" (case-insensitive) is handled by Report itself instead
+		'of going through OnGetFieldValue - see Report.PageNo.
 		Declare Property DataField(ByRef Value As WString)
 		Declare Property FormatString ByRef As WString
 		'Display format, e.g. "{0:N2}" for 2-decimal numbers or "%.2f" style specs
@@ -426,6 +436,8 @@ Namespace My.Sys.Forms
 	Private:
 		FRowCount   As Integer
 		FCurrentRow As Integer
+		'Current 1-based page number of the print job in progress - see PageNo below.
+		FPageNo     As Integer
 		FDocument   As PrintDocument
 
 		'Index of the band whose [Top, Top+Height) span contains y, or -1 if none (below the
@@ -485,6 +497,12 @@ Namespace My.Sys.Forms
 		Declare Property RowCount As Integer
 		'Number of data rows to print; set this from your dataset's record count before Print()
 		Declare Property RowCount(Value As Integer)
+		'Current 1-based page number of the print job in progress (1 before/after printing, or
+		'during the first page). Read-only - Report itself advances this once per page. A
+		'ReportField whose DataField is the reserved name "PageNumber" (case-insensitive) shows
+		'this automatically, with no OnGetFieldValue handling needed; OnGetFieldValue can also
+		'read it directly (e.g. to build "Page X of Y" alongside a total tracked elsewhere).
+		Declare Property PageNo As Integer
 		Declare Property Document As PrintDocument Ptr
 		'Underlying PrintDocument, for direct access to PrinterSettings (paper size, margins...)
 		Declare Sub Print

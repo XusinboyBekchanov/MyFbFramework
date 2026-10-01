@@ -250,6 +250,36 @@ Namespace My.Sys.Forms
 			FHandle = CreateWindowExW(0, "STATIC", FText, WS_CHILD Or WS_VISIBLE, _
 				FLeft, FTop, FWidth, FHeight, ParentHandle, 0, GetModuleHandle(NULL), 0)
 			This.Font.Parent = @This
+			ApplyAlignmentStyle()
+		#elseif defined(__USE_GTK__)
+			'Report's own widget IS the GtkLayout every field is placed into (see Report's
+			'Constructor: widget = gtk_layout_new(NULL, NULL)) - FParent->Parent is the owning
+			'Report (ReportBand.Parent), so its widget is that layout.
+			If widget <> 0 OrElse FParent = 0 OrElse FParent->Parent = 0 Then Return
+			Dim As GtkWidget Ptr ParentWidget = FParent->Parent->widget
+			If ParentWidget = 0 Then Return
+
+			Select Case LCase(FClassName)
+			Case "reportlabel", "reportfield"
+				'Both are plain text display - a GtkLabel is enough for either.
+				widget = gtk_label_new(ToUtf8(FText))
+				ApplyAlignmentStyle()
+			Case "reportimage"
+				widget = gtk_image_new()
+			Case "reportline"
+				'No ready-made "ruling line" widget in GTK - self-drawn via its own "draw"
+				'signal (hook that up wherever LineColor/LineWidth/Vertical are applied).
+				widget = gtk_drawing_area_new()
+			Case "reportshape"
+				'Same story for a rectangle/ellipse - custom draw, no stock GTK widget.
+				widget = gtk_drawing_area_new()
+			Case Else
+				widget = gtk_fixed_new()
+			End Select
+
+			gtk_widget_set_size_request(widget, FWidth, FHeight)
+			gtk_layout_put(GTK_LAYOUT(ParentWidget), widget, FLeft, FTop)
+			gtk_widget_show(widget)
 		#endif
 	End Sub
 
@@ -259,6 +289,55 @@ Namespace My.Sys.Forms
 				DestroyWindow(This.Handle)
 				This.Handle = 0
 			End If
+		#elseif defined(__USE_GTK__)
+			If widget <> 0 Then
+				gtk_widget_destroy(widget)
+				widget = 0
+			End If
+		#endif
+	End Sub
+
+	'See the declaration in Report.bi for the full rationale.
+	Private Sub ReportControl.ApplyAlignmentStyle
+		#ifdef __USE_WINAPI__
+			If FHandle = 0 Then Return
+			Dim As Any Ptr pAlign = This.ReadProperty("alignment")
+			Dim As Any Ptr pWrap  = This.ReadProperty("wordwraps")
+			If pAlign = 0 Then Return 'ReportImage/ReportLine/ReportShape have neither property
+			Dim As Integer Align = *Cast(Integer Ptr, pAlign)
+			Dim As Boolean Wraps = IIf(pWrap <> 0, *Cast(Boolean Ptr, pWrap), True)
+
+			Dim As Long Style = GetWindowLongPtr(FHandle, GWL_STYLE)
+			Style = Style And Not SS_TYPEMASK
+			Select Case Align
+				Case 1: Style Or= SS_CENTER
+				Case 2: Style Or= SS_RIGHT
+				Case Else: Style Or= IIf(Wraps, SS_LEFT, SS_LEFTNOWORDWRAP)
+			End Select
+			SetWindowLongPtr(FHandle, GWL_STYLE, Style)
+			SetWindowPos(FHandle, 0, 0, 0, 0, 0, _
+				SWP_NOMOVE Or SWP_NOSIZE Or SWP_NOZORDER Or SWP_NOACTIVATE Or SWP_FRAMECHANGED)
+			InvalidateRect(FHandle, NULL, TRUE)
+		#elseif defined(__USE_GTK__)
+			If widget = 0 OrElse Not GTK_IS_LABEL(widget) Then Return
+			Dim As Any Ptr pAlign = This.ReadProperty("alignment")
+			Dim As Any Ptr pWrap  = This.ReadProperty("wordwraps")
+			If pAlign = 0 Then Return
+			Dim As Integer Align = *Cast(Integer Ptr, pAlign)
+			Dim As Boolean Wraps = IIf(pWrap <> 0, *Cast(Boolean Ptr, pWrap), True)
+
+			Select Case Align
+				Case 1
+					gtk_label_set_xalign(GTK_LABEL(widget), 0.5)
+					gtk_label_set_justify(GTK_LABEL(widget), GTK_JUSTIFY_CENTER)
+				Case 2
+					gtk_label_set_xalign(GTK_LABEL(widget), 1.0)
+					gtk_label_set_justify(GTK_LABEL(widget), GTK_JUSTIFY_RIGHT)
+				Case Else
+					gtk_label_set_xalign(GTK_LABEL(widget), 0.0)
+					gtk_label_set_justify(GTK_LABEL(widget), GTK_JUSTIFY_LEFT)
+			End Select
+			gtk_label_set_line_wrap(GTK_LABEL(widget), IIf(Wraps, GTK_TRUE, GTK_FALSE))
 		#endif
 	End Sub
 
@@ -342,14 +421,8 @@ Namespace My.Sys.Forms
 	Private Property ReportField.Text(ByRef Value As WString)
 		WLet(FText, Value)
 		#ifdef __USE_GTK__
-			If widget Then
-				If GTK_IS_WINDOW(widget) Then
-					If Value = "" Then
-						gtk_window_set_title(GTK_WINDOW(widget), !"\0")
-					Else
-						gtk_window_set_title(GTK_WINDOW(widget), ToUtf8(Value))
-					End If
-				End If
+			If widget <> 0 AndAlso GTK_IS_LABEL(widget) Then
+				gtk_label_set_text(GTK_LABEL(widget), ToUtf8(Value))
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
@@ -364,6 +437,7 @@ Namespace My.Sys.Forms
 
 	Private Property ReportField.Alignment(Value As AlignmentConstants)
 		FAlignment = Value
+		ApplyAlignmentStyle()
 	End Property
 
 	Private Property ReportField.WordWraps As Boolean
@@ -372,6 +446,7 @@ Namespace My.Sys.Forms
 
 	Private Property ReportField.WordWraps(Value As Boolean)
 		FWordWraps = Value
+		ApplyAlignmentStyle()
 	End Property
 
 	Private Property ReportField.DataField ByRef As WString
@@ -472,14 +547,8 @@ Namespace My.Sys.Forms
 	Private Property ReportLabel.Text(ByRef Value As WString)
 		WLet(FText, Value)
 		#ifdef __USE_GTK__
-			If widget Then
-				If GTK_IS_WINDOW(widget) Then
-					If Value = "" Then
-						gtk_window_set_title(GTK_WINDOW(widget), !"\0")
-					Else
-						gtk_window_set_title(GTK_WINDOW(widget), ToUtf8(Value))
-					End If
-				End If
+			If widget <> 0 AndAlso GTK_IS_LABEL(widget) Then
+				gtk_label_set_text(GTK_LABEL(widget), ToUtf8(Value))
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
@@ -494,6 +563,7 @@ Namespace My.Sys.Forms
 
 	Private Property ReportLabel.Alignment(Value As AlignmentConstants)
 		FAlignment = Value
+		ApplyAlignmentStyle()
 	End Property
 
 	Private Property ReportLabel.WordWraps As Boolean
@@ -502,6 +572,7 @@ Namespace My.Sys.Forms
 
 	Private Property ReportLabel.WordWraps(Value As Boolean)
 		FWordWraps = Value
+		ApplyAlignmentStyle()
 	End Property
 
 	#ifndef ReadProperty_Off
@@ -1076,6 +1147,10 @@ Namespace My.Sys.Forms
 		FRowCount = Value
 	End Property
 
+	Private Property Report.PageNo As Integer
+		Return FPageNo
+	End Property
+
 	Private Property Report.Document As PrintDocument Ptr
 		Return @FDocument
 	End Property
@@ -1139,7 +1214,11 @@ Namespace My.Sys.Forms
 			Canvas.Font = f->Font
 			Dim As WString * 2048 Txt
 			If Len(f->DataField) > 0 Then
-				If OnGetFieldValue Then
+				If UCase(WGet(f->DataField)) = "PAGENUMBER" Then
+					'Reserved field name - Report itself supplies the current page number, no
+					'OnGetFieldValue handling needed. See Report.PageNo.
+					Txt = Str(This.PageNo)
+				ElseIf OnGetFieldValue Then
 					Txt = OnGetFieldValue(This, f->DataField, RowIndex)
 				End If
 				If Len(f->FormatString) > 0 Then Txt = This.FormatValue(Txt, f->FormatString)
@@ -1395,6 +1474,7 @@ Namespace My.Sys.Forms
 		If PageFooterBand >= 0 Then
 			Rep->DrawBand(Canvas, PageFooterBand, BottomY - PageFooterH, Rep->FCurrentRow - 1)
 		End If
+		Rep->FPageNo += 1
 
 		If Not HasMorePages Then
 			ReportHeaderDone = False
@@ -1403,12 +1483,14 @@ Namespace My.Sys.Forms
 			GroupStartRow = 0
 			CurrentGroupKey = ""
 			Rep->FCurrentRow = 0
+			Rep->FPageNo = 1
 			If Rep->OnEndPrint Then Rep->OnEndPrint(*Rep->Designer, *Rep)
 		End If
 	End Sub
 
 	Private Sub Report.Print()
 		FCurrentRow = 0
+		FPageNo = 1
 		FDocument.Designer = Cast(My.Sys.Object Ptr, @This)
 		FDocument.OnPrintPage = @PrintPageHandler
 		If OnBeginPrint Then OnBeginPrint(*Designer, This)
@@ -1417,6 +1499,7 @@ Namespace My.Sys.Forms
 
 	Private Sub Report.PrintPreview()
 		FCurrentRow = 0
+		FPageNo = 1
 		FDocument.Designer = Cast(My.Sys.Object Ptr, @This)
 		FDocument.OnPrintPage = @PrintPageHandler
 		If OnBeginPrint Then OnBeginPrint(*Designer, This)

@@ -123,6 +123,7 @@ Namespace My.Sys.Forms
 			Values As DoubleList Ptr
 			PT(Any) As POINTL
 			Rects(Any) As RectL
+			hPath(Any) As Any Ptr
 			LegendRect As RectL
 			CustomColors As IntegerList Ptr
 		End Type
@@ -186,6 +187,7 @@ Namespace My.Sys.Forms
 		Dim SerieCount As Long
 		Dim mHotSerie As Long
 		Dim mHotBar As Long
+		Dim mHotPie As Long
 		Dim MarginLeft As Single
 		Dim MarginRight As Single
 		Dim TopHeader As Single

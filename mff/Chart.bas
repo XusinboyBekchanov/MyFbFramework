@@ -111,8 +111,8 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub Chart.GetCenterPie(X As Single, Y As Single)
-		X = m_CenterCircle.x
-		Y = m_CenterCircle.y
+		X = m_CenterCircle.X
+		Y = m_CenterCircle.Y
 	End Sub
 	
 	Private Property Chart.Count() As Long
@@ -526,6 +526,7 @@ Namespace My.Sys.Forms
 		FBackColor = clWhite
 		m_BackColorOpacity = 100
 		FForeColor = clBlack
+		mHotPie = -1
 		m_LinesColor = &HF4F4F4
 		Select Case ChartStyle
 		Case CS_Pie To CS_Donut
@@ -611,11 +612,11 @@ Namespace My.Sys.Forms
 			pango_layout_set_text(layout, ToUtf8(text_), Len(ToUtf8(text_)))
 			pango_cairo_update_layout(cr, layout)
 			pango_layout_get_pixel_extents(layout, @extend, @extend2)
-'			#ifdef PANGO_VERSION
-'				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
-'			#else
-'				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
-'			#endif
+			'			#ifdef PANGO_VERSION
+			'				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
+			'			#else
+			'				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
+			'			#endif
 			'pango_layout_line_get_pixel_extents(pl, NULL, @extend)
 			SZ.Width = extend2.Width
 			SZ.Height = extend2.Height
@@ -835,31 +836,71 @@ Namespace My.Sys.Forms
 			Dim bResult As Boolean 'BOOL
 			'RaiseEvent MouseMove(Button, Shift, X, Y)
 			If Button <> -1 Then Exit Sub
-			For i = 0 To ItemsCount - 1
-				If PtInRectL(m_Item(i).LegendRect, X, Y) Then
-					If i <> HotItem Then
-						HotItem = i
-						Me.Refresh
+			If cAxisItem <> 0 AndAlso cAxisItem->Count > 0 AndAlso SerieCount > 0 Then
+				'=================== MULTI PIE / DONUT (cAxisItem) ===================
+				Dim nPies As Long = cAxisItem->Count
+				
+				For i = 0 To SerieCount - 1
+					If PtInRectL(m_Serie(i).LegendRect, X, Y) Then
+						If i <> mHotSerie Or mHotPie <> -1 Then
+							mHotSerie = i
+							mHotPie = -1
+							Me.Refresh
+						End If
+						Exit Sub
 					End If
-					Exit Sub
+				Next
+				
+				For p As Integer = 0 To nPies - 1
+					For i = 0 To SerieCount - 1
+						If p > UBound(m_Serie(i).hPath) Then Continue For
+						If m_Serie(i).hPath(p) = 0 Then Continue For
+						
+						bResult = PtInPath(m_Serie(i).hPath(p), X, Y)
+						If bResult Then
+							If i <> mHotSerie Or p <> mHotPie Then
+								mHotSerie = i
+								mHotPie = p
+								Me.Refresh
+							End If
+							Exit Sub
+						End If
+					Next
+				Next
+				
+				If mHotSerie <> -1 Or mHotPie <> -1 Then
+					mHotSerie = -1
+					mHotPie = -1
+					Me.Refresh
 				End If
 				
-				'?"MouseMove", X, Y
-				bResult = PtInPath(m_Item(i).hPath, X, Y)
-				
-				If bResult Then
-					If i <> HotItem Then
-						HotItem = i
-						Me.Refresh
+			Else
+				For i = 0 To ItemsCount - 1
+					If PtInRectL(m_Item(i).LegendRect, X, Y) Then
+						If i <> HotItem Then
+							HotItem = i
+							Me.Refresh
+						End If
+						Exit Sub
 					End If
-					Exit Sub
-				End If
+					
+					'?"MouseMove", X, Y
+					bResult = PtInPath(m_Item(i).hPath, X, Y)
+					
+					If bResult Then
+						If i <> HotItem Then
+							HotItem = i
+							Me.Refresh
+						End If
+						Exit Sub
+					End If
+					
+				Next
 				
-			Next
-			
-			If HotItem <> -1 Then
-				HotItem = -1
-				Me.Refresh
+				If HotItem <> -1 Then
+					HotItem = -1
+					Me.Refresh
+				End If
 			End If
 		Case CS_Area
 			Dim XX As Single, YY As Single, i As Long
@@ -867,7 +908,7 @@ Namespace My.Sys.Forms
 				If SerieCount = 0 Then Exit Sub
 				XX = X - MarginLeft + PtDistance / 2
 				'YY = Y '- TopHeader
-				'Aborting due to runtime error 11 ("floating point error" signal) 
+				'Aborting due to runtime error 11 ("floating point error" signal)
 				If CInt(XX / PtDistance) <> mHotBar Then
 					mHotBar = CInt(XX / PtDistance)
 					Me.Refresh
@@ -1199,7 +1240,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Sub Chart.Draw()
-    On Error Goto ErrorHandler
+		On Error Goto ErrorHandler
 		#ifndef __USE_GTK__
 			Dim hPath As GpPath Ptr
 			Dim hBrush As GpBrush Ptr, hPen As GpPen Ptr
@@ -1261,539 +1302,959 @@ Namespace My.Sys.Forms
 		Select Case ChartStyle
 		Case CS_Pie To CS_Donut
 			
-			PT16 = 16 * nScale
-			mPenWidth = 1 * nScale
-			DonutSize = m_DonutWidth * nScale
-			
-			MarginLeft = PT16
-			TopHeader = PT16
-			MarginRight = PT16
-			Footer = PT16
-			
-			Canvas.Font = This.Font
-			If m_LegendVisible Then
-				For i = 0 To ItemsCount - 1
-					m_Item(i).TextHeight = ScaleY(Canvas.TextHeight(m_Item(i).ItemName)) * 1.5
-					m_Item(i).TextWidth = ScaleX(Canvas.TextWidth(m_Item(i).ItemName)) * 1.5 + m_Item(i).TextHeight
-				Next
-			End If
-			
-			If Len(m_Title) Then
-				GetTextSize(*m_Title.vptr, ScaleX(This.ClientWidth), 0, m_TitleFont, True, TitleSize)
-				TopHeader = TopHeader + TitleSize.Height
-			End If
-			mWidth = ScaleX(This.ClientWidth) - MarginLeft - MarginRight
-			mHeight = ScaleY(This.ClientHeight) - TopHeader - Footer
-			
-			'Calculate the Legend Area
-			If m_LegendVisible Then
-				ColRow = 1
-				Select Case m_LegendAlign
-				Case LA_RIGHT, LA_LEFT
-					With LabelsRect
-						TextWidth = 0
-						TextHeight = 0
-						For i = 0 To ItemsCount - 1
-							If TextHeight + m_Item(i).TextHeight > mHeight Then
-								.Right = .Right + TextWidth
-								ColRow = ColRow + 1
-								TextWidth = 0
-								TextHeight = 0
-							End If
-							
-							TextHeight = TextHeight + m_Item(i).TextHeight
-							.Bottom = .Bottom + m_Item(i).TextHeight
-							
-							If TextWidth < m_Item(i).TextWidth Then
-								TextWidth = m_Item(i).TextWidth '+ PT16
-							End If
-						Next
-						.Right = .Right + TextWidth
-						If m_LegendAlign = LA_LEFT Then
-							MarginLeft = MarginLeft + .Right
-						Else
-							MarginRight = MarginRight + .Right
-						End If
-						mWidth = mWidth - .Right
-					End With
-					
-				Case LA_BOTTOM, LA_TOP
-					With LabelsRect
-						
-						.Bottom = m_Item(0).TextHeight + PT16 / 2
-						TextWidth = 0
-						For i = 0 To ItemsCount - 1
-							If TextWidth + m_Item(i).TextWidth > mWidth Then
-								.Bottom = .Bottom + m_Item(i).TextHeight
-								ColRow = ColRow + 1
-								TextWidth = 0
-							End If
-							TextWidth = TextWidth + m_Item(i).TextWidth
-							.Right = .Right + m_Item(i).TextWidth
-						Next
-						If m_LegendAlign = LA_TOP Then
-							TopHeader = TopHeader + .Bottom
-						End If
-						mHeight = mHeight - .Bottom
-					End With
-				End Select
-			End If
-			
-			
-			Dim RectF_ As RectF
-			With RectF_
-				.Width = ScaleX(This.ClientWidth) - 1 * nScale
-				.Height = ScaleY(This.ClientHeight) - 1 * nScale
-			End With
-			
-			RoundRect RectF_, RGBtoARGB(FBackColor, m_BackColorOpacity), RGBtoARGB(m_BorderColor, 100), m_BorderRound * nScale, m_Border, m_BackColorOpacity
-			
-			
-			'    'Background
-			'    If m_BackColorOpacity > 0 Then
-			'        GdipCreateSolidFill RGBtoARGB(m_BackColor, m_BackColorOpacity), hBrush
-			'        GdipFillRectangleI hGraphics, hBrush, 0, 0, This.ClientWidth, This.ClientHeight
-			'        GdipDeleteBrush hBrush
-			'    End If
-			'
-			'    'Border
-			'    If m_Border Then
-			'        Call GdipCreatePen1(RGBtoARGB(m_BorderColor, 50), mPenWidth, &H2, hPen)
-			'        GdipDrawRectangleI hGraphics, hPen, mPenWidth / 2, mPenWidth / 2, This.ClientWidth - mPenWidth, This.ClientHeight - mPenWidth
-			'        GdipDeletePen hPen
-			'    End If
-			'
-			
-			
-			'Sum of itemes
-			For i = 0 To ItemsCount - 1
-				Total = Total + m_Item(i).Value
-			Next
-			
-			'calculate max size of labels
-			For i = 0 To ItemsCount - 1
-				With m_Item(i)
-					Percent = RoundInteger(100 * .Value / Total, 1)
-					If i < ItemsCount - 1 Then
-						SafePercent = SafePercent + Percent
-					Else
-						Percent = RoundInteger(100 - SafePercent, 1)
-					End If
-					.text = Replace(m_LabelsFormats, "{A}", .ItemName)
-					.text = Replace(.text, "{P}", WStr(Percent))
-					.text = Replace(.text, "{V}", WStr(RoundInteger(.Value, 1)))
-					.text = Replace(.text, "{LF}", Chr(10))
-					
-					TextWidth = ScaleX(Canvas.TextWidth(.text)) * 1.3
-					TextHeight = ScaleY(Canvas.TextHeight(.text)) * 1.3
-					If TextWidth > LblWidth Then LblWidth = TextWidth
-					If TextHeight > LblHeight Then LblHeight = TextHeight
-				End With
-			Next
-			
-			'size of pie
-			If m_LabelsPositions = LP_Outside Or m_LabelsPositions = LP_TwoColumns Then
-				Min = IIf(mWidth - LblWidth * 2 < mHeight - LblHeight * 2, mWidth - LblWidth * 2, mHeight - LblHeight * 2)
-			Else
-				Min = IIf(mWidth < mHeight, mWidth, mHeight)
-			End If
-			
-			If Min / 3 < DonutSize Then DonutSize = Min / 3
-			XX = MarginLeft + mWidth / 2 - Min / 2
-			YY = TopHeader + mHeight / 2 - Min / 2
-			m_CenterCircle.x = MarginLeft + mWidth / 2
-			m_CenterCircle.y = TopHeader + mHeight / 2
-			R1 = Min / 2
-			
-			'    If m_SeparatorLine Then
-			'        GdipCreateSolidFill RGBtoARGB(m_SeparatorLineColor, m_BackColorOpacity), hBrush
-			'        GdipFillEllipseI hGraphics, hBrush, XX - m_SeparatorLineWidth, YY - m_SeparatorLineWidth, Min + m_SeparatorLineWidth * 2, Min + m_SeparatorLineWidth * 2
-			'        GdipDeleteBrush hBrush
-			'    End If
-			
-			LastAngle = m_Rotation - 90
-			For i = 0 To ItemsCount - 1
-				Angle = 360 * m_Item(i).Value / Total
+			If cAxisItem <> 0 AndAlso cAxisItem->Count > 0 AndAlso SerieCount > 0 Then
+				'=================== MULTI PIE / DONUT (cAxisItem) ===================
+				Dim nPies As Integer = cAxisItem->Count
+				Dim Cols As Integer = IIf(nPies > 1, 2, 1)
+				Dim Rows As Integer = (nPies + Cols - 1) \ Cols
+				Dim CellW As Single, CellH As Single, CapH As Single
+				Dim x0 As Single, y0 As Single
+				Dim PieTotal As Single, Val_ As Single
+				Dim p As Integer, rw As Integer, PerRow As Integer
+				Dim MidA As Single
+				Dim RectF_ As RectF
+				Dim LabelGap As Single
 				
+				PT16 = 16 * nScale
+				mPenWidth = 1 * nScale
+				DonutSize = m_DonutWidth * nScale
+				lForeColor = RGBtoARGB(FForeColor, 100)
 				
-				'*1
-				If m_Item(i).Special Then
-					R2 = PT16 / 1.5
-					Left_ = XX + (R2 * Cos((LastAngle + Angle / 2) * PItoRAD))
-					Top_ = YY + (R2 * Sin((LastAngle + Angle / 2) * PItoRAD))
-				Else
-					Left_ = XX
-					Top_ = YY
+				MarginLeft = PT16
+				TopHeader = PT16
+				MarginRight = PT16
+				Footer = PT16
+				
+				Canvas.Font = This.Font
+				
+				'Legend sizes (series)
+				If m_LegendVisible Then
+					For i = 0 To SerieCount - 1
+						m_Serie(i).TextHeight = ScaleY(Canvas.TextHeight(m_Serie(i).SerieName)) * 1.5
+						m_Serie(i).TextWidth = ScaleX(Canvas.TextWidth(m_Serie(i).SerieName)) * 1.5 + m_Serie(i).TextHeight
+					Next
 				End If
 				
-				#ifdef __USE_GTK__
-					If m_Item(i).hPath <> 0 Then cairo_path_destroy m_Item(i).hPath
-					cairo_new_path(cr)
-				#else
-					If m_Item(i).hPath <> 0 Then GdipDeletePath m_Item(i).hPath
-					GdipCreatePath 0, @m_Item(i).hPath
-				#endif
-				
-				If m_ChartStyle = CS_Donut Then
-					#ifdef __USE_GTK__
-						cairo_move_to(cr, Left_ + Min / 2, Top_ + Min / 2)
-						cairo_arc(cr, Left_ + Min / 2, Top_ + Min / 2, Min / 2, LastAngle * (G_PI / 180), LastAngle * (G_PI / 180) + Angle * (G_PI / 180))
-						cairo_arc_negative(cr, Left_ + DonutSize + (Min - DonutSize * 2) / 2, Top_ + DonutSize + (Min - DonutSize * 2) / 2, (Min - DonutSize * 2) / 2, LastAngle  * (G_PI / 180) + Angle * (G_PI / 180),LastAngle  * (G_PI / 180) + Angle * (G_PI / 180) + -Angle * (G_PI / 180))
-					#else
-						GdipAddPathArc m_Item(i).hPath, Left_, Top_, Min, Min, LastAngle, Angle
-						GdipAddPathArc m_Item(i).hPath, Left_ + DonutSize, Top_ + DonutSize, Min - DonutSize * 2, Min - DonutSize * 2, LastAngle + Angle, -Angle
-					#endif
-				Else
-					#ifdef __USE_GTK__
-						cairo_move_to(cr, Left_ + Min / 2, Top_ + Min / 2)
-						cairo_arc(cr, Left_ + Min / 2, Top_ + Min / 2, Min / 2, LastAngle * (G_PI / 180), LastAngle * (G_PI / 180) + Angle * (G_PI / 180)) 'LastAngle / 90, Angle / 90
-					#else
-						GdipAddPathPie m_Item(i).hPath, Left_, Top_, Min, Min, LastAngle, Angle
-					#endif
+				If Len(m_Title) Then
+					GetTextSize(m_Title, ScaleX(This.ClientWidth), 0, m_TitleFont, True, TitleSize)
+					TopHeader = TopHeader + TitleSize.Height
 				End If
-				#ifdef __USE_GTK__
-					m_Item(i).hPath = cairo_copy_path(cr)
-				#endif
+				mWidth = ScaleX(This.ClientWidth) - MarginLeft - MarginRight
+				mHeight = ScaleY(This.ClientHeight) - TopHeader - Footer
 				
-				If HotItem = i Then
-					lColor = RGBtoARGB(ShiftColor(m_Item(i).ItemColor, clWhite, 150), m_FillOpacity)
-				Else
-					lColor = RGBtoARGB(m_Item(i).ItemColor, m_FillOpacity)
-				End If
-				If m_FillGradient Then
-					With RectL_
-						.Left = MarginLeft - R2
-						.Top = TopHeader - R2
-						.Right = mWidth + R2 * 2
-						.Bottom = mHeight + R2 * 2
-					End With
-					#ifndef __USE_GTK__
-						GdipCreateLineBrushFromRectWithAngleI Cast(GpRect Ptr, @RectL_), lColor, RGBtoARGB(clWhite, 100), 180 + LastAngle + Angle / 2, 0, WrapModeTile, Cast(GpLineGradient Ptr Ptr, @hBrush)
-					#endif
-				Else
-					#ifndef __USE_GTK__
-						GdipCreateSolidFill lColor, Cast(GpSolidFill Ptr Ptr, @hBrush)
-					#endif
-				End If
-				#ifdef __USE_GTK__
-					cairo_set_source_rgba(cr, GetRedD(lColor), GetGreenD(lColor), GetBlueD(lColor), m_FillOpacity / 100)
-					cairo_fill(cr)
-				#else
-					GdipFillPath hGraphics, Cast(GpBrush Ptr, hBrush), m_Item(i).hPath
-					GdipDeleteBrush Cast(GpBrush Ptr, hBrush)
-				#endif
-				
-				R1 = Min / 2
-				R2 = m_Item(i).TextWidth / 2
-				R3 = m_Item(i).TextHeight / 2
-				
-				CX = XX + Min / 2 + TextWidth
-				CY = YY + Min / 2 + TextHeight
-				
-				Left_ = CX + ((R1 - R2) * Cos((LastAngle + Angle / 2) * PItoRAD)) - R2
-				Top_ = CY + ((R1 - R3) * Sin((LastAngle + Angle / 2) * PItoRAD)) - R3
-				'DrawText hGraphics, m_Item(i).ItemName, Left, Top, R2 * 2, R3 * 2, This.Font, lForeColor, cCenter, cMiddle
-				LastAngle = LastAngle + Angle '+ 2
-			Next
-			
-			'*2
-			
-			LastAngle = m_Rotation - 90
-			bAngMaj180 = False
-			For i = 0 To ItemsCount - 1
-				Angle = 360 * m_Item(i).Value / Total
-				
-				If m_SeparatorLine Then
-					#ifdef __USE_GTK__
-						cairo_set_source_rgb(cr, GetRedD(m_SeparatorLineColor), GetGreenD(m_SeparatorLineColor), GetBlueD(m_SeparatorLineColor))
-						cairo_set_line_width (cr, m_SeparatorLineWidth * nScale)
-						'?m_SeparatorLineWidth
-					#else
-						GdipCreatePen1 RGBtoARGB(m_SeparatorLineColor, 100), m_SeparatorLineWidth * nScale, 2, @hPen
-						GdipSetPenEndCap hPen, 2
-					#endif
-					
-					R1 = (Min + mPenWidth / 2) / 2
-					R2 = (Min - mPenWidth / 2) / 2 - DonutSize
-					
-					CX = XX + Min / 2
-					CY = YY + Min / 2
-					
-					Left_ = CX + (R1 * Cos((LastAngle) * PItoRAD))
-					Top_ = CY + (R1 * Sin((LastAngle) * PItoRAD))
-					
-					If m_ChartStyle = CS_Donut Then
-						CX = CX + (R2 * Cos((LastAngle) * PItoRAD))
-						CY = CY + (R2 * Sin((LastAngle) * PItoRAD))
-					Else
-						'GdipDrawEllipseI hGraphics, hPen, XX, YY, Min, Min
-					End If
-					
-					#ifdef __USE_GTK__
-						cairo_move_to(cr, Left_, Top_)
-						cairo_line_to(cr, CX, CY)
-						cairo_stroke(cr)
-					#else
-						GdipDrawLineI hGraphics, hPen, Left_, Top_, CX, CY
-						
-						GdipDeletePen hPen
-					#endif
-				End If
-				
-				TextWidth = LblWidth
-				TextHeight = LblHeight
-				
-				If m_LabelsPositions = LP_Inside Then
-					If DonutSize > TextWidth Then TextWidth = DonutSize
-					If DonutSize > TextHeight Then TextHeight = DonutSize
-				End If
-				
-				R2 = TextWidth / 2
-				R3 = TextHeight / 2
-				Displacement = IIf(m_Item(i).Special, PT16 / 1.5, 0)
-				
-				CX = XX + Min / 2
-				CY = YY + Min / 2
-				
-				A = LastAngle + Angle / 2
-				
-				If m_LabelsPositions = LP_Inside Then
-					Left_ = CX + ((R1 - R2 + Displacement) * Cos(A * PItoRAD)) - R2
-					Top_ = CY + ((R1 - R3 + Displacement) * Sin(A * PItoRAD)) - R3
-				Else
-					Left_ = CX + ((R1 + R2 + Displacement) * Cos(A * PItoRAD)) - R2
-					Top_ = CY + ((R1 + R3 + Displacement) * Sin(A * PItoRAD)) - R3
-				End If
-				If m_LabelsVisible Then
-					If m_LabelsPositions = LP_TwoColumns Then
-						Dim LineOut As Integer
-						LineOut = ScaleY(Canvas.TextHeight("Aj")) / 2
-						
-						#ifdef __USE_GTK__
-							Var BrushColor = RGBtoARGB(m_Item(i).ItemColor, 50), BrushAlpha = 0.5
-							Var PenColor = RGBtoARGB(m_Item(i).ItemColor, 50), PenAlpha = 1
-							cairo_set_line_width(cr, 1 * nScale)
-						#else
-							GdipCreateSolidFill RGBtoARGB(m_Item(i).ItemColor, 50), Cast(GpSolidFill Ptr Ptr, @hBrush)
-							GdipCreatePen1 RGBtoARGB(m_Item(i).ItemColor, 100), 1 * nScale, 2, @hPen
-						#endif
-						
-						If (LastAngle + Angle / 2 + 90) Mod 359 < 180 Then
-							If bAngMaj180 Then
-								bAngMaj180 = False
-								lTop = Top_
-							End If
-							
-							If lTop <= 0 Then lTop = Top_
-							
-							If Top_ < lTop Then
-								lTop = lTop
-							Else
-								lTop = Top_
-							End If
-							
-							Left_ = XX + Min + PT16
-							#ifdef __USE_GTK__
-								cairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), BrushAlpha)
-								cairo_rectangle(cr, Left_, lTop, TextWidth, TextHeight)
-								cairo_fill(cr)
-							#else
-								GdipFillRectangleI hGraphics, Cast(GpBrush Ptr, hBrush), Left_, lTop, TextWidth, TextHeight
-							#endif
-							DrawText m_Item(i).text, Left_, lTop, TextWidth, TextHeight, This.Font, RGBtoARGB(FForeColor, 100), cCenter, cMiddle
-							
-							lTop = lTop + TextHeight
-							
-							Left_ = CX + (R1 * Cos(A * PItoRAD))
-							Top_ = CY + (R1 * Sin(A * PItoRAD))
-							CX = CX + ((R1 + LineOut) * Cos(A * PItoRAD))
-							CY = CY + ((R1 + LineOut) * Sin(A * PItoRAD))
-							
-							#ifdef __USE_GTK__
-								cairo_set_source_rgba(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor), PenAlpha)
-								cairo_move_to(cr, Left_, Top_)
-								cairo_line_to(cr, CX, CY)
-								cairo_stroke(cr)
-							#else
-								GdipDrawLineI hGraphics, hPen, Left_, Top_, CX, CY
-							#endif
-							Left_ = XX + Min + PT16
-							Top_ = lTop - TextHeight / 2
-							#ifdef __USE_GTK__
-								cairo_set_source_rgba(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor), PenAlpha)
-								cairo_move_to(cr, CX, CY)
-								cairo_line_to(cr, Left_, Top_)
-								cairo_stroke(cr)
-							#else
-								GdipDrawLineI hGraphics, hPen, CX, CY, Left_, Top_
-							#endif
-						Else
-							If bAngMaj180 = False Then
-								bAngMaj180 = True
-								lTop = TopHeader + mHeight
-							End If
-							
-							If lTop <= 0 Then lTop = Top_
-							
-							If Top_ > lTop Then
-								lTop = lTop
-							Else
-								lTop = Top_
-							End If
-							
-							Left_ = XX - TextWidth - PT16
-							#ifdef __USE_GTK__
-								cairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), BrushAlpha)
-								cairo_rectangle(cr, Left_, lTop, TextWidth, TextHeight)
-								cairo_fill(cr)
-							#else
-								GdipFillRectangleI hGraphics, Cast(GpBrush Ptr, hBrush), Left_, lTop, TextWidth, TextHeight
-							#endif
-							DrawText m_Item(i).text, Left_, lTop, TextWidth, TextHeight, This.Font, RGBtoARGB(FForeColor, 100), cCenter, cMiddle
-							
-							Left_ = CX + (R1 * Cos(A * PItoRAD))
-							Top_ = CY + (R1 * Sin(A * PItoRAD))
-							CX = CX + ((R1 + LineOut) * Cos(A * PItoRAD))
-							CY = CY + ((R1 + LineOut) * Sin(A * PItoRAD))
-							#ifdef __USE_GTK__
-								cairo_set_source_rgba(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor), PenAlpha)
-								cairo_move_to(cr, Left_, Top_)
-								cairo_line_to(cr, CX, CY)
-								cairo_stroke(cr)
-							#else
-								GdipDrawLineI hGraphics, hPen, Left_, Top_, CX, CY
-							#endif
-							Left_ = XX - PT16
-							Top_ = lTop + TextHeight / 2
-							#ifdef __USE_GTK__
-								cairo_set_source_rgba(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor), PenAlpha)
-								cairo_move_to(cr, CX, CY)
-								cairo_line_to(cr, Left_, Top_)
-								cairo_stroke(cr)
-							#else
-								GdipDrawLineI hGraphics, hPen, CX, CY, Left_, Top_
-							#endif
-							lTop = lTop - TextHeight
-						End If
-						#ifndef __USE_GTK__
-							GdipDeleteBrush Cast(GpBrush Ptr, hBrush)
-							GdipDeletePen hPen
-						#endif
-						
-					ElseIf m_LabelsPositions = LP_Inside Then
-						'lForeColor = IIf(IsDarkColor(m_Item(i).ItemColor), &H808080, vbWhite)
-						'DrawText hGraphics, m_Item(i).Text, Left + 1, Top + 1, TextWidth, TextHeight, This.Font, RGBtoARGB(lForeColor, 100), cCenter, cMiddle
-						If HotItem = i Then
-							lColor = ShiftColor(m_Item(i).ItemColor, clWhite, 150)
-						Else
-							lColor = m_Item(i).ItemColor
-						End If
-						lForeColor = IIf(IsDarkColor(lColor), clWhite, clBlack)
-						DrawText m_Item(i).text, Left_, Top_, TextWidth, TextHeight, This.Font, RGBtoARGB(lForeColor, 100), cCenter, cMiddle
-					Else
-						DrawText m_Item(i).text, Left_, Top_, TextWidth, TextHeight, This.Font, RGBtoARGB(FForeColor, 100), cCenter, cMiddle
-					End If
-				End If
-				LastAngle = LastAngle + Angle '+ 2
-			Next
-			
-			
-			
-			If m_LegendVisible Then
-				For i = 0 To ItemsCount - 1
-					lForeColor = RGBtoARGB(FForeColor, 100)
+				'Legend area
+				If m_LegendVisible Then
+					ColRow = 1
 					Select Case m_LegendAlign
 					Case LA_RIGHT, LA_LEFT
 						With LabelsRect
 							TextWidth = 0
-							
-							If .Left = 0 Then
-								TextHeight = 0
-								If m_LegendAlign = LA_LEFT Then
-									.Left = PT16
-								Else
-									.Left = MarginLeft + mWidth + PT16
+							TextHeight = 0
+							For i = 0 To SerieCount - 1
+								If TextHeight + m_Serie(i).TextHeight > mHeight Then
+									.Right = .Right + TextWidth
+									ColRow = ColRow + 1
+									TextWidth = 0
+									TextHeight = 0
 								End If
-								If ColRow = 1 Then
-									.Top = TopHeader + mHeight / 2 - .Bottom / 2
-								Else
-									.Top = TopHeader
+								TextHeight = TextHeight + m_Serie(i).TextHeight
+								.Bottom = .Bottom + m_Serie(i).TextHeight
+								If TextWidth < m_Serie(i).TextWidth Then TextWidth = m_Serie(i).TextWidth
+							Next
+							.Right = .Right + TextWidth
+							If m_LegendAlign = LA_LEFT Then
+								MarginLeft = MarginLeft + .Right
+							Else
+								MarginRight = MarginRight + .Right
+							End If
+							mWidth = mWidth - .Right
+						End With
+					Case LA_BOTTOM, LA_TOP
+						With LabelsRect
+							.Bottom = m_Serie(0).TextHeight + PT16 / 2
+							TextWidth = 0
+							For i = 0 To SerieCount - 1
+								If TextWidth + m_Serie(i).TextWidth > mWidth Then
+									.Bottom = .Bottom + m_Serie(i).TextHeight
+									ColRow = ColRow + 1
+									TextWidth = 0
 								End If
+								TextWidth = TextWidth + m_Serie(i).TextWidth
+								.Right = .Right + m_Serie(i).TextWidth
+							Next
+							If m_LegendAlign = LA_TOP Then TopHeader = TopHeader + .Bottom
+							mHeight = mHeight - .Bottom
+						End With
+					End Select
+				End If
+				
+				'Background
+				With RectF_
+					.Width = ScaleX(This.ClientWidth) - 1 * nScale
+					.Height = ScaleY(This.ClientHeight) - 1 * nScale
+				End With
+				RoundRect RectF_, RGBtoARGB(FBackColor, m_BackColorOpacity), RGBtoARGB(m_BorderColor, 100), m_BorderRound * nScale, m_Border, m_BackColorOpacity
+				
+				'Cell sizes
+				CapH = 0
+				For p = 0 To nPies - 1
+					TextHeight = ScaleY(Canvas.TextHeight(cAxisItem->Item(p))) * 1.3
+					If TextHeight > CapH Then CapH = TextHeight
+				Next
+				CapH = CapH + PT16 / 4
+				CellW = mWidth / Cols
+				CellH = mHeight / Rows
+				LabelGap = PT16 / 3
+				
+				'Max label size (estimate over all pies)
+				LblWidth = 0: LblHeight = 0
+				If m_LabelsVisible Then
+					For p = 0 To nPies - 1
+						For i = 0 To SerieCount - 1
+							If p <= m_Serie(i).Values->Count - 1 Then
+								sLabelText = Replace(m_LabelsFormats, "{A}", m_Serie(i).SerieName)
+								sLabelText = Replace(sLabelText, "{P}", "100")
+								sLabelText = Replace(sLabelText, "{V}", WStr(RoundInteger(m_Serie(i).Values->Item(p), 1)))
+								sLabelText = Replace(sLabelText, "{LF}", Chr(10))
+								TextWidth = ScaleX(Canvas.TextWidth(sLabelText)) * 1.5 + PT16 / 2
+								TextHeight = ScaleY(Canvas.TextHeight(sLabelText)) * 1.8
+								If TextWidth > LblWidth Then LblWidth = TextWidth
+								If TextHeight > LblHeight Then LblHeight = TextHeight
+							End If
+						Next
+					Next
+				End If
+				
+				'Pie size (same for all pies)
+				Dim PieMargin As Single
+				PieMargin = IIf(CellW < CellH - CapH, CellW, CellH - CapH) * 0.08   ' ~8% margin
+				If PieMargin > PT16 Then PieMargin = PT16
+				If m_LabelsVisible And (CBool(m_LabelsPositions = LP_Outside) Or CBool(m_LabelsPositions = LP_TwoColumns)) Then
+					Min = IIf(CellW - (LblWidth + LabelGap) * 2 < CellH - CapH - (LblHeight + LabelGap) * 2, _
+					CellW - (LblWidth + LabelGap) * 2, CellH - CapH - (LblHeight + LabelGap) * 2)
+				Else
+					Min = IIf(CellW < CellH - CapH, CellW, CellH - CapH)
+				End If
+				Min = Min - PieMargin
+				If Min < 1 Then Min = 1
+				Dim DSize As Single = DonutSize
+				If Min / 3 < DSize Then DSize = Min / 3
+				R1 = Min / 2
+				
+				For i = 0 To SerieCount - 1
+					#ifdef __USE_GTK__
+						Dim k As Long
+						If UBound(m_Serie(i).hPath) >= 0 Then
+							For k = 0 To UBound(m_Serie(i).hPath)
+								If m_Serie(i).hPath(k) <> 0 Then cairo_path_destroy m_Serie(i).hPath(k)
+							Next
+						End If
+					#else
+						Dim k As Long
+						If UBound(m_Serie(i).hPath) >= 0 Then
+							For k = 0 To UBound(m_Serie(i).hPath)
+								If m_Serie(i).hPath(k) <> 0 Then GdipDeletePath m_Serie(i).hPath(k)
+							Next
+						End If
+					#endif
+					ReDim (m_Serie(i).hPath)(nPies - 1)
+				Next
+				'---- draw each pie ----
+				For p = 0 To nPies - 1
+					rw = p \ Cols
+					If Cols = 2 And (rw = Rows - 1) And (nPies Mod 2 = 1) Then PerRow = 1 Else PerRow = Cols
+					
+					If PerRow = 1 And Cols = 2 Then
+						x0 = MarginLeft + (mWidth - CellW) / 2      'last single pie -> centered
+					Else
+						x0 = MarginLeft + CellW * (p Mod Cols)
+					End If
+					y0 = TopHeader + CellH * rw
+					
+					CX = x0 + CellW / 2
+					CY = y0 + (CellH - CapH) / 2
+					XX = CX - Min / 2
+					YY = CY - Min / 2
+					
+					'Total of this pie
+					PieTotal = 0
+					For i = 0 To SerieCount - 1
+						If p <= m_Serie(i).Values->Count - 1 Then
+							Val_ = m_Serie(i).Values->Item(p)
+							If Val_ > 0 Then PieTotal = PieTotal + Val_
+						End If
+					Next
+					
+					If PieTotal > 0 Then
+						'---------- 1-ўтиш: бўлаклар ва ажратувчи чизиқлар ----------
+						LastAngle = m_Rotation - 90
+						For i = 0 To SerieCount - 1
+							If p > m_Serie(i).Values->Count - 1 Then Continue For
+							Val_ = m_Serie(i).Values->Item(p)
+							If Val_ <= 0 Then Continue For
+							Angle = 360 * Val_ / PieTotal
+							
+							Left_ = XX: Top_ = YY
+							
+							#ifdef __USE_GTK__
+								cairo_new_path(cr)
+								If m_ChartStyle = CS_Donut Then
+									cairo_move_to(cr, Left_ + Min / 2, Top_ + Min / 2)
+									cairo_arc(cr, Left_ + Min / 2, Top_ + Min / 2, Min / 2, LastAngle * (G_PI / 180), (LastAngle + Angle) * (G_PI / 180))
+									cairo_arc_negative(cr, Left_ + Min / 2, Top_ + Min / 2, Min / 2 - DSize, (LastAngle + Angle) * (G_PI / 180), LastAngle * (G_PI / 180))
+								Else
+									cairo_move_to(cr, Left_ + Min / 2, Top_ + Min / 2)
+									cairo_arc(cr, Left_ + Min / 2, Top_ + Min / 2, Min / 2, LastAngle * (G_PI / 180), (LastAngle + Angle) * (G_PI / 180))
+								End If
+								cairo_close_path(cr)
+								
+								m_Serie(i).hPath(p) = cairo_copy_path(cr)
+							#else
+								GdipCreatePath 0, @hPath
+								If m_ChartStyle = CS_Donut Then
+									GdipAddPathArc hPath, Left_, Top_, Min, Min, LastAngle, Angle
+									GdipAddPathArc hPath, Left_ + DSize, Top_ + DSize, Min - DSize * 2, Min - DSize * 2, LastAngle + Angle, -Angle
+								Else
+									GdipAddPathPie hPath, Left_, Top_, Min, Min, LastAngle, Angle
+								End If
+							#endif
+							
+							If mHotSerie = i And (mHotPie = p Or mHotPie = -1) Then
+								lColor = RGBtoARGB(ShiftColor(m_Serie(i).SerieColor, clWhite, 150), m_FillOpacity)
+							Else
+								lColor = RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity)
 							End If
 							
-							If TextWidth < m_Item(i).TextWidth Then
-								TextWidth = m_Item(i).TextWidth '+ PT16
-							End If
+							#ifdef __USE_GTK__
+								cairo_set_source_rgba(cr, GetRedD(lColor), GetGreenD(lColor), GetBlueD(lColor), m_FillOpacity / 100)
+								cairo_fill(cr)
+							#else
+								If m_FillGradient Then
+									With RectL_
+										.Left = XX: .Top = YY: .Right = Min: .Bottom = Min
+									End With
+									GdipCreateLineBrushFromRectWithAngleI Cast(GpRect Ptr, @RectL_), lColor, RGBtoARGB(clWhite, 100), 180 + LastAngle + Angle / 2, 0, WrapModeTile, Cast(GpLineGradient Ptr Ptr, @hBrush)
+								Else
+									GdipCreateSolidFill lColor, Cast(GpSolidFill Ptr Ptr, @hBrush)
+								End If
+								GdipFillPath hGraphics, Cast(GpBrush Ptr, hBrush), hPath
+								GdipDeleteBrush Cast(GpBrush Ptr, hBrush)
+								If m_Serie(i).hPath(p) <> 0 Then GdipDeletePath m_Serie(i).hPath(p)
+								m_Serie(i).hPath(p) = hPath
+							#endif
 							
-							If TextHeight + m_Item(i).TextHeight > mHeight Then
-								If i > 0 Then .Left = .Left + TextWidth
-								.Top = TopHeader
-								TextHeight = 0
-							End If
-							m_Item(i).LegendRect.Left = .Left
-							m_Item(i).LegendRect.Top = .Top
-							m_Item(i).LegendRect.Right = m_Item(i).TextWidth
-							m_Item(i).LegendRect.Bottom = m_Item(i).TextHeight
-							'?"LegendRect", m_Item(i).LegendRect.Left, m_Item(i).LegendRect.Top
-							
-							With m_Item(i).LegendRect
+							If mHotSerie = i And mHotPie = p Then
+								Dim HotPenW As Single
+								HotPenW = m_LinesWidth * nScale * 2
+								If HotPenW < 1 * nScale Then HotPenW = 1 * nScale
 								#ifdef __USE_GTK__
-									cairo_set_source_rgba(cr, GetRedD(m_Item(i).ItemColor), GetGreenD(m_Item(i).ItemColor), GetBlueD(m_Item(i).ItemColor), 1)
-									cairo_arc(cr, .Left + (m_Item(i).TextHeight / 2) / 2 - 0.5, .Top + m_Item(i).TextHeight / 4 + (m_Item(i).TextHeight / 2) / 2 - 0.5, m_Item(i).TextHeight / 2 / 2 - 0.5, 0, 2 * G_PI)
+									cairo_set_source_rgb(cr, GetRedD(RGBtoARGB(m_Serie(i).SerieColor, 100)), GetGreenD(RGBtoARGB(m_Serie(i).SerieColor, 100)), GetBlueD(RGBtoARGB(m_Serie(i).SerieColor, 100)))
+									cairo_set_line_width(cr, HotPenW)
+									cairo_append_path(cr, m_Serie(i).hPath(p))
+									cairo_stroke(cr)
+								#else
+									Dim hHotPen As GpPen Ptr
+									GdipCreatePen1 RGBtoARGB(m_Serie(i).SerieColor, 100), HotPenW, &H2, @hHotPen
+									GdipDrawPath hGraphics, hHotPen, m_Serie(i).hPath(p)
+									GdipDeletePen hHotPen
+								#endif
+							End If
+							
+							If m_SeparatorLine Then
+								#ifdef __USE_GTK__
+									cairo_set_source_rgb(cr, GetRedD(m_SeparatorLineColor), GetGreenD(m_SeparatorLineColor), GetBlueD(m_SeparatorLineColor))
+									cairo_set_line_width(cr, m_SeparatorLineWidth * nScale)
+								#else
+									GdipCreatePen1 RGBtoARGB(m_SeparatorLineColor, 100), m_SeparatorLineWidth * nScale, 2, @hPen
+									GdipSetPenEndCap hPen, 2
+								#endif
+								Dim sx As Single = CX + (Min / 2) * Cos(LastAngle * PItoRAD)
+								Dim sy As Single = CY + (Min / 2) * Sin(LastAngle * PItoRAD)
+								Dim ex As Single = CX, ey As Single = CY
+								If m_ChartStyle = CS_Donut Then
+									ex = CX + (Min / 2 - DSize) * Cos(LastAngle * PItoRAD)
+									ey = CY + (Min / 2 - DSize) * Sin(LastAngle * PItoRAD)
+								End If
+								#ifdef __USE_GTK__
+									cairo_move_to(cr, sx, sy)
+									cairo_line_to(cr, ex, ey)
+									cairo_stroke(cr)
+								#else
+									GdipDrawLineI hGraphics, hPen, sx, sy, ex, ey
+									GdipDeletePen hPen
+								#endif
+							End If
+							
+							LastAngle = LastAngle + Angle
+						Next
+						
+						'---------- 2-ўтиш: ёзувлар (ҳамма бўлаклар устидан) ----------
+						If m_LabelsVisible Then
+							LastAngle = m_Rotation - 90
+							For i = 0 To SerieCount - 1
+								If p > m_Serie(i).Values->Count - 1 Then Continue For
+								Val_ = m_Serie(i).Values->Item(p)
+								If Val_ <= 0 Then Continue For
+								Angle = 360 * Val_ / PieTotal
+								
+								Percent = RoundInteger(100 * Val_ / PieTotal, 1)
+								sLabelText = Replace(m_LabelsFormats, "{A}", m_Serie(i).SerieName)
+								sLabelText = Replace(sLabelText, "{P}", WStr(Percent))
+								sLabelText = Replace(sLabelText, "{V}", WStr(RoundInteger(Val_, 1)))
+								sLabelText = Replace(sLabelText, "{LF}", Chr(10))
+								
+								TextWidth = ScaleX(Canvas.TextWidth(sLabelText)) * 1.5 + PT16 / 2
+								TextHeight = ScaleY(Canvas.TextHeight(sLabelText)) * 1.8
+								R2 = TextWidth / 2
+								R3 = TextHeight / 2
+								MidA = (LastAngle + Angle / 2) * PItoRAD
+								
+								If m_LabelsPositions = LP_Inside Then
+									Dim rr As Single
+									If m_ChartStyle = CS_Donut Then rr = Min / 2 - DSize / 2 Else rr = Min / 2 * 0.65
+									Left_ = CX + rr * Cos(MidA) - R2
+									Top_ = CY + rr * Sin(MidA) - R3
+									lForeColor = IIf(IsDarkColor(m_Serie(i).SerieColor), clWhite, clBlack)
+									DrawText sLabelText, Left_, Top_, TextWidth, TextHeight, This.Font, RGBtoARGB(lForeColor, 100), cCenter, cMiddle
+								Else  'Outside / TwoColumns
+									Left_ = CX + (Min / 2 + LabelGap + R2) * Cos(MidA) - R2
+									Top_ = CY + (Min / 2 + LabelGap + R3) * Sin(MidA) - R3
+									DrawText sLabelText, Left_, Top_, TextWidth, TextHeight, This.Font, RGBtoARGB(FForeColor, 100), cCenter, cMiddle
+								End If
+								
+								LastAngle = LastAngle + Angle
+							Next
+							lForeColor = RGBtoARGB(FForeColor, 100)
+						End If
+					End If
+					
+					'Caption under the pie (year)
+					lForeColor = RGBtoARGB(FForeColor, 100)
+					DrawText cAxisItem->Item(p), x0, y0 + CellH - CapH, CellW, CapH, This.Font, lForeColor, cCenter, cMiddle
+				Next
+				
+				'---- Legend (series) ----
+				If m_LegendVisible Then
+					lForeColor = RGBtoARGB(FForeColor, 100)
+					For i = 0 To SerieCount - 1
+						Select Case m_LegendAlign
+						Case LA_RIGHT, LA_LEFT
+							With LabelsRect
+								TextWidth = 0
+								If .Left = 0 Then
+									TextHeight = 0
+									If m_LegendAlign = LA_LEFT Then .Left = PT16 Else .Left = MarginLeft + mWidth + PT16
+									If ColRow = 1 Then .Top = TopHeader + mHeight / 2 - .Bottom / 2 Else .Top = TopHeader
+								End If
+								If TextWidth < m_Serie(i).TextWidth Then TextWidth = m_Serie(i).TextWidth
+								If TextHeight + m_Serie(i).TextHeight > mHeight Then
+									If i > 0 Then .Left = .Left + TextWidth
+									.Top = TopHeader
+									TextHeight = 0
+								End If
+								m_Serie(i).LegendRect.Left = .Left
+								m_Serie(i).LegendRect.Top = .Top
+								m_Serie(i).LegendRect.Right = m_Serie(i).TextWidth
+								m_Serie(i).LegendRect.Bottom = m_Serie(i).TextHeight
+								#ifdef __USE_GTK__
+									cairo_set_source_rgb(cr, GetRedD(m_Serie(i).SerieColor), GetGreenD(m_Serie(i).SerieColor), GetBlueD(m_Serie(i).SerieColor))
+									cairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
 									cairo_fill(cr)
 								#else
-									GdipCreateSolidFill RGBtoARGB(m_Item(i).ItemColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush) '&hB0000000
-									GdipFillEllipseI hGraphics, Cast(GpBrush Ptr, hBrush), .Left, .Top + m_Item(i).TextHeight / 4, m_Item(i).TextHeight / 2, m_Item(i).TextHeight / 2
+									GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush)
+									GdipFillEllipseI hGraphics, Cast(GpBrush Ptr, hBrush), .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2
 									GdipDeleteBrush Cast(GpBrush Ptr, hBrush)
 								#endif
+								DrawText m_Serie(i).SerieName, .Left + m_Serie(i).TextHeight / 1.5, .Top, m_Serie(i).TextWidth, m_Serie(i).TextHeight, This.Font, lForeColor, cLeft, cMiddle
+								TextHeight = TextHeight + m_Serie(i).TextHeight
+								.Top = .Top + m_Serie(i).TextHeight
 							End With
-							DrawText m_Item(i).ItemName, .Left + m_Item(i).TextHeight / 1.5, .Top, m_Item(i).TextWidth, m_Item(i).TextHeight, This.Font, lForeColor, cLeft, cMiddle
-							TextHeight = TextHeight + m_Item(i).TextHeight
-							.Top = .Top + m_Item(i).TextHeight
-							
+						Case LA_BOTTOM, LA_TOP
+							With LabelsRect
+								If .Left = 0 Then
+									If ColRow = 1 Then .Left = MarginLeft + mWidth / 2 - .Right / 2 Else .Left = MarginLeft
+									If m_LegendAlign = LA_TOP Then
+										.Top = PT16 + TitleSize.Height
+									Else
+										.Top = TopHeader + mHeight + TitleSize.Height - PT16 / 2
+									End If
+								End If
+								If .Left + m_Serie(i).TextWidth - MarginLeft > mWidth Then
+									.Left = MarginLeft
+									.Top = .Top + m_Serie(i).TextHeight
+								End If
+								#ifdef __USE_GTK__
+									cairo_set_source_rgb(cr, GetRedD(m_Serie(i).SerieColor), GetGreenD(m_Serie(i).SerieColor), GetBlueD(m_Serie(i).SerieColor))
+									cairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
+									cairo_fill(cr)
+								#else
+									GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush)
+									GdipFillEllipseI hGraphics, Cast(GpBrush Ptr, hBrush), .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2
+									GdipDeleteBrush Cast(GpBrush Ptr, hBrush)
+								#endif
+								m_Serie(i).LegendRect.Left = .Left
+								m_Serie(i).LegendRect.Top = .Top
+								m_Serie(i).LegendRect.Right = m_Serie(i).TextWidth
+								m_Serie(i).LegendRect.Bottom = m_Serie(i).TextHeight
+								DrawText m_Serie(i).SerieName, .Left + m_Serie(i).TextHeight / 1.5, .Top, m_Serie(i).TextWidth, m_Serie(i).TextHeight, This.Font, lForeColor, cLeft, cMiddle
+								.Left = .Left + m_Serie(i).TextWidth
+							End With
+						End Select
+					Next
+				End If
+				
+			Else
+				PT16 = 16 * nScale
+				mPenWidth = 1 * nScale
+				DonutSize = m_DonutWidth * nScale
+				
+				MarginLeft = PT16
+				TopHeader = PT16
+				MarginRight = PT16
+				Footer = PT16
+				
+				Canvas.Font = This.Font
+				If m_LegendVisible Then
+					For i = 0 To ItemsCount - 1
+						m_Item(i).TextHeight = ScaleY(Canvas.TextHeight(m_Item(i).ItemName)) * 1.5
+						m_Item(i).TextWidth = ScaleX(Canvas.TextWidth(m_Item(i).ItemName)) * 1.5 + m_Item(i).TextHeight
+					Next
+				End If
+				
+				If Len(m_Title) Then
+					GetTextSize(*m_Title.vptr, ScaleX(This.ClientWidth), 0, m_TitleFont, True, TitleSize)
+					TopHeader = TopHeader + TitleSize.Height
+				End If
+				mWidth = ScaleX(This.ClientWidth) - MarginLeft - MarginRight
+				mHeight = ScaleY(This.ClientHeight) - TopHeader - Footer
+				
+				'Calculate the Legend Area
+				If m_LegendVisible Then
+					ColRow = 1
+					Select Case m_LegendAlign
+					Case LA_RIGHT, LA_LEFT
+						With LabelsRect
+							TextWidth = 0
+							TextHeight = 0
+							For i = 0 To ItemsCount - 1
+								If TextHeight + m_Item(i).TextHeight > mHeight Then
+									.Right = .Right + TextWidth
+									ColRow = ColRow + 1
+									TextWidth = 0
+									TextHeight = 0
+								End If
+								
+								TextHeight = TextHeight + m_Item(i).TextHeight
+								.Bottom = .Bottom + m_Item(i).TextHeight
+								
+								If TextWidth < m_Item(i).TextWidth Then
+									TextWidth = m_Item(i).TextWidth '+ PT16
+								End If
+							Next
+							.Right = .Right + TextWidth
+							If m_LegendAlign = LA_LEFT Then
+								MarginLeft = MarginLeft + .Right
+							Else
+								MarginRight = MarginRight + .Right
+							End If
+							mWidth = mWidth - .Right
 						End With
 						
 					Case LA_BOTTOM, LA_TOP
 						With LabelsRect
-							If .Left = 0 Then
-								If ColRow = 1 Then
-									.Left = MarginLeft + mWidth / 2 - .Right / 2
-								Else
-									.Left = MarginLeft
+							
+							.Bottom = m_Item(0).TextHeight + PT16 / 2
+							TextWidth = 0
+							For i = 0 To ItemsCount - 1
+								If TextWidth + m_Item(i).TextWidth > mWidth Then
+									.Bottom = .Bottom + m_Item(i).TextHeight
+									ColRow = ColRow + 1
+									TextWidth = 0
 								End If
-								If m_LegendAlign = LA_TOP Then
-									.Top = PT16 + TitleSize.Height
-								Else
-									.Top = TopHeader + mHeight + TitleSize.Height - PT16 / 2
-								End If
+								TextWidth = TextWidth + m_Item(i).TextWidth
+								.Right = .Right + m_Item(i).TextWidth
+							Next
+							If m_LegendAlign = LA_TOP Then
+								TopHeader = TopHeader + .Bottom
 							End If
-							
-							If .Left + m_Item(i).TextWidth - MarginLeft > mWidth Then
-								.Left = MarginLeft
-								.Top = .Top + m_Item(i).TextHeight
-							End If
-							
-							#ifdef __USE_GTK__
-								cairo_set_source_rgba(cr, GetRedD(m_Item(i).ItemColor), GetGreenD(m_Item(i).ItemColor), GetBlueD(m_Item(i).ItemColor), 1)
-								cairo_arc(cr, .Left + (m_Item(i).TextHeight / 2) / 2 - 0.5, .Top + m_Item(i).TextHeight / 4 + (m_Item(i).TextHeight / 2) / 2 - 0.5, m_Item(i).TextHeight / 2 / 2, 0, 2 * G_PI)
-								cairo_fill(cr)
-							#else
-								GdipCreateSolidFill RGBtoARGB(m_Item(i).ItemColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush)
-								GdipFillEllipseI hGraphics, Cast(GpBrush Ptr, hBrush), .Left, .Top + m_Item(i).TextHeight / 4, m_Item(i).TextHeight / 2, m_Item(i).TextHeight / 2
-								GdipDeleteBrush Cast(GpBrush Ptr, hBrush)
-							#endif
-							m_Item(i).LegendRect.Left = .Left
-							m_Item(i).LegendRect.Top = .Top
-							m_Item(i).LegendRect.Right = m_Item(i).TextWidth
-							m_Item(i).LegendRect.Bottom = m_Item(i).TextHeight
-							
-							DrawText m_Item(i).ItemName, .Left + m_Item(i).TextHeight / 1.5, .Top, m_Item(i).TextWidth, m_Item(i).TextHeight, This.Font, lForeColor, cLeft, cMiddle
-							.Left = .Left + m_Item(i).TextWidth '+ M_ITEM(i).TextHeight / 1.5
+							mHeight = mHeight - .Bottom
 						End With
 					End Select
-					
-					
+				End If
+				
+				
+				Dim RectF_ As RectF
+				With RectF_
+					.Width = ScaleX(This.ClientWidth) - 1 * nScale
+					.Height = ScaleY(This.ClientHeight) - 1 * nScale
+				End With
+				
+				RoundRect RectF_, RGBtoARGB(FBackColor, m_BackColorOpacity), RGBtoARGB(m_BorderColor, 100), m_BorderRound * nScale, m_Border, m_BackColorOpacity
+				
+				
+				'    'Background
+				'    If m_BackColorOpacity > 0 Then
+				'        GdipCreateSolidFill RGBtoARGB(m_BackColor, m_BackColorOpacity), hBrush
+				'        GdipFillRectangleI hGraphics, hBrush, 0, 0, This.ClientWidth, This.ClientHeight
+				'        GdipDeleteBrush hBrush
+				'    End If
+				'
+				'    'Border
+				'    If m_Border Then
+				'        Call GdipCreatePen1(RGBtoARGB(m_BorderColor, 50), mPenWidth, &H2, hPen)
+				'        GdipDrawRectangleI hGraphics, hPen, mPenWidth / 2, mPenWidth / 2, This.ClientWidth - mPenWidth, This.ClientHeight - mPenWidth
+				'        GdipDeletePen hPen
+				'    End If
+				'
+				
+				
+				'Sum of itemes
+				For i = 0 To ItemsCount - 1
+					Total = Total + m_Item(i).Value
 				Next
+				
+				'calculate max size of labels
+				For i = 0 To ItemsCount - 1
+					With m_Item(i)
+						Percent = RoundInteger(100 * .Value / Total, 1)
+						If i < ItemsCount - 1 Then
+							SafePercent = SafePercent + Percent
+						Else
+							Percent = RoundInteger(100 - SafePercent, 1)
+						End If
+						.text = Replace(m_LabelsFormats, "{A}", .ItemName)
+						.text = Replace(.text, "{P}", WStr(Percent))
+						.text = Replace(.text, "{V}", WStr(RoundInteger(.Value, 1)))
+						.text = Replace(.text, "{LF}", Chr(10))
+						
+						TextWidth = ScaleX(Canvas.TextWidth(.text)) * 1.3
+						TextHeight = ScaleY(Canvas.TextHeight(.text)) * 1.3
+						If TextWidth > LblWidth Then LblWidth = TextWidth
+						If TextHeight > LblHeight Then LblHeight = TextHeight
+					End With
+				Next
+				
+				'size of pie
+				If m_LabelsPositions = LP_Outside Or m_LabelsPositions = LP_TwoColumns Then
+					Min = IIf(mWidth - LblWidth * 2 < mHeight - LblHeight * 2, mWidth - LblWidth * 2, mHeight - LblHeight * 2)
+				Else
+					Min = IIf(mWidth < mHeight, mWidth, mHeight)
+				End If
+				
+				If Min / 3 < DonutSize Then DonutSize = Min / 3
+				XX = MarginLeft + mWidth / 2 - Min / 2
+				YY = TopHeader + mHeight / 2 - Min / 2
+				m_CenterCircle.X = MarginLeft + mWidth / 2
+				m_CenterCircle.Y = TopHeader + mHeight / 2
+				R1 = Min / 2
+				
+				'    If m_SeparatorLine Then
+				'        GdipCreateSolidFill RGBtoARGB(m_SeparatorLineColor, m_BackColorOpacity), hBrush
+				'        GdipFillEllipseI hGraphics, hBrush, XX - m_SeparatorLineWidth, YY - m_SeparatorLineWidth, Min + m_SeparatorLineWidth * 2, Min + m_SeparatorLineWidth * 2
+				'        GdipDeleteBrush hBrush
+				'    End If
+				
+				LastAngle = m_Rotation - 90
+				For i = 0 To ItemsCount - 1
+					Angle = 360 * m_Item(i).Value / Total
+					
+					
+					'*1
+					If m_Item(i).Special Then
+						R2 = PT16 / 1.5
+						Left_ = XX + (R2 * Cos((LastAngle + Angle / 2) * PItoRAD))
+						Top_ = YY + (R2 * Sin((LastAngle + Angle / 2) * PItoRAD))
+					Else
+						Left_ = XX
+						Top_ = YY
+					End If
+					
+					#ifdef __USE_GTK__
+						If m_Item(i).hPath <> 0 Then cairo_path_destroy m_Item(i).hPath
+						cairo_new_path(cr)
+					#else
+						If m_Item(i).hPath <> 0 Then GdipDeletePath m_Item(i).hPath
+						GdipCreatePath 0, @m_Item(i).hPath
+					#endif
+					
+					If m_ChartStyle = CS_Donut Then
+						#ifdef __USE_GTK__
+							cairo_move_to(cr, Left_ + Min / 2, Top_ + Min / 2)
+							cairo_arc(cr, Left_ + Min / 2, Top_ + Min / 2, Min / 2, LastAngle * (G_PI / 180), LastAngle * (G_PI / 180) + Angle * (G_PI / 180))
+							cairo_arc_negative(cr, Left_ + DonutSize + (Min - DonutSize * 2) / 2, Top_ + DonutSize + (Min - DonutSize * 2) / 2, (Min - DonutSize * 2) / 2, LastAngle  * (G_PI / 180) + Angle * (G_PI / 180),LastAngle  * (G_PI / 180) + Angle * (G_PI / 180) + -Angle * (G_PI / 180))
+						#else
+							GdipAddPathArc m_Item(i).hPath, Left_, Top_, Min, Min, LastAngle, Angle
+							GdipAddPathArc m_Item(i).hPath, Left_ + DonutSize, Top_ + DonutSize, Min - DonutSize * 2, Min - DonutSize * 2, LastAngle + Angle, -Angle
+						#endif
+					Else
+						#ifdef __USE_GTK__
+							cairo_move_to(cr, Left_ + Min / 2, Top_ + Min / 2)
+							cairo_arc(cr, Left_ + Min / 2, Top_ + Min / 2, Min / 2, LastAngle * (G_PI / 180), LastAngle * (G_PI / 180) + Angle * (G_PI / 180)) 'LastAngle / 90, Angle / 90
+						#else
+							GdipAddPathPie m_Item(i).hPath, Left_, Top_, Min, Min, LastAngle, Angle
+						#endif
+					End If
+					#ifdef __USE_GTK__
+						m_Item(i).hPath = cairo_copy_path(cr)
+					#endif
+					
+					If HotItem = i Then
+						lColor = RGBtoARGB(ShiftColor(m_Item(i).ItemColor, clWhite, 150), m_FillOpacity)
+					Else
+						lColor = RGBtoARGB(m_Item(i).ItemColor, m_FillOpacity)
+					End If
+					If m_FillGradient Then
+						With RectL_
+							.Left = MarginLeft - R2
+							.Top = TopHeader - R2
+							.Right = mWidth + R2 * 2
+							.Bottom = mHeight + R2 * 2
+						End With
+						#ifndef __USE_GTK__
+							GdipCreateLineBrushFromRectWithAngleI Cast(GpRect Ptr, @RectL_), lColor, RGBtoARGB(clWhite, 100), 180 + LastAngle + Angle / 2, 0, WrapModeTile, Cast(GpLineGradient Ptr Ptr, @hBrush)
+						#endif
+					Else
+						#ifndef __USE_GTK__
+							GdipCreateSolidFill lColor, Cast(GpSolidFill Ptr Ptr, @hBrush)
+						#endif
+					End If
+					#ifdef __USE_GTK__
+						cairo_set_source_rgba(cr, GetRedD(lColor), GetGreenD(lColor), GetBlueD(lColor), m_FillOpacity / 100)
+						cairo_fill(cr)
+					#else
+						GdipFillPath hGraphics, Cast(GpBrush Ptr, hBrush), m_Item(i).hPath
+						GdipDeleteBrush Cast(GpBrush Ptr, hBrush)
+					#endif
+					
+					If HotItem = i Then
+						Dim HotPenW As Single
+						HotPenW = m_LinesWidth * nScale * 2
+						If HotPenW < 1 * nScale Then HotPenW = 1 * nScale
+						#ifdef __USE_GTK__
+							cairo_set_source_rgb(cr, GetRedD(RGBtoARGB(m_Item(i).ItemColor, 100)), GetGreenD(RGBtoARGB(m_Item(i).ItemColor, 100)), GetBlueD(RGBtoARGB(m_Item(i).ItemColor, 100)))
+							cairo_set_line_width(cr, HotPenW)
+							cairo_append_path(cr, m_Item(i).hPath)
+							cairo_stroke(cr)
+						#else
+							Dim hHotPen As GpPen Ptr
+							GdipCreatePen1 RGBtoARGB(m_Item(i).ItemColor, 100), HotPenW, &H2, @hHotPen
+							GdipDrawPath hGraphics, hHotPen, m_Item(i).hPath
+							GdipDeletePen hHotPen
+						#endif
+					End If
+					
+					R1 = Min / 2
+					R2 = m_Item(i).TextWidth / 2
+					R3 = m_Item(i).TextHeight / 2
+					
+					CX = XX + Min / 2 + TextWidth
+					CY = YY + Min / 2 + TextHeight
+					
+					Left_ = CX + ((R1 - R2) * Cos((LastAngle + Angle / 2) * PItoRAD)) - R2
+					Top_ = CY + ((R1 - R3) * Sin((LastAngle + Angle / 2) * PItoRAD)) - R3
+					'DrawText hGraphics, m_Item(i).ItemName, Left, Top, R2 * 2, R3 * 2, This.Font, lForeColor, cCenter, cMiddle
+					LastAngle = LastAngle + Angle '+ 2
+				Next
+				
+				'*2
+				
+				LastAngle = m_Rotation - 90
+				bAngMaj180 = False
+				For i = 0 To ItemsCount - 1
+					Angle = 360 * m_Item(i).Value / Total
+					
+					If m_SeparatorLine Then
+						#ifdef __USE_GTK__
+							cairo_set_source_rgb(cr, GetRedD(m_SeparatorLineColor), GetGreenD(m_SeparatorLineColor), GetBlueD(m_SeparatorLineColor))
+							cairo_set_line_width (cr, m_SeparatorLineWidth * nScale)
+							'?m_SeparatorLineWidth
+						#else
+							GdipCreatePen1 RGBtoARGB(m_SeparatorLineColor, 100), m_SeparatorLineWidth * nScale, 2, @hPen
+							GdipSetPenEndCap hPen, 2
+						#endif
+						
+						R1 = (Min + mPenWidth / 2) / 2
+						R2 = (Min - mPenWidth / 2) / 2 - DonutSize
+						
+						CX = XX + Min / 2
+						CY = YY + Min / 2
+						
+						Left_ = CX + (R1 * Cos((LastAngle) * PItoRAD))
+						Top_ = CY + (R1 * Sin((LastAngle) * PItoRAD))
+						
+						If m_ChartStyle = CS_Donut Then
+							CX = CX + (R2 * Cos((LastAngle) * PItoRAD))
+							CY = CY + (R2 * Sin((LastAngle) * PItoRAD))
+						Else
+							'GdipDrawEllipseI hGraphics, hPen, XX, YY, Min, Min
+						End If
+						
+						#ifdef __USE_GTK__
+							cairo_move_to(cr, Left_, Top_)
+							cairo_line_to(cr, CX, CY)
+							cairo_stroke(cr)
+						#else
+							GdipDrawLineI hGraphics, hPen, Left_, Top_, CX, CY
+							
+							GdipDeletePen hPen
+						#endif
+					End If
+					
+					TextWidth = LblWidth
+					TextHeight = LblHeight
+					
+					If m_LabelsPositions = LP_Inside Then
+						If DonutSize > TextWidth Then TextWidth = DonutSize
+						If DonutSize > TextHeight Then TextHeight = DonutSize
+					End If
+					
+					R2 = TextWidth / 2
+					R3 = TextHeight / 2
+					Displacement = IIf(m_Item(i).Special, PT16 / 1.5, 0)
+					
+					CX = XX + Min / 2
+					CY = YY + Min / 2
+					
+					A = LastAngle + Angle / 2
+					
+					If m_LabelsPositions = LP_Inside Then
+						Left_ = CX + ((R1 - R2 + Displacement) * Cos(A * PItoRAD)) - R2
+						Top_ = CY + ((R1 - R3 + Displacement) * Sin(A * PItoRAD)) - R3
+					Else
+						Left_ = CX + ((R1 + R2 + Displacement) * Cos(A * PItoRAD)) - R2
+						Top_ = CY + ((R1 + R3 + Displacement) * Sin(A * PItoRAD)) - R3
+					End If
+					If m_LabelsVisible Then
+						If m_LabelsPositions = LP_TwoColumns Then
+							Dim LineOut As Integer
+							LineOut = ScaleY(Canvas.TextHeight("Aj")) / 2
+							
+							#ifdef __USE_GTK__
+								Var BrushColor = RGBtoARGB(m_Item(i).ItemColor, 50), BrushAlpha = 0.5
+								Var PenColor = RGBtoARGB(m_Item(i).ItemColor, 50), PenAlpha = 1
+								cairo_set_line_width(cr, 1 * nScale)
+							#else
+								GdipCreateSolidFill RGBtoARGB(m_Item(i).ItemColor, 50), Cast(GpSolidFill Ptr Ptr, @hBrush)
+								GdipCreatePen1 RGBtoARGB(m_Item(i).ItemColor, 100), 1 * nScale, 2, @hPen
+							#endif
+							
+							If (LastAngle + Angle / 2 + 90) Mod 359 < 180 Then
+								If bAngMaj180 Then
+									bAngMaj180 = False
+									lTop = Top_
+								End If
+								
+								If lTop <= 0 Then lTop = Top_
+								
+								If Top_ < lTop Then
+									lTop = lTop
+								Else
+									lTop = Top_
+								End If
+								
+								Left_ = XX + Min + PT16
+								#ifdef __USE_GTK__
+									cairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), BrushAlpha)
+									cairo_rectangle(cr, Left_, lTop, TextWidth, TextHeight)
+									cairo_fill(cr)
+								#else
+									GdipFillRectangleI hGraphics, Cast(GpBrush Ptr, hBrush), Left_, lTop, TextWidth, TextHeight
+								#endif
+								DrawText m_Item(i).text, Left_, lTop, TextWidth, TextHeight, This.Font, RGBtoARGB(FForeColor, 100), cCenter, cMiddle
+								
+								lTop = lTop + TextHeight
+								
+								Left_ = CX + (R1 * Cos(A * PItoRAD))
+								Top_ = CY + (R1 * Sin(A * PItoRAD))
+								CX = CX + ((R1 + LineOut) * Cos(A * PItoRAD))
+								CY = CY + ((R1 + LineOut) * Sin(A * PItoRAD))
+								
+								#ifdef __USE_GTK__
+									cairo_set_source_rgba(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor), PenAlpha)
+									cairo_move_to(cr, Left_, Top_)
+									cairo_line_to(cr, CX, CY)
+									cairo_stroke(cr)
+								#else
+									GdipDrawLineI hGraphics, hPen, Left_, Top_, CX, CY
+								#endif
+								Left_ = XX + Min + PT16
+								Top_ = lTop - TextHeight / 2
+								#ifdef __USE_GTK__
+									cairo_set_source_rgba(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor), PenAlpha)
+									cairo_move_to(cr, CX, CY)
+									cairo_line_to(cr, Left_, Top_)
+									cairo_stroke(cr)
+								#else
+									GdipDrawLineI hGraphics, hPen, CX, CY, Left_, Top_
+								#endif
+							Else
+								If bAngMaj180 = False Then
+									bAngMaj180 = True
+									lTop = TopHeader + mHeight
+								End If
+								
+								If lTop <= 0 Then lTop = Top_
+								
+								If Top_ > lTop Then
+									lTop = lTop
+								Else
+									lTop = Top_
+								End If
+								
+								Left_ = XX - TextWidth - PT16
+								#ifdef __USE_GTK__
+									cairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), BrushAlpha)
+									cairo_rectangle(cr, Left_, lTop, TextWidth, TextHeight)
+									cairo_fill(cr)
+								#else
+									GdipFillRectangleI hGraphics, Cast(GpBrush Ptr, hBrush), Left_, lTop, TextWidth, TextHeight
+								#endif
+								DrawText m_Item(i).text, Left_, lTop, TextWidth, TextHeight, This.Font, RGBtoARGB(FForeColor, 100), cCenter, cMiddle
+								
+								Left_ = CX + (R1 * Cos(A * PItoRAD))
+								Top_ = CY + (R1 * Sin(A * PItoRAD))
+								CX = CX + ((R1 + LineOut) * Cos(A * PItoRAD))
+								CY = CY + ((R1 + LineOut) * Sin(A * PItoRAD))
+								#ifdef __USE_GTK__
+									cairo_set_source_rgba(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor), PenAlpha)
+									cairo_move_to(cr, Left_, Top_)
+									cairo_line_to(cr, CX, CY)
+									cairo_stroke(cr)
+								#else
+									GdipDrawLineI hGraphics, hPen, Left_, Top_, CX, CY
+								#endif
+								Left_ = XX - PT16
+								Top_ = lTop + TextHeight / 2
+								#ifdef __USE_GTK__
+									cairo_set_source_rgba(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor), PenAlpha)
+									cairo_move_to(cr, CX, CY)
+									cairo_line_to(cr, Left_, Top_)
+									cairo_stroke(cr)
+								#else
+									GdipDrawLineI hGraphics, hPen, CX, CY, Left_, Top_
+								#endif
+								lTop = lTop - TextHeight
+							End If
+							#ifndef __USE_GTK__
+								GdipDeleteBrush Cast(GpBrush Ptr, hBrush)
+								GdipDeletePen hPen
+							#endif
+							
+						ElseIf m_LabelsPositions = LP_Inside Then
+							'lForeColor = IIf(IsDarkColor(m_Item(i).ItemColor), &H808080, vbWhite)
+							'DrawText hGraphics, m_Item(i).Text, Left + 1, Top + 1, TextWidth, TextHeight, This.Font, RGBtoARGB(lForeColor, 100), cCenter, cMiddle
+							If HotItem = i Then
+								lColor = ShiftColor(m_Item(i).ItemColor, clWhite, 150)
+							Else
+								lColor = m_Item(i).ItemColor
+							End If
+							lForeColor = IIf(IsDarkColor(lColor), clWhite, clBlack)
+							DrawText m_Item(i).text, Left_, Top_, TextWidth, TextHeight, This.Font, RGBtoARGB(lForeColor, 100), cCenter, cMiddle
+						Else
+							DrawText m_Item(i).text, Left_, Top_, TextWidth, TextHeight, This.Font, RGBtoARGB(FForeColor, 100), cCenter, cMiddle
+						End If
+					End If
+					LastAngle = LastAngle + Angle '+ 2
+				Next
+				
+				
+				
+				If m_LegendVisible Then
+					For i = 0 To ItemsCount - 1
+						lForeColor = RGBtoARGB(FForeColor, 100)
+						Select Case m_LegendAlign
+						Case LA_RIGHT, LA_LEFT
+							With LabelsRect
+								TextWidth = 0
+								
+								If .Left = 0 Then
+									TextHeight = 0
+									If m_LegendAlign = LA_LEFT Then
+										.Left = PT16
+									Else
+										.Left = MarginLeft + mWidth + PT16
+									End If
+									If ColRow = 1 Then
+										.Top = TopHeader + mHeight / 2 - .Bottom / 2
+									Else
+										.Top = TopHeader
+									End If
+								End If
+								
+								If TextWidth < m_Item(i).TextWidth Then
+									TextWidth = m_Item(i).TextWidth '+ PT16
+								End If
+								
+								If TextHeight + m_Item(i).TextHeight > mHeight Then
+									If i > 0 Then .Left = .Left + TextWidth
+									.Top = TopHeader
+									TextHeight = 0
+								End If
+								m_Item(i).LegendRect.Left = .Left
+								m_Item(i).LegendRect.Top = .Top
+								m_Item(i).LegendRect.Right = m_Item(i).TextWidth
+								m_Item(i).LegendRect.Bottom = m_Item(i).TextHeight
+								'?"LegendRect", m_Item(i).LegendRect.Left, m_Item(i).LegendRect.Top
+								
+								With m_Item(i).LegendRect
+									#ifdef __USE_GTK__
+										cairo_set_source_rgba(cr, GetRedD(m_Item(i).ItemColor), GetGreenD(m_Item(i).ItemColor), GetBlueD(m_Item(i).ItemColor), 1)
+										cairo_arc(cr, .Left + (m_Item(i).TextHeight / 2) / 2 - 0.5, .Top + m_Item(i).TextHeight / 4 + (m_Item(i).TextHeight / 2) / 2 - 0.5, m_Item(i).TextHeight / 2 / 2 - 0.5, 0, 2 * G_PI)
+										cairo_fill(cr)
+									#else
+										GdipCreateSolidFill RGBtoARGB(m_Item(i).ItemColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush) '&hB0000000
+										GdipFillEllipseI hGraphics, Cast(GpBrush Ptr, hBrush), .Left, .Top + m_Item(i).TextHeight / 4, m_Item(i).TextHeight / 2, m_Item(i).TextHeight / 2
+										GdipDeleteBrush Cast(GpBrush Ptr, hBrush)
+									#endif
+								End With
+								DrawText m_Item(i).ItemName, .Left + m_Item(i).TextHeight / 1.5, .Top, m_Item(i).TextWidth, m_Item(i).TextHeight, This.Font, lForeColor, cLeft, cMiddle
+								TextHeight = TextHeight + m_Item(i).TextHeight
+								.Top = .Top + m_Item(i).TextHeight
+								
+							End With
+							
+						Case LA_BOTTOM, LA_TOP
+							With LabelsRect
+								If .Left = 0 Then
+									If ColRow = 1 Then
+										.Left = MarginLeft + mWidth / 2 - .Right / 2
+									Else
+										.Left = MarginLeft
+									End If
+									If m_LegendAlign = LA_TOP Then
+										.Top = PT16 + TitleSize.Height
+									Else
+										.Top = TopHeader + mHeight + TitleSize.Height - PT16 / 2
+									End If
+								End If
+								
+								If .Left + m_Item(i).TextWidth - MarginLeft > mWidth Then
+									.Left = MarginLeft
+									.Top = .Top + m_Item(i).TextHeight
+								End If
+								
+								#ifdef __USE_GTK__
+									cairo_set_source_rgba(cr, GetRedD(m_Item(i).ItemColor), GetGreenD(m_Item(i).ItemColor), GetBlueD(m_Item(i).ItemColor), 1)
+									cairo_arc(cr, .Left + (m_Item(i).TextHeight / 2) / 2 - 0.5, .Top + m_Item(i).TextHeight / 4 + (m_Item(i).TextHeight / 2) / 2 - 0.5, m_Item(i).TextHeight / 2 / 2, 0, 2 * G_PI)
+									cairo_fill(cr)
+								#else
+									GdipCreateSolidFill RGBtoARGB(m_Item(i).ItemColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush)
+									GdipFillEllipseI hGraphics, Cast(GpBrush Ptr, hBrush), .Left, .Top + m_Item(i).TextHeight / 4, m_Item(i).TextHeight / 2, m_Item(i).TextHeight / 2
+									GdipDeleteBrush Cast(GpBrush Ptr, hBrush)
+								#endif
+								m_Item(i).LegendRect.Left = .Left
+								m_Item(i).LegendRect.Top = .Top
+								m_Item(i).LegendRect.Right = m_Item(i).TextWidth
+								m_Item(i).LegendRect.Bottom = m_Item(i).TextHeight
+								
+								DrawText m_Item(i).ItemName, .Left + m_Item(i).TextHeight / 1.5, .Top, m_Item(i).TextWidth, m_Item(i).TextHeight, This.Font, lForeColor, cLeft, cMiddle
+								.Left = .Left + m_Item(i).TextWidth '+ M_ITEM(i).TextHeight / 1.5
+							End With
+						End Select
+						
+						
+					Next
+				End If
 			End If
 		Case CS_Area
 			
@@ -1991,59 +2452,357 @@ Namespace My.Sys.Forms
 			Loop
 			
 			
-'			If GdipCreateFromHDC(hD, @hGraphics) = 0 Then
-'				
-'				GdipSetSmoothingMode(hGraphics, SmoothingModeAntiAlias)
-'				GdipSetCompositingQuality(hGraphics, &H3) 'CompositingQualityGammaCorrected
-'				
-				Dim RectF_ As RectF
-				With RectF_
-					.Width = ScaleX(This.ClientWidth) - 1 * nScale
-					.Height = ScaleY(This.ClientHeight) - 1 * nScale
-				End With
+			'			If GdipCreateFromHDC(hD, @hGraphics) = 0 Then
+			'
+			'				GdipSetSmoothingMode(hGraphics, SmoothingModeAntiAlias)
+			'				GdipSetCompositingQuality(hGraphics, &H3) 'CompositingQualityGammaCorrected
+			'
+			Dim RectF_ As RectF
+			With RectF_
+				.Width = ScaleX(This.ClientWidth) - 1 * nScale
+				.Height = ScaleY(This.ClientHeight) - 1 * nScale
+			End With
+			
+			RoundRect RectF_, RGBtoARGB(FBackColor, m_BackColorOpacity), RGBtoARGB(m_BorderColor, 100), m_BorderRound * nScale, m_Border, m_BackColorOpacity
+			
+			
+			'HORIZONTAL LINES AND vertical axis
+			#ifdef __USE_GTK__
+				Var PenColor = RGBtoARGB(m_LinesColor, 100)
+				cairo_set_line_width(cr, mPenWidth)
+			#else
+				GdipCreatePen1(RGBtoARGB(m_LinesColor, 100), mPenWidth, &H2, @hPen)
+			#endif
+			
+			YY = TopHeader + mHeight
+			yRange = forLines
+			
+			If toLines = 0 And forLines = 0 Then toLines = 1
+			RangeHeight = (mHeight / ((toLines + Abs(forLines)) / (iStep * NumDecim)))
+			ZeroPoint = TopHeader + mHeight - RangeHeight * (Abs(forLines) / (iStep * NumDecim))
+			
+			For i = forLines / (iStep * NumDecim) To toLines / (iStep * NumDecim)
+				If m_HorizontalLines Then
+					#ifdef __USE_GTK__
+						cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
+						cairo_move_to(cr, MarginLeft, YY)
+						cairo_line_to(cr, This.ClientWidth - MarginRight - mPenWidth, YY)
+						cairo_stroke(cr)
+					#else
+						GdipDrawLine hGraphics, hPen, MarginLeft, YY, ScaleX(This.ClientWidth) - MarginRight - mPenWidth, YY
+					#endif
+				End If
 				
-				RoundRect RectF_, RGBtoARGB(FBackColor, m_BackColorOpacity), RGBtoARGB(m_BorderColor, 100), m_BorderRound * nScale, m_Border, m_BackColorOpacity
+				If m_AxisYVisible Then
+					sDisplay = Replace(m_LabelsFormats, "{V}", WStr(yRange))
+					sDisplay = Replace(sDisplay, "{LF}", Chr(10))
+					DrawText sDisplay, 0, YY - RangeHeight / 2, MarginLeft - 8 * nScale, RangeHeight, This.Font, lForeColor, cRight, cMiddle
+				End If
+				YY = YY - RangeHeight
+				yRange = yRange + CLng(iStep * NumDecim)
+			Next
+			
+			If m_VerticalLines And SerieCount > 0 Then
+				For i = 0 To m_Serie(0).Values->Count - 1
+					XX = MarginLeft + PtDistance * i
+					#ifdef __USE_GTK__
+						cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
+						cairo_move_to(cr, XX, TopHeader)
+						cairo_line_to(cr, XX, TopHeader + mHeight + 4 * nScale)
+						cairo_stroke(cr)
+					#else
+						GdipDrawLine hGraphics, hPen, XX, TopHeader, XX, TopHeader + mHeight + 4 * nScale
+					#endif
+				Next
+			End If
+			
+			#ifndef __USE_GTK__
+				GdipDeletePen hPen
+			#endif
+			
+			For i = 0 To SerieCount - 1
+				'Calculo
+				ReDim (m_Serie(i).PT)(m_Serie(i).Values->Count - 1)
 				
-				
-				'HORIZONTAL LINES AND vertical axis
-				#ifdef __USE_GTK__
-					Var PenColor = RGBtoARGB(m_LinesColor, 100)
-					cairo_set_line_width(cr, mPenWidth)
-				#else
-					GdipCreatePen1(RGBtoARGB(m_LinesColor, 100), mPenWidth, &H2, @hPen)
-				#endif
-				
-				YY = TopHeader + mHeight
-				yRange = forLines
-				
-				If toLines = 0 And forLines = 0 Then toLines = 1
-				RangeHeight = (mHeight / ((toLines + Abs(forLines)) / (iStep * NumDecim)))
-				ZeroPoint = TopHeader + mHeight - RangeHeight * (Abs(forLines) / (iStep * NumDecim))
-				
-				For i = forLines / (iStep * NumDecim) To toLines / (iStep * NumDecim)
-					If m_HorizontalLines Then
-						#ifdef __USE_GTK__
-							cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-							cairo_move_to(cr, MarginLeft, YY)
-							cairo_line_to(cr, This.ClientWidth - MarginRight - mPenWidth, YY)
-							cairo_stroke(cr)
-						#else
-							GdipDrawLine hGraphics, hPen, MarginLeft, YY, ScaleX(This.ClientWidth) - MarginRight - mPenWidth, YY
-						#endif
-					End If
-					
-					If m_AxisYVisible Then
-						sDisplay = Replace(m_LabelsFormats, "{V}", WStr(yRange))
-						sDisplay = Replace(sDisplay, "{LF}", Chr(10))
-						DrawText sDisplay, 0, YY - RangeHeight / 2, MarginLeft - 8 * nScale, RangeHeight, This.Font, lForeColor, cRight, cMiddle
-					End If
-					YY = YY - RangeHeight
-					yRange = yRange + CLng(iStep * NumDecim)
+				For j = 0 To m_Serie(i).Values->Count - 1
+					Value = m_Serie(i).Values->Item(j) ' + 1
+					With m_Serie(i).PT(j)
+						.x = MarginLeft + PtDistance * j
+						'.Y = TopHeader + mHeight - (m_Serie(i).Values(j + 1) * (Max * mHeight / toLines) / Max)
+						If Value >= 0 Then
+							.y = ZeroPoint - (Value * (ZeroPoint - TopHeader) / toLines)
+						Else
+							.y = ZeroPoint + (Value * (TopHeader + mHeight - ZeroPoint) / forLines)
+						End If
+					End With
 				Next
 				
-				If m_VerticalLines And SerieCount > 0 Then
-					For i = 0 To m_Serie(0).Values->Count - 1
-						XX = MarginLeft + PtDistance * i
+				'fill Line/Curve
+				If m_FillOpacity > 0 Then
+					#ifdef __USE_GTK__
+						cairo_new_path(cr)
+						If True Then
+					#else
+						If GdipCreatePath(&H0, @hPath) = 0 Then
+					#endif
+						#ifdef __USE_GTK__
+							'cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
+							cairo_move_to cr, MarginLeft, ZeroPoint
+							'cairo_line_to cr, MarginLeft, ZeroPoint
+						#else
+							GdipAddPathLineI hPath, MarginLeft, ZeroPoint, MarginLeft, ZeroPoint
+						#endif
+						If m_LinesCurve Then
+							#ifdef __USE_GTK__
+								'cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
+								cairo_line_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
+								For l As Integer = 1 To UBound(m_Serie(i).PT)
+									Dim As Single Y
+									If l Mod 2 = 1 Then
+										If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
+											Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
+										Else
+											Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
+										End If
+									ElseIf l Mod 2 = 0 Then
+										If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
+											Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
+										Else
+											Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
+										End If
+									End If
+									cairo_curve_to cr, m_Serie(i).PT(l - 1).x, m_Serie(i).PT(l - 1).y, (m_Serie(i).PT(l).x + m_Serie(i).PT(l - 1).x) / 2, Y, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
+								Next
+							#else
+								GdipAddPathCurveI hPath, Cast(GpPoint Ptr, @m_Serie(i).PT(0)), UBound(m_Serie(i).PT) + 1
+							#endif
+						Else
+							#ifdef __USE_GTK__
+								'cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
+								cairo_line_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
+								For l As Integer = 1 To UBound(m_Serie(i).PT)
+									cairo_line_to cr, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
+								Next
+								'cairo_stroke(cr)
+							#else
+								GdipAddPathLine2I hPath, Cast(GpPoint Ptr, @m_Serie(i).PT(0)), UBound(m_Serie(i).PT) + 1
+							#endif
+						End If
+						#ifdef __USE_GTK__
+							'cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
+							'cairo_move_to(cr, MarginLeft + mWidth - mPenWidth, ZeroPoint)
+							cairo_line_to(cr, MarginLeft + mWidth - mPenWidth, ZeroPoint)
+							'cairo_stroke(cr)
+						#else
+							GdipAddPathLineI hPath, MarginLeft + mWidth - mPenWidth, ZeroPoint, MarginLeft + mWidth - mPenWidth, ZeroPoint
+						#endif
+						
+						Dim As ULong BrushColor
+						If m_FillGradient Then
+							With RectL_
+								.Top = TopHeader
+								
+								.Right = mWidth
+								.Bottom = ZeroPoint - TopHeader
+							End With
+							#ifdef __USE_GTK__
+								BrushColor = RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity)
+							#else
+								GdipCreateLineBrushFromRectWithAngleI Cast(GpRect Ptr, @RectL_), RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity), RGBtoARGB(m_Serie(i).SerieColor, 10), 90, 0, WrapModeTileFlipXY, Cast(GpLineGradient Ptr Ptr, @hBrush)
+							#endif
+						Else
+							#ifdef __USE_GTK__
+								BrushColor = RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity)
+							#else
+								GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity), Cast(GpSolidFill Ptr Ptr, @hBrush)
+							#endif
+						End If
+						
+						#ifdef __USE_GTK__
+							cairo_close_path(cr)
+							cairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), m_FillOpacity / 100)
+							cairo_fill(cr)
+							
+							cairo_new_path(cr)
+						#else
+							GdipFillPath hGraphics, hBrush, hPath
+							GdipDeleteBrush hBrush
+							
+							GdipDeletePath hPath
+						#endif
+					End If
+				End If
+				
+				'Draw Lines or Curve
+				If mHotSerie = i Then LW = LW * 1.5 Else LW = m_LinesWidth * nScale
+				#ifdef __USE_GTK__
+					Var PenColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
+					cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
+					cairo_set_line_width(cr, LW)
+				#else
+					GdipCreatePen1 RGBtoARGB(m_Serie(i).SerieColor, 100), LW, &H2, @hPen
+				#endif
+				If m_LinesCurve Then
+					#ifdef __USE_GTK__
+						cairo_move_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
+						For l As Integer = 1 To UBound(m_Serie(i).PT)
+							Dim As Single Y
+							If l Mod 2 = 1 Then
+								If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
+									Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
+								Else
+									Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
+								End If
+							ElseIf l Mod 2 = 0 Then
+								If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
+									Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
+								Else
+									Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
+								End If
+							End If
+							cairo_curve_to cr, m_Serie(i).PT(l - 1).x, m_Serie(i).PT(l - 1).y, (m_Serie(i).PT(l).x + m_Serie(i).PT(l - 1).x) / 2, Y, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
+						Next
+						cairo_stroke(cr)
+					#else
+						GdipDrawCurveI hGraphics, hPen, Cast(GpPoint Ptr, @m_Serie(i).PT(0)), UBound(m_Serie(i).PT) + 1
+					#endif
+				Else
+					#ifdef __USE_GTK__
+						cairo_move_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
+						For l As Integer = 1 To UBound(m_Serie(i).PT)
+							cairo_line_to cr, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
+						Next
+						cairo_stroke(cr)
+					#else
+						GdipDrawLinesI hGraphics, hPen, Cast(GpPoint Ptr, @m_Serie(i).PT(0)), UBound(m_Serie(i).PT) + 1
+					#endif
+				End If
+				#ifndef __USE_GTK__
+					GdipDeletePen hPen
+				#endif
+				
+				If m_LegendVisible Then
+					Select Case m_LegendAlign
+					Case LA_RIGHT, LA_LEFT
+						With LabelsRect
+							TextWidth = 0
+							
+							If .Left = 0 Then
+								TextHeight = 0
+								If m_LegendAlign = LA_LEFT Then
+									.Left = PT16
+								Else
+									.Left = MarginLeft + mWidth + PT16
+								End If
+								If ColRow = 1 Then
+									.Top = TopHeader + mHeight / 2 - .Bottom / 2
+								Else
+									.Top = TopHeader
+								End If
+							End If
+							
+							If TextWidth < m_Serie(i).TextWidth Then
+								TextWidth = m_Serie(i).TextWidth '+ PT16
+							End If
+							
+							If TextHeight + m_Serie(i).TextHeight > mHeight Then
+								If i > 0 Then .Left = .Left + TextWidth
+								.Top = TopHeader
+								TextHeight = 0
+							End If
+							m_Serie(i).LegendRect.Left = .Left
+							m_Serie(i).LegendRect.Top = .Top
+							m_Serie(i).LegendRect.Right = m_Serie(i).TextWidth
+							m_Serie(i).LegendRect.Bottom = m_Serie(i).TextHeight
+							
+							#ifdef __USE_GTK__
+								Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
+								cairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
+								cairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
+								cairo_fill(cr)
+							#else
+								GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush)
+								GdipFillRectangleI hGraphics, hBrush, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2
+								GdipDeleteBrush hBrush
+							#endif
+							
+							DrawText m_Serie(i).SerieName, .Left + m_Serie(i).TextHeight / 1.5, .Top, m_Serie(i).TextWidth, m_Serie(i).TextHeight, This.Font, lForeColor, cLeft, cMiddle
+							TextHeight = TextHeight + m_Serie(i).TextHeight
+							.Top = .Top + m_Serie(i).TextHeight
+							
+						End With
+						
+					Case LA_BOTTOM, LA_TOP
+						With LabelsRect
+							If .Left = 0 Then
+								If ColRow = 1 Then
+									.Left = MarginLeft + mWidth / 2 - .Right / 2
+								Else
+									.Left = MarginLeft
+								End If
+								If m_LegendAlign = LA_TOP Then
+									.Top = PT16 + TitleSize.Height
+								Else
+									.Top = TopHeader + mHeight + TitleSize.Height + PT16 / 2
+								End If
+							End If
+							
+							If .Left + m_Serie(i).TextWidth - MarginLeft > mWidth Then
+								.Left = MarginLeft
+								.Top = .Top + m_Serie(i).TextHeight
+							End If
+							
+							#ifdef __USE_GTK__
+								Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
+								cairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
+								cairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
+								cairo_fill(cr)
+							#else
+								GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush)
+								GdipFillRectangleI hGraphics, hBrush, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2
+								GdipDeleteBrush hBrush
+							#endif
+							m_Serie(i).LegendRect.Left = .Left
+							m_Serie(i).LegendRect.Top = .Top
+							m_Serie(i).LegendRect.Right = m_Serie(i).TextWidth
+							m_Serie(i).LegendRect.Bottom = m_Serie(i).TextHeight
+							
+							DrawText m_Serie(i).SerieName, .Left + m_Serie(i).TextHeight / 1.5, .Top, m_Serie(i).TextWidth, m_Serie(i).TextHeight, This.Font, lForeColor, cLeft, cMiddle
+							.Left = .Left + m_Serie(i).TextWidth '+ m_Serie(i).TextHeight / 1.5
+						End With
+					End Select
+				End If
+				
+				
+				'            If m_LabelsVisible Then
+				'                GdipCreateSolidFill RGBtoARGB(m_Serie(i).SeireColor, 80), hBrush
+				'                For j = 0 To UBound(PT2)
+				'                    GdipFillEllipseI hGraphics, hBrush, PT2(j).X - LW * 2 - mPenWidth, PT2(j).Y - LW * 2 - mPenWidth, LW * 6, LW * 6
+				'                    GdipCreatePen1 RGBtoARGB(vbWhite, 100), LW, &H2, hPen
+				'                    GdipDrawEllipseI hGraphics, hPen, PT2(j).X - LW * 2 - mPenWidth, PT2(j).Y - LW * 2 - mPenWidth, LW * 6, LW * 6
+				'                    GdipDeletePen hPen
+				'                    TextWidth = Canvas.TextWidth(CStr(m_Serie(i).Values(j + 1))) + 25
+				'                    'DrawText hGraphics, m_Serie(i).Values(J + 1), PT2(J).x - TextWidth / 2 + 1, PT2(J).y - TextHeight * 1.5 + 1, TextWidth, TextHeight, This.Font, lForeColor, cCenter, cMiddle
+				'                    DrawText hGraphics, m_Serie(i).Values(j + 1), PT2(j).X - TextWidth / 2, PT2(j).Y - TextHeight * 1.5, TextWidth, TextHeight, This.Font, RGBtoARGB(m_Serie(i).SeireColor, 100), cCenter, cMiddle
+				'                Next
+				'                GdipDeleteBrush hBrush
+				'            End If
+				
+				
+				'Marck Colors
+				Dim PTSZ As Single
+				PTSZ = LW * 2
+				'If mHotSerie = i Then PTSZ = LW * 1.2 Else PTSZ = LW * 1.2
+				'If PTSZ < 3 * nScale Then PTSZ = 3 * nScale
+				For j = 0 To m_Serie(i).Values->Count - 1
+					If mHotBar = j Then
+						#ifdef __USE_GTK__
+							Var PenColor = RGBtoARGB(m_LinesColor, 100)
+							cairo_set_line_width(cr, mPenWidth)
+						#else
+							GdipCreatePen1(RGBtoARGB(m_LinesColor, 100), mPenWidth, &H2, @hPen)
+						#endif
+						XX = MarginLeft + PtDistance * j
 						#ifdef __USE_GTK__
 							cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
 							cairo_move_to(cr, XX, TopHeader)
@@ -2051,362 +2810,64 @@ Namespace My.Sys.Forms
 							cairo_stroke(cr)
 						#else
 							GdipDrawLine hGraphics, hPen, XX, TopHeader, XX, TopHeader + mHeight + 4 * nScale
+							GdipDeletePen hPen
 						#endif
-					Next
-				End If
-				
-				#ifndef __USE_GTK__
-					GdipDeletePen hPen
-				#endif
-				
-				For i = 0 To SerieCount - 1
-					'Calculo
-					ReDim (m_Serie(i).PT)(m_Serie(i).Values->Count - 1)
-					
-					For j = 0 To m_Serie(i).Values->Count - 1
-						Value = m_Serie(i).Values->Item(j) ' + 1
-						With m_Serie(i).PT(j)
-							.x = MarginLeft + PtDistance * j
-							'.Y = TopHeader + mHeight - (m_Serie(i).Values(j + 1) * (Max * mHeight / toLines) / Max)
-							If Value >= 0 Then
-								.y = ZeroPoint - (Value * (ZeroPoint - TopHeader) / toLines)
-							Else
-								.y = ZeroPoint + (Value * (TopHeader + mHeight - ZeroPoint) / forLines)
-							End If
-						End With
-					Next
-					
-					'fill Line/Curve
-					If m_FillOpacity > 0 Then
-						#ifdef __USE_GTK__
-							cairo_new_path(cr)
-							If True Then
-						#else
-							If GdipCreatePath(&H0, @hPath) = 0 Then
-						#endif
-							#ifdef __USE_GTK__
-								'cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-								cairo_move_to cr, MarginLeft, ZeroPoint
-								'cairo_line_to cr, MarginLeft, ZeroPoint
-							#else
-								GdipAddPathLineI hPath, MarginLeft, ZeroPoint, MarginLeft, ZeroPoint
-							#endif
-							If m_LinesCurve Then
-								#ifdef __USE_GTK__
-									'cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-									cairo_line_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
-									For l As Integer = 1 To UBound(m_Serie(i).PT)
-										Dim As Single Y
-										If l Mod 2 = 1 Then
-											If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
-												Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-											Else
-												Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-											End If
-										ElseIf l Mod 2 = 0 Then
-											If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
-												Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-											Else
-												Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-											End If
-										End If
-										cairo_curve_to cr, m_Serie(i).PT(l - 1).x, m_Serie(i).PT(l - 1).y, (m_Serie(i).PT(l).x + m_Serie(i).PT(l - 1).x) / 2, Y, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
-									Next
-								#else
-									GdipAddPathCurveI hPath, Cast(GpPoint Ptr, @m_Serie(i).PT(0)), UBound(m_Serie(i).PT) + 1
-								#endif
-							Else
-								#ifdef __USE_GTK__
-									'cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-									cairo_line_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
-									For l As Integer = 1 To UBound(m_Serie(i).PT)
-										cairo_line_to cr, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
-									Next
-									'cairo_stroke(cr)
-								#else
-									GdipAddPathLine2I hPath, Cast(GpPoint Ptr, @m_Serie(i).PT(0)), UBound(m_Serie(i).PT) + 1
-								#endif
-							End If
-							#ifdef __USE_GTK__
-								'cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-								'cairo_move_to(cr, MarginLeft + mWidth - mPenWidth, ZeroPoint)
-								cairo_line_to(cr, MarginLeft + mWidth - mPenWidth, ZeroPoint)
-								'cairo_stroke(cr)
-							#else
-								GdipAddPathLineI hPath, MarginLeft + mWidth - mPenWidth, ZeroPoint, MarginLeft + mWidth - mPenWidth, ZeroPoint
-							#endif
-							
-							Dim As ULong BrushColor
-							If m_FillGradient Then
-								With RectL_
-									.Top = TopHeader
-									
-									.Right = mWidth
-									.Bottom = ZeroPoint - TopHeader
-								End With
-								#ifdef __USE_GTK__
-									BrushColor = RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity)
-								#else
-									GdipCreateLineBrushFromRectWithAngleI Cast(GpRect Ptr, @RectL_), RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity), RGBtoARGB(m_Serie(i).SerieColor, 10), 90, 0, WrapModeTileFlipXY, Cast(GpLineGradient Ptr Ptr, @hBrush)
-								#endif
-							Else
-								#ifdef __USE_GTK__
-									BrushColor = RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity)
-								#else
-									GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity), Cast(GpSolidFill Ptr Ptr, @hBrush)
-								#endif
-							End If
-							
-							#ifdef __USE_GTK__
-								cairo_close_path(cr)
-								cairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), m_FillOpacity / 100)
-								cairo_fill(cr)
-								
-								cairo_new_path(cr)
-							#else
-								GdipFillPath hGraphics, hBrush, hPath
-								GdipDeleteBrush hBrush
-								
-								GdipDeletePath hPath
-							#endif
-						End If
 					End If
 					
-					'Draw Lines or Curve
-					If mHotSerie = i Then LW = LW * 1.5 Else LW = m_LinesWidth * nScale
+					
+					If mHotSerie = i Then
+						#ifdef __USE_GTK__
+							Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 50)
+							cairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), 0.5)
+							cairo_arc(cr, m_Serie(i).PT(j).x - PTSZ * 2 + PTSZ * 4 / 2 - 0.5, m_Serie(i).PT(j).y - PTSZ * 2 + PTSZ * 4 / 2 - 0.5, PTSZ * 4 / 2, 0, 2 * G_PI)
+							cairo_fill(cr)
+						#else
+							GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, 50), Cast(GpSolidFill Ptr Ptr, @hBrush)
+							GdipFillEllipseI hGraphics, hBrush, m_Serie(i).PT(j).x - PTSZ * 2, m_Serie(i).PT(j).y - PTSZ * 2, PTSZ * 4, PTSZ * 4
+							GdipDeleteBrush hBrush
+						#endif
+					End If
+					
 					#ifdef __USE_GTK__
-						Var PenColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
-						cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-						cairo_set_line_width(cr, LW)
+						Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
+						cairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
+						cairo_arc(cr, m_Serie(i).PT(j).x - PTSZ + PTSZ * 2 / 2 - 0.5, m_Serie(i).PT(j).y - PTSZ + PTSZ * 2 / 2 - 0.5, PTSZ * 2 / 2, 0, 2 * G_PI)
+						cairo_fill(cr)
 					#else
-						GdipCreatePen1 RGBtoARGB(m_Serie(i).SerieColor, 100), LW, &H2, @hPen
+						GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush)
+						GdipFillEllipseI hGraphics, hBrush, m_Serie(i).PT(j).x - PTSZ, m_Serie(i).PT(j).y - PTSZ, PTSZ * 2, PTSZ * 2
+						
+						'RectangleI hGraphics, hBrush, This.ClientWidth - MarginRight + MaxAxisHeight / 3, TopHeader + MaxAxisHeight * i + MaxAxisHeight / 4, MaxAxisHeight / 2, MaxAxisHeight / 2
+						GdipDeleteBrush hBrush
 					#endif
-					If m_LinesCurve Then
-						#ifdef __USE_GTK__
-							cairo_move_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
-							For l As Integer = 1 To UBound(m_Serie(i).PT)
-								Dim As Single Y
-								If l Mod 2 = 1 Then
-									If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
-										Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-									Else
-										Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-									End If
-								ElseIf l Mod 2 = 0 Then
-									If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
-										Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-									Else
-										Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-									End If
-								End If
-								cairo_curve_to cr, m_Serie(i).PT(l - 1).x, m_Serie(i).PT(l - 1).y, (m_Serie(i).PT(l).x + m_Serie(i).PT(l - 1).x) / 2, Y, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
-							Next
-							cairo_stroke(cr)
-						#else
-							GdipDrawCurveI hGraphics, hPen, Cast(GpPoint Ptr, @m_Serie(i).PT(0)), UBound(m_Serie(i).PT) + 1
-						#endif
-					Else
-						#ifdef __USE_GTK__
-							cairo_move_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
-							For l As Integer = 1 To UBound(m_Serie(i).PT)
-								cairo_line_to cr, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
-							Next
-							cairo_stroke(cr)
-						#else
-							GdipDrawLinesI hGraphics, hPen, Cast(GpPoint Ptr, @m_Serie(i).PT(0)), UBound(m_Serie(i).PT) + 1
-						#endif
-					End If
-					#ifndef __USE_GTK__
+					
+					#ifdef __USE_GTK__
+						Var BrushColor1 = RGBtoARGB(FBackColor, 100 - m_FillOpacity)
+						cairo_set_source_rgba(cr, GetRedD(BrushColor1), GetGreenD(BrushColor1), GetBlueD(BrushColor1), (100 - m_FillOpacity) / 100)
+						cairo_arc(cr, m_Serie(i).PT(j).x - PTSZ + PTSZ * 2 / 2 - 0.5, m_Serie(i).PT(j).y - PTSZ + PTSZ * 2 / 2 - 0.5, PTSZ * 2 / 2, 0, 2 * G_PI)
+						cairo_stroke(cr)
+					#else
+						GdipCreatePen1(RGBtoARGB(FBackColor, 100 - m_FillOpacity), mPenWidth, &H2, @hPen)
+						GdipDrawEllipseI hGraphics, hPen, m_Serie(i).PT(j).x - PTSZ, m_Serie(i).PT(j).y - PTSZ, PTSZ * 2, PTSZ * 2
 						GdipDeletePen hPen
 					#endif
 					
-					If m_LegendVisible Then
-						Select Case m_LegendAlign
-						Case LA_RIGHT, LA_LEFT
-							With LabelsRect
-								TextWidth = 0
-								
-								If .Left = 0 Then
-									TextHeight = 0
-									If m_LegendAlign = LA_LEFT Then
-										.Left = PT16
-									Else
-										.Left = MarginLeft + mWidth + PT16
-									End If
-									If ColRow = 1 Then
-										.Top = TopHeader + mHeight / 2 - .Bottom / 2
-									Else
-										.Top = TopHeader
-									End If
-								End If
-								
-								If TextWidth < m_Serie(i).TextWidth Then
-									TextWidth = m_Serie(i).TextWidth '+ PT16
-								End If
-								
-								If TextHeight + m_Serie(i).TextHeight > mHeight Then
-									If i > 0 Then .Left = .Left + TextWidth
-									.Top = TopHeader
-									TextHeight = 0
-								End If
-								m_Serie(i).LegendRect.Left = .Left
-								m_Serie(i).LegendRect.Top = .Top
-								m_Serie(i).LegendRect.Right = m_Serie(i).TextWidth
-								m_Serie(i).LegendRect.Bottom = m_Serie(i).TextHeight
-								
-								#ifdef __USE_GTK__
-									Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
-									cairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
-									cairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
-									cairo_fill(cr)
-								#else
-									GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush)
-									GdipFillRectangleI hGraphics, hBrush, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2
-									GdipDeleteBrush hBrush
-								#endif
-								
-								DrawText m_Serie(i).SerieName, .Left + m_Serie(i).TextHeight / 1.5, .Top, m_Serie(i).TextWidth, m_Serie(i).TextHeight, This.Font, lForeColor, cLeft, cMiddle
-								TextHeight = TextHeight + m_Serie(i).TextHeight
-								.Top = .Top + m_Serie(i).TextHeight
-								
-							End With
-							
-						Case LA_BOTTOM, LA_TOP
-							With LabelsRect
-								If .Left = 0 Then
-									If ColRow = 1 Then
-										.Left = MarginLeft + mWidth / 2 - .Right / 2
-									Else
-										.Left = MarginLeft
-									End If
-									If m_LegendAlign = LA_TOP Then
-										.Top = PT16 + TitleSize.Height
-									Else
-										.Top = TopHeader + mHeight + TitleSize.Height + PT16 / 2
-									End If
-								End If
-								
-								If .Left + m_Serie(i).TextWidth - MarginLeft > mWidth Then
-									.Left = MarginLeft
-									.Top = .Top + m_Serie(i).TextHeight
-								End If
-								
-								#ifdef __USE_GTK__
-									Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
-									cairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
-									cairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
-									cairo_fill(cr)
-								#else
-									GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush)
-									GdipFillRectangleI hGraphics, hBrush, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2
-									GdipDeleteBrush hBrush
-								#endif
-								m_Serie(i).LegendRect.Left = .Left
-								m_Serie(i).LegendRect.Top = .Top
-								m_Serie(i).LegendRect.Right = m_Serie(i).TextWidth
-								m_Serie(i).LegendRect.Bottom = m_Serie(i).TextHeight
-								
-								DrawText m_Serie(i).SerieName, .Left + m_Serie(i).TextHeight / 1.5, .Top, m_Serie(i).TextWidth, m_Serie(i).TextHeight, This.Font, lForeColor, cLeft, cMiddle
-								.Left = .Left + m_Serie(i).TextWidth '+ m_Serie(i).TextHeight / 1.5
-							End With
-						End Select
-					End If
-					
-					
-					'            If m_LabelsVisible Then
-					'                GdipCreateSolidFill RGBtoARGB(m_Serie(i).SeireColor, 80), hBrush
-					'                For j = 0 To UBound(PT2)
-					'                    GdipFillEllipseI hGraphics, hBrush, PT2(j).X - LW * 2 - mPenWidth, PT2(j).Y - LW * 2 - mPenWidth, LW * 6, LW * 6
-					'                    GdipCreatePen1 RGBtoARGB(vbWhite, 100), LW, &H2, hPen
-					'                    GdipDrawEllipseI hGraphics, hPen, PT2(j).X - LW * 2 - mPenWidth, PT2(j).Y - LW * 2 - mPenWidth, LW * 6, LW * 6
-					'                    GdipDeletePen hPen
-					'                    TextWidth = Canvas.TextWidth(CStr(m_Serie(i).Values(j + 1))) + 25
-					'                    'DrawText hGraphics, m_Serie(i).Values(J + 1), PT2(J).x - TextWidth / 2 + 1, PT2(J).y - TextHeight * 1.5 + 1, TextWidth, TextHeight, This.Font, lForeColor, cCenter, cMiddle
-					'                    DrawText hGraphics, m_Serie(i).Values(j + 1), PT2(j).X - TextWidth / 2, PT2(j).Y - TextHeight * 1.5, TextWidth, TextHeight, This.Font, RGBtoARGB(m_Serie(i).SeireColor, 100), cCenter, cMiddle
-					'                Next
-					'                GdipDeleteBrush hBrush
-					'            End If
-					
-					
-					'Marck Colors
-					Dim PTSZ As Single
-					PTSZ = LW * 2
-					'If mHotSerie = i Then PTSZ = LW * 1.2 Else PTSZ = LW * 1.2
-					'If PTSZ < 3 * nScale Then PTSZ = 3 * nScale
-					For j = 0 To m_Serie(i).Values->Count - 1
-						If mHotBar = j Then
-							#ifdef __USE_GTK__
-								Var PenColor = RGBtoARGB(m_LinesColor, 100)
-								cairo_set_line_width(cr, mPenWidth)
-							#else
-								GdipCreatePen1(RGBtoARGB(m_LinesColor, 100), mPenWidth, &H2, @hPen)
-							#endif
-							XX = MarginLeft + PtDistance * j
-							#ifdef __USE_GTK__
-								cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-								cairo_move_to(cr, XX, TopHeader)
-								cairo_line_to(cr, XX, TopHeader + mHeight + 4 * nScale)
-								cairo_stroke(cr)
-							#else
-								GdipDrawLine hGraphics, hPen, XX, TopHeader, XX, TopHeader + mHeight + 4 * nScale
-								GdipDeletePen hPen
-							#endif
-						End If
-						
-						
-						If mHotSerie = i Then
-							#ifdef __USE_GTK__
-								Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 50)
-								cairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), 0.5)
-								cairo_arc(cr, m_Serie(i).PT(j).x - PTSZ * 2 + PTSZ * 4 / 2 - 0.5, m_Serie(i).PT(j).y - PTSZ * 2 + PTSZ * 4 / 2 - 0.5, PTSZ * 4 / 2, 0, 2 * G_PI)
-								cairo_fill(cr)
-							#else
-								GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, 50), Cast(GpSolidFill Ptr Ptr, @hBrush)
-								GdipFillEllipseI hGraphics, hBrush, m_Serie(i).PT(j).x - PTSZ * 2, m_Serie(i).PT(j).y - PTSZ * 2, PTSZ * 4, PTSZ * 4
-								GdipDeleteBrush hBrush
-							#endif
-						End If
-						
-						#ifdef __USE_GTK__
-							Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
-							cairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
-							cairo_arc(cr, m_Serie(i).PT(j).x - PTSZ + PTSZ * 2 / 2 - 0.5, m_Serie(i).PT(j).y - PTSZ + PTSZ * 2 / 2 - 0.5, PTSZ * 2 / 2, 0, 2 * G_PI)
-							cairo_fill(cr)
-						#else
-							GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush)
-							GdipFillEllipseI hGraphics, hBrush, m_Serie(i).PT(j).x - PTSZ, m_Serie(i).PT(j).y - PTSZ, PTSZ * 2, PTSZ * 2
-							
-							'RectangleI hGraphics, hBrush, This.ClientWidth - MarginRight + MaxAxisHeight / 3, TopHeader + MaxAxisHeight * i + MaxAxisHeight / 4, MaxAxisHeight / 2, MaxAxisHeight / 2
-							GdipDeleteBrush hBrush
-						#endif
-						
-						#ifdef __USE_GTK__
-							Var BrushColor1 = RGBtoARGB(FBackColor, 100 - m_FillOpacity)
-							cairo_set_source_rgba(cr, GetRedD(BrushColor1), GetGreenD(BrushColor1), GetBlueD(BrushColor1), (100 - m_FillOpacity) / 100)
-							cairo_arc(cr, m_Serie(i).PT(j).x - PTSZ + PTSZ * 2 / 2 - 0.5, m_Serie(i).PT(j).y - PTSZ + PTSZ * 2 / 2 - 0.5, PTSZ * 2 / 2, 0, 2 * G_PI)
-							cairo_stroke(cr)
-						#else
-							GdipCreatePen1(RGBtoARGB(FBackColor, 100 - m_FillOpacity), mPenWidth, &H2, @hPen)
-							GdipDrawEllipseI hGraphics, hPen, m_Serie(i).PT(j).x - PTSZ, m_Serie(i).PT(j).y - PTSZ, PTSZ * 2, PTSZ * 2
-							GdipDeletePen hPen
-						#endif
-						
-						'Serie Text
-						'  DrawText hGraphics, m_Serie(i).SerieName, This.ClientWidth - MarginRight + MaxAxisHeight, TopHeader + MaxAxisHeight * i, MarginRight, MaxAxisHeight, This.Font, lForeColor, cLeft, cMiddle
-					Next
+					'Serie Text
+					'  DrawText hGraphics, m_Serie(i).SerieName, This.ClientWidth - MarginRight + MaxAxisHeight, TopHeader + MaxAxisHeight * i, MarginRight, MaxAxisHeight, This.Font, lForeColor, cLeft, cMiddle
 				Next
-				
-				'Horizontal Axis
-				If m_AxisXVisible Then
-					If cAxisItem Then
-						For i = 0 To cAxisItem->Count - 1
-							XX = MarginLeft + AxisDistance * (i) - (AxisDistance / 2) ' - 1
-							m_AxisAlign = cCenter
-							DrawText cAxisItem->Item(i), XX, TopHeader + mHeight, AxisDistance, Footer, This.Font, lForeColor, m_AxisAlign, cMiddle, m_WordWrap, m_AxisAngle
-						Next
-					End If
+			Next
+			
+			'Horizontal Axis
+			If m_AxisXVisible Then
+				If cAxisItem Then
+					For i = 0 To cAxisItem->Count - 1
+						XX = MarginLeft + AxisDistance * (i) - (AxisDistance / 2) ' - 1
+						m_AxisAlign = cCenter
+						DrawText cAxisItem->Item(i), XX, TopHeader + mHeight, AxisDistance, Footer, This.Font, lForeColor, m_AxisAlign, cMiddle, m_WordWrap, m_AxisAngle
+					Next
 				End If
-				
+			End If
+			
 			'End If
 		Case CS_GroupedColumn To CS_StackedBarsPercent
 			If m_ChartOrientation = CO_Vertical Then
@@ -3247,6 +3708,13 @@ Namespace My.Sys.Forms
 				
 				ZeroPoint = MarginLeft + RangeHeight * (Abs(forLines) / (iStep * NumDecim))
 				
+				Dim LabelStep As Integer
+				LabelStep = 1
+				Do While (AxisX.Width / LabelStep) > RangeHeight * 1.1
+					LabelStep = LabelStep + 1
+					If LabelStep > 50 Then Exit Do
+				Loop
+				Dim LineIdx As Integer = 0
 				For i = forLines / (iStep * NumDecim) To toLines / (iStep * NumDecim)
 					If m_VerticalLines Then
 						#ifdef __USE_GTK__
@@ -3260,13 +3728,15 @@ Namespace My.Sys.Forms
 					End If
 					
 					If m_AxisXVisible Then
-						sDisplay = Replace(m_LabelsFormats, "{V}", WStr(yRange))
-						sDisplay = Replace(sDisplay, "{LF}", Chr(10))
-						DrawText sDisplay, XX - RangeHeight / 2, YY + 8 * nScale, RangeHeight, Footer, This.Font, lForeColor, cCenter, cTop
-						'DrawText hGraphics, sDisplay, 0, Yy - RangeHeight / 2, MarginLeft - 8 * nScale, RangeHeight, This.Font, lForeColor, cRight, cMiddle
-						
+						If LineIdx Mod LabelStep = 0 Then
+							sDisplay = Replace(m_LabelsFormats, "{V}", WStr(yRange))
+							sDisplay = Replace(sDisplay, "{LF}", Chr(10))
+							Var LblW = IIf(RangeHeight > AxisX.Width, RangeHeight, AxisX.Width)
+							DrawText sDisplay, XX - LblW / 2, YY + 8 * nScale, LblW, Footer, This.Font, lForeColor, cCenter, cTop
+							'DrawText hGraphics, sDisplay, 0, Yy - RangeHeight / 2, MarginLeft - 8 * nScale, RangeHeight, This.Font, lForeColor, cRight, cMiddle
+						End If
 					End If
-					
+					LineIdx = LineIdx + 1
 					XX = XX + RangeHeight
 					yRange = yRange + CLng(iStep * NumDecim)
 				Next
@@ -3619,12 +4089,12 @@ Namespace My.Sys.Forms
 			GdipDeleteGraphics(hGraphics)
 		#endif
 		
-    Exit Sub
-ErrorHandler:
-    MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-        "in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
-        "in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
-        "in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
+		Exit Sub
+		ErrorHandler:
+		MsgBox ErrDescription(Err) & " (" & Err & ") " & _
+		"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+		"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+		"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 	End Sub
 	
 	'*3
@@ -3639,56 +4109,133 @@ ErrorHandler:
 			Dim lForeColor As Long
 			Dim sText As String
 			Dim TM As Single
-			Dim PT As POINTF
+			Dim PT As PointF
 			Dim SZ As SizeF
 			
-			If HotItem > -1 Then
-				lForeColor = RGBtoARGB(FForeColor, 100)
-				LW = m_LinesWidth * nScale
-				TM = ScaleY(Canvas.TextHeight("Aj")) / 4
+			If cAxisItem <> 0 AndAlso cAxisItem->Count > 0 AndAlso SerieCount > 0 Then
+				'=================== MULTI PIE / DONUT (cAxisItem) ===================
+				If mHotSerie > -1 And mHotPie > -1 Then
+					If mHotPie <= UBound(m_Serie(mHotSerie).hPath) AndAlso m_Serie(mHotSerie).hPath(mHotPie) <> 0 Then
+						
+						lForeColor = RGBtoARGB(FForeColor, 100)
+						LW = m_LinesWidth * nScale
+						TM = ScaleY(Canvas.TextHeight("Aj")) / 4
+						
+						sText = cAxisItem->Item(mHotPie) & Chr(13, 10)
+						
+						Var PieTotal = 0
+						For d As Integer = 0 To SerieCount - 1
+							Var Val_ = m_Serie(d).Values->Item(mHotPie)
+							If Val_ > 0 Then PieTotal = PieTotal + Val_
+						Next
+						
+						Var Percent = RoundInteger(100 * m_Serie(mHotSerie).Values->Item(mHotPie) / PieTotal, 1)
+						sDisplay = Replace(m_LabelsFormats, "{A}", m_Serie(mHotSerie).SerieName)
+						sDisplay = Replace(sDisplay, "{P}", WStr(Percent))
+						sDisplay = Replace(sDisplay, "{V}", FormatLabel(m_Serie(mHotSerie).Values->Item(mHotPie), m_ToolTipsFormat))
+						sDisplay = Replace(sDisplay, "{LF}", Chr(10))
+						sText = sText & m_Serie(mHotSerie).SerieName & ": " & sDisplay
+						
+						'sText = cAxisItem->Item(mHotPie) & Chr(13, 10) & m_Serie(mHotSerie).SerieName & ": " & WStr(m_Serie(mHotSerie).Values->Item(mHotPie))
+						
+						GetTextSize sText, 0, 0, This.Font, False, SZ
+						
+						With RectF_
+							#ifdef __USE_GTK__
+								Dim As cairo_path_t Ptr path = m_Serie(mHotSerie).hPath(mHotPie)
+								Dim As cairo_path_data_t Ptr pData
+								Dim As Integer k = 0
+								While k < path->num_data
+									pData = @path->data[k]
+									k += path->data[k].header.length
+								Wend
+								PT.X = pData[1].point.X
+								PT.Y = pData[1].point.Y
+							#else
+								GdipGetPathLastPoint m_Serie(mHotSerie).hPath(mHotPie), Cast(GpPointF Ptr, @PT)
+							#endif
+							.X = PT.X
+							.Y = PT.Y
+							.Width = SZ.Width + TM * 2
+							.Height = SZ.Height + TM * 2
+							
+							If .X < 0 Then .X = LW
+							If .Y < 0 Then .Y = LW
+							If .X + .Width >= ScaleX(This.ClientWidth) - LW Then .X = ScaleX(This.ClientWidth) - .Width - LW
+							If .Y + .Height >= ScaleY(This.ClientHeight) - LW Then .Y = ScaleY(This.ClientHeight) - .Height - LW
+						End With
+						
+						RoundRect RectF_, RGBtoARGB(FBackColor, 90), RGBtoARGB(m_Serie(mHotSerie).SerieColor, 80), TM, True, 90, 80
+						
+						With RectF_
+							.X = .X + TM
+							.Y = .Y + TM
+							DrawText cAxisItem->Item(mHotPie), .X, .Y, .Width, 0, This.Font, lForeColor, cLeft, cTop
+							GetTextSize cAxisItem->Item(mHotPie), 0, 0, This.Font, False, SZ
+							.Y = .Y + TM
+							
+							'sDisplay = cAxisItem->Item(mHotPie) & Chr(13, 10) & m_Serie(mHotSerie).SerieName & ": "
+							DrawText m_Serie(i).SerieName & ": ", .X, .Y, .Width, .Height, This.Font, lForeColor, cLeft, cMiddle
+							GetTextSize m_Serie(i).SerieName & ": ", 0, 0, This.Font, False, SZ
+							.X = .X + SZ.Width
+							bBold = Canvas.Font.Bold
+							Canvas.Font.Bold = True
+							DrawText sDisplay, .X, .Y, .Width, .Height, Canvas.Font, lForeColor, cLeft, cMiddle
+							Canvas.Font.Bold = bBold
+						End With
+						
+					End If
+				End If
 				
-				sText = m_Item(HotItem).ItemName & ": " & m_Item(HotItem).text
-				GetTextSize sText, 0, 0, This.Font, False, SZ
-				
-				With RectF_
-					#ifdef __USE_GTK__
-						Dim As cairo_path_t Ptr path = m_Item(HotItem).hPath
-						Dim As cairo_path_data_t Ptr pData
-						Dim As Integer i = 0
-						While i < path->num_data
-							pData = @path->data[i]
-							i += path->data[i].header.length
-						Wend
-						PT.x = pData[1].point.x
-						PT.y = pData[1].point.y
-					#else
-						GdipGetPathLastPoint m_Item(HotItem).hPath, Cast(GpPointF Ptr, @PT)
-					#endif
-					.X = PT.x
-					.Y = PT.y
-					.Width = SZ.Width + TM * 2
-					.Height = SZ.Height + TM * 2
+			Else
+				If HotItem > -1 Then
+					lForeColor = RGBtoARGB(FForeColor, 100)
+					LW = m_LinesWidth * nScale
+					TM = ScaleY(Canvas.TextHeight("Aj")) / 4
 					
-					If .X < 0 Then .X = LW
-					If .Y < 0 Then .Y = LW
-					If .X + .Width >= ScaleX(This.ClientWidth) - LW Then .X = ScaleX(This.ClientWidth) - .Width - LW
-					If .Y + .Height >= ScaleY(This.ClientHeight) - LW Then .Y = ScaleY(This.ClientHeight) - .Height - LW
-				End With
-				
-				RoundRect RectF_, RGBtoARGB(FBackColor, 90), RGBtoARGB(m_Item(HotItem).ItemColor, 80), TM, True, 90, 80
-				
-				With RectF_
-					.X = .X + TM
-					.Y = .Y
-					DrawText m_Item(HotItem).ItemName & ": ", .X, .Y, .Width, .Height, This.Font, lForeColor, cLeft, cMiddle
-					GetTextSize m_Item(HotItem).ItemName & ": ", 0, 0, This.Font, False, SZ
+					sText = m_Item(HotItem).ItemName & ": " & m_Item(HotItem).text
+					GetTextSize sText, 0, 0, This.Font, False, SZ
 					
-					bBold = Canvas.Font.Bold
-					Canvas.Font.Bold = True
-					DrawText m_Item(HotItem).text, .X + SZ.Width, .Y, .Width, .Height, Canvas.Font, lForeColor, cLeft, cMiddle
-					Canvas.Font.Bold = bBold
-				End With
-				
+					With RectF_
+						#ifdef __USE_GTK__
+							Dim As cairo_path_t Ptr path = m_Item(HotItem).hPath
+							Dim As cairo_path_data_t Ptr pData
+							Dim As Integer i = 0
+							While i < path->num_data
+								pData = @path->data[i]
+								i += path->data[i].header.length
+							Wend
+							PT.X = pData[1].point.X
+							PT.Y = pData[1].point.Y
+						#else
+							GdipGetPathLastPoint m_Item(HotItem).hPath, Cast(GpPointF Ptr, @PT)
+						#endif
+						.X = PT.X
+						.Y = PT.Y
+						.Width = SZ.Width + TM * 2
+						.Height = SZ.Height + TM * 2
+						
+						If .X < 0 Then .X = LW
+						If .Y < 0 Then .Y = LW
+						If .X + .Width >= ScaleX(This.ClientWidth) - LW Then .X = ScaleX(This.ClientWidth) - .Width - LW
+						If .Y + .Height >= ScaleY(This.ClientHeight) - LW Then .Y = ScaleY(This.ClientHeight) - .Height - LW
+					End With
+					
+					RoundRect RectF_, RGBtoARGB(FBackColor, 90), RGBtoARGB(m_Item(HotItem).ItemColor, 80), TM, True, 90, 80
+					
+					With RectF_
+						.X = .X + TM
+						.Y = .Y
+						DrawText m_Item(HotItem).ItemName & ": ", .X, .Y, .Width, .Height, This.Font, lForeColor, cLeft, cMiddle
+						GetTextSize m_Item(HotItem).ItemName & ": ", 0, 0, This.Font, False, SZ
+						
+						bBold = Canvas.Font.Bold
+						Canvas.Font.Bold = True
+						DrawText m_Item(HotItem).text, .X + SZ.Width, .Y, .Width, .Height, Canvas.Font, lForeColor, cLeft, cMiddle
+						Canvas.Font.Bold = bBold
+					End With
+					
+				End If
 			End If
 		Case CS_Area
 			Dim i As Long, j As Long
@@ -4068,11 +4615,11 @@ ErrorHandler:
 		Static DownButton As Integer = -1
 		Dim As Integer HitResult
 		#ifdef __USE_GTK__
-			Dim As GdkEvent Ptr e = Message.event
-			Select Case Message.event->type
+			Dim As GdkEvent Ptr e = Message.Event
+			Select Case Message.Event->type
 			Case GDK_BUTTON_PRESS: DownButton = e->button.button - 1
 			Case GDK_BUTTON_RELEASE: MouseUp e->button.button - 1, e->button.state, e->button.x, e->button.y: DownButton = -1
-			Case GDK_MOTION_NOTIFY: MouseMove(DownButton, e->Motion.state, e->Motion.x, e->Motion.y)
+			Case GDK_MOTION_NOTIFY: MouseMove(DownButton, e->motion.state, e->motion.x, e->motion.y)
 			End Select
 		#else
 			Select Case Message.Msg
@@ -4097,7 +4644,12 @@ ErrorHandler:
 				Message.Result = 0
 				Exit Sub
 			Case WM_SIZE:
-				Font.Size = Max(m_FontSize, m_FontSize * This.Height / m_Height)
+				Dim As Single ScaleFactor
+				
+				ScaleFactor = Min(This.Width / m_Width, This.Height / m_Height)
+				
+				Font.Size = m_FontSize * ScaleFactor
+				'Font.Size = Max(m_FontSize, m_FontSize * This.Height / m_Height)
 				m_TitleFont.Size = Max(m_TitleFontSize, (m_TitleFontSize) * This.Height / m_Height)
 				m_SeparatorLineWidth = m_SeparatorLineWidth2 * This.Height / m_Height
 				m_DonutWidth = m_DonutWidth2 * This.Height / m_Height
@@ -4235,13 +4787,22 @@ ErrorHandler:
 	
 	Private Destructor Chart
 		
-		Dim i As Long
+		Dim i As Long, j As Long
 		For i = 0 To ItemsCount - 1
 			#ifdef __USE_GTK__
-				cairo_path_destroy(m_Item(i).hPath)
+				If m_Item(i).hPath <> 0 Then cairo_path_destroy(m_Item(i).hPath)
 			#else
-				GdipDeletePath m_Item(i).hPath
+				If m_Item(i).hPath <> 0 Then GdipDeletePath m_Item(i).hPath
 			#endif
+		Next
+		For i = 0 To SerieCount - 1
+			For j = 0 To UBound(m_Serie(i).hPath)
+				#ifdef __USE_GTK__
+					If m_Serie(i).hPath(j) <> 0 Then cairo_path_destroy(m_Serie(i).hPath(j))
+				#else
+					If m_Serie(i).hPath(j) <> 0 Then GdipDeletePath m_Serie(i).hPath(j)
+				#endif
+			Next
 		Next
 		If m_WStringList <> 0 Then _Delete(m_WStringList)
 		If m_DoubleList1 <> 0 Then _Delete(m_DoubleList1)
