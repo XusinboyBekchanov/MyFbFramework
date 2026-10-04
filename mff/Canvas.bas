@@ -2569,25 +2569,27 @@ Namespace My.Sys.Drawing
 	Private Sub Canvas.Font_Create(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.Font)
 		With *Cast(Canvas Ptr, Sender.Parent)
 			#ifdef __USE_GTK__
-				cairo_select_font_face(.Handle, Sender.Name, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
-				cairo_set_font_size(.Handle, Sender.Size)
-				
-				Dim As PangoFontDescription Ptr desc
-				desc = pango_font_description_from_string (Sender.Name & " " & Trim(Str(Sender.Size)))
-				pango_layout_set_font_description(.layout, desc)
-				pango_font_description_free(desc)
-				
-				Dim As PangoRectangle extend
-				pango_layout_set_text(.layout, ToUtf8("|"), 1)
-				pango_cairo_update_layout(.Handle, .layout)
-				#ifdef pango_version
-					Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(.layout, 0)
-				#else
-					Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(.layout, 0)
-				#endif
-				pango_layout_line_get_pixel_extents(pl, NULL, @extend)
-				.dwCharX = .UnScaleX(extend.width)
-				.dwCharY = .UnScaleY(extend.height)
+				If .Handle Then
+					cairo_select_font_face(.Handle, Sender.Name, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
+					cairo_set_font_size(.Handle, Sender.Size)
+					
+					Dim As PangoFontDescription Ptr desc
+					desc = pango_font_description_from_string (Sender.Name & " " & Trim(Str(Sender.Size)))
+					pango_layout_set_font_description(.layout, desc)
+					pango_font_description_free(desc)
+					
+					Dim As PangoRectangle extend
+					pango_layout_set_text(.layout, ToUtf8("|"), 1)
+					pango_cairo_update_layout(.Handle, .layout)
+					#ifdef pango_version
+						Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(.layout, 0)
+					#else
+						Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(.layout, 0)
+					#endif
+					pango_layout_line_get_pixel_extents(pl, NULL, @extend)
+					.dwCharX = .UnScaleX(extend.width)
+					.dwCharY = .UnScaleY(extend.height)
+				End If
 			#elseif defined(__USE_WINAPI__)
 				If .Handle Then
 					SelectObject(.Handle, Sender.Handle)
