@@ -262,7 +262,8 @@ Namespace My.Sys.Forms
 			Select Case LCase(*FClassName)
 			Case "reportlabel", "reportfield"
 				'Both are plain text display - a GtkLabel is enough for either.
-				widget = gtk_label_new(ToUtf8(FText))
+				widget = gtk_label_new()
+				gtk_label_set_text(GTK_LABEL(widget), ToUtf8(*FText))
 				ApplyAlignmentStyle()
 			Case "reportimage"
 				widget = gtk_image_new()
