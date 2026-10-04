@@ -200,7 +200,7 @@ Namespace My.Sys.Forms
 		Declare Constructor
 		Declare Destructor
 		OnSelChange    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, NewIndex As Integer)
-		OnSelChanging  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, NewIndex As Integer)
+		OnSelChanging  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, ByRef Cancel As Boolean)
 		OnGotFocus     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl)
 		OnLostFocus    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl)
 		OnTabAdded     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, Page As TabPage Ptr, NewIndex As Integer)

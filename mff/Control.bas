@@ -1706,15 +1706,16 @@ Namespace My.Sys.Forms
 						If OnScroll Then OnScroll(*Designer, This)
 					End If
 				Case WM_CTLCOLORMSGBOX To WM_CTLCOLORSTATIC, WM_CTLCOLORBTN
-					Dim As Control Ptr Child
 					If Message.Msg = WM_CTLCOLORSTATIC Then
 						If (GetWindowLong(CPtr(HWND, Message.lParam), GWL_STYLE) And SS_SIMPLE) = SS_SIMPLE Then
 							Exit Select
 						End If
 					End If
 					
-					Child = GetProp(CPtr(HWND, Message.lParam), "MFFControl")
-					If Child Then
+					Dim As Component Ptr ChildComponent
+					ChildComponent = GetProp(CPtr(HWND, Message.lParam), "MFFControl")
+					If ChildComponent AndAlso *ChildComponent Is Control Then
+						Dim As Control Ptr Child = Cast(Control Ptr, ChildComponent)
 						With *Child
 							If (g_darkModeSupported AndAlso g_darkModeEnabled AndAlso .FDefaultBackColor = .FBackColor) Then
 								If .ClassAncestor <> "ScrollBar" Then

@@ -156,13 +156,13 @@ Namespace My.Sys.Forms
 			'whether or not ReportControl's Destructor unlinks itself too (its own unlink code
 			'is commented out at the moment).
 			Components.Remove(i)
-			c->Parent = 0
+			'c->Parent = 0
 		Next
 
 		'Close the gap: everything below moves up by the removed band's height.
 		If Parent <> 0 Then ShiftControlsFrom(Index + 1, y0 + h, -h)
 
-		'If FParent <> 0 Then Cast(Report Ptr, FParent)->Bands.Remove(@This)
+		If FParent <> 0 Then Cast(Report Ptr, FParent)->Bands.Remove(@This)
 	End Destructor
 
 	#ifndef ReadProperty_Off
@@ -210,7 +210,7 @@ Namespace My.Sys.Forms
 		'Unlink from the owning Report's FComponents so it never holds a dangling pointer to
 		'This past this point - Component's own Destructor doesn't do this (see
 		'Component.bas), so every ReportControl has to on its own. Parent = 0 does exactly that.
-		If FParent <> 0 Then This.Parent = 0
+		'If FParent <> 0 Then This.Parent = 0
 		If FText         Then _Deallocate((FText))          : FText         = 0
 	End Destructor
 	

@@ -918,6 +918,13 @@ Namespace My.Sys.Forms
 				NM = Cast(LPNMHDR,Message.lParam)
 				If NM->code = TCN_SELCHANGE Then
 					SelectedTabIndex = SelectedTabIndex
+				ElseIf NM->code = TCN_SELCHANGING Then
+					Dim As Boolean bCancel = False
+					If OnSelChanging Then OnSelChanging(*Designer, This, bCancel)
+					If bCancel Then
+						Message.Result = -1
+						Return
+					End If
 				End If
 			Case WM_NCHITTEST
 				If FDesignMode Then Exit Sub
@@ -1252,6 +1259,14 @@ Namespace My.Sys.Forms
 		Private Sub TabControl.TabControl_SwitchPage(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
 			Dim As TabControl Ptr tc = user_data
 			If tc AndAlso tc->Tabs[page_num] Then
+				If tc->OnSelChanging Then
+					Dim As Boolean bCancel = False
+					tc->OnSelChanging(*tc->Designer, *tc, bCancel)
+					If bCancel Then
+						g_signal_stop_emission_by_name(notebook, "switch-page")
+						Return
+					End If
+				End If
 				tc->Tabs[page_num]->RequestAlign
 				If tc->OnSelChange Then tc->OnSelChange(*tc->Designer, *tc, page_num)
 			End If

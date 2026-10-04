@@ -251,7 +251,7 @@ End Function
 	Private Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString)
 		Dim As Long ls = Len(txt)
 		Dim As WString Ptr ResultPtr
-		If subject <> 0 Then
+		If subject <> 0 AndAlso subject <> @txt Then
 			ResultPtr = _Reallocate(subject, (ls + 1) * SizeOf(WString) * GrowLength)
 			If ResultPtr = 0 Then Print  __FUNCTION__ & " (Line " & __LINE__ & ") " & "Memory was not allocated." & txt : Return
 		Else

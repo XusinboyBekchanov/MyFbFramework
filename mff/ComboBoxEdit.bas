@@ -322,13 +322,13 @@ Namespace My.Sys.Forms
 			If widget Then
 				If widget = DropDownWidget Then
 					Dim As GtkEntry Ptr entry = GTK_ENTRY(gtk_bin_get_child(GTK_BIN(widget)))
-					If Value = "" Then
+					If *FText = "" Then
 						gtk_entry_set_text(entry, !"\0")
 					Else
-						gtk_entry_set_text(entry, ToUtf8(Value))
+						gtk_entry_set_text(entry, ToUtf8(*FText))
 					End If
 				Else
-					gtk_combo_box_set_active (GTK_COMBO_BOX(widget), IndexOf(Value))
+					gtk_combo_box_set_active (GTK_COMBO_BOX(widget), IndexOf(*FText))
 				End If
 			End If
 		#elseif defined(__USE_WINAPI__)
@@ -339,11 +339,11 @@ Namespace My.Sys.Forms
 				If FHandle Then Perform(WM_SETTEXT, 0, Cast(LPARAM, FText))
 			End If
 			If Items.Count > 0 Then
-				Dim As Integer Index = IndexOf(Value)
+				Dim As Integer Index = IndexOf(*FText)
 				If Index >= 0 Then ItemIndex = Index
 			End If
 		#elseif defined(__USE_WASM__)
-			If FHandle Then SetSelectedIndex(FHandle, IndexOf(Value))
+			If FHandle Then SetSelectedIndex(FHandle, IndexOf(*FText))
 		#endif
 	End Property
 	
