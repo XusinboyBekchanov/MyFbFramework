@@ -259,7 +259,7 @@ Namespace My.Sys.Forms
 			Dim As GtkWidget Ptr ParentWidget = FParent->Parent->widget
 			If ParentWidget = 0 Then Return
 
-			Select Case LCase(FClassName)
+			Select Case LCase(*FClassName)
 			Case "reportlabel", "reportfield"
 				'Both are plain text display - a GtkLabel is enough for either.
 				widget = gtk_label_new(ToUtf8(FText))
