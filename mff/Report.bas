@@ -292,8 +292,8 @@ Namespace My.Sys.Forms
 			'Constructor: widget = gtk_layout_new(NULL, NULL)) - FParent->Parent is the owning
 			'Report (ReportBand.Parent), so its widget is that layout.
 			If widget <> 0 OrElse FParent = 0 OrElse FParent->Parent = 0 Then Return
-			Dim As GtkWidget Ptr ParentWidget = FParent->Parent->widget
-			If ParentWidget = 0 Then Return
+			Dim As GtkWidget Ptr ParentWidget_ = FParent->Parent->widget
+			If ParentWidget_ = 0 Then Return
 
 			Select Case LCase(*FClassName)
 			Case "reportlabel", "reportfield"
@@ -315,10 +315,10 @@ Namespace My.Sys.Forms
 			End Select
 
 			gtk_widget_set_size_request(widget, FWidth, FHeight)
-			If GTK_IS_LAYOUT(ParentWidget) Then
-				gtk_layout_put(GTK_LAYOUT(ParentWidget), widget, FLeft, FTop)
-			ElseIf GTK_IS_CONTAINER(ParentWidget) Then
-				gtk_container_add(GTK_CONTAINER(ParentWidget), widget)
+			If GTK_IS_LAYOUT(ParentWidget_) Then
+				gtk_layout_put(GTK_LAYOUT(ParentWidget_), widget, FLeft, FTop)
+			ElseIf GTK_IS_CONTAINER(ParentWidget_) Then
+				gtk_container_add(GTK_CONTAINER(ParentWidget_), widget)
 			Else
 				gtk_widget_destroy(widget)
 				widget = 0
