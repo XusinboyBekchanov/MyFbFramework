@@ -400,13 +400,25 @@ Namespace My.Sys.Forms
 
 			Select Case Align
 				Case 1
-					gtk_label_set_xalign(GTK_LABEL(widget), 0.5)
+					#ifdef __USE_GTK3__
+						gtk_label_set_xalign(GTK_LABEL(widget), 0.5)
+					#else
+						gtk_misc_set_alignment(GTK_MISC(widget), 0.5, 0)
+					#endif
 					gtk_label_set_justify(GTK_LABEL(widget), GTK_JUSTIFY_CENTER)
 				Case 2
-					gtk_label_set_xalign(GTK_LABEL(widget), 1.0)
+					#ifdef __USE_GTK3__
+						gtk_label_set_xalign(GTK_LABEL(widget), 1.0)
+					#else
+						gtk_misc_set_alignment(GTK_MISC(widget), 1, 0)
+					#endif
 					gtk_label_set_justify(GTK_LABEL(widget), GTK_JUSTIFY_RIGHT)
 				Case Else
-					gtk_label_set_xalign(GTK_LABEL(widget), 0.0)
+					#ifdef __USE_GTK3__
+						gtk_label_set_xalign(GTK_LABEL(widget), 0.0)
+					#else
+						gtk_misc_set_alignment(GTK_MISC(widget), 0, 0)
+					#endif
 					gtk_label_set_justify(GTK_LABEL(widget), GTK_JUSTIFY_LEFT)
 			End Select
 			gtk_label_set_line_wrap(GTK_LABEL(widget), IIf(Wraps, GTK_TRUE, GTK_FALSE))

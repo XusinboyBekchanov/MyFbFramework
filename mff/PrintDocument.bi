@@ -10,6 +10,9 @@ Namespace My.Sys.ComponentModel
 	Type PrintDocumentPage Extends Object
 		#ifdef __USE_WINAPI__
 			Handle As HENHMETAFILE
+		#elseif defined(__USE_GTK__)
+			' Recording surface with the page drawing (like the enhanced metafile on WinAPI)
+			Surface As cairo_surface_t Ptr
 		#endif
 		Canvas As My.Sys.Drawing.Canvas
 		Declare Constructor
@@ -33,11 +36,13 @@ Namespace My.Sys.ComponentModel
 		Declare Destructor
 	End Type
 	
-	'Defines a reusable object that sends output to a printer (Windows only).
+	'Defines a reusable object that sends output to a printer.
 	Type PrintDocument Extends Component
 	Private:
 		#ifdef __USE_WINAPI__
 			Declare Sub Paint(hwnd As HWND, hdcDestination As HDC, ByVal PageNumber As Integer)
+		#elseif defined(__USE_GTK__)
+			Declare Static Sub PrintOperation_DrawPage(op As GtkPrintOperation Ptr, context As GtkPrintContext Ptr, page_nr As gint, user_data As gpointer)
 		#endif
 	Public:
 		#ifndef ReadProperty_Off

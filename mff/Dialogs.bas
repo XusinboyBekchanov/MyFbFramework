@@ -247,11 +247,12 @@ Private Function OpenFileDialog.Execute As Boolean
 			Next
 			If FilterIndex <= j Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FilterIndex))
 		End If
-		If WGet(FFileName) <> "" Then
-			gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), ToUtf8(*FFileName))
-		End If
 		If WGet(FInitialDir) = "" Then WLet(FInitialDir, CurDir)
 		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUtf8(*FInitialDir))
+		' gtk_file_chooser_set_current_name is only valid for SAVE actions, select the file instead
+		If InStr(WGet(FFileName), "/") > 0 Then
+			gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (widget), ToUtf8(*FFileName))
+		End If
 		'gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (widget), TRUE)
 		Dim bTrue As gboolean = 1
 		gtk_file_chooser_set_action(GTK_FILE_CHOOSER(widget), GTK_FILE_CHOOSER_ACTION_OPEN)
@@ -269,9 +270,9 @@ Private Function OpenFileDialog.Execute As Boolean
 			g_slist_free(l)
 		End If
 		#ifdef __USE_GTK4__
-			g_object_unref(widget)
+			g_object_unref(widget): widget = 0
 		#else
-			gtk_widget_destroy( GTK_WIDGET(widget) )
+			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif
 	#else
 		Dim cwsFile As WString  * (MAX_PATH +1) * 100
@@ -563,9 +564,9 @@ Private Function SaveFileDialog.Execute As Boolean
 			End If
 		End If
 		#ifdef __USE_GTK4__
-			g_object_unref(widget)
+			g_object_unref(widget): widget = 0
 		#else
-			gtk_widget_destroy( GTK_WIDGET(widget) )
+			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif
 	#else
 		Dim dwFlags As DWORD = Cast(Integer, Options)
@@ -724,9 +725,9 @@ Private Function FontDialog.Execute As Boolean
 			#endif
 		End If
 		#ifdef __USE_GTK4__
-			g_object_unref(widget)
+			g_object_unref(widget): widget = 0
 		#else
-			gtk_widget_destroy( GTK_WIDGET(widget) )
+			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif
 		Return bResult
 	#else
@@ -883,9 +884,9 @@ Private Function FolderBrowserDialog.Execute As Boolean
 			Directory = WStr(*gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (widget)))
 		End If
 		#ifdef __USE_GTK4__
-			g_object_unref(widget)
+			g_object_unref(widget): widget = 0
 		#else
-			gtk_widget_destroy( GTK_WIDGET(widget) )
+			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif
 		Return bResult
 	#else
@@ -1057,9 +1058,9 @@ Private Function ColorDialog.Execute As Boolean
 			If UBound(res) >= 2 Then This.Color = BGR(Val(res(0)), Val(res(1)), Val(res(2)))
 		End If
 		#ifdef __USE_GTK4__
-			g_object_unref(widget)
+			g_object_unref(widget): widget = 0
 		#else
-			gtk_widget_destroy( GTK_WIDGET(widget) )
+			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif
 		Return bResult
 	#else

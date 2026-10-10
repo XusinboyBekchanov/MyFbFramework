@@ -156,9 +156,74 @@ Namespace My.Sys.Forms
 			Si.nPos   = Min(Si.nPos, Si.nMax)
 			Si.nPage  = This.ClientHeight
 			SetScrollInfo(This.Handle, SB_VERT, @Si, True)
+		#else
+			If FDrawingArea = 0 OrElse Document = 0 Then Exit Sub
+			' The scrolled window shows scrollbars when the drawing area is bigger than the view
+			Dim As Integer iWidth = Document->PrinterSettings.PrintableWidth * FZoom / 100
+			Dim As Integer iHeight = Document->PrinterSettings.PrintableHeight * FZoom / 100
+			gtk_widget_set_size_request(FDrawingArea, iWidth + 20, iHeight + 20)
+			gtk_widget_queue_draw(FDrawingArea)
 		#endif
 	End Sub
-	
+
+	#ifdef __USE_GTK__
+		Private Sub PrintPreviewControl.DrawPage(cr As cairo_t Ptr)
+			' Background around the page
+			cairo_set_source_rgb(cr, 0.75, 0.75, 0.75)
+			cairo_paint(cr)
+			If Document = 0 Then Exit Sub
+			If Document->Pages.Count = 0 Then Document->Repaint
+			If Document->Pages.Count = 0 Then Exit Sub
+
+			FCurrentPage = Max(1, Min(FCurrentPage, Document->Pages.Count))
+
+			Dim As Integer iPageWidth = Document->PrinterSettings.PrintableWidth
+			Dim As Integer iPageHeight = Document->PrinterSettings.PrintableHeight
+			If iPageWidth <= 0 OrElse iPageHeight <= 0 Then Exit Sub
+			Dim As Double dScale = FZoom / 100
+			Dim As Integer iWidth = iPageWidth * dScale
+			Dim As Integer iHeight = iPageHeight * dScale
+
+			Dim As GtkAllocation Alloc
+			gtk_widget_get_allocation(FDrawingArea, @Alloc)
+			Dim As Integer iLeft = IIf(Alloc.width - iWidth > 20, (Alloc.width - iWidth) \ 2, 10), iTop = 10
+
+			' White paper with a border
+			cairo_set_source_rgb(cr, 1, 1, 1)
+			cairo_rectangle(cr, iLeft, iTop, iWidth, iHeight)
+			cairo_fill(cr)
+			cairo_set_source_rgb(cr, 0, 0, 0)
+			cairo_set_line_width(cr, 1)
+			cairo_rectangle(cr, iLeft - 0.5, iTop - 0.5, iWidth + 1, iHeight + 1)
+			cairo_stroke(cr)
+
+			' Replay the recorded page scaled by Zoom
+			Dim As cairo_surface_t Ptr Surface = Document->Pages.Item(FCurrentPage - 1)->Surface
+			If Surface = 0 Then Exit Sub
+			cairo_save(cr)
+			cairo_rectangle(cr, iLeft, iTop, iWidth, iHeight)
+			cairo_clip(cr)
+			cairo_translate(cr, iLeft, iTop)
+			cairo_scale(cr, dScale, dScale)
+			cairo_set_source_surface(cr, Surface, 0, 0)
+			cairo_paint(cr)
+			cairo_restore(cr)
+		End Sub
+
+		Private Function PrintPreviewControl.DrawingArea_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
+			Dim As PrintPreviewControl Ptr ppc = Cast(Any Ptr, data1)
+			If ppc Then ppc->DrawPage(cr)
+			Return True
+		End Function
+
+		Private Function PrintPreviewControl.DrawingArea_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
+			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			DrawingArea_Draw(widget, cr, data1)
+			cairo_destroy(cr)
+			Return True
+		End Function
+	#endif
+
 	#ifndef __USE_GTK__
 		Private Sub PrintPreviewControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
@@ -477,6 +542,18 @@ Namespace My.Sys.Forms
 			widget = gtk_scrolled_window_new(NULL, NULL)
 			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 			'g_signal_connect(widget, "value-changed", G_CALLBACK(@Range_ValueChanged), @This)
+			FDrawingArea = gtk_drawing_area_new()
+			#ifdef __USE_GTK4__
+				gtk_container_add(GTK_CONTAINER(widget), FDrawingArea)
+			#else
+				gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(widget), FDrawingArea)
+			#endif
+			#ifdef __USE_GTK3__
+				g_signal_connect(FDrawingArea, "draw", G_CALLBACK(@DrawingArea_Draw), @This)
+			#else
+				g_signal_connect(FDrawingArea, "expose-event", G_CALLBACK(@DrawingArea_ExposeEvent), @This)
+			#endif
+			gtk_widget_show(FDrawingArea)
 			This.RegisterClass "PrintPreviewControl", @This
 		#endif
 		FTabIndex       = -1

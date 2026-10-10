@@ -149,6 +149,9 @@ Namespace My.Sys.ComponentModel
 		m_PortName As String
 		m_Page As Integer
 		m_PageSize As Integer
+		#ifdef __USE_GTK__
+			m_Orientation As PrinterOrientation
+		#endif
 		m_Quality  As Integer
 		m_Copies As Integer
 		m_FromPage As Integer

@@ -61,10 +61,14 @@ Private Sub PrintPreviewDialog.ChangePagesCount()
 End Sub
 
 Private Sub PrintPreviewDialog.cboSize_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+	' Paper sizes are only filled on WinAPI, the list can be empty
+	If ItemIndex < 0 OrElse ItemIndex >= cboSize.ItemCount Then Exit Sub
+	Dim As PaperSize Ptr pPaperSize = Cast(PaperSize Ptr, cboSize.ItemData(ItemIndex))
+	If pPaperSize = 0 Then Exit Sub
 	With pnlPrintPreviewControl
-		.PageSize = Cast(PaperSize Ptr, cboSize.ItemData(ItemIndex))->RawKind
-		.PageLength = Cast(PaperSize Ptr, cboSize.ItemData(ItemIndex))->Height
-		.PageWidth = Cast(PaperSize Ptr, cboSize.ItemData(ItemIndex))->Width
+		.PageSize = pPaperSize->RawKind
+		.PageLength = pPaperSize->Height
+		.PageWidth = pPaperSize->Width
 	End With
 	ChangePagesCount
 End Sub
@@ -96,9 +100,14 @@ Private Sub PrintPreviewDialog.Form_Show(ByRef Sender As Form)
 End Sub
 
 Private Sub PrintPreviewDialog.cmdPrint_Click(ByRef Sender As Control)
-	If pdPrint.Execute Then
+	#ifdef __USE_GTK__
+		' GtkPrintOperation shows its own print dialog
 		pnlPrintPreviewControl.Document->Print
-	End If
+	#else
+		If pdPrint.Execute Then
+			pnlPrintPreviewControl.Document->Print
+		End If
+	#endif
 End Sub
 
 Private Sub PrintPreviewDialog.lblPrevious_Click(ByRef Sender As Control)

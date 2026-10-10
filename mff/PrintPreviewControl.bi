@@ -12,14 +12,17 @@ Namespace My.Sys.Forms
 	#define QPrintPreviewControl(__Ptr__) (*Cast(PrintPreviewControl Ptr, __Ptr__))
 	
 	'`PrintPreviewControl` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`PrintPreviewControl` - Displays document pages with zoom/scroll capabilities and print layout visualization (Windows only).
+	'`PrintPreviewControl` - Displays document pages with zoom/scroll capabilities and print layout visualization.
 	Private Type PrintPreviewControl Extends Control
 	Private:
 		#ifndef __USE_GTK__
 			Declare Static Sub WNDPROC(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#else
-			
+			FDrawingArea As GtkWidget Ptr
+			Declare Static Function DrawingArea_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
+			Declare Static Function DrawingArea_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
+			Declare Sub DrawPage(cr As cairo_t Ptr)
 		#endif
 	Protected:
 		FZoom As Integer

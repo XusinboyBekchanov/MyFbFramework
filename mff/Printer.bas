@@ -533,6 +533,9 @@ Namespace My.Sys.ComponentModel
 			nResult = nResult * pixHorzRes / mmHorzSize / 10
 			ReleaseDC 0, hdc
 			'DeleteDC hdc
+		#else
+			' Screen pixels at 96 DPI, same as the WinAPI branch on a standard display
+			nResult = IIf(Orientation = PrinterOrientation.poPortait, PageWidth, PageLength) * 96 / 254
 		#endif
 		Return nResult
 		'Return GetPrinterHorizontalResolution(printerName)
@@ -556,6 +559,8 @@ Namespace My.Sys.ComponentModel
 			nResult = nResult * pixVertRes / mmVertSize / 10
 			ReleaseDC 0, hdc
 			'DeleteDC hdc
+		#else
+			nResult = IIf(Orientation = PrinterOrientation.poPortait, PageLength, PageWidth) * 96 / 254
 		#endif
 		Return nResult
 		'Return GetPrinterVerticalResolution(printerName)
@@ -584,15 +589,21 @@ Namespace My.Sys.ComponentModel
 		#ifndef __USE_GTK__
 			Return GetDocumentProperties(DM_PAPERWIDTH)
 		#else
-			Return 0
+			For i As Integer = 0 To PaperSizes.Count - 1
+				If PaperSizes.Item(i)->RawKind = m_PageSize Then Return PaperSizes.Item(i)->Width
+			Next
+			Return 2100 ' A4, tenths of a millimeter
 		#endif
 	End Property
-	
+
 	Private Property Printer.PageLength() As Integer
 		#ifndef __USE_GTK__
 			Return GetDocumentProperties(DM_PAPERLENGTH)
 		#else
-			Return 0
+			For i As Integer = 0 To PaperSizes.Count - 1
+				If PaperSizes.Item(i)->RawKind = m_PageSize Then Return PaperSizes.Item(i)->Height
+			Next
+			Return 2970 ' A4, tenths of a millimeter
 		#endif
 	End Property
 	
@@ -821,11 +832,19 @@ Namespace My.Sys.ComponentModel
 	End Sub
 	
 	Private Property Printer.Orientation(value As PrinterOrientation)
-		SetPrinterOrientation2(printerName, value) ' orientPrint(value)
+		#ifdef __USE_GTK__
+			m_Orientation = value
+		#else
+			SetPrinterOrientation2(printerName, value) ' orientPrint(value)
+		#endif
 	End Property
-	
+
 	Private Property Printer.Orientation() As PrinterOrientation
-		Return GetPrinterOrientation(printerName)
+		#ifdef __USE_GTK__
+			Return m_Orientation
+		#else
+			Return GetPrinterOrientation(printerName)
+		#endif
 	End Property
 	
 	
@@ -1015,6 +1034,33 @@ Namespace My.Sys.ComponentModel
 			' Освобождаем выделенную память
 			'_Deallocate((paperIDs))
 			_Deallocate((paperNames))
+		#elseif defined(__USE_GTK__)
+			' Standard GTK paper sizes, the locale default (A4 or Letter) goes first
+			PaperSizes.Clear
+			Dim pPaperSize As PaperSize Ptr
+			Dim As GtkPaperSize Ptr DefaultPaper = gtk_paper_size_new(NULL)
+			Dim As String DefaultName = *gtk_paper_size_get_name(DefaultPaper)
+			Dim As GList Ptr Papers = g_list_prepend(gtk_paper_size_get_paper_sizes(0), DefaultPaper)
+			Dim As GList Ptr l = Papers
+			Dim As Integer Kind
+			While l
+				Dim As GtkPaperSize Ptr ps = Cast(GtkPaperSize Ptr, l->data)
+				If Kind = 0 OrElse *gtk_paper_size_get_name(ps) <> DefaultName Then
+					Kind += 1
+					pPaperSize = PaperSizes.Add
+					pPaperSize->Kind = Kind
+					pPaperSize->RawKind = Kind
+					Dim As WString Ptr pName = FromUtf8(*gtk_paper_size_get_display_name(ps))
+					pPaperSize->PaperName = *pName
+					WDeallocate(pName)
+					pPaperSize->Width = gtk_paper_size_get_width(ps, GTK_UNIT_MM) * 10 ' tenths of a millimeter
+					pPaperSize->Height = gtk_paper_size_get_height(ps, GTK_UNIT_MM) * 10
+				End If
+				gtk_paper_size_free(ps)
+				l = l->next
+			Wend
+			g_list_free(Papers)
+			If m_PageSize = 0 AndAlso PaperSizes.Count > 0 Then m_PageSize = PaperSizes.Item(0)->RawKind
 		#endif
 	End Sub
 	

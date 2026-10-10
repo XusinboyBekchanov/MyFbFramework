@@ -1766,12 +1766,15 @@ Namespace My.Sys.Forms
 		
 		Private Function Form.ShowModal() As Integer
 			#ifdef __USE_GTK__
-				If pApp AndAlso pApp->ActiveForm <> 0 Then gtk_window_set_transient_for(GTK_WINDOW(widget), GTK_WINDOW(pApp->ActiveForm->widget))
-				gtk_window_set_modal(GTK_WINDOW(widget), True)
+				If pApp AndAlso pApp->ActiveForm <> 0 AndAlso pApp->ActiveForm <> @This AndAlso GTK_IS_WINDOW(widget) AndAlso GTK_IS_WINDOW(pApp->ActiveForm->widget) Then
+					gtk_window_set_transient_for(GTK_WINDOW(widget), GTK_WINDOW(pApp->ActiveForm->widget))
+				End If
+				If GTK_IS_WINDOW(widget) Then gtk_window_set_modal(GTK_WINDOW(widget), True)
 				This.Show
 				'If OnShow Then OnShow(This)
 				gtk_main()
-				gtk_window_set_modal(GTK_WINDOW(widget), False)
+				' The main form widget is destroyed when it is closed
+				If widget <> 0 AndAlso GTK_IS_WINDOW(widget) Then gtk_window_set_modal(GTK_WINDOW(widget), False)
 			#elseif defined(__USE_WINAPI__)
 				Dim As Integer i
 				Dim As Any Ptr Mtx
@@ -1894,6 +1897,8 @@ Namespace My.Sys.Forms
 						#else
 							gtk_widget_destroy(widget)
 						#endif
+						' The widget is freed, do not leave a dangling pointer for ShowModal/FreeWidget
+						widget = 0
 					End If
 					gtk_main_quit()
 				Else
