@@ -190,7 +190,6 @@ Using My.Sys.Forms
 		Case "progressbar": Ctrl = _New( ProgressBar)
 		Case "radiobutton": Ctrl = _New( RadioButton)
 		Case "rebar": Ctrl = _New( ReBar)
-		Case "report": Ctrl = _New(Report)
 		Case "richtextbox": Ctrl = _New( RichTextBox)
 		Case "ruler": Ctrl = _New( Ruler)
 		Case "tabcontrol": Ctrl = _New( TabControl)
@@ -230,9 +229,10 @@ Using My.Sys.Forms
 	End Function
 	
 	Dim Shared RptCtrl As ReportControl Ptr
-	Function CreateReportControl Alias "CreateReportControl" (ByRef ClassName As String, ByRef sName As WString, ByRef Text As WString, lLeft As Integer, lTop As Integer, lWidth As Integer, lHeight As Integer, Parent As ReportBand Ptr) As ReportControl Ptr Export
+	Function CreateReportControl Alias "CreateReportControl" (ByRef ClassName As String, ByRef sName As WString, ByRef Text As WString, lLeft As Integer, lTop As Integer, lWidth As Integer, lHeight As Integer, Parent As Any Ptr) As ReportControl Ptr Export
 		RptCtrl = 0
 		Select Case LCase(ClassName)
+		Case "report": RptCtrl = _New(Report)
 		Case "reportfield": RptCtrl = _New(ReportField)
 		Case "reportimage": RptCtrl = _New(ReportImage)
 		Case "reportlabel": RptCtrl = _New(ReportLabel)
@@ -245,9 +245,11 @@ Using My.Sys.Forms
 				RptCtrl->WriteProperty("Text", @Text)
 			#endif
 			RptCtrl->SetBounds lLeft, lTop, lWidth, lHeight
-			#ifndef WriteProperty_Off
-				RptCtrl->WriteProperty("Parent", Parent)
-			#endif
+			If LCase(ClassName) <> "report" Then
+				#ifndef WriteProperty_Off
+					RptCtrl->WriteProperty("Parent", Parent)
+				#endif
+			End If
 			If Not Objects.Contains(RptCtrl) Then Objects.Add RptCtrl
 		EndIf
 		Return RptCtrl
@@ -275,6 +277,7 @@ Using My.Sys.Forms
 		Case "printdocument": Cpnt = _New(PrintDocument)
 		Case "printpreviewdialog": Cpnt = _New( PrintPreviewDialog)
 		Case "printer": Cpnt = _New( Printer)
+		Case "report": Cpnt = _New(Report)
 		Case Else
 			Cpnt = CreateControl(ClassName, sName, sName, lLeft, lTop, 10, 10, Parent)
 			If Cpnt = 0 Then
@@ -285,9 +288,11 @@ Using My.Sys.Forms
 			Cpnt->Name = sName
 			Cpnt->Left = lLeft
 			Cpnt->Top = lTop
-			#ifndef WriteProperty_Off
-				Cpnt->WriteProperty("Parent", Parent)
-			#endif
+			If LCase(ClassName) <> "report" Then
+				#ifndef WriteProperty_Off
+					Cpnt->WriteProperty("Parent", Parent)
+				#endif
+			End If
 			If Not Objects.Contains(Cpnt) Then Objects.Add Cpnt
 		EndIf
 		Return Cpnt

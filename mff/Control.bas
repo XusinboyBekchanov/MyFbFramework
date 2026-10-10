@@ -2465,7 +2465,7 @@ Namespace My.Sys.Forms
 		Private Function Control.IsReportBand() As Boolean
 			Return False
 		End Function
-		
+
 		#ifdef __USE_GTK__
 			Private Sub Control.Control_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, user_data)

@@ -165,7 +165,7 @@ End Property
 
 #ifndef __USE_GTK__
 	Private Function OpenFileDialog.Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
-		Static As OpenFileDialog Ptr OpenDial
+		Dim As OpenFileDialog Ptr OpenDial
 		Select Case Msg
 		Case WM_INITDIALOG
 			OpenDial = Cast(OpenFileDialog Ptr, Cast(LPOPENFILENAME, lParam)->lCustData)
@@ -1101,4 +1101,3 @@ End Constructor
 Private Destructor ColorDialog
 	_Deallocate(_Caption)
 End Destructor
-

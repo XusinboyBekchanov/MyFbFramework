@@ -42,7 +42,7 @@ Namespace My.Sys.Forms
 End Namespace
 
 #ifdef __EXPORT_PROCS__
-	Declare Function ControlIsContainer Alias "ControlIsContainer"(Ctrl As My.Sys.Forms.Control Ptr) As Boolean
+	Declare Function ControlIsContainer Alias "ControlIsContainer"(Ctrl As My.Sys.Object Ptr) As Boolean
 #endif
 
 #ifndef __USE_MAKE__

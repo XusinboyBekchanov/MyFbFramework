@@ -115,7 +115,7 @@ Namespace My.Sys.Forms
 	Property ContainerControl.AutoSize(Value As Boolean)
 		FAutoSize = Value
 	End Property
-	
+
 	Private Operator ContainerControl.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
@@ -155,7 +155,8 @@ Namespace My.Sys.Forms
 End Namespace
 
 #ifdef __EXPORT_PROCS__
-	Function ControlIsContainer Alias "ControlIsContainer"(Ctrl As My.Sys.Forms.Control Ptr) As Boolean Export
-		Return (*Ctrl Is My.Sys.Forms.ContainerControl)
+	Function ControlIsContainer Alias "ControlIsContainer"(Ctrl As My.Sys.Object Ptr) As Boolean Export
+		If Ctrl = 0 Then Return False
+		Return (*Ctrl Is My.Sys.Forms.ContainerControl) OrElse Ctrl->ClassName = "Report"
 	End Function
 #endif

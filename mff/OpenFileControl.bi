@@ -34,6 +34,8 @@ Namespace My.Sys.Forms
 			Declare Static Function HookListViewParent(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Declare Static Function HookComboBoxParent(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			ThreadID As Any Ptr
+			FThread  As Any Ptr   ' handle returned by ThreadCreate                 #
+			FRunning As Long      ' 1 while the dialog thread is alive              #
 		#endif
 	Protected:
 		FFirstShowed  As Boolean

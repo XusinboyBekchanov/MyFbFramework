@@ -47,7 +47,7 @@ Namespace My.Sys.Forms
 			'Index (FItems.Insert ran before this Parent assignment) - make room for it by
 			'sliding every band (and its field controls) at/after it down by its Height.
 			Dim As Integer MyIndex = Value->Bands.IndexOf(@This)
-			ShiftControlsFrom(MyIndex + 1, TopOf(MyIndex), FHeight)
+			ShiftControlsFrom(MyIndex + 1, FHeight)
 		End If
 	End Property
 
@@ -84,7 +84,6 @@ Namespace My.Sys.Forms
 		If Value < 8 Then Value = 8 'a band can never shrink to zero/negative height
 		Dim As Integer Delta = Value - FHeight
 		If Delta = 0 Then Return
-		Dim As Integer OldBottom = TopOf(Index) + FHeight 'pixel boundary, for band-less native Controls only
 		FHeight = Value
 
 		'The report's own Height always follows the sum of its bands: growing/shrinking one
@@ -98,9 +97,9 @@ Namespace My.Sys.Forms
 		RB_Syncing = True 'Report.Move must not hand this Delta to the last band again
 		If Delta > 0 Then
 			Rep->Height = Rep->Height + Delta
-			ShiftControlsFrom(Index + 1, OldBottom, Delta)
+			ShiftControlsFrom(Index + 1, Delta)
 		Else
-			ShiftControlsFrom(Index + 1, OldBottom, Delta)
+			ShiftControlsFrom(Index + 1, Delta)
 			Rep->Height = Rep->Height + Delta
 		End If
 		RB_Syncing = False
@@ -131,38 +130,21 @@ Namespace My.Sys.Forms
 
 	Destructor ReportBand
 		If FName Then WDeAllocate(FName) : FName = 0
-		Dim As Integer h     = FHeight
 		Dim As Integer Index = 0
 		If Parent <> 0 Then Index = Parent->Bands.IndexOf(@This)
-		Dim As Integer y0 = TopOf(Index)
 
-		'Plain native Controls (e.g. a Label dropped straight onto the Report) aren't owned
-		'by any band, so they still need the Top range check to tell whether they lived here.
-		If Parent <> 0 Then
-			Dim As Integer n = Parent->ControlCount
-			For i As Integer = n - 1 To 0 Step -1
-				Dim As Control Ptr c = Parent->Controls[i]
-				If c = 0 Then Continue For
-				If c->Top >= y0 AndAlso c->Top < y0 + h Then c->Parent = 0
-			Next
-		End If
-
-		'ReportField/ReportLabel/ReportImage/ReportLine/ReportShape: Components IS exactly
-		'(and only) what belongs to this band, so every one of them goes - no Top check needed.
+		'Detach each report item before the band disappears so neither the Report's component
+		'list nor the item's Parent property keeps a dangling pointer.
 		For i As Integer = Components.Count - 1 To 0 Step -1
-			Dim As Component Ptr c = Cast(Component Ptr, Components.Item(i))
+			Dim As ReportControl Ptr c = QReportControlPtr(Components.Item(i))
 			If c = 0 Then Continue For
-			'Unlink first, then delete: this way no dangling pointer is ever left in the list,
-			'whether or not ReportControl's Destructor unlinks itself too (its own unlink code
-			'is commented out at the moment).
-			Components.Remove(i)
-			'c->Parent = 0
+			c->DetachFromBand()
 		Next
 
 		'Close the gap: everything below moves up by the removed band's height.
-		If Parent <> 0 Then ShiftControlsFrom(Index + 1, y0 + h, -h)
+		If Parent <> 0 Then ShiftControlsFrom(Index + 1, -FHeight)
 
-		If FParent <> 0 Then Cast(Report Ptr, FParent)->Bands.Remove(@This)
+		If FParent <> 0 Then Cast(Report Ptr, FParent)->Bands.Forget(@This)
 	End Destructor
 
 	#ifndef ReadProperty_Off
@@ -196,21 +178,24 @@ Namespace My.Sys.Forms
 End Namespace
 
 '===============================================================================
-' My.Sys.Forms.ReportControl - common base for every field control on a Report
+'My.Sys.Forms.ReportControl - component base for Report and its field components
 '===============================================================================
 Namespace My.Sys.Forms
 	Constructor ReportControl
-		FBackColor = -1
-		FVisible   = True
+		FBackColor   = -1
+		FTransparent = True
+		FVisible     = True
+		#ifdef __USE_GTK__
+			FParentWidget = 0
+		#elseif defined(__USE_WINAPI__)
+			FParentHandle = 0
+		#endif
+		Canvas.Ctrl = @This
 		WLet(FClassName, "ReportControl")
 	End Constructor
 
 	Destructor ReportControl
-		DestroyHandle()
-		'Unlink from the owning Report's FComponents so it never holds a dangling pointer to
-		'This past this point - Component's own Destructor doesn't do this (see
-		'Component.bas), so every ReportControl has to on its own. Parent = 0 does exactly that.
-		'If FParent <> 0 Then This.Parent = 0
+		DetachFromBand()
 		If FText         Then _Deallocate((FText))          : FText         = 0
 	End Destructor
 	
@@ -219,22 +204,24 @@ Namespace My.Sys.Forms
 	End Property
 
 	Private Property ReportControl.Parent(Value As ReportBand Ptr)
-		'A ReportControl's Parent is a BAND (ReportField.Parent = @Detail), which no longer
-		'registers it anywhere by itself - so do it here: every engine routine (FieldAt,
-		'DrawBand, Bands.ShiftControlsFrom ...) finds a Report's ReportControls in that
-		'Report's FComponents. FComponents is Protected, so go through Bands.Components,
-		'the pointer Report's constructor hands over. The band's own Parent (the Report)
-		'must already be set - i.e. "Band.Parent = @Report" has to come before
-		'"Field.Parent = @Band", which is also the order the designer writes them in.
+		'Keep the band-local list and the Report's component list in sync. The band's Parent
+		'(the Report) must already be set, as it is in the designer's serialized order.
 		
-		'Moving between two bands of the same Report changes nothing here (same list).
 		If FParent <> Value Then
+			If FDesignMode Then DestroyHandle()
 			If FParent <> 0 Then
 				Dim As Integer idx = FParent->Components.IndexOf(@This)
 				If idx >= 0 Then FParent->Components.Remove(idx)
+				If FParent->Parent <> 0 Then
+					idx = FParent->Parent->FComponents.IndexOf(@This)
+					If idx >= 0 Then FParent->Parent->FComponents.Remove(idx)
+				End If
 			End If
 			If Value <> 0 Then
 				If Value->Components.IndexOf(@This) < 0 Then Value->Components.Add(@This)
+				If Value->Parent <> 0 AndAlso Value->Parent->FComponents.IndexOf(@This) < 0 Then
+					Value->Parent->FComponents.Add(@This)
+				End If
 			End If
 		End If
 
@@ -242,16 +229,65 @@ Namespace My.Sys.Forms
 		If Value <> 0 And FDesignMode Then CreateHandle
 	End Property
 
+	Private Sub ReportControl.DetachFromBand
+		DestroyHandle()
+		This.Parent = 0
+	End Sub
+
 	Private Sub ReportControl.CreateHandle
 		#ifdef __USE_WINAPI__
-			If FHandle <> 0 OrElse FParent = 0 OrElse FParent->Parent = 0 Then Return
-			Dim As HWND ParentHandle = FParent->Parent->Handle
-			If ParentHandle = 0 Then Return
-			FHandle = CreateWindowExW(0, "STATIC", FText, WS_CHILD Or WS_VISIBLE, _
-				FLeft, FTop, FWidth, FHeight, ParentHandle, 0, GetModuleHandle(NULL), 0)
+			If FHandle <> 0 Then Return
+			If This Is Report Then
+				If FParentHandle = 0 Then Return
+			'	Dim As WNDCLASSEX Wc
+			'	Dim As WString * 7 ReportClassName = "Report"
+			'	Dim As HINSTANCE ModuleHandle = GetModuleHandle(NULL)
+			'	If GetClassInfoEx(ModuleHandle, ReportClassName, @Wc) = 0 Then
+			'		ZeroMemory(@Wc, SizeOf(WNDCLASSEX))
+			'		Wc.cbSize = SizeOf(WNDCLASSEX)
+			'		Wc.lpfnWndProc = @DefWindowProc
+			'		Wc.style = CS_DBLCLKS Or CS_HREDRAW Or CS_VREDRAW
+			'		Wc.hInstance = ModuleHandle
+			'		Wc.hCursor = LoadCursor(NULL, IDC_ARROW)
+			'		Wc.lpszClassName = @ReportClassName
+			'		If RegisterClassEx(@Wc) = 0 Then Return
+			'	End If
+				'WS_CLIPCHILDREN: the designer repaints the whole band surface on every resize -
+				'without it that paint wipes the field controls and they flicker back afterwards.
+				FHandle = CreateWindowExW(0, "STATIC", "", WS_CHILD Or WS_VISIBLE Or WS_CLIPCHILDREN Or WS_CLIPSIBLINGS, _
+					FLeft, FTop, FWidth, FHeight, FParentHandle, 0, GetModuleHandle(NULL), 0)
+					If FHandle <> 0 Then SetProp(FHandle, "MFFControl", @This)
+				Exit Sub
+			End If
+			If FParent = 0 OrElse FParent->Parent = 0 Then Return
+			Dim As HWND ParentHandle_ = FParent->Parent->Handle
+			If ParentHandle_ = 0 Then Return
+			FHandle = CreateWindowExW(0, "STATIC", FText, WS_CHILD Or WS_VISIBLE Or WS_CLIPSIBLINGS, _
+				FLeft, FTop, FWidth, FHeight, ParentHandle_, 0, GetModuleHandle(NULL), 0)
+			If FHandle <> 0 Then SetProp(FHandle, "MFFControl", @This)
 			This.Font.Parent = @This
 			ApplyAlignmentStyle()
 		#elseif defined(__USE_GTK__)
+			If This.ClassName = "Report" Then
+				If widget <> 0 OrElse FParentWidget = 0 Then Return
+				widget = gtk_layout_new(NULL, NULL)
+				layoutwidget = widget
+				If GTK_IS_LAYOUT(FParentWidget) Then
+					gtk_layout_put(GTK_LAYOUT(FParentWidget), widget, FLeft, FTop)
+				ElseIf GTK_IS_CONTAINER(FParentWidget) Then
+					gtk_container_add(GTK_CONTAINER(FParentWidget), widget)
+				Else
+					gtk_widget_destroy(widget)
+					widget = 0
+					layoutwidget = 0
+					Return
+				End If
+				gtk_widget_set_size_request(widget, FWidth, FHeight)
+				gtk_widget_show(widget)
+				g_object_set_data(G_OBJECT(widget), "MFFControl", @This)
+				g_object_set_data(G_OBJECT(widget), "@@@Control2", @This)
+				Exit Sub
+			End If
 			'Report's own widget IS the GtkLayout every field is placed into (see Report's
 			'Constructor: widget = gtk_layout_new(NULL, NULL)) - FParent->Parent is the owning
 			'Report (ReportBand.Parent), so its widget is that layout.
@@ -279,8 +315,42 @@ Namespace My.Sys.Forms
 			End Select
 
 			gtk_widget_set_size_request(widget, FWidth, FHeight)
-			gtk_layout_put(GTK_LAYOUT(ParentWidget), widget, FLeft, FTop)
+			If GTK_IS_LAYOUT(ParentWidget) Then
+				gtk_layout_put(GTK_LAYOUT(ParentWidget), widget, FLeft, FTop)
+			ElseIf GTK_IS_CONTAINER(ParentWidget) Then
+				gtk_container_add(GTK_CONTAINER(ParentWidget), widget)
+			Else
+				gtk_widget_destroy(widget)
+				widget = 0
+				Return
+			End If
 			gtk_widget_show(widget)
+			g_object_set_data(G_OBJECT(widget), "MFFControl", @This)
+			g_object_set_data(G_OBJECT(widget), "@@@Control2", @This)
+		#endif
+	End Sub
+
+	Private Sub ReportControl.Invalidate
+		#ifdef __USE_WINAPI__
+			If FHandle <> 0 Then InvalidateRect(FHandle, NULL, True)
+		#elseif defined(__USE_GTK__)
+			If widget <> 0 Then gtk_widget_queue_draw(widget)
+		#endif
+	End Sub
+
+	Private Sub ReportControl.Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
+		Base.Move(cLeft, cTop, cWidth, cHeight)
+		#ifdef __USE_WINAPI__
+			If This.ClassName = "Report" AndAlso FHandle <> 0 Then
+				SetWindowPos(FHandle, 0, FLeft, FTop, FWidth, FHeight, SWP_NOZORDER Or SWP_NOACTIVATE)
+			End If
+		#elseif defined(__USE_GTK__)
+			If This.ClassName = "Report" AndAlso widget <> 0 Then
+				If GTK_IS_LAYOUT(FParentWidget) Then
+					gtk_layout_move(GTK_LAYOUT(FParentWidget), widget, FLeft, FTop)
+				End If
+				gtk_widget_set_size_request(widget, FWidth, FHeight)
+			End If
 		#endif
 	End Sub
 
@@ -294,6 +364,7 @@ Namespace My.Sys.Forms
 			If widget <> 0 Then
 				gtk_widget_destroy(widget)
 				widget = 0
+				If This.ClassName = "Report" Then layoutwidget = 0
 			End If
 		#endif
 	End Sub
@@ -342,20 +413,17 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 
-	Private Property ReportControl.BackColor As Integer
-		Return FBackColor
-	End Property
-
-	Private Property ReportControl.BackColor(Value As Integer)
-		FBackColor = Value
-	End Property
-
 	Private Property ReportControl.Visible As Boolean
 		Return FVisible
 	End Property
 
 	Private Property ReportControl.Visible(Value As Boolean)
 		FVisible = Value
+		#ifdef __USE_WINAPI__
+			If FHandle <> 0 Then ShowWindow(FHandle, IIf(Value, SW_SHOW, SW_HIDE))
+		#elseif defined(__USE_GTK__)
+			If widget <> 0 Then gtk_widget_set_visible(widget, Value)
+		#endif
 	End Property
 
 	Private Property ReportControl.DesignMode As Boolean
@@ -367,13 +435,38 @@ Namespace My.Sys.Forms
 		FDesignMode = Value
 		If Value Then CreateHandle() Else DestroyHandle()
 	End Property
+
+	#ifdef __USE_GTK__
+		Private Property ReportControl.ParentWidget As GtkWidget Ptr
+			Return FParentWidget
+		End Property
+
+		Private Property ReportControl.ParentWidget(Value As GtkWidget Ptr)
+			FParentWidget = Value
+			If FDesignMode AndAlso This.ClassName = "Report" Then CreateHandle()
+		End Property
+	#elseif defined(__USE_WINAPI__)
+		Private Property ReportControl.ParentHandle As HWND
+			Return FParentHandle
+		End Property
+
+		Private Property ReportControl.ParentHandle(Value As HWND)
+			FParentHandle = Value
+			If FDesignMode AndAlso This.ClassName = "Report" Then CreateHandle()
+		End Property
+	#endif
 	
 	#ifndef ReadProperty_Off
 		Private Function ReportControl.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
-			Case "backcolor": Return @FBackColor
 			Case "visible":   Return @FVisible
-			Case "parent":    Return FParent
+			Case "canvas":    Return @Canvas
+			Case "parent":    If This.ClassName <> "Report" Then Return FParent Else Return 0
+			#ifdef __USE_GTK__
+				Case "parentwidget": Return FParentWidget
+			#elseif defined(__USE_WINAPI__)
+				Case "parenthandle": Return @FParentHandle
+			#endif
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
 			Return 0
@@ -383,9 +476,13 @@ Namespace My.Sys.Forms
 	#ifndef WriteProperty_Off
 		Private Function ReportControl.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			Select Case LCase(PropertyName)
-			Case "backcolor": If Value <> 0 Then This.BackColor = QInteger(Value)
 			Case "visible":   If Value <> 0 Then This.Visible   = QBoolean(Value)
-			Case "parent":   This.Parent = Value
+			#ifdef __USE_GTK__
+				Case "parentwidget": This.ParentWidget = Value
+			#elseif defined(__USE_WINAPI__)
+				Case "parenthandle": If Value <> 0 Then This.ParentHandle = *Cast(HWND Ptr, Value)
+			#endif
+			Case "parent":   If This.ClassName <> "Report" Then This.Parent = Value
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 			Return True
@@ -492,6 +589,24 @@ Namespace My.Sys.Forms
 		FCanGrow = Value
 	End Property
 
+	Private Property ReportField.BackColor As Integer
+		Return FBackColor
+	End Property
+
+	Private Property ReportField.BackColor(Value As Integer)
+		FBackColor = Value
+		Invalidate
+	End Property
+
+	Private Property ReportField.Transparent As Boolean
+		Return FTransparent
+	End Property
+
+	Private Property ReportField.Transparent(Value As Boolean)
+		FTransparent = Value
+		Invalidate
+	End Property
+
 	#ifndef ReadProperty_Off
 		Private Function ReportField.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
@@ -503,6 +618,8 @@ Namespace My.Sys.Forms
 			Case "summarytype":  Return @FSummaryType
 			Case "summaryfield": Return Cast(Any Ptr, FSummaryField)
 			Case "cangrow":      Return @FCanGrow
+			Case "transparent":  Return @FTransparent
+			Case "backcolor":    Return @FBackColor
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
 			Return 0
@@ -520,6 +637,8 @@ Namespace My.Sys.Forms
 			Case "summarytype":  If Value <> 0 Then This.SummaryType = *Cast(ReportSummaryType Ptr, Value)
 			Case "summaryfield": If Value <> 0 Then This.SummaryField = QWString(Value)
 			Case "cangrow":      If Value <> 0 Then This.CanGrow      = QBoolean(Value)
+			Case "transparent":  If Value <> 0 Then This.Transparent  = QBoolean(Value)
+			Case "backcolor":    If Value <> 0 Then This.BackColor    = QInteger(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 			Return True
@@ -558,6 +677,24 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 
+	Private Property ReportLabel.BackColor As Integer
+		Return FBackColor
+	End Property
+
+	Private Property ReportLabel.BackColor(Value As Integer)
+		FBackColor = Value
+		Invalidate
+	End Property
+
+	Private Property ReportLabel.Transparent As Boolean
+		Return FTransparent
+	End Property
+
+	Private Property ReportLabel.Transparent(Value As Boolean)
+		FTransparent = Value
+		Invalidate
+	End Property
+
 	Private Property ReportLabel.Alignment As AlignmentConstants
 		Return Cast(AlignmentConstants, FAlignment)
 	End Property
@@ -582,6 +719,8 @@ Namespace My.Sys.Forms
 			Case "text":      Return Cast(Any Ptr, FText)
 			Case "alignment": Return @FAlignment
 			Case "wordwraps": Return @FWordWraps
+			Case "transparent": Return @FTransparent
+			Case "backcolor":   Return @FBackColor
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
 			Return 0
@@ -594,6 +733,8 @@ Namespace My.Sys.Forms
 			Case "text":      If Value <> 0 Then This.Text      = QWString(Value)
 			Case "alignment": If Value <> 0 Then This.Alignment = *Cast(AlignmentConstants Ptr, Value)
 			Case "wordwraps": If Value <> 0 Then This.WordWraps = QBoolean(Value)
+			Case "transparent": If Value <> 0 Then This.Transparent = QBoolean(Value)
+			Case "backcolor":   If Value <> 0 Then This.BackColor = QInteger(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 			Return True
@@ -607,8 +748,18 @@ End Namespace
 Namespace My.Sys.Forms
 	Constructor ReportImage
 		FDataField = 0
+		'GraphicType only raises OnChange while Ctrl is non-zero (it never dereferences it
+		'itself) - ReportImage is not a Control, so Ctrl is just that flag here; Designer
+		'carries This back into GraphicChange.
+		Graphic.Ctrl     = Cast(Any Ptr, @This)
+		Graphic.Designer = @This
+		Graphic.OnChange = @GraphicChange
 		WLet(FClassName, "ReportImage")
 	End Constructor
+
+	Private Sub ReportImage.GraphicChange(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
+		Cast(ReportImage Ptr, @Designer)->Invalidate
+	End Sub
 
 	Destructor ReportImage
 		If FDataField Then _Deallocate((FDataField)) : FDataField = 0
@@ -620,12 +771,14 @@ Namespace My.Sys.Forms
 
 	Private Property ReportImage.DataField(ByRef Value As WString)
 		WLet(FDataField, Value)
+		Invalidate 'dizaynerda rasm yo'q bo'lsa [DataField] ko'rsatiladi
 	End Property
 
 	#ifndef ReadProperty_Off
 		Private Function ReportImage.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
 			Case "datafield": Return Cast(Any Ptr, FDataField)
+			Case "graphic":   Return Cast(Any Ptr, @This.Graphic)
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
 			Return 0
@@ -636,6 +789,7 @@ Namespace My.Sys.Forms
 		Private Function ReportImage.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			Select Case LCase(PropertyName)
 			Case "datafield": If Value <> 0 Then This.DataField = QWString(Value)
+			Case "graphic":   If Value <> 0 Then This.Graphic = QWString(Value): This.Invalidate
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 			Return True
@@ -652,7 +806,6 @@ Namespace My.Sys.Forms
 		FLineColor = RGB(0, 0, 0)
 		FVertical  = False
 		Height     = 2
-		Color      = FLineColor
 		WLet(FClassName, "ReportLine")
 	End Constructor
 
@@ -674,7 +827,7 @@ Namespace My.Sys.Forms
 
 	Private Property ReportLine.LineColor(Value As Integer)
 		FLineColor = Value
-		Color = Value
+		Invalidate
 	End Property
 
 	Private Property ReportLine.Vertical As Boolean
@@ -683,14 +836,7 @@ Namespace My.Sys.Forms
 
 	Private Property ReportLine.Vertical(Value As Boolean)
 		FVertical = Value
-	End Property
-
-	Private Property ReportLine.Color As Integer
-		Return BackColor
-	End Property
-
-	Private Property ReportLine.Color(Value As Integer)
-		BackColor = Value
+		Invalidate
 	End Property
 
 	#ifndef ReadProperty_Off
@@ -726,8 +872,8 @@ Namespace My.Sys.Forms
 		FShapeKind   = rshRectangle
 		FBorderColor = RGB(0, 0, 0)
 		FBorderWidth = 1
-		FFillColor   = RGB(255, 255, 255)
 		FFilled      = False
+		FFillColor   = RGB(255, 255, 255)
 		WLet(FClassName, "ReportShape")
 	End Constructor
 
@@ -740,6 +886,7 @@ Namespace My.Sys.Forms
 
 	Private Property ReportShape.ShapeKind(Value As ReportShapeKind)
 		FShapeKind = Value
+		Invalidate
 	End Property
 
 	Private Property ReportShape.BorderColor As Integer
@@ -748,6 +895,7 @@ Namespace My.Sys.Forms
 
 	Private Property ReportShape.BorderColor(Value As Integer)
 		FBorderColor = Value
+		Invalidate
 	End Property
 
 	Private Property ReportShape.BorderWidth As Integer
@@ -756,6 +904,7 @@ Namespace My.Sys.Forms
 
 	Private Property ReportShape.BorderWidth(Value As Integer)
 		FBorderWidth = Value
+		Invalidate
 	End Property
 
 	Private Property ReportShape.FillColor As Integer
@@ -764,7 +913,7 @@ Namespace My.Sys.Forms
 
 	Private Property ReportShape.FillColor(Value As Integer)
 		FFillColor = Value
-		Color = Value
+		Invalidate
 	End Property
 
 	Private Property ReportShape.Filled As Boolean
@@ -773,14 +922,7 @@ Namespace My.Sys.Forms
 
 	Private Property ReportShape.Filled(Value As Boolean)
 		FFilled = Value
-	End Property
-
-	Private Property ReportShape.Color As Integer
-		Return BackColor
-	End Property
-
-	Private Property ReportShape.Color(Value As Integer)
-		BackColor = Value
+		Invalidate
 	End Property
 
 	#ifndef ReadProperty_Off
@@ -789,8 +931,8 @@ Namespace My.Sys.Forms
 			Case "shapekind":   Return @FShapeKind
 			Case "bordercolor": Return @FBorderColor
 			Case "borderwidth": Return @FBorderWidth
-			Case "fillcolor":   Return @FFillColor
 			Case "filled":      Return @FFilled
+			Case "fillcolor":   Return @FFillColor
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
 			Return 0
@@ -803,8 +945,8 @@ Namespace My.Sys.Forms
 			Case "shapekind":   If Value <> 0 Then This.ShapeKind   = *Cast(ReportShapeKind Ptr, Value)
 			Case "bordercolor": If Value <> 0 Then This.BorderColor = QInteger(Value)
 			Case "borderwidth": If Value <> 0 Then This.BorderWidth = QInteger(Value)
-			Case "fillcolor":   If Value <> 0 Then This.FillColor   = QInteger(Value)
 			Case "filled":      If Value <> 0 Then This.Filled      = QBoolean(Value)
+			Case "fillcolor":   If Value <> 0 Then This.FillColor   = QInteger(Value)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
 			Return True
@@ -816,53 +958,14 @@ End Namespace
 ' My.Sys.Forms.Report - the single band-based report design surface
 '===============================================================================
 Namespace My.Sys.Forms
-	#ifdef __USE_WINAPI__
-		Private Sub Report.HandleIsAllocated(ByRef Sender As Control)
-			If Sender.Child Then
-				With QReport(Sender.Child)
-				End With
-			End If
-		End Sub
-		
-		Private Sub Report.WNDPROC(ByRef Message As Message)
-		End Sub
-	#endif
-
-	Private Sub Report.GraphicChange(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
-		
-	End Sub
-
 	Constructor Report
 		Bands.Parent     = @This
 		With This
-			#ifdef __USE_GTK__
-				widget = gtk_layout_new(NULL, NULL)
-				.RegisterClass "Report", @This
-			#endif
-			.Child          = @This
 			.Canvas.Ctrl    = @This
-			.Graphic.Ctrl   = @This
-			.Graphic.OnChange = @GraphicChange
-			#ifdef __USE_WINAPI__
-				.RegisterClass "Report"
-				.ChildProc   = @WNDPROC
-				.ExStyle     = 0
-				.Style       = WS_CHILD
-				.BackColor       = GetSysColor(COLOR_BTNFACE)
-				FDefaultBackColor = GetSysColor(COLOR_BTNFACE)
-				.OnHandleIsAllocated = @HandleIsAllocated
-			#elseif defined(__USE_JNI__)
-				WLet(FClassAncestor, "android/widget/AbsoluteLayout")
-			#elseif defined(__USE_WASM__)
-				WLet(FClassAncestor, "div")
-			#endif
-			FTabIndex          = -1
 			WLet(FClassName, "Report")
-			.ShowCaption = False
 		End With
 		FRowCount    = 0
 		FCurrentRow  = 0
-		BevelOuter  = bvLowered
 		Width       = 480
 		Height      = 320
 		FDocument.DocumentName = "Report"
@@ -870,8 +973,8 @@ Namespace My.Sys.Forms
 
 	'Nothing to do here any more - Bands is a plain (non-pointer) ReportBandCollection member,
 	'so FreeBASIC automatically runs its Destructor (which calls Bands.Clear, freeing every
-	'band) right after this Destructor's body finishes, the same way Panel's own Destructor
-	'still runs afterwards for everything else.
+	'band) right after this Destructor's body finishes, the same way ReportControl's base
+	'Destructor still runs afterwards for everything else.
 	Destructor Report
 	End Destructor
 
@@ -990,25 +1093,10 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 
-	'FromIndex is the first band whose CONTENTS must move: every ReportField/ReportLabel/
-	'ReportImage/ReportLine/ReportShape belonging to a band from FromIndex on gets Delta,
-	'no exceptions and no position check needed - each band's own Components list already
-	'says, definitively, who's in and who isn't. y is only for plain native Controls (e.g. a
-	'Label dropped straight onto the Report): they belong to no band, so the one thing that
-	'CAN tell whether one needs to move is still its absolute Top vs y - pass the pixel
-	'position FromIndex marks (TopOf(FromIndex) computed with the OLD heights, before
-	'whatever Height change triggered this call - see ReportBand.Height for why that matters).
-	Private Sub ReportBand.ShiftControlsFrom(FromIndex As Integer, y As Integer, Delta As Integer)
+	'FromIndex is the first band whose components must move. Each band's Components list
+	'defines exactly which report items move when band heights change.
+	Private Sub ReportBand.ShiftControlsFrom(FromIndex As Integer, Delta As Integer)
 		If Parent = 0 Then Return
-
-		'Plain native Controls dropped straight onto the Report.
-		Dim As Integer n = Parent->ControlCount
-		For i As Integer = 0 To n - 1
-			Dim As Control Ptr c = Parent->Controls[i]
-			If c = 0 Then Continue For
-			If Delta <> 0 AndAlso c->Top >= y Then c->SetBounds(c->Left, c->Top + Delta, c->Width, c->Height)
-			ClampControlVertically(c)
-		Next
 
 		'Band-owned items: membership alone decides who moves, not pixel position.
 		For bi As Integer = FromIndex To Parent->Bands.Count - 1
@@ -1077,10 +1165,20 @@ Namespace My.Sys.Forms
 
 	Private Sub ReportBandCollection.Remove(Index As Integer)
 		If Parent = 0 OrElse Index < 0 OrElse Index >= FItems.Count Then Return
-		
-		FItems.Remove(Index) 'shifts every later band down one slot for us
-		
-		Parent->Invalidate
+		Dim As ReportBand Ptr b = FItems.Item(Index)
+		If b Then
+			Delete b
+		Else
+			FItems.Remove(Index)
+			Parent->Invalidate
+		End If
+	End Sub
+
+	Private Sub ReportBandCollection.Forget(Band As ReportBand Ptr)
+		Dim As Integer Index = IndexOf(Band)
+		If Index < 0 Then Return
+		FItems.Remove(Index)
+		If Parent <> 0 Then Parent->Invalidate
 	End Sub
 
 	'Overload: remove a band by pointer (as returned by Add) instead of by index. Ignores Band
@@ -1092,9 +1190,17 @@ Namespace My.Sys.Forms
 	End Sub
 
 	Private Sub ReportBandCollection.Clear
-		For i As Integer = 0 To FItems.Count - 1
+		For i As Integer = FItems.Count - 1 To 0 Step -1
 			Dim As ReportBand Ptr b = FItems.Item(i)
-			'If b Then Delete b
+			If b Then
+				For j As Integer = b->Components.Count - 1 To 0 Step -1
+					Dim As ReportControl Ptr c = QReportControlPtr(b->Components.Item(j))
+					If c Then c->DetachFromBand()
+				Next
+				b->Parent = 0
+				Delete b
+			End If
+			FItems.Remove(i)
 		Next
 		FItems.Clear
 	End Sub
@@ -1129,11 +1235,48 @@ Namespace My.Sys.Forms
 				Static As Integer TmpBandCount
 				TmpBandCount = This.Bands.Count
 				Return @TmpBandCount
+			Case "text": Return Cast(Any Ptr, FText)
+			Case "backcolor": Return @FBackColor
 			Case Else: Return Base.ReadProperty(PropertyName)
 			End Select
 			Return 0
 		End Function
 	#endif
+
+	#ifndef WriteProperty_Off
+		Private Function Report.WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
+			Select Case LCase(PropertyName)
+			Case "text": If Value <> 0 Then This.Text = QWString(Value)
+			Case "backcolor": If Value <> 0 Then This.BackColor = QInteger(Value)
+			Case Else: Return Base.WriteProperty(PropertyName, Value)
+			End Select
+			Return True
+		End Function
+	#endif
+
+	Private Property Report.BackColor As Integer
+		Return FBackColor
+	End Property
+
+	Private Property Report.BackColor(Value As Integer)
+		FBackColor = Value
+		Invalidate
+	End Property
+
+	Private Property Report.Text ByRef As WString
+		Return WGet(FText)
+	End Property
+
+	'The Report's own design-time window is painted entirely by the Designer, so the text is
+	'not pushed to it with SetWindowText (a STATIC would draw it over the band surface).
+	Private Property Report.Text(ByRef Value As WString)
+		WLet(FText, Value)
+		If Len(Value) > 0 Then
+			FDocument.DocumentName = Value
+		Else
+			FDocument.DocumentName = "Report"
+		End If
+	End Property
 End Namespace
 
 '===============================================================================
@@ -1174,26 +1317,9 @@ Namespace My.Sys.Forms
 		For i As Integer = 0 To BandIndex - 1
 			BandY0 += Rep->Bands.Item(i)->Height
 		Next
-		Dim As Integer BandY1 = BandY0 + Rep->Bands.Item(BandIndex)->Height
 		Dim As Integer OffsetX = BAND_LIST_WIDTH
 
-		Dim As Control Ptr RepCtrl = Cast(Control Ptr, Rep)
-		Dim As Integer n = RepCtrl->ControlCount()
-		For i As Integer = 0 To n - 1
-			Dim As Control Ptr c = RepCtrl->Controls[i]
-			If c = 0 OrElse c->Visible = False Then Continue For
-			If c->Top < BandY0 OrElse c->Top >= BandY1 Then Continue For 'not in this band
-
-			Dim As Single X = c->Left - OffsetX
-			Dim As Single Y = Top + (c->Top - BandY0)
-			Rep->DrawReportControlContent(Canvas, c->ClassName, c, X, Y, c->Width, c->Height, RowIndex)
-		Next
-
-		'ReportField/ReportImage/ReportLine/ReportShape - these Extend ReportControl
-		'(Component), not Control, so they don't live in Controls(). They also no longer live
-		'in a Report-wide FComponents: each band keeps its OWN Components (see
-		'ReportControl.Parent), so BandIndex's own list is exactly - and only - what belongs
-		'here. No Top/BandY0 range check needed as a result, unlike the loop above.
+		'Each band owns exactly its own field components.
 		Dim As Integer m = Rep->Bands.Item(BandIndex)->Components.Count
 		For i As Integer = 0 To m - 1
 			Dim As ReportControl Ptr c = QReportControlPtr(Rep->Bands.Item(BandIndex)->Components.Item(i))
@@ -1209,6 +1335,24 @@ Namespace My.Sys.Forms
 	'PDF, page coordinates) and DrawDesignSurface (design surface, un-offset local
 	'coordinates), so the two always agree pixel-for-pixel on what a field looks like.
 	Private Sub Report.DrawReportControlContent(ByRef Canvas As My.Sys.Drawing.Canvas, ByRef cn As String, c As Any Ptr, X As Single, Y As Single, W As Integer, H As Integer, RowIndex As Integer)
+		'Transparent = False bo'lsa matndan oldin fonni BackColor bilan bo'yaymiz.
+		Dim As Boolean FillBack
+		Dim As Integer BackClr = -1
+		Select Case cn
+		Case "ReportField"
+			FillBack = Not Cast(ReportField Ptr, c)->Transparent
+			BackClr  = Cast(ReportField Ptr, c)->BackColor
+		Case "ReportLabel"
+			FillBack = Not Cast(ReportLabel Ptr, c)->Transparent
+			BackClr  = Cast(ReportLabel Ptr, c)->BackColor
+		End Select
+		If FillBack AndAlso BackClr <> -1 Then
+			Canvas.Pen.Color   = BackClr
+			Canvas.Pen.Size    = 1
+			Canvas.Brush.Color = BackClr
+			Canvas.Brush.Style = My.Sys.Drawing.BrushStyles.bsSolid
+			Canvas.Rectangle(X, Y, X + W, Y + H)
+		End If
 		Select Case cn
 		Case "ReportField"
 			Dim As ReportField Ptr f = Cast(ReportField Ptr, c)
@@ -1246,11 +1390,6 @@ Namespace My.Sys.Forms
 				If Align = 2 Then tx = X + (W - tw)
 				Canvas.TextOut(tx, Y, Txt)
 			End If
-
-		Case "Label"
-			Dim As Label Ptr lb = Cast(Label Ptr, c)
-			Canvas.Font = lb->Font
-			Canvas.TextOut(X, Y, lb->Text)
 
 		Case "ReportLabel"
 			Dim As ReportLabel Ptr lb = Cast(ReportLabel Ptr, c)
@@ -1305,7 +1444,7 @@ Namespace My.Sys.Forms
 			Canvas.Pen.Color   = sh->BorderColor
 			Canvas.Pen.Size    = sh->BorderWidth
 			Canvas.Brush.Color = sh->FillColor
-			Canvas.Brush.Style = IIf(sh->Filled, My.Sys.Drawing.BrushStyles.bsSolid, My.Sys.Drawing.BrushStyles.bsClear)
+			Canvas.Brush.Style = IIf(sh->Filled AndAlso sh->FillColor <> -1, My.Sys.Drawing.BrushStyles.bsSolid, My.Sys.Drawing.BrushStyles.bsClear)
 			Select Case sh->ShapeKind
 			Case rshEllipse
 				Canvas.Ellipse(X, Y, X + W, Y + H)
