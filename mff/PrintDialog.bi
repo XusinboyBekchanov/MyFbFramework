@@ -10,7 +10,7 @@
 
 #include once "Dialogs.bi"
 
-'Lets users select a printer and choose which sections of the document to print from an application (Windows only).
+'Lets users select a printer and choose which sections of the document to print from an application.
 Private Type PrintDialog Extends Dialog
 Private:
 	xLeft As Integer        = -1                        ' Default to center
@@ -18,6 +18,9 @@ Private:
 	#ifdef __USE_WINAPI__
 		Declare Static Function SetUpHookProc(hWnd As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 		Declare Static Function PrintHookProc(hWnd As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+	#elseif defined(__USE_GTK__)
+		FAccepted As Boolean
+		Declare Static Sub BeginPrint(op As GtkPrintOperation Ptr, context As GtkPrintContext Ptr, user_data As gpointer)
 	#endif
 Public:
 	Width As Integer                                    ' Not used
