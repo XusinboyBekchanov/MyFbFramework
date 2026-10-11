@@ -255,6 +255,23 @@ Namespace My.Sys.Forms
 		Return FStartPosition
 	End Property
 	
+	#ifdef __USE_GTK__
+		' Area of the primary monitor (gdk_screen_width/height cover all monitors together)
+		Private Sub Form_PrimaryMonitorArea(widget As GtkWidget Ptr, ByRef Area As GdkRectangle)
+			#ifdef __USE_GTK4__
+				gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), @Area)
+			#else
+				Dim As GdkScreen Ptr Screen_ = IIf(widget, gtk_widget_get_screen(widget), gdk_screen_get_default())
+				Dim As gint Monitor = gdk_screen_get_primary_monitor(Screen_)
+				#ifdef __USE_GTK3__
+					gdk_screen_get_monitor_workarea(Screen_, Monitor, @Area)
+				#else
+					gdk_screen_get_monitor_geometry(Screen_, Monitor, @Area)
+				#endif
+			#endif
+		End Sub
+	#endif
+
 	Private Property Form.StartPosition(Value As FormStartPosition)
 		FStartPosition = Value
 		If Not FDesignMode Then
@@ -270,13 +287,9 @@ Namespace My.Sys.Forms
 							End With
 						Else ' CenterScreen
 							gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_CENTER)
-							#ifdef __USE_GTK4__
-								Dim As GdkRectangle workarea
-								gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), @workarea)
-								gtk_window_move(GTK_WINDOW(widget), (workarea.width - ScaleX(This.FWidth)) \ 2, (workarea.height - ScaleY(This.FHeight)) \ 2)
-							#else
-								gtk_window_move(GTK_WINDOW(widget), (gdk_screen_width() - ScaleX(This.FWidth)) \ 2, (gdk_screen_height() - ScaleY(This.FHeight)) \ 2)
-							#endif
+							Dim As GdkRectangle workarea
+							Form_PrimaryMonitorArea(widget, workarea)
+							gtk_window_move(GTK_WINDOW(widget), workarea.x + (workarea.width - ScaleX(This.FWidth)) \ 2, workarea.y + (workarea.height - ScaleY(This.FHeight)) \ 2)
 						End If
 					Case 2: gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_MOUSE) ' DefaultLocation
 					Case 3: 'gtk_window_set_default_size(gtk_window(widget), -1, -1) ' DefaultBounds
@@ -1715,6 +1728,11 @@ Namespace My.Sys.Forms
 					gtk_widget_show(widget)
 				#else
 					gtk_widget_show_all(widget)
+					' An explicit arrow on the toplevel: child windows without own cursor inherit it.
+					' With an unset (root) cursor XWayland/WSLg can keep the last shape, e.g. the I-beam of an editor
+					If This.Cursor.Handle = 0 AndAlso gtk_widget_get_window(widget) Then
+						gdk_window_set_cursor(gtk_widget_get_window(widget), gdk_cursor_new_for_display(gtk_widget_get_display(widget), GDK_LEFT_PTR))
+					End If
 					'ShowItems @This
 					FVisible = True
 					HideItems @This
@@ -1955,13 +1973,9 @@ Namespace My.Sys.Forms
 	Private Sub Form.CenterToScreen(ByVal ScrLeft As Integer = 0, ByVal ScrTop As Integer = 0, ByVal ScrWidth As Integer = 0, ByVal ScrHeight As Integer = 0)
 		#ifdef __USE_GTK__
 			If GTK_IS_WINDOW(widget) Then
-				#ifdef __USE_GTK4__
-					Dim As GdkRectangle workarea
-					gdk_monitor_get_workarea(gdk_display_get_primary_monitor(gdk_display_get_default()), @workarea)
-					gtk_window_move(GTK_WINDOW(widget), (workarea.width - ScaleX(This.FWidth)) \ 2, (workarea.height - ScaleY(This.FHeight)) \ 2)
-				#else
-					gtk_window_move(GTK_WINDOW(widget), (gdk_screen_width() - ScaleX(This.FWidth)) \ 2, (gdk_screen_height() - ScaleY(This.FHeight)) \ 2)
-				#endif
+				Dim As GdkRectangle workarea
+				Form_PrimaryMonitorArea(widget, workarea)
+				gtk_window_move(GTK_WINDOW(widget), workarea.x + (workarea.width - ScaleX(This.FWidth)) \ 2, workarea.y + (workarea.height - ScaleY(This.FHeight)) \ 2)
 			End If
 			'gtk_window_set_position(gtk_window(widget), GTK_WIN_POS_CENTER) '_ALWAYS
 		#elseif defined(__USE_WINAPI__)

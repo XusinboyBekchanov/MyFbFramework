@@ -2460,6 +2460,10 @@ Namespace My.Sys.Forms
 		
 		Private Sub Control.Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 			Base.Move IIf(FDesignMode AndAlso (Designer = @This), 0, IIf(Constraints.Left, Constraints.Left, cLeft)), IIf(FDesignMode AndAlso (Designer = @This), 0, IIf(Constraints.Top, Constraints.Top, cTop)), IIf(Constraints.Width, Constraints.Width, cWidth), IIf(Constraints.Height, Constraints.Height, cHeight)
+			#ifdef __USE_GTK__
+				' A control which swapped its widgets (e.g. TextBox.ChangeWidget) is moved afterwards: watch the new ones
+				SetWeakWidgetPointers True
+			#endif
 		End Sub
 
 		Private Function Control.IsReportBand() As Boolean
@@ -2656,10 +2660,46 @@ Namespace My.Sys.Forms
 				Return False
 			End Function
 			
+			Sub WatchWeakPointer(pField As Any Ptr Ptr)
+				If *pField Then g_object_add_weak_pointer(G_OBJECT(*pField), Cast(gpointer Ptr, pField))
+			End Sub
+
+			Sub UnwatchWeakPointer(pField As Any Ptr Ptr)
+				If *pField Then g_object_remove_weak_pointer(G_OBJECT(*pField), Cast(gpointer Ptr, pField))
+			End Sub
+
+			Private Sub Control.WeakWidget_Notify(data_ As gpointer, where_the_object_was As GObject Ptr)
+				Dim As WeakWidgetRef Ptr pRef = data_
+				' The field may already hold another widget, reset it only if it is the destroyed one
+				If *pRef->WidgetField = Cast(GtkWidget Ptr, where_the_object_was) Then *pRef->WidgetField = 0
+				pRef->Obj = 0
+			End Sub
+
+			Private Sub Control.SetWeakWidgetPointers(bAdd As Boolean)
+				Dim As GtkWidget Ptr Ptr Fields(7) = {@widget, @scrolledwidget, @layoutwidget, @eventboxwidget, @overlaywidget, @fixedwidget, @containerwidget, @box}
+				For i As Integer = 0 To 7
+					' Controls can put another widget into a field after RegisterClass (e.g. TextBox.ChangeWidget),
+					' so on bAdd only fields whose widget changed are watched again
+					If bAdd AndAlso FWeakWidgetRefs(i).Obj = Cast(GObject Ptr, *Fields(i)) Then Continue For
+					' Obj <> 0 means the object is still alive (the notify resets it)
+					If FWeakWidgetRefs(i).Obj <> 0 Then
+						g_object_weak_unref(FWeakWidgetRefs(i).Obj, Cast(GWeakNotify, @WeakWidget_Notify), @FWeakWidgetRefs(i))
+						FWeakWidgetRefs(i).Obj = 0
+					End If
+					If bAdd AndAlso *Fields(i) <> 0 Then
+						FWeakWidgetRefs(i).Obj = G_OBJECT(*Fields(i))
+						FWeakWidgetRefs(i).WidgetField = Fields(i)
+						g_object_weak_ref(FWeakWidgetRefs(i).Obj, Cast(GWeakNotify, @WeakWidget_Notify), @FWeakWidgetRefs(i))
+					End If
+				Next
+			End Sub
+
 			Private Function Control.RegisterClass(ByRef wClassName As WString, Obj As Any Ptr, WndProcAddr As Any Ptr = 0) As Boolean
 				Dim As Boolean Result
 				Dim Proc As Function(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean = WndProcAddr
 				g_object_set_data(G_OBJECT(widget), "MFFControl", Cast(gpointer, @This))
+				' Widgets of global controls can be destroyed by GTK (with their window) before the control destructor runs
+				SetWeakWidgetPointers True
 				If layoutwidget Then
 					#ifdef __USE_GTK4__
 						'						Dim As GtkEventController Ptr controller = gtk_event_controller_key_new()
@@ -2808,15 +2848,60 @@ Namespace My.Sys.Forms
 			RequestAlign
 		End Sub
 		
-		Sub Control.GetMax(ByRef MaxWidth As Integer, ByRef MaxHeight As Integer)
+		#ifdef __USE_GTK__
+			' Own minimum size of the control: GtkWidget's get_preferred_* would include the size request
+			' set by SetBounds, so the class handler is called directly
+			Sub Control.GetMinimumSize(ByRef MinWidth As Integer, ByRef MinHeight As Integer)
+				MinWidth = FMinWidth
+				MinHeight = FMinHeight
+				Dim As GtkWidget Ptr CtrlWidget = IIf(containerwidget, containerwidget, IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget)))))
+				If CtrlWidget = 0 OrElse GTK_IS_WIDGET(CtrlWidget) = 0 Then Exit Sub
+				Dim As GtkWidgetClass Ptr WidgetClass = Cast(GtkWidgetClass Ptr, Cast(GTypeInstance Ptr, CtrlWidget)->g_class)
+				Dim As gint iMinWidth, iMinHeight
+				#ifdef __USE_GTK4__
+					Exit Sub
+				#elseif defined(__USE_GTK2__)
+					Dim As GtkRequisition Requisition
+					If WidgetClass->size_request Then
+						WidgetClass->size_request(CtrlWidget, @Requisition)
+						iMinWidth = Requisition.width
+						iMinHeight = Requisition.height
+					End If
+				#else
+					Dim As gint iNatural
+					If WidgetClass->get_preferred_width Then WidgetClass->get_preferred_width(CtrlWidget, @iMinWidth, @iNatural)
+					If WidgetClass->get_preferred_height Then WidgetClass->get_preferred_height(CtrlWidget, @iMinHeight, @iNatural)
+				#endif
+				MinWidth = Max(MinWidth, UnScaleX(iMinWidth))
+				MinHeight = Max(MinHeight, UnScaleY(iMinHeight))
+			End Sub
+		#endif
+
+		Sub Control.GetMax(ByRef MaxWidth As Integer, ByRef MaxHeight As Integer, bAutoSize As Boolean)
 			MaxWidth = 0
 			MaxHeight = 0
 			For i As Integer = 0 To ControlCount - 1
 				With *Controls[i]
 					If .FVisible Then
 						#ifdef __USE_GTK__
-							If MaxWidth < .Left + .Width + .ExtraMargins.Right Then MaxWidth = .Left + .Width + .ExtraMargins.Right
-							If MaxHeight < .Top + .Height + .ExtraMargins.Bottom Then MaxHeight = .Top + .Height + .ExtraMargins.Bottom
+							' Positions of aligned controls were just set by RequestAlign, the allocation (Left/Top)
+							' is updated only by the next GTK layout pass. A stale position (e.g. from the designer)
+							' would change the AutoSize height on every draw and the controls would flicker
+							Dim As Boolean bAligned = .Align <> DockStyle.alNone OrElse ClassName = "VerticalBox" OrElse ClassName = "HorizontalBox"
+							Dim As Integer iLeft = IIf(bAligned, .FLeft, .Left), iTop = IIf(bAligned, .FTop, .Top)
+							Dim As Integer iWidth = .Width, iHeight = .Height
+							' For AutoSize the height which this control gives to alClient, alLeft and alRight children
+							' must not count: the allocation is one layout pass late, so the AutoSize height would switch
+							' between two values forever. The own minimum height of the child counts
+							If bAutoSize AndAlso bAligned AndAlso GTK_IS_WINDOW(widget) = 0 AndAlso Not (.FAutoSize AndAlso .ControlCount > 0) Then
+								If .Align = DockStyle.alLeft OrElse .Align = DockStyle.alRight OrElse .Align = DockStyle.alClient OrElse (.Align = DockStyle.alNone AndAlso ClassName = "HorizontalBox") Then
+									Dim As Integer iMinWidth, iMinHeight
+									.GetMinimumSize iMinWidth, iMinHeight
+									iHeight = Max(iMinHeight, .Constraints.Height)
+								End If
+							End If
+							If MaxWidth < iLeft + iWidth + .ExtraMargins.Right Then MaxWidth = iLeft + iWidth + .ExtraMargins.Right
+							If MaxHeight < iTop + iHeight + .ExtraMargins.Bottom Then MaxHeight = iTop + iHeight + .ExtraMargins.Bottom
 						#else
 							If MaxWidth < .Left + .Width + .ExtraMargins.Right Then MaxWidth = .Left + .Width + .ExtraMargins.Right
 							If MaxHeight < .Top + .Height + .ExtraMargins.Bottom Then MaxHeight = .Top + .Height + .ExtraMargins.Bottom
@@ -2989,7 +3074,11 @@ Namespace My.Sys.Forms
 					With *ListTop[i]
 						If .FVisible Then
 							#ifdef __USE_GTK__
-								tTop += .ExtraMargins.Top + IIf(bWithoutControl = ListTop[i], .FHeight, .Height) + .ExtraMargins.Bottom + IIf(i = 0, 0, FVerticalSpacing)
+								' Not IIf(..., .FHeight, .Height): with -gen gas64 this IIf inside the sum gave a garbage tTop,
+								' then the alLeft/alRight/alClient controls got a negative height and were not moved
+								Dim As Integer iTopHeight
+								If bWithoutControl = ListTop[i] Then iTopHeight = .FHeight Else iTopHeight = .Height
+								tTop += .ExtraMargins.Top + iTopHeight + .ExtraMargins.Bottom + IIf(i = 0, 0, FVerticalSpacing)
 							#else
 								tTop += .ExtraMargins.Top + .Height + .ExtraMargins.Bottom + IIf(i = 0, 0, FVerticalSpacing)
 							#endif
@@ -3059,9 +3148,9 @@ Namespace My.Sys.Forms
 			End If
 			If FAutoSize AndAlso ControlCount <> 0 Then
 				Dim As Integer MaxWidth, MaxHeight
-				
-				GetMax MaxWidth, MaxHeight
-				
+
+				GetMax MaxWidth, MaxHeight, True
+
 				#ifdef __USE_GTK__
 					If GTK_IS_BOX(widget) Then
 						If Height > MaxHeight + Height - iClientHeight Then
@@ -3270,6 +3359,9 @@ Namespace My.Sys.Forms
 					Controls[Index] = Ctrl
 				End If
 				#ifdef __USE_GTK__
+					' Not every control calls RegisterClass on GTK (e.g. ProgressBar), but every placed control
+					' comes here: its widgets will be destroyed together with the parent
+					Ctrl->SetWeakWidgetPointers True
 					Dim As Integer FrameTop
 					Dim As Boolean bAdded
 					'If Not FDesignMode Then
@@ -3489,6 +3581,8 @@ Namespace My.Sys.Forms
 		
 		Private Destructor Control
 			#ifdef __USE_GTK__
+				' Fields of already destroyed widgets are 0 here, remove the rest so GLib does not write into freed memory
+				SetWeakWidgetPointers False
 				If layoutwidget <> 0 AndAlso GTK_IS_WIDGET(layoutwidget) Then
 					#ifdef __USE_GTK3__
 						g_signal_handlers_disconnect_by_func(layoutwidget, G_CALLBACK(@Control_Draw), @This)

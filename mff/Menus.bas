@@ -17,6 +17,26 @@
 
 Namespace My.Sys.Forms
 	/' Global '/
+	#ifdef __USE_GTK__
+		' Menu widgets are destroyed together with their window, for global menus this happens before
+		' their destructors run (at program end). Weak pointers reset the fields of destroyed widgets.
+		Private Sub MenuWidget_Unwatch(ByRef WidgetField As GtkWidget Ptr, ByRef WatchedWidget As GObject Ptr)
+			If WatchedWidget = 0 Then Exit Sub
+			Dim As GObject Ptr Obj = WatchedWidget
+			g_object_remove_weak_pointer(Obj, Cast(gpointer Ptr, @WidgetField))
+			g_object_remove_weak_pointer(Obj, Cast(gpointer Ptr, @WatchedWidget))
+			WatchedWidget = 0
+		End Sub
+
+		Private Sub MenuWidget_Watch(ByRef WidgetField As GtkWidget Ptr, ByRef WatchedWidget As GObject Ptr)
+			MenuWidget_Unwatch WidgetField, WatchedWidget
+			If WidgetField = 0 Then Exit Sub
+			WatchedWidget = G_OBJECT(WidgetField)
+			g_object_add_weak_pointer(WatchedWidget, Cast(gpointer Ptr, @WidgetField))
+			g_object_add_weak_pointer(WatchedWidget, Cast(gpointer Ptr, @WatchedWidget))
+		End Sub
+	#endif
+
 	Private Sub AllocateCommand(value As PMenuItem)
 		#if defined(__USE_WINAPI__) OrElse defined(__USE_JNI__)
 			Handles.Add value
@@ -1113,7 +1133,7 @@ Namespace My.Sys.Forms
 				End If
 			#elseif defined(__USE_GTK__)
 				If SubMenu AndAlso SubMenu->Handle Then
-					If GTK_IS_CONTAINER(SubMenu->Handle) Then gtk_container_remove(GTK_CONTAINER(SubMenu->Handle), FItems[i]->Widget)
+					If FItems[i]->Widget AndAlso GTK_IS_CONTAINER(SubMenu->Handle) Then gtk_container_remove(GTK_CONTAINER(SubMenu->Handle), FItems[i]->Widget)
 					FItems[i]->Widget = 0
 				End If
 				If FItems[i]->FDynamic Then _Delete(FItems[i])
@@ -1238,6 +1258,7 @@ Namespace My.Sys.Forms
 				'g_signal_connect(widget, "event", G_CALLBACK(@EventProc), @This)
 				'g_signal_connect(widget, "event-after", G_CALLBACK(@EventAfterProc), @This)
 			End If
+			MenuWidget_Watch Widget, FWatchedWidget
 		#else
 			FImage.Graphic = @This
 			FImage.Changed = @BitmapChanged
@@ -1268,7 +1289,8 @@ Namespace My.Sys.Forms
 		If SubMenu Then _Delete(SubMenu)
 		#ifdef __USE_GTK__
 			#ifndef __FB_WIN32__
-				If GTK_IS_WIDGET(Widget) Then 
+				' Widget is 0 if GTK has already destroyed it (see MenuWidget_Watch)
+				If Widget AndAlso GTK_IS_WIDGET(Widget) Then
 					#ifdef __USE_GTK4__
 						g_object_unref(Widget)
 					#else
@@ -1276,6 +1298,7 @@ Namespace My.Sys.Forms
 					#endif
 				End If
 			#endif
+			MenuWidget_Unwatch Widget, FWatchedWidget
 		#elseif defined(__USE_WINAPI__)
 			If ParentMenuItem Then
 				RemoveMenu(ParentMenuItem->Handle, VisibleMenuIndex, MF_BYPOSITION)
@@ -1339,6 +1362,7 @@ Namespace My.Sys.Forms
 		
 		Private Property Menu.Handle(value As GtkWidget Ptr)
 			Widget = value
+			MenuWidget_Watch Widget, FWatchedWidget
 		End Property
 	#endif
 	Private Property Menu.ParentWindow As Component Ptr
@@ -1744,6 +1768,9 @@ Namespace My.Sys.Forms
 	
 	Private Destructor Menu
 		This.Clear
+		#ifdef __USE_GTK__
+			MenuWidget_Unwatch Widget, FWatchedWidget
+		#endif
 		#ifdef __USE_WINAPI__
 			If FInfo.hbrBack Then DeleteObject(FInfo.hbrBack)
 			If FHandle Then
@@ -1978,6 +2005,7 @@ Namespace My.Sys.Forms
 	Private Constructor MainMenu
 		#ifdef __USE_GTK__
 			widget = gtk_menu_bar_new()
+			MenuWidget_Watch Widget, FWatchedWidget
 		#elseif defined(__USE_WINAPI__)
 			This.FHandle      = CreateMenu
 		#endif
@@ -2084,6 +2112,7 @@ Namespace My.Sys.Forms
 	Private Constructor PopupMenu
 		#ifdef __USE_GTK__
 			widget = gtk_menu_new()
+			MenuWidget_Watch Widget, FWatchedWidget
 			gtk_menu_set_reserve_toggle_size(GTK_MENU(widget) , False)
 			'gtk_menu_set_screen(gtk_menu(widget), gdk_screen_get_default())
 		#elseif defined(__USE_WINAPI__)

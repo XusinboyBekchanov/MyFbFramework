@@ -114,6 +114,8 @@ Namespace My.Sys.Forms
 			Label			As GtkWidget Ptr
 			'GTK+ menu item widget reference
 			Widget 			As GtkWidget Ptr
+			'Object watched by MenuWidget_Watch (0 after the widget is destroyed)
+			FWatchedWidget	As GObject Ptr
 			'GTK+ activate signal handler
 			Declare Static Sub MenuItemActivate(MenuItem As GtkMenuItem Ptr, user_data As Any Ptr)
 			'GTK+ button press handler
@@ -242,6 +244,8 @@ Namespace My.Sys.Forms
 	Public:
 		#ifdef __USE_GTK__
 			Widget As GtkWidget Ptr
+			'Object watched by MenuWidget_Watch (0 after the widget is destroyed)
+			FWatchedWidget As GObject Ptr
 		#endif
 		#ifndef ReadProperty_Off
 			'Loads menu structure from stream

@@ -43,6 +43,10 @@ Namespace My.Sys.Forms
 			FTheme		As HTHEME
 		#endif
 	Public:
+		#ifdef __USE_GTK__
+			'True while the page is being destroyed (GTK emits switch-page when the page is removed)
+			Destroying As Boolean
+		#endif
 		#ifndef ReadProperty_Off
 			'Reads a property value from a stream
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr

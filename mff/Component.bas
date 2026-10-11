@@ -337,7 +337,7 @@ Namespace My.Sys.ComponentModel
 						FTop = UnScaleY(iTop)
 					Else
 						Dim As GtkWidget Ptr CtrlWidget = IIf(containerwidget, containerwidget, IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget)))))
-						If CtrlWidget AndAlso gtk_widget_get_mapped(CtrlWidget) Then
+						If CtrlWidget AndAlso GTK_IS_WIDGET(CtrlWidget) AndAlso gtk_widget_get_mapped(CtrlWidget) Then
 							Dim allocation As GtkAllocation
 							gtk_widget_get_allocation(CtrlWidget, @allocation)
 							FLeft = UnScaleX(allocation.x)
@@ -394,7 +394,7 @@ Namespace My.Sys.ComponentModel
 						FTop =  UnScaleY(iTop)
 					Else
 						Dim As GtkWidget Ptr CtrlWidget = IIf(containerwidget, containerwidget, IIf(scrolledwidget, scrolledwidget, IIf(overlaywidget, overlaywidget, IIf(layoutwidget AndAlso gtk_widget_get_parent(layoutwidget) <> widget, layoutwidget, IIf(eventboxwidget, eventboxwidget, widget)))))
-						If CtrlWidget AndAlso gtk_widget_get_mapped(CtrlWidget) Then
+						If CtrlWidget AndAlso GTK_IS_WIDGET(CtrlWidget) AndAlso gtk_widget_get_mapped(CtrlWidget) Then
 							Dim allocation As GtkAllocation
 							gtk_widget_get_allocation(CtrlWidget, @allocation)
 							FTop = UnScaleY(allocation.y)

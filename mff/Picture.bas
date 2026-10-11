@@ -307,6 +307,7 @@ Namespace My.Sys.Forms
 	Private Constructor Picture
 		#ifdef __USE_GTK__
 			ImageWidget = gtk_image_new()
+			WatchWeakPointer Cast(Any Ptr Ptr, @ImageWidget)
 			widget = gtk_layout_new(NULL, NULL)
 			If GTK_IS_WIDGET(ImageWidget) Then gtk_layout_put(GTK_LAYOUT(widget), ImageWidget, 0, 0)
 			This.RegisterClass "Picture", @This
@@ -373,13 +374,15 @@ Namespace My.Sys.Forms
 	End Constructor
 	Private Destructor Picture
 		#ifdef __USE_GTK__
-			If GTK_IS_WIDGET(ImageWidget) Then
+			' ImageWidget is 0 if GTK has already destroyed it (see WatchWeakPointer)
+			If ImageWidget AndAlso GTK_IS_WIDGET(ImageWidget) Then
 				#ifdef __USE_GTK4__
 					g_object_unref(ImageWidget)
 				#else
 					gtk_widget_destroy(ImageWidget)
 				#endif
 			End If
+			UnwatchWeakPointer Cast(Any Ptr Ptr, @ImageWidget)
 		#endif
 	End Destructor
 End Namespace

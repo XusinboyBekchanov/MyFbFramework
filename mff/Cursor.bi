@@ -93,6 +93,9 @@ Namespace My.Sys.Drawing
 		FHotSpotY  As Integer
 		FResName As WString Ptr
 		Declare Sub Create
+		#ifdef __USE_GTK__
+			Declare Function TargetWindow As GdkWindow Ptr
+		#endif
 	Public:
 		#ifndef ReadProperty_Off
 			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -103,6 +106,7 @@ Namespace My.Sys.Drawing
 		Ctrl 			As My.Sys.ComponentModel.Component Ptr
 		Graphic    		As Any Ptr
 		#ifdef __USE_GTK__
+			Declare Static Function NewFromName(pdisplay As GdkDisplay Ptr, ByRef Value As WString) As GdkCursor Ptr
 			Handle 		As GdkCursor Ptr
 		#elseif defined(__USE_WINAPI__)
 			Handle		As HCURSOR

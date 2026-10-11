@@ -1083,6 +1083,8 @@ Namespace My.Sys.Forms
 				gtk_widget_show(WidgetEntry)
 				scrolledwidget = 0
 			End If
+			' widget and scrolledwidget hold other widgets now
+			SetWeakWidgetPointers True
 		End Sub
 	#endif
 	

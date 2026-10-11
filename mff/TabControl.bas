@@ -317,6 +317,9 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor TabPage
+		#ifdef __USE_GTK__
+			Destroying = True
+		#endif
 		'If FParent <> 0 Then Parent->DeleteTab(Parent->IndexOf(@This))
 		If FCaption Then _Deallocate(FCaption)
 		If FImageKey Then _Deallocate(FImageKey)
@@ -1259,6 +1262,11 @@ Namespace My.Sys.Forms
 		Private Sub TabControl.TabControl_SwitchPage(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
 			Dim As TabControl Ptr tc = user_data
 			If tc AndAlso tc->Tabs[page_num] Then
+				' GTK switches the page when the current page is removed. Like on WinAPI (TCM_DELETEITEM),
+				' do not raise selection events then: the owner may be in its destructor
+				For i As Integer = 0 To tc->FTabCount - 1
+					If tc->Tabs[i] <> 0 AndAlso tc->Tabs[i]->Destroying Then Return
+				Next
 				If tc->OnSelChanging Then
 					Dim As Boolean bCancel = False
 					tc->OnSelChanging(*tc->Designer, *tc, bCancel)

@@ -845,6 +845,8 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			DropDownWidget = gtk_combo_box_text_new_with_entry()
 			DropDownListWidget = gtk_combo_box_text_new()
+			WatchWeakPointer Cast(Any Ptr Ptr, @DropDownWidget)
+			WatchWeakPointer Cast(Any Ptr Ptr, @DropDownListWidget)
 			widget = DropDownListWidget
 			eventboxwidget = gtk_event_box_new()
 			gtk_container_add(GTK_CONTAINER(eventboxwidget), widget)
@@ -905,24 +907,27 @@ Namespace My.Sys.Forms
 	Private Destructor ComboBoxEdit
 		WDeAllocate(FItemText)
 		#ifdef __USE_GTK__
+			' The fields are 0 if GTK has already destroyed the widgets (see WatchWeakPointer)
 			#ifndef __FB_WIN32__
-				If GTK_IS_WIDGET(DropDownWidget) Then
+				If DropDownWidget AndAlso GTK_IS_WIDGET(DropDownWidget) Then
 					#ifdef __USE_GTK4__
 						g_object_unref(DropDownWidget)
 					#else
 						gtk_widget_destroy(DropDownWidget)
 					#endif
-					DropDownWidget = 0
 				End If
-				If GTK_IS_WIDGET(DropDownListWidget) Then
+				If DropDownListWidget AndAlso GTK_IS_WIDGET(DropDownListWidget) Then
 					#ifdef __USE_GTK4__
 						g_object_unref(DropDownListWidget)
 					#else
 						gtk_widget_destroy(DropDownListWidget)
 					#endif
-					DropDownListWidget = 0
 				End If
 			#endif
+			UnwatchWeakPointer Cast(Any Ptr Ptr, @DropDownWidget)
+			UnwatchWeakPointer Cast(Any Ptr Ptr, @DropDownListWidget)
+			DropDownWidget = 0
+			DropDownListWidget = 0
 			widget = 0
 			'			If This.Parent AndAlso This.Parent->Widget Then
 			'				gtk_container_remove(gtk_container(This.Parent->Widget), gtk_widget(Widget))

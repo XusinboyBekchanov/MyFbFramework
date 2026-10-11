@@ -170,21 +170,54 @@ Namespace My.Sys.Drawing
 		#else
 			If Ctrl AndAlso Ctrl->Handle Then
 				Dim As GdkDisplay Ptr pdisplay = gtk_widget_get_display(Ctrl->Handle)
-				Handle = gdk_cursor_new_from_name(pdisplay, Value)
-				Dim As GdkWindow Ptr win
-				#ifdef __USE_GTK4__
-					win = gtk_widget_get_parent_window(Ctrl->Handle)
-				#else
-					If GTK_IS_LAYOUT(Ctrl->Handle) Then
-						win = gtk_layout_get_bin_window(GTK_LAYOUT(Ctrl->Handle))
-					Else
-						win = gtk_widget_get_parent_window(Ctrl->Handle)
-					End If
-				#endif
+				Handle = NewFromName(pdisplay, Value)
+				Dim As GdkWindow Ptr win = TargetWindow
 				If win Then gdk_window_set_cursor(win, Handle)
 			End If
 		#endif
 	End Operator
+
+	#ifdef __USE_GTK__
+		' GTK2 looks names up in the X cursor theme, CSS names like "default" are often missing there.
+		' A NULL cursor resets the window to the inherited (root) cursor, under XWayland/WSLg it
+		' keeps the last shape, e.g. the I-beam of an editor. The core X cursors always exist.
+		Private Function Cursor.NewFromName(pdisplay As GdkDisplay Ptr, ByRef Value As WString) As GdkCursor Ptr
+			Dim As GdkCursor Ptr Result = gdk_cursor_new_from_name(pdisplay, Value)
+			If Result Then Return Result
+			Dim As GdkCursorType CursorType
+			Select Case LCase(Value)
+			Case "text": CursorType = GDK_XTERM
+			Case "wait", "progress": CursorType = GDK_WATCH
+			Case "crosshair": CursorType = GDK_CROSSHAIR
+			Case "pointer": CursorType = GDK_HAND2
+			Case "move", "all-scroll": CursorType = GDK_FLEUR
+			Case "not-allowed", "no-drop": CursorType = GDK_X_CURSOR
+			Case "ns-resize", "row-resize": CursorType = GDK_SB_V_DOUBLE_ARROW
+			Case "ew-resize", "col-resize": CursorType = GDK_SB_H_DOUBLE_ARROW
+			Case "nesw-resize": CursorType = GDK_BOTTOM_LEFT_CORNER
+			Case "nwse-resize": CursorType = GDK_BOTTOM_RIGHT_CORNER
+			Case Else: CursorType = GDK_LEFT_PTR
+			End Select
+			Return gdk_cursor_new_for_display(pdisplay, CursorType)
+		End Function
+
+		' GdkWindow whose cursor this control shows
+		Private Function Cursor.TargetWindow As GdkWindow Ptr
+			If Ctrl = 0 OrElse Ctrl->Handle = 0 Then Return 0
+			#ifdef __USE_GTK4__
+				Return gtk_widget_get_parent_window(Ctrl->Handle)
+			#else
+				If GTK_IS_LAYOUT(Ctrl->Handle) Then
+					Return gtk_layout_get_bin_window(GTK_LAYOUT(Ctrl->Handle))
+				ElseIf GTK_IS_WINDOW(Ctrl->Handle) Then
+					' Form: the toplevel window, child windows without own cursor inherit it
+					Return gtk_widget_get_window(Ctrl->Handle)
+				Else
+					Return gtk_widget_get_parent_window(Ctrl->Handle)
+				End If
+			#endif
+		End Function
+	#endif
 	
 	Private Function Cursor.ToString() ByRef As WString
 		If FResName > 0 Then Return *FResName Else Return ""
@@ -203,6 +236,25 @@ Namespace My.Sys.Drawing
 			If Handle Then DestroyCursor(Handle)
 			Handle = Cast(HCURSOR, Value)
 			If Ctrl AndAlso Ctrl->Handle Then SendMessage(Ctrl->Handle, WM_SETCURSOR, Cast(WPARAM, Ctrl->Handle), Cast(LPARAM, 1))
+		#elseif defined(__USE_GTK__)
+			' Cursor = 0 restores the default cursor (e.g. after crWait)
+			If Value = 0 Then
+				Handle = 0
+				WLet(FResName, "")
+				Dim As GdkWindow Ptr win = TargetWindow
+				If win Then
+					#ifndef __USE_GTK4__
+						If GTK_IS_WINDOW(Ctrl->Handle) Then
+							' Forms keep an explicit arrow (see Form.Show)
+							gdk_window_set_cursor(win, gdk_cursor_new_for_display(gtk_widget_get_display(Ctrl->Handle), GDK_LEFT_PTR))
+						Else
+							gdk_window_set_cursor(win, NULL)
+						End If
+					#else
+						gdk_window_set_cursor(win, NULL)
+					#endif
+				End If
+			End If
 		#endif
 	End Operator
 	

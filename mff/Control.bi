@@ -423,6 +423,20 @@ Namespace My.Sys.Forms
 			Dim Shared hover_timer_id As UInteger
 		#endif
 		
+		#ifdef __USE_GTK__
+			' Widget watched by Control.SetWeakWidgetPointers and the field that holds it
+			Type WeakWidgetRef
+				Obj As GObject Ptr
+				WidgetField As GtkWidget Ptr Ptr
+			End Type
+			' Sets the field (holding a GObject, e.g. an extra widget of a control) to 0 when GTK destroys
+			' the object, e.g. together with its window before the destructors of global forms run.
+			' The field must not be assigned another object while it is watched
+			Declare Sub WatchWeakPointer(pField As Any Ptr Ptr)
+			' Must be called in the destructor of the field's owner
+			Declare Sub UnwatchWeakPointer(pField As Any Ptr Ptr)
+		#endif
+
 		'Defines the base class for controls, which are components with visual representation (Windows, Linux, Android, Web)
 		Private Type Control Extends Component
 		Private:
@@ -553,6 +567,10 @@ Namespace My.Sys.Forms
 			OnHandleIsDestroyed As Sub(ByRef Sender As Control)
 			#ifdef __USE_GTK__
 				Declare Function RegisterClass(ByRef wClassName As WString, Obj As Any Ptr, WndProcAddr As Any Ptr = 0) As Boolean
+				' Resets the widget fields to 0 when GTK destroys their widgets
+				FWeakWidgetRefs(7) As WeakWidgetRef
+				Declare Sub SetWeakWidgetPointers(bAdd As Boolean)
+				Declare Static Sub WeakWidget_Notify(data_ As gpointer, where_the_object_was As GObject Ptr)
 				Declare Static Function EventProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 				Declare Static Function EventAfterProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 				Declare Static Function hover_cb(ByVal user_data As gpointer) As gboolean
@@ -575,7 +593,10 @@ Namespace My.Sys.Forms
 				Declare Property ParentHandle(Value As HWND)
 				ToolTipHandle       As HWND
 			#endif
-			Declare Sub GetMax(ByRef MaxWidth As Integer, ByRef MaxHeight As Integer)
+			Declare Sub GetMax(ByRef MaxWidth As Integer, ByRef MaxHeight As Integer, bAutoSize As Boolean = False)
+			#ifdef __USE_GTK__
+				Declare Sub GetMinimumSize(ByRef MinWidth As Integer, ByRef MinHeight As Integer)
+			#endif
 			Declare Virtual Sub ProcessMessageAfter(ByRef message As Message)
 		Public:
 			Declare Virtual Sub ProcessMessage(ByRef message As Message)

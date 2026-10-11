@@ -235,6 +235,8 @@ Namespace My.Sys.Forms
 					g_signal_connect(.Widget, "clicked", G_CALLBACK(@ToolButtonClicked), PButton)
 				End Select
 				gtk_widget_show_all(.Widget)
+				' Widget becomes 0 when GTK destroys it (e.g. with the main window), so the destructor does not touch freed memory
+				g_object_add_weak_pointer(G_OBJECT(.Widget), Cast(gpointer Ptr, @.Widget))
 			#endif
 			.State        = FState
 			.ImageIndex     = FImageIndex

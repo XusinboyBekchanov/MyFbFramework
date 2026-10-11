@@ -1716,6 +1716,11 @@ Namespace My.Sys.Forms
 			End Select
 		#endif
 		Base.ProcessMessage(Message)
+		#ifdef __USE_GTK__
+			' GtkIconView emits item-activated from its own handler of GDK_2BUTTON_PRESS,
+			' do not stop this event here, otherwise OnItemActivate is not called in icon views
+			If GTK_IS_ICON_VIEW(widget) AndAlso e->type = GDK_2BUTTON_PRESS Then Message.Result = False
+		#endif
 	End Sub
 	
 	#ifdef __USE_WINAPI__
@@ -1896,6 +1901,10 @@ Namespace My.Sys.Forms
 			widget = TreeViewWidget
 			gtk_container_add(GTK_CONTAINER(scrolledwidget), widget)
 			TreeSelection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget))
+			' The shown view is destroyed together with the form, for global forms before this destructor runs
+			WatchWeakPointer Cast(Any Ptr Ptr, @TreeViewWidget)
+			WatchWeakPointer Cast(Any Ptr Ptr, @IconViewWidget)
+			WatchWeakPointer Cast(Any Ptr Ptr, @TreeSelection)
 			#ifdef __USE_GTK3__
 				g_signal_connect(gtk_scrollable_get_hadjustment(GTK_SCROLLABLE(widget)), "value-changed", G_CALLBACK(@ListView_Scroll), @This)
 				g_signal_connect(gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(widget)), "value-changed", G_CALLBACK(@ListView_Scroll), @This)
@@ -1957,14 +1966,15 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_GTK__)
 			If ColumnTypes Then _DeleteSquareBrackets( ColumnTypes)
 			#ifndef __FB_WIN32__
-				If GTK_IS_WIDGET(TreeViewWidget) AndAlso TreeViewWidget <> widget Then 
+				' The fields are 0 if GTK has already destroyed the objects (weak pointers, see the constructor)
+				If TreeViewWidget AndAlso GTK_IS_WIDGET(TreeViewWidget) AndAlso TreeViewWidget <> widget Then
 					#ifdef __USE_GTK4__
 						g_object_unref(widget)
 					#else
 						gtk_widget_destroy(TreeViewWidget)
 					#endif
 				End If
-				If GTK_IS_WIDGET(IconViewWidget) AndAlso IconViewWidget <> widget Then 
+				If IconViewWidget AndAlso GTK_IS_WIDGET(IconViewWidget) AndAlso IconViewWidget <> widget Then
 					#ifdef __USE_GTK4__
 						g_object_unref(widget)
 					#else
@@ -1972,6 +1982,15 @@ Namespace My.Sys.Forms
 					#endif
 				End If
 			#endif
+			' Objects which are still alive must not write into this freed ListView later
+			UnwatchWeakPointer Cast(Any Ptr Ptr, @TreeViewWidget)
+			UnwatchWeakPointer Cast(Any Ptr Ptr, @IconViewWidget)
+			UnwatchWeakPointer Cast(Any Ptr Ptr, @TreeSelection)
+			' Signals of other controls (e.g. switch-page while a form is destroyed) can still
+			' call methods of this ListView, do not leave pointers to destroyed objects
+			TreeViewWidget = 0
+			IconViewWidget = 0
+			TreeSelection = 0
 		#endif
 	End Destructor
 End Namespace

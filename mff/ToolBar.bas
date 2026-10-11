@@ -636,9 +636,12 @@ Namespace My.Sys.Forms
 	
 	Private Destructor ToolButton
 		#ifdef __USE_GTK__
+			' Dynamic buttons watch Widget with a weak pointer (ToolButtons.Add, ToolGroupButtons.Add),
+			' it must be removed with every GTK version, otherwise GLib writes into this freed button later
+			If FDynamic AndAlso Widget <> 0 Then g_object_remove_weak_pointer(G_OBJECT(Widget), Cast(gpointer Ptr, @Widget))
 			#ifdef __USE_GTK3__
 				#ifndef __FB_WIN32__
-					If Widget <> 0 AndAlso GTK_IS_WIDGET(Widget) Then 
+					If Widget <> 0 AndAlso GTK_IS_WIDGET(Widget) Then
 						#ifdef __USE_GTK4__
 							g_object_unref(Widget)
 						#else
@@ -767,6 +770,8 @@ Namespace My.Sys.Forms
 				End Select
 				
 				gtk_widget_show_all(.Widget)
+				' Widget becomes 0 when GTK destroys it (e.g. with the main window), so the destructor does not touch freed memory
+				g_object_add_weak_pointer(G_OBJECT(.Widget), Cast(gpointer Ptr, @.Widget))
 			#endif
 			.State        = FState
 			.ImageIndex     = FImageIndex
