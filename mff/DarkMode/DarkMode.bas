@@ -325,9 +325,13 @@ Sub SetDarkMode(useDark As Boolean, fixDarkScrollbar_ As Boolean)
 			End If
 		End If
 	#elseif defined(__USE_GTK__)
-		#ifdef __USE_GTK3__
+		#ifndef __USE_GTK2__
 			Dim As GValue bValue
-			g_value_init_(@bValue, G_TYPE_BOOLEAN)
+			#ifdef __USE_GTK4__
+				g_value_init(@bValue, G_TYPE_BOOLEAN)
+			#else
+				g_value_init_(@bValue, G_TYPE_BOOLEAN)
+			#endif
 			g_value_set_boolean(@bValue, useDark)
 			g_object_set_property(G_OBJECT(gtk_settings_get_default()), "gtk-application-prefer-dark-theme", @bValue)
 			g_value_unset(@bValue)

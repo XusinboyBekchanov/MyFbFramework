@@ -203,10 +203,12 @@ Namespace My.Sys.Forms
 		
 		Private Property Control.AllowDrop(Value As Boolean)
 			FAllowDrop = Value
-			#ifdef __USE_GTK__
+			#ifdef __USE_GTK4__
+				UpdateDropTarget FAllowDrop OrElse FAllowDropFiles
+			#elseif defined(__USE_GTK__)
 				If Value Then
 					If GTK_IS_ENTRY(widget) OrElse GTK_IS_TEXT_VIEW(widget) Then
-						#ifndef __USE_GTK3__
+						#ifdef __USE_GTK2__
 							Dim As GtkTargetEntry mytargets
 							mytargets.target = _Allocate(SizeOf(gchar) * 14)
 							*mytargets.target = "text/uri-list"
@@ -242,10 +244,12 @@ Namespace My.Sys.Forms
 		
 		Private Property Control.AllowDropFiles(Value As Boolean)
 			FAllowDropFiles = Value
-			#ifdef __USE_GTK__
+			#ifdef __USE_GTK4__
+				UpdateDropTarget FAllowDrop OrElse FAllowDropFiles
+			#elseif defined(__USE_GTK__)
 				If Value Then
 					If GTK_IS_ENTRY(widget) OrElse GTK_IS_TEXT_VIEW(widget) Then
-						#ifndef __USE_GTK3__
+						#ifdef __USE_GTK2__
 							Dim As GtkTargetEntry mytargets
 							mytargets.target = _Allocate(SizeOf(gchar) * 14)
 							*mytargets.target = "text/uri-list"
@@ -936,6 +940,16 @@ Namespace My.Sys.Forms
 			Return FVisible
 		End Property
 		
+		#ifdef __USE_GTK4__
+			' GTK4 has no gtk_widget_show_all: the widgets of the control inside its wrapper are shown too
+			' (they can be hidden by Visible = False from before the wrapper was created)
+			#macro ShowInnerWidgets
+				If overlaywidget AndAlso overlaywidget <> containerwidget AndAlso overlaywidget <> scrolledwidget Then gtk_widget_set_visible(overlaywidget, True)
+				If eventboxwidget AndAlso eventboxwidget <> containerwidget AndAlso eventboxwidget <> scrolledwidget Then gtk_widget_set_visible(eventboxwidget, True)
+				If widget AndAlso widget <> containerwidget AndAlso widget <> scrolledwidget Then gtk_widget_set_visible(widget, True)
+			#endmacro
+		#endif
+
 		Private Property Control.Visible(Value As Boolean)
 			FVisible = Value
 			If (Not FDesignMode) OrElse Value Then
@@ -945,6 +959,7 @@ Namespace My.Sys.Forms
 						If Value Then
 							#ifdef __USE_GTK4__
 								gtk_widget_set_visible(containerwidget, True)
+								ShowInnerWidgets
 							#else
 								gtk_widget_show_all(containerwidget)
 							#endif
@@ -957,6 +972,7 @@ Namespace My.Sys.Forms
 						If Value Then
 							#ifdef __USE_GTK4__
 								gtk_widget_set_visible(scrolledwidget, True)
+								ShowInnerWidgets
 							#else
 								gtk_widget_show_all(scrolledwidget)
 							#endif
@@ -1406,7 +1422,94 @@ Namespace My.Sys.Forms
 		Private Sub Control.ProcessMessage(ByRef Message As Message)
 			Static bShift As Boolean, bCtrl As Boolean, bAlt As Boolean
 			If OnMessage Then OnMessage(*Designer, This, Message)
-			#ifdef __USE_GTK__
+			#ifdef __USE_GTK4__
+				' GdkEvent is opaque in GTK4. Map, unmap, destroy, focus and crossing are separate signals (see RegisterClass)
+				Dim As GdkEvent Ptr e = Message.Event
+				If e = 0 Then Exit Sub
+				Dim As gdouble ex, ey
+				Dim As GdkModifierType State = gdk_event_get_modifier_state(e)
+				gtk4compat_event_get_widget_position(IIf(layoutwidget, layoutwidget, widget), e, @ex, @ey)
+				Select Case gtk4compat_event_type(e)
+				Case GDK_BUTTON_PRESS
+					If IsEventForThis(e) Then
+						Dim As guint Button = gdk_button_event_get_button(e)
+						DownButton = Button - 1
+						If OnMouseDown Then OnMouseDown(*Designer, This, Button - 1, ex, ey, State)
+					End If
+				Case GDK_2BUTTON_PRESS
+					If OnDblClick Then OnDblClick(*Designer, This)
+					Message.Result = True
+				Case GDK_BUTTON_RELEASE
+					Dim As Boolean WasDown = DownButton >= 0
+					DownButton = -1
+					If WasDown OrElse IsEventForThis(e) Then
+						Dim As guint Button = gdk_button_event_get_button(e)
+						If GTK_IS_BUTTON(widget) = 0 Then
+							If OnClick Then OnClick(*Designer, This)
+						End If
+						If OnMouseUp Then OnMouseUp(*Designer, This, Button - 1, ex, ey, State)
+						If Button = 3 AndAlso ContextMenu Then
+							Message.Result = True
+							If ContextMenu->Widget Then
+								ContextMenu->Popup(ex, ey, @Message)
+							End If
+						End If
+					End If
+				Case GDK_MOTION_NOTIFY
+					If DownButton >= 0 OrElse IsEventForThis(e) Then
+						If OnMouseMove Then OnMouseMove(*Designer, This, DownButton, ex, ey, State)
+						hover_timer_id = 0
+						If OnMouseHover Then
+							Dim As Boolean Ptr pBoolean = _New(Boolean)
+							MouseHoverMessage = Type(@This, ex, ey, State, pBoolean, widget)
+							hover_timer_id = g_timeout_add(IIf(FHoverTime = 0, 400, FHoverTime), Cast(GSourceFunc, @hover_cb), pBoolean)
+							Message.Result = True
+						End If
+					End If
+				Case GDK_KEY_PRESS
+					Dim As guint KeyVal = gdk_key_event_get_keyval(e)
+					If OnKeyDown Then OnKeyDown(*Designer, This, KeyVal, State)
+					If CInt(OnKeyPress) AndAlso CInt(Not Message.Result) Then
+						Dim As guint32 KeyChar = gdk_keyval_to_unicode(KeyVal)
+						If KeyChar <> 0 Then OnKeyPress(*Designer, This, KeyChar)
+					End If
+				Case GDK_KEY_RELEASE
+					If OnKeyUp Then OnKeyUp(*Designer, This, gdk_key_event_get_keyval(e), State)
+				Case GDK_SCROLL
+					If IsEventForThis(e) Then
+						Dim As Integer Delta
+						Select Case gdk_scroll_event_get_direction(e)
+						Case GDK_SCROLL_UP: Delta = -1
+						Case GDK_SCROLL_DOWN: Delta = 1
+						Case GDK_SCROLL_SMOOTH
+							Dim As gdouble dx, dy
+							gdk_scroll_event_get_deltas(e, @dx, @dy)
+							Delta = Sgn(dy)
+						End Select
+						If Delta <> 0 AndAlso OnMouseWheel <> 0 Then OnMouseWheel(*Designer, This, Delta, ex, ey, State)
+					End If
+				Case GDK_TOUCH_BEGIN, GDK_TOUCH_UPDATE, GDK_TOUCH_END, GDK_TOUCH_CANCEL
+					Dim pe As PointerEventArgs
+					pe.id = Cast(Integer, gdk_event_get_event_sequence(e))
+					pe.x = ex
+					pe.y = ey
+					pe.buttons = 1
+					pe.primary = 1
+					pe.modifiers = State
+					pe.pointerType = ptTouch
+					Select Case gdk_event_get_event_type(e)
+					Case GDK_TOUCH_BEGIN
+						pe.phase = PointerPhase.ppBegin
+						If OnPointerDown Then OnPointerDown(*Designer, This, pe)
+					Case GDK_TOUCH_UPDATE
+						pe.phase = PointerPhase.ppMove
+						If OnPointerUpdate Then OnPointerUpdate(*Designer, This, pe)
+					Case Else
+						pe.phase = PointerPhase.ppEnd
+						If OnPointerUp Then OnPointerUp(*Designer, This, pe)
+					End Select
+				End Select
+			#elseif defined(__USE_GTK__)
 				Dim As GdkEvent Ptr e = Message.Event
 				Select Case Message.Event->type
 				Case GDK_NOTHING
@@ -1443,14 +1546,14 @@ Namespace My.Sys.Forms
 							ContextMenu->Popup(e->button.x, e->button.y, @Message)
 						End If
 					End If
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 					Case GDK_2BUTTON_PRESS, GDK_DOUBLE_BUTTON_PRESS
 					#else
 					Case GDK_2BUTTON_PRESS
 					#endif
 					If OnDblClick Then OnDblClick(*Designer, This)
 					Message.Result = True
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 					Case GDK_3BUTTON_PRESS, GDK_TRIPLE_BUTTON_PRESS
 					#else
 					Case GDK_3BUTTON_PRESS
@@ -1507,7 +1610,7 @@ Namespace My.Sys.Forms
 					'Case GDK_DRAG_STATUS
 				Case GDK_DROP_START
 				Case GDK_DROP_FINISHED
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 					Case GDK_TOUCH_BEGIN, GDK_TOUCH_UPDATE, GDK_TOUCH_END, GDK_TOUCH_CANCEL
 						Dim pe As PointerEventArgs
 						pe.id = Cast(Integer, Message.Event->touch.sequence)
@@ -1598,7 +1701,7 @@ Namespace My.Sys.Forms
 					'Requests @This
 					'RequestAlign
 				Case GDK_SCROLL
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						If OnMouseWheel Then OnMouseWheel(*Designer, This, e->scroll.delta_x, e->scroll.x, e->scroll.y, e->scroll.state)
 					#else
 						If e->scroll.direction = GDK_SCROLL_UP Then
@@ -2235,7 +2338,9 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Private Sub Control.ProcessMessageAfter(ByRef Message As Message)
-			#ifdef __USE_GTK__
+			#ifdef __USE_GTK4__
+				Message.Result = True
+			#elseif defined(__USE_GTK__)
 				Dim As GdkEvent Ptr e = Message.Event
 				Select Case Message.Event->type
 				Case GDK_CONFIGURE
@@ -2305,7 +2410,24 @@ Namespace My.Sys.Forms
 				If Ctrl Then
 					'If Ctrl->DesignMode Then Return True
 					Message.Sender = Ctrl
+					#ifdef __USE_GTK4__
+						Dim As Any Ptr OldEventWidget = gtk4compat_loops()->CurrentEventWidget
+						gtk4compat_loops()->CurrentEventWidget = IIf(Ctrl->layoutwidget, Ctrl->layoutwidget, widget)
+					#endif
 					Ctrl->ProcessMessage(Message)
+					#ifdef __USE_GTK4__
+						' The second press of a double click comes once more as GDK_2BUTTON_PRESS
+						If CBool(Event <> 0) AndAlso CBool(gdk_event_get_event_type(Event) = GDK_BUTTON_PRESS) AndAlso Ctrl->IsDoubleClick(Event) Then
+							Dim Message2 As Typeof(Message)
+							Message2 = Type(Ctrl, widget, Event, False)
+							Message2.Sender = Ctrl
+							gtk4compat_loops()->DoubleClickEvent = Event
+							Ctrl->ProcessMessage(Message2)
+							gtk4compat_loops()->DoubleClickEvent = 0
+							Message.Result = Message.Result OrElse Message2.Result
+						End If
+						gtk4compat_loops()->CurrentEventWidget = OldEventWidget
+					#endif
 				End If
 				Return Message.Result
 			End Function
@@ -2321,6 +2443,191 @@ Namespace My.Sys.Forms
 				End If
 				Return Message.Result
 			End Function
+
+			#ifdef __USE_GTK4__
+				' The "event" signal of GtkEventControllerLegacy
+				Private Function Control.LegacyEventProc(controller As GtkEventController Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+					Dim Proc As Function(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean = g_object_get_data(G_OBJECT(controller), "mff-proc")
+					Dim As GtkWidget Ptr widget = gtk_event_controller_get_widget(controller)
+					If Proc Then Return Proc(widget, Event, user_data)
+					Return EventProc(widget, Event, user_data)
+				End Function
+
+				' Checks the press for a double click (GTK4 has no double click events)
+				Private Function Control.IsDoubleClick(e As GdkEvent Ptr) As Boolean
+					If Not IsEventForThis(e) Then Return False
+					Dim As gdouble ex, ey
+					gtk4compat_event_get_widget_position(widget, e, @ex, @ey)
+					Dim As guint Button = gdk_button_event_get_button(e)
+					Dim As gint DblClickTime = 400, DblClickDistance = 5
+					Dim As guint32 EventTime = gdk_event_get_time(e)
+					g_object_get(gtk_settings_get_default(), "gtk-double-click-time", @DblClickTime, NULL)
+					g_object_get(gtk_settings_get_default(), "gtk-double-click-distance", @DblClickDistance, NULL)
+					If FLastPressTime <> 0 AndAlso FLastPressButton = Button AndAlso EventTime - FLastPressTime <= DblClickTime AndAlso Abs(ex - FLastPressX) <= DblClickDistance AndAlso Abs(ey - FLastPressY) <= DblClickDistance Then
+						FLastPressTime = 0
+						Return True
+					End If
+					FLastPressTime = EventTime
+					FLastPressButton = Button
+					FLastPressX = ex
+					FLastPressY = ey
+					Return False
+				End Function
+
+				' Mouse events belong to the nearest control under the pointer (GTK3 compared the event window)
+				Private Function Control.IsEventForThis(e As GdkEvent Ptr) As Boolean
+					Dim As GtkWidget Ptr Target = gtk4compat_event_get_target(widget, e)
+					If Target = 0 Then Return True
+					Dim As GtkWidget Ptr Owner = gtk4compat_widget_find_data_owner(Target, "MFFControl")
+					If Owner = 0 Then Return True
+					Return g_object_get_data(G_OBJECT(Owner), "MFFControl") = @This
+				End Function
+
+				Private Sub Control.DoMap()
+					If Not FCreated Then
+						If OnCreate Then OnCreate(*Designer, This)
+						FCreated = True
+						If OnGesture Then
+							GestureDrag = GTK_GESTURE(gtk_gesture_drag_new())
+							g_signal_connect(GestureDrag, "begin", G_CALLBACK(@GestureBegin), @This)
+							g_signal_connect(GestureDrag, "update", G_CALLBACK(@GestureUpdate), @This)
+							g_signal_connect(GestureDrag, "end", G_CALLBACK(@GestureEnd), @This)
+							GestureLongPress = GTK_GESTURE(gtk_gesture_long_press_new())
+							g_signal_connect(GestureLongPress, "begin", G_CALLBACK(@GestureBegin), @This)
+							g_signal_connect(GestureLongPress, "update", G_CALLBACK(@GestureUpdate), @This)
+							g_signal_connect(GestureLongPress, "end", G_CALLBACK(@GestureEnd), @This)
+							GestureMultiPress = GTK_GESTURE(gtk_gesture_click_new())
+							g_signal_connect(GestureMultiPress, "begin", G_CALLBACK(@GestureBegin), @This)
+							g_signal_connect(GestureMultiPress, "update", G_CALLBACK(@GestureUpdate), @This)
+							g_signal_connect(GestureMultiPress, "end", G_CALLBACK(@GestureEnd), @This)
+							GesturePanHorizontal = GTK_GESTURE(gtk_gesture_pan_new(GTK_ORIENTATION_HORIZONTAL))
+							g_signal_connect(GesturePanHorizontal, "begin", G_CALLBACK(@GestureBegin), @This)
+							g_signal_connect(GesturePanHorizontal, "update", G_CALLBACK(@GestureUpdate), @This)
+							g_signal_connect(GesturePanHorizontal, "end", G_CALLBACK(@GestureEnd), @This)
+							GesturePanVertical = GTK_GESTURE(gtk_gesture_pan_new(GTK_ORIENTATION_VERTICAL))
+							g_signal_connect(GesturePanVertical, "begin", G_CALLBACK(@GestureBegin), @This)
+							g_signal_connect(GesturePanVertical, "update", G_CALLBACK(@GestureUpdate), @This)
+							g_signal_connect(GesturePanVertical, "end", G_CALLBACK(@GestureEnd), @This)
+							GestureRotate = GTK_GESTURE(gtk_gesture_rotate_new())
+							g_signal_connect(GestureRotate, "begin", G_CALLBACK(@GestureBegin), @This)
+							g_signal_connect(GestureRotate, "update", G_CALLBACK(@GestureUpdate), @This)
+							g_signal_connect(GestureRotate, "end", G_CALLBACK(@GestureEnd), @This)
+							GestureSwipe = GTK_GESTURE(gtk_gesture_swipe_new())
+							g_signal_connect(GestureSwipe, "begin", G_CALLBACK(@GestureBegin), @This)
+							g_signal_connect(GestureSwipe, "update", G_CALLBACK(@GestureUpdate), @This)
+							g_signal_connect(GestureSwipe, "end", G_CALLBACK(@GestureEnd), @This)
+							GestureZoom = GTK_GESTURE(gtk_gesture_zoom_new())
+							g_signal_connect(GestureZoom, "begin", G_CALLBACK(@GestureBegin), @This)
+							g_signal_connect(GestureZoom, "update", G_CALLBACK(@GestureUpdate), @This)
+							g_signal_connect(GestureZoom, "end", G_CALLBACK(@GestureEnd), @This)
+							Dim As GtkGesture Ptr Gestures(7) = {GestureDrag, GestureLongPress, GestureMultiPress, GesturePanHorizontal, GesturePanVertical, GestureRotate, GestureSwipe, GestureZoom}
+							For i As Integer = 0 To 7
+								gtk_widget_add_controller(widget, GTK_EVENT_CONTROLLER(Gestures(i)))
+							Next
+						End If
+					End If
+					If OnShow Then OnShow(*Designer, This)
+				End Sub
+
+				' Sends a removed event type (GDK_MAP...) to ProcessMessage, Message.Event is 0
+				Private Sub Control.SendPseudoEvent(widget As GtkWidget Ptr, Ctrl As Control Ptr, EventType As Integer)
+					Dim As Gtk4CompatLoops Ptr p = gtk4compat_loops()
+					Dim As Integer OldType = p->PseudoEventType
+					p->PseudoEventType = EventType
+					Control.EventProc(widget, NULL, Ctrl)
+					p->PseudoEventType = OldType
+				End Sub
+
+				Private Sub Control.Control_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
+					Dim As Control Ptr Ctrl = user_data
+					If Ctrl = 0 Then Exit Sub
+					Ctrl->DoMap
+					SendPseudoEvent widget, Ctrl, GDK_MAP
+				End Sub
+
+				Private Sub Control.Control_Unmap(widget As GtkWidget Ptr, user_data As Any Ptr)
+					Dim As Control Ptr Ctrl = user_data
+					If Ctrl = 0 Then Exit Sub
+					If Ctrl->OnHide Then Ctrl->OnHide(*Ctrl->Designer, *Ctrl)
+					SendPseudoEvent widget, Ctrl, GDK_UNMAP
+				End Sub
+
+				Private Sub Control.Control_Destroy(widget As GtkWidget Ptr, user_data As Any Ptr)
+					Dim As Control Ptr Ctrl = user_data
+					If Ctrl = 0 OrElse Ctrl->widget <> widget Then Exit Sub
+					If Ctrl->OnDestroy Then Ctrl->OnDestroy(*Ctrl->Designer, *Ctrl)
+					SendPseudoEvent widget, Ctrl, GDK_DESTROY
+				End Sub
+
+				Private Sub Control.Control_FocusEnter(controller As GtkEventController Ptr, user_data As Any Ptr)
+					Dim As Control Ptr Ctrl = user_data
+					If Ctrl = 0 Then Exit Sub
+					gtk4compat_loops()->FocusIn = True
+					SendPseudoEvent gtk_event_controller_get_widget(controller), Ctrl, GDK_FOCUS_CHANGE
+					If Ctrl->OnGotFocus Then Ctrl->OnGotFocus(*Ctrl->Designer, *Ctrl)
+					If Not Ctrl->FDesignMode Then
+						Dim frm As Control Ptr = Ctrl->GetForm
+						If frm Then
+							frm->FActiveControl = Ctrl
+							If frm->OnActiveControlChanged Then frm->OnActiveControlChanged(*frm)
+						End If
+					End If
+				End Sub
+
+				Private Sub Control.Control_FocusLeave(controller As GtkEventController Ptr, user_data As Any Ptr)
+					Dim As Control Ptr Ctrl = user_data
+					If Ctrl = 0 Then Exit Sub
+					gtk4compat_loops()->FocusIn = False
+					SendPseudoEvent gtk_event_controller_get_widget(controller), Ctrl, GDK_FOCUS_CHANGE
+					If Ctrl AndAlso Ctrl->OnLostFocus Then Ctrl->OnLostFocus(*Ctrl->Designer, *Ctrl)
+				End Sub
+
+				Private Sub Control.Control_PointerEnter(controller As GtkEventController Ptr, x As gdouble, y As gdouble, user_data As Any Ptr)
+					Dim As Control Ptr Ctrl = user_data
+					If Ctrl AndAlso Ctrl->OnMouseEnter Then Ctrl->OnMouseEnter(*Ctrl->Designer, *Ctrl)
+				End Sub
+
+				Private Sub Control.Control_PointerLeave(controller As GtkEventController Ptr, user_data As Any Ptr)
+					Dim As Control Ptr Ctrl = user_data
+					If Ctrl AndAlso Ctrl->OnMouseLeave Then Ctrl->OnMouseLeave(*Ctrl->Designer, *Ctrl)
+				End Sub
+
+				' Dropped files (replaces gtk_drag_dest_set and "drag-data-received")
+				Private Function Control.DropTarget_Drop(target As GtkDropTarget Ptr, value As Const GValue Ptr, x As gdouble, y As gdouble, user_data As Any Ptr) As Boolean
+					Dim As Control Ptr Ctrl = user_data
+					If Ctrl = 0 OrElse Ctrl->OnDropFile = 0 Then Return False
+					If G_VALUE_HOLDS(value, GDK_TYPE_FILE_LIST) = 0 Then Return False
+					Dim As GSList Ptr Files = g_value_get_boxed(value)
+					Dim As WString Ptr FileName
+					While Files
+						Dim As gchar Ptr FilePath = g_file_get_path(G_FILE(Files->data))
+						If FilePath Then
+							FileName = FromUtf8(FilePath)
+							If FileName AndAlso Trim(*FileName) <> "" Then Ctrl->OnDropFile(*Ctrl->Designer, *Ctrl, *FileName)
+							If FileName Then _Deallocate(FileName): FileName = 0
+							g_free(FilePath)
+						End If
+						Files = Files->next
+					Wend
+					If FileName Then _Deallocate(FileName)
+					Return True
+				End Function
+
+				Private Sub Control.UpdateDropTarget(Value As Boolean)
+					If widget = 0 Then Exit Sub
+					Dim As GtkEventController Ptr DropTarget = g_object_get_data(G_OBJECT(widget), "mff-drop-target")
+					If Value Then
+						If DropTarget Then Exit Sub
+						DropTarget = GTK_EVENT_CONTROLLER(gtk_drop_target_new(GDK_TYPE_FILE_LIST, GDK_ACTION_COPY))
+						g_signal_connect(DropTarget, "drop", G_CALLBACK(@DropTarget_Drop), @This)
+						gtk_widget_add_controller(widget, DropTarget)
+						g_object_set_data(G_OBJECT(widget), "mff-drop-target", DropTarget)
+					ElseIf DropTarget Then
+						gtk_widget_remove_controller(widget, DropTarget)
+						g_object_set_data(G_OBJECT(widget), "mff-drop-target", NULL)
+					End If
+				End Sub
+			#endif
 		#elseif defined(__USE_WINAPI__)
 			Private Function Control.DefWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 				Dim Message As Message
@@ -2473,7 +2780,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Private Sub Control.Control_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, user_data)
-				If GTK_IS_LAYOUT(widget) OrElse GTK_IS_SCROLLED_WINDOW(widget) OrElse GTK_IS_BOX(widget) Then
+				If GTK_IS_LAYOUT(widget) OrElse GTK_IS_SCROLLED_WINDOW(widget) OrElse GTK_IS_BOX(widget) OrElse GTK_IS_DRAWING_AREA(widget) Then
 					Dim As Integer AllocatedWidth = allocation->width, AllocatedHeight = allocation->height
 					'					#ifdef __USE_GTK3__
 					'						Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
@@ -2498,7 +2805,7 @@ Namespace My.Sys.Forms
 			Private Function Control.Control_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 				Dim As Control Ptr Ctrl = Cast(Any Ptr, data1)
 				#ifdef __USE_GTK4__
-					If Ctrl <> 0 AndAlso (GTK_IS_LAYOUT(widget)) Then
+					If Ctrl <> 0 AndAlso (GTK_IS_LAYOUT(widget) OrElse GTK_IS_DRAWING_AREA(widget)) Then
 				#else
 					If Ctrl <> 0 AndAlso (GTK_IS_LAYOUT(widget) OrElse GTK_IS_BOX(widget) OrElse GTK_IS_EVENT_BOX(widget)) Then
 				#endif
@@ -2522,12 +2829,15 @@ Namespace My.Sys.Forms
 					'					#ifdef __USE_GTK3__
 					'						Control_SizeAllocate(widget, @allocation, data1)
 					'					#endif
-					If AllocatedWidth <> Ctrl->AllocatedWidth Or AllocatedHeight <> Ctrl->AllocatedHeight Then
-						Ctrl->AllocatedWidth = AllocatedWidth
-						Ctrl->AllocatedHeight = AllocatedHeight
-						Ctrl->RequestAlign Ctrl->UnScaleX(AllocatedWidth), Ctrl->UnScaleY(AllocatedHeight), True
-						If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, Ctrl->UnScaleX(AllocatedWidth), Ctrl->UnScaleY(AllocatedHeight))
-					End If
+					#ifndef __USE_GTK4__
+						' GTK4: size changes are handled in Control_SizeAllocate (no layout changes while drawing)
+						If AllocatedWidth <> Ctrl->AllocatedWidth Or AllocatedHeight <> Ctrl->AllocatedHeight Then
+							Ctrl->AllocatedWidth = AllocatedWidth
+							Ctrl->AllocatedHeight = AllocatedHeight
+							Ctrl->RequestAlign Ctrl->UnScaleX(AllocatedWidth), Ctrl->UnScaleY(AllocatedHeight), True
+							If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, Ctrl->UnScaleX(AllocatedWidth), Ctrl->UnScaleY(AllocatedHeight))
+						End If
+					#endif
 					Ctrl->Canvas.Handle = 0
 					Ctrl->Canvas.HandleSetted = False
 				End If
@@ -2562,7 +2872,11 @@ Namespace My.Sys.Forms
 						e.dy = dy
 					ElseIf GTK_IS_GESTURE_LONG_PRESS(self) Then
 						e.gestureType = GestureType.gtLongPress
+					#ifdef __USE_GTK4__
+					ElseIf GTK_IS_GESTURE_CLICK(self) Then
+					#else
 					ElseIf GTK_IS_GESTURE_MULTI_PRESS(self) Then
+					#endif
 						e.gestureType = GestureType.gtTwoFingerTap
 					ElseIf GTK_IS_GESTURE_PAN(self) Then
 						e.gestureType = GestureType.gtDirectionalPan
@@ -2603,60 +2917,64 @@ Namespace My.Sys.Forms
 			#endif
 			
 			Private Sub Control.DragDataReceived(self As GtkWidget Ptr, context As GdkDragContext Ptr, x As gint, y As gint, selection_data As GtkSelectionData Ptr, info As guint, Time As guint, user_data As Any Ptr)
-				Dim As Control Ptr Ctrl = user_data
-				If info = 0 Then
-					If Ctrl->OnDropFile Then
-						Dim As WString Ptr res(Any), DataText
-						WLet(DataText, *Cast(gchar Ptr, gtk_selection_data_get_data(selection_data))) '*g_locale_from_utf8(gtk_selection_data_get_text(selection_data), -1, 0, 0, 0)
-						If DataText = 0 Then Return
-						'If StartsWith(datatext, "file://") Then
-						*DataText = Mid(*DataText, 8)
-						Split(*DataText, Chr(13) & Chr(10), res())
-						For i As Integer = 0 To UBound(res)
-							If StartsWith(*res(i), "file://") Then *res(i) = Mid(*res(i), 8)
-							If Trim(*res(i)) <> "" Then
-								Ctrl->OnDropFile(*Ctrl->Designer, *Ctrl, *res(i))
-							End If
-							_Deallocate(res(i))
-						Next
-						Erase res
-						_Deallocate(DataText)
-						'End If
+				#ifndef __USE_GTK4__
+					Dim As Control Ptr Ctrl = user_data
+					If info = 0 Then
+						If Ctrl->OnDropFile Then
+							Dim As WString Ptr res(Any), DataText
+							WLet(DataText, *Cast(gchar Ptr, gtk_selection_data_get_data(selection_data))) '*g_locale_from_utf8(gtk_selection_data_get_text(selection_data), -1, 0, 0, 0)
+							If DataText = 0 Then Return
+							'If StartsWith(datatext, "file://") Then
+							*DataText = Mid(*DataText, 8)
+							Split(*DataText, Chr(13) & Chr(10), res())
+							For i As Integer = 0 To UBound(res)
+								If StartsWith(*res(i), "file://") Then *res(i) = Mid(*res(i), 8)
+								If Trim(*res(i)) <> "" Then
+									Ctrl->OnDropFile(*Ctrl->Designer, *Ctrl, *res(i))
+								End If
+								_Deallocate(res(i))
+							Next
+							Erase res
+							_Deallocate(DataText)
+							'End If
+						End If
+						gtk_drag_finish(context, True, False, Time)
+					Else
+						gtk_drag_finish(context, False, False, Time)
 					End If
-					gtk_drag_finish(context, True, False, Time)
-				Else
-					gtk_drag_finish(context, False, False, Time)
-				End If
+				#endif
 			End Sub
 			
 			Private Function Control.ConfigureEventProc(widget As GtkWidget Ptr, e As GdkEvent Ptr, user_data As Any Ptr) As Boolean
-				Dim As Control Ptr Ctrl = user_data
-				If Ctrl Then
-					If Ctrl->Constraints.Left <> 0 OrElse Ctrl->Constraints.Top <> 0 OrElse Ctrl->Constraints.Width <> 0 OrElse Ctrl->Constraints.Height <> 0 Then
-						If GTK_IS_WINDOW(widget) Then
-							'g_signal_handlers_block_by_func(G_OBJECT(widget), G_CALLBACK(@ConfigureEventProc), user_data)
-							If Ctrl->Constraints.Left <> 0 OrElse Ctrl->Constraints.Top <> 0 Then
-								Dim As GdkRectangle rect
-								gdk_window_get_frame_extents(gtk_widget_get_window(widget), @rect)
-								If Ctrl->Constraints.Left <> 0 AndAlso Ctrl->Constraints.Left <> rect.x OrElse Ctrl->Constraints.Top <> 0 AndAlso Ctrl->Constraints.Top <> rect.y Then
-									gtk_window_move(GTK_WINDOW(widget), _
-									IIf(Ctrl->Constraints.Left, Ctrl->Constraints.Left, rect.x), _
-									IIf(Ctrl->Constraints.Top, Ctrl->Constraints.Top, rect.y))
+				#ifndef __USE_GTK4__
+					Dim As Control Ptr Ctrl = user_data
+					If Ctrl Then
+						If Ctrl->Constraints.Left <> 0 OrElse Ctrl->Constraints.Top <> 0 OrElse Ctrl->Constraints.Width <> 0 OrElse Ctrl->Constraints.Height <> 0 Then
+							If GTK_IS_WINDOW(widget) Then
+								'g_signal_handlers_block_by_func(G_OBJECT(widget), G_CALLBACK(@ConfigureEventProc), user_data)
+								If Ctrl->Constraints.Left <> 0 OrElse Ctrl->Constraints.Top <> 0 Then
+									Dim As GdkRectangle rect
+									gdk_window_get_frame_extents(gtk_widget_get_window(widget), @rect)
+									If Ctrl->Constraints.Left <> 0 AndAlso Ctrl->Constraints.Left <> rect.x OrElse Ctrl->Constraints.Top <> 0 AndAlso Ctrl->Constraints.Top <> rect.y Then
+										gtk_window_move(GTK_WINDOW(widget), _
+										IIf(Ctrl->Constraints.Left, Ctrl->Constraints.Left, rect.x), _
+										IIf(Ctrl->Constraints.Top, Ctrl->Constraints.Top, rect.y))
+									End If
 								End If
+								'							If Ctrl->Constraints.Left <> 0 OrElse Ctrl->Constraints.Top <> 0 Then
+								'								If Ctrl->Constraints.Left <> 0 AndAlso Ctrl->Constraints.Left <> e->configure.x OrElse Ctrl->Constraints.Top <> 0 AndAlso Ctrl->Constraints.Top <> e->configure.y - 37 Then
+								'									gtk_window_move(gtk_window(widget), _
+								'										IIf(Ctrl->Constraints.Left, Ctrl->Constraints.Left, e->configure.x), _
+								'										IIf(Ctrl->Constraints.Top, Ctrl->Constraints.Top, e->configure.y - 37))
+								'								End If
+								'							End If
+								'g_signal_handlers_unblock_by_func(G_OBJECT (widget), G_CALLBACK(@ConfigureEventProc), user_data)
+								'g_signal_stop_emission_by_name(G_OBJECT(widget), "configure-event")
+								Return True
 							End If
-							'							If Ctrl->Constraints.Left <> 0 OrElse Ctrl->Constraints.Top <> 0 Then
-							'								If Ctrl->Constraints.Left <> 0 AndAlso Ctrl->Constraints.Left <> e->configure.x OrElse Ctrl->Constraints.Top <> 0 AndAlso Ctrl->Constraints.Top <> e->configure.y - 37 Then
-							'									gtk_window_move(gtk_window(widget), _
-							'										IIf(Ctrl->Constraints.Left, Ctrl->Constraints.Left, e->configure.x), _
-							'										IIf(Ctrl->Constraints.Top, Ctrl->Constraints.Top, e->configure.y - 37))
-							'								End If
-							'							End If
-							'g_signal_handlers_unblock_by_func(G_OBJECT (widget), G_CALLBACK(@ConfigureEventProc), user_data)
-							'g_signal_stop_emission_by_name(G_OBJECT(widget), "configure-event")
-							Return True
 						End If
 					End If
-				End If
+				#endif
 				Return False
 			End Function
 			
@@ -2702,9 +3020,10 @@ Namespace My.Sys.Forms
 				SetWeakWidgetPointers True
 				If layoutwidget Then
 					#ifdef __USE_GTK4__
-						'						Dim As GtkEventController Ptr controller = gtk_event_controller_key_new()
-						'						g_signal_connect(controller, "key-pressed", Cast(GCallback, @keypress_cb), Obj)
-						'						gtk_widget_add_controller(layoutwidget, controller)
+						' Replaces the "draw" and "size-allocate" signals
+						' Controls can set their own functions before
+						If g_object_get_data(G_OBJECT(layoutwidget), "mff-draw-func") = 0 Then mff_widget_set_draw_func(layoutwidget, @Control_Draw, Obj)
+						If g_object_get_data(G_OBJECT(layoutwidget), "mff-size-allocate-func") = 0 Then mff_widget_set_size_allocate_func(layoutwidget, @Control_SizeAllocate, Obj)
 					#else
 						gtk_widget_set_events(layoutwidget, _
 						GDK_EXPOSURE_MASK Or _
@@ -2720,7 +3039,7 @@ Namespace My.Sys.Forms
 						GDK_POINTER_MOTION_HINT_MASK)
 						'Result = g_signal_connect(layoutwidget, "event", G_CALLBACK(IIf(WndProcAddr = 0, @EventProc, Proc)), Obj)
 						'Result = g_signal_connect(layoutwidget, "event-after", G_CALLBACK(IIf(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
-						#ifdef __USE_GTK3__
+						#ifndef __USE_GTK2__
 							g_signal_connect(layoutwidget, "draw", G_CALLBACK(@Control_Draw), Obj)
 							'g_signal_connect(layoutwidget, "size-allocate", G_CALLBACK(@Control_SizeAllocate), Obj)
 						#else
@@ -2732,9 +3051,26 @@ Namespace My.Sys.Forms
 				If widget Then
 					Font.Parent = @This
 					#ifdef __USE_GTK4__
-						'						Dim As GtkEventController Ptr controller = gtk_event_controller_key_new()
-						'						g_signal_connect(controller, "key-pressed", Cast(GCallback, @keypress_cb), Obj)
-						'						gtk_widget_add_controller(layoutwidget, controller)
+						' All input events, like the "event" signal in GTK3
+						Dim As GtkEventController Ptr LegacyController = gtk_event_controller_legacy_new()
+						g_object_set_data(G_OBJECT(LegacyController), "mff-proc", WndProcAddr)
+						Result = g_signal_connect(LegacyController, "event", G_CALLBACK(@LegacyEventProc), Obj)
+						gtk_widget_add_controller(widget, LegacyController)
+						Dim As GtkEventController Ptr MotionController = gtk_event_controller_motion_new()
+						g_signal_connect(MotionController, "enter", G_CALLBACK(@Control_PointerEnter), Obj)
+						g_signal_connect(MotionController, "leave", G_CALLBACK(@Control_PointerLeave), Obj)
+						gtk_widget_add_controller(widget, MotionController)
+						Dim As GtkEventController Ptr FocusController = gtk_event_controller_focus_new()
+						g_signal_connect(FocusController, "enter", G_CALLBACK(@Control_FocusEnter), Obj)
+						g_signal_connect(FocusController, "leave", G_CALLBACK(@Control_FocusLeave), Obj)
+						gtk_widget_add_controller(widget, FocusController)
+						g_signal_connect(widget, "map", G_CALLBACK(@Control_Map), Obj)
+						g_signal_connect(widget, "unmap", G_CALLBACK(@Control_Unmap), Obj)
+						g_signal_connect(widget, "destroy", G_CALLBACK(@Control_Destroy), Obj)
+						If layoutwidget = 0 AndAlso GTK_IS_DRAWING_AREA(widget) AndAlso g_object_get_data(G_OBJECT(widget), "mff-draw-func") = 0 Then
+							mff_widget_set_draw_func(widget, @Control_Draw, Obj)
+							mff_widget_set_size_allocate_func(widget, @Control_SizeAllocate, Obj)
+						End If
 					#else
 						gtk_widget_set_events(IIf(eventboxwidget, eventboxwidget, widget), _
 						GDK_EXPOSURE_MASK Or _
@@ -2751,15 +3087,17 @@ Namespace My.Sys.Forms
 						Result = g_signal_connect(widget, "event", G_CALLBACK(IIf(WndProcAddr = 0, @EventProc, Proc)), Obj)
 						Result = g_signal_connect(widget, "event-after", G_CALLBACK(IIf(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
 						Result = g_signal_connect(G_OBJECT(widget), "configure-event", G_CALLBACK(@ConfigureEventProc), @This)
-						#ifdef __USE_GTK3__
+						#ifndef __USE_GTK2__
 							g_signal_connect(widget, "draw", G_CALLBACK(@Control_Draw), Obj)
 						#else
 							g_signal_connect(widget, "expose-event", G_CALLBACK(@Control_ExposeEvent), Obj)
 						#endif
 					#endif
-					If GTK_IS_SCROLLED_WINDOW(widget) Then
-						g_signal_connect(widget, "size-allocate", G_CALLBACK(@Control_SizeAllocate), Obj)
-					End If
+					#ifndef __USE_GTK4__
+						If GTK_IS_SCROLLED_WINDOW(widget) Then
+							g_signal_connect(widget, "size-allocate", G_CALLBACK(@Control_SizeAllocate), Obj)
+						End If
+					#endif
 					'g_signal_connect(widget, "destroy", G_CALLBACK(Control_Destroy), @widget)
 				End If
 				#ifndef __USE_GTK4__
@@ -2779,7 +3117,7 @@ Namespace My.Sys.Forms
 						GDK_POINTER_MOTION_HINT_MASK)
 						Result = g_signal_connect(eventboxwidget, "event", G_CALLBACK(IIf(WndProcAddr = 0, @EventProc, Proc)), Obj)
 						Result = g_signal_connect(eventboxwidget, "event-after", G_CALLBACK(IIf(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
-						#ifdef __USE_GTK3__
+						#ifndef __USE_GTK2__
 							g_signal_connect(eventboxwidget, "draw", G_CALLBACK(@Control_Draw), Obj)
 						#else
 							g_signal_connect(eventboxwidget, "expose-event", G_CALLBACK(@Control_ExposeEvent), Obj)
@@ -2926,6 +3264,10 @@ Namespace My.Sys.Forms
 				If bInDraw = False Then
 					AllocatedWidth = 0
 					AllocatedHeight = 0
+					#ifdef __USE_GTK4__
+						' GTK4 aligns in Control_SizeAllocate, which runs only if the size changed
+						If layoutwidget Then gtk4compat_queue_size_callback(layoutwidget)
+					#endif
 					Exit Sub
 				End If
 			#endif
@@ -3377,10 +3719,10 @@ Namespace My.Sys.Forms
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
 							gtk_fixed_put(GTK_FIXED(fixedwidget), Ctrlwidget, ScaleX(Ctrl->FLeft), ScaleY(Ctrl->FTop - FrameTop))
 							bAdded = True
-							#ifdef __USE_GTK3__
+							#ifndef __USE_GTK2__
 							ElseIf GTK_IS_STACK(widget) Then
 								If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
-								#ifdef __USE_GTK3__
+								#ifndef __USE_GTK2__
 									gtk_widget_set_margin_left(Ctrlwidget, ScaleX(Margins.Left + Ctrl->ExtraMargins.Left))
 									gtk_widget_set_margin_top(Ctrlwidget, ScaleY(Margins.Top + Ctrl->ExtraMargins.Top))
 									gtk_widget_set_margin_right(Ctrlwidget, ScaleX(Margins.Right + Ctrl->ExtraMargins.Right))
@@ -3394,7 +3736,7 @@ Namespace My.Sys.Forms
 							bAdded = True
 						ElseIf GTK_IS_BOX(widget) Then
 							If gtk_widget_get_parent(Ctrlwidget) <> 0 Then gtk_widget_unparent(Ctrlwidget)
-							#ifdef __USE_GTK3__
+							#ifndef __USE_GTK2__
 								gtk_widget_set_margin_left(Ctrlwidget, ScaleX(Margins.Left + Ctrl->ExtraMargins.Left))
 								gtk_widget_set_margin_top(Ctrlwidget, ScaleY(Margins.Top + Ctrl->ExtraMargins.Top))
 								gtk_widget_set_margin_right(Ctrlwidget, ScaleX(Margins.Right + Ctrl->ExtraMargins.Right))
@@ -3584,7 +3926,7 @@ Namespace My.Sys.Forms
 				' Fields of already destroyed widgets are 0 here, remove the rest so GLib does not write into freed memory
 				SetWeakWidgetPointers False
 				If layoutwidget <> 0 AndAlso GTK_IS_WIDGET(layoutwidget) Then
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						g_signal_handlers_disconnect_by_func(layoutwidget, G_CALLBACK(@Control_Draw), @This)
 					#else
 						g_signal_handlers_disconnect_by_func(layoutwidget, G_CALLBACK(@Control_ExposeEvent), @This)
@@ -3599,6 +3941,25 @@ Namespace My.Sys.Forms
 				If scrolledwidget <> 0 AndAlso GTK_IS_WIDGET(scrolledwidget) Then
 					g_signal_handlers_disconnect_by_func(scrolledwidget, G_CALLBACK(@Control_Scroll), @This)
 				End If
+				#ifdef __USE_GTK4__
+					' The window keeps pointers to its default and focus widgets without a reference. They are reset
+					' only if the widget is removed while it is in the window (DefaultButton is set before the button
+					' is added to the form): reset them here, before the widget is freed
+					If widget <> 0 AndAlso GTK_IS_WIDGET(widget) AndAlso GTK_IS_WINDOW(widget) = 0 Then
+						' The nearest window: ShowModal(OwnerForm) makes the owner the parent of a form
+						Dim As Component Ptr TopCpnt = @This
+						While TopCpnt->FParent AndAlso (TopCpnt = @This OrElse TopCpnt->widget = 0 OrElse GTK_IS_WINDOW(TopCpnt->widget) = 0)
+							TopCpnt = TopCpnt->FParent
+						Wend
+						If TopCpnt <> @This AndAlso TopCpnt->widget <> 0 AndAlso GTK_IS_WINDOW(TopCpnt->widget) Then
+							Dim As GtkWindow Ptr TopWindow = GTK_WINDOW(TopCpnt->widget)
+							Dim As GtkWidget Ptr DefaultWidget = gtk_window_get_default_widget(TopWindow)
+							If DefaultWidget <> 0 AndAlso (DefaultWidget = widget OrElse gtk_widget_is_ancestor(DefaultWidget, widget)) Then gtk_window_set_default_widget(TopWindow, NULL)
+							Dim As GtkWidget Ptr FocusWidget = gtk_root_get_focus(GTK_ROOT(TopWindow))
+							If FocusWidget <> 0 AndAlso (FocusWidget = widget OrElse gtk_widget_is_ancestor(FocusWidget, widget)) Then gtk_root_set_focus(GTK_ROOT(TopWindow), NULL)
+						End If
+					End If
+				#endif
 			#elseif defined(__USE_WINAPI__)
 				FDropTarget.AllowDrop False
 			#endif

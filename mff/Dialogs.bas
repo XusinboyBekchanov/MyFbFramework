@@ -248,7 +248,11 @@ Private Function OpenFileDialog.Execute As Boolean
 			If FilterIndex <= j Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FilterIndex))
 		End If
 		If WGet(FInitialDir) = "" Then WLet(FInitialDir, CurDir)
-		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUtf8(*FInitialDir))
+		#ifdef __USE_GTK4__
+			gtk_file_chooser_set_current_folder_path(GTK_FILE_CHOOSER (widget), ToUtf8(*FInitialDir))
+		#else
+			gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUtf8(*FInitialDir))
+		#endif
 		' gtk_file_chooser_set_current_name is only valid for SAVE actions, select the file instead
 		If InStr(WGet(FFileName), "/") > 0 Then
 			gtk_file_chooser_set_filename(GTK_FILE_CHOOSER (widget), ToUtf8(*FFileName))
@@ -270,7 +274,7 @@ Private Function OpenFileDialog.Execute As Boolean
 			g_slist_free(l)
 		End If
 		#ifdef __USE_GTK4__
-			g_object_unref(widget): widget = 0
+			gtk_widget_destroy(widget): widget = 0
 		#else
 			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif
@@ -537,7 +541,11 @@ Private Function SaveFileDialog.Execute As Boolean
 			gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER (widget), ToUtf8(*FFileName))
 		End If
 		If WGet(FInitialDir) = "" Then WLet(FInitialDir, CurDir)
-		gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUtf8(*FInitialDir))
+		#ifdef __USE_GTK4__
+			gtk_file_chooser_set_current_folder_path(GTK_FILE_CHOOSER (widget), ToUtf8(*FInitialDir))
+		#else
+			gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUtf8(*FInitialDir))
+		#endif
 		'gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (widget), TRUE)
 		'gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER (widget), true)
 		Dim As Integer result = gtk_dialog_run (GTK_DIALOG (widget))
@@ -564,7 +572,7 @@ Private Function SaveFileDialog.Execute As Boolean
 			End If
 		End If
 		#ifdef __USE_GTK4__
-			g_object_unref(widget): widget = 0
+			gtk_widget_destroy(widget): widget = 0
 		#else
 			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif
@@ -689,7 +697,7 @@ Private Function FontDialog.Execute As Boolean
 	Static As Integer FWidth(2) = {400,700}
 	#ifdef __USE_GTK__
 		Dim As Boolean bResult
-		#ifdef __USE_GTK3__
+		#ifndef __USE_GTK2__
 			Dim As GtkWindow Ptr win
 			If pApp->MainForm Then
 				win = GTK_WINDOW(pApp->MainForm->widget)
@@ -703,7 +711,7 @@ Private Function FontDialog.Execute As Boolean
 		Dim As Integer res = gtk_dialog_run (GTK_DIALOG (widget))
 		bResult = res = GTK_RESPONSE_OK
 		If bResult Then
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				Dim As PangoFontDescription Ptr desc = gtk_font_chooser_get_font_desc (GTK_FONT_CHOOSER (widget))
 				Font.Name        = WStr(*pango_font_description_get_family(desc))
 				Font.Italic      = pango_font_description_get_style(desc) = PANGO_STYLE_ITALIC
@@ -725,7 +733,7 @@ Private Function FontDialog.Execute As Boolean
 			#endif
 		End If
 		#ifdef __USE_GTK4__
-			g_object_unref(widget): widget = 0
+			gtk_widget_destroy(widget): widget = 0
 		#else
 			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif
@@ -884,7 +892,7 @@ Private Function FolderBrowserDialog.Execute As Boolean
 			Directory = WStr(*gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (widget)))
 		End If
 		#ifdef __USE_GTK4__
-			g_object_unref(widget): widget = 0
+			gtk_widget_destroy(widget): widget = 0
 		#else
 			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif
@@ -1034,7 +1042,7 @@ Private Function ColorDialog.Execute As Boolean
 		If pApp->MainForm Then
 			win = GTK_WINDOW(pApp->MainForm->widget)
 		End If
-		#ifdef __USE_GTK3__
+		#ifndef __USE_GTK2__
 			widget = gtk_color_chooser_dialog_new (ToUtf8(*_Caption), win)
 		#else
 			widget = gtk_color_selection_dialog_new(ToUtf8(*_Caption))
@@ -1043,7 +1051,7 @@ Private Function ColorDialog.Execute As Boolean
 		bResult = res = GTK_RESPONSE_OK
 		If bResult Then
 			Dim As UString RGBString
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				Dim As GdkRGBA RGBAColor
 				gtk_color_chooser_get_rgba(GTK_COLOR_CHOOSER (widget), @RGBAColor)
 				RGBString = WStr(*gdk_rgba_to_string(@RGBAColor))
@@ -1058,7 +1066,7 @@ Private Function ColorDialog.Execute As Boolean
 			If UBound(res) >= 2 Then This.Color = BGR(Val(res(0)), Val(res(1)), Val(res(2)))
 		End If
 		#ifdef __USE_GTK4__
-			g_object_unref(widget): widget = 0
+			gtk_widget_destroy(widget): widget = 0
 		#else
 			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif

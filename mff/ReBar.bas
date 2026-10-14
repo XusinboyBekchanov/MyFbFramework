@@ -708,11 +708,19 @@ Namespace My.Sys.Forms
 	Private Sub ReBar.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.Event
-			Select Case Message.Event->type
+			#ifdef __USE_GTK4__
+				Select Case gtk4compat_event_type(Message.Event)
+			#else
+				Select Case Message.Event->type
+			#endif
 			Case GDK_BUTTON_PRESS
 				bPressed = True
 				If InRect Then
-					OldX = e->button.x
+					#ifdef __USE_GTK4__
+						OldX = gtk4compat_event_x(e)
+					#else
+						OldX = e->button.x
+					#endif
 					gdk_window_set_cursor(win, gdkCursorColResize)
 				End If
 			Case GDK_BUTTON_RELEASE
@@ -727,10 +735,18 @@ Namespace My.Sys.Forms
 						For i As Integer = 0 To Bands.Count - 1
 							If Not Bands.Item(i)->Visible Then Continue For
 							With *Bands.Item(i)
-								If e->button.x >= .Left AndAlso e->button.x <= .Left + 11 AndAlso e->button.y >= .Top AndAlso e->button.y <= .Top + .Height Then
+								#ifdef __USE_GTK4__
+									If gtk4compat_event_x(e) >= .Left AndAlso gtk4compat_event_x(e) <= .Left + 11 AndAlso gtk4compat_event_y(e) >= .Top AndAlso gtk4compat_event_y(e) <= .Top + .Height Then
+								#else
+									If e->button.x >= .Left AndAlso e->button.x <= .Left + 11 AndAlso e->button.y >= .Top AndAlso e->button.y <= .Top + .Height Then
+								#endif
 									MovedToItem = i
 									Exit For
-								ElseIf e->button.x >= .Left AndAlso e->button.x <= .Left + .Width AndAlso e->button.y >= .Top AndAlso e->button.y <= .Top + .Height Then
+								#ifdef __USE_GTK4__
+									ElseIf gtk4compat_event_x(e) >= .Left AndAlso gtk4compat_event_x(e) <= .Left + .Width AndAlso gtk4compat_event_y(e) >= .Top AndAlso gtk4compat_event_y(e) <= .Top + .Height Then
+								#else
+									ElseIf e->button.x >= .Left AndAlso e->button.x <= .Left + .Width AndAlso e->button.y >= .Top AndAlso e->button.y <= .Top + .Height Then
+								#endif
 									MovedToBand = i
 								End If 
 							End With
@@ -745,7 +761,11 @@ Namespace My.Sys.Forms
 							Bands.Item(DraggedItem)->Index = MovedToItem
 							DraggedItem = MovedToItem
 						Else
-							If e->button.y > Bands.Item(DraggedItem)->Top + Bands.Item(DraggedItem)->Height Then
+							#ifdef __USE_GTK4__
+								If gtk4compat_event_y(e) > Bands.Item(DraggedItem)->Top + Bands.Item(DraggedItem)->Height Then
+							#else
+								If e->button.y > Bands.Item(DraggedItem)->Top + Bands.Item(DraggedItem)->Height Then
+							#endif
 								If MovedToBand > -1 Then
 									Bands.Item(DraggedItem)->Index = Min(Bands.Count - 1, MovedToBand + 1)
 									DraggedItem = Min(Bands.Count - 1, MovedToBand + 1)
@@ -756,7 +776,11 @@ Namespace My.Sys.Forms
 									bWithoutUpdate = False
 									Bands.Item(DraggedItem)->Break = True
 								End If
-							ElseIf e->button.y < Bands.Item(DraggedItem)->Top Then
+							#ifdef __USE_GTK4__
+								ElseIf gtk4compat_event_y(e) < Bands.Item(DraggedItem)->Top Then
+							#else
+								ElseIf e->button.y < Bands.Item(DraggedItem)->Top Then
+							#endif
 								If MovedToBand > -1 Then
 									If Bands.Item(DraggedItem)->Break Then
 										bWithoutUpdate = True
@@ -767,22 +791,58 @@ Namespace My.Sys.Forms
 									DraggedItem = Min(Bands.Count - 1, MovedToBand + 1)
 								End If
 							ElseIf Bands.Item(DraggedItem)->Left > 0 Then
-								If e->button.x < OldX Then
-									If Bands.Item(DraggedItem - 1)->Width - (OldX - e->button.x) >= Bands.Item(DraggedItem - 1)->MinWidth Then
+								#ifdef __USE_GTK4__
+									If gtk4compat_event_x(e) < OldX Then
+								#else
+									If e->button.x < OldX Then
+								#endif
+									#ifdef __USE_GTK4__
+										If Bands.Item(DraggedItem - 1)->Width - (OldX - gtk4compat_event_x(e)) >= Bands.Item(DraggedItem - 1)->MinWidth Then
+									#else
+										If Bands.Item(DraggedItem - 1)->Width - (OldX - e->button.x) >= Bands.Item(DraggedItem - 1)->MinWidth Then
+									#endif
 										bWithoutUpdate = True
-										Bands.Item(DraggedItem - 1)->RequestedWidth = Bands.Item(DraggedItem - 1)->Width - (OldX - e->button.x)
+										#ifdef __USE_GTK4__
+											Bands.Item(DraggedItem - 1)->RequestedWidth = Bands.Item(DraggedItem - 1)->Width - (OldX - gtk4compat_event_x(e))
+										#else
+											Bands.Item(DraggedItem - 1)->RequestedWidth = Bands.Item(DraggedItem - 1)->Width - (OldX - e->button.x)
+										#endif
 										bWithoutUpdate = False 
-										Bands.Item(DraggedItem)->RequestedWidth = Bands.Item(DraggedItem)->Width + (OldX - e->button.x)
-										OldX = e->button.x
+										#ifdef __USE_GTK4__
+											Bands.Item(DraggedItem)->RequestedWidth = Bands.Item(DraggedItem)->Width + (OldX - gtk4compat_event_x(e))
+										#else
+											Bands.Item(DraggedItem)->RequestedWidth = Bands.Item(DraggedItem)->Width + (OldX - e->button.x)
+										#endif
+										#ifdef __USE_GTK4__
+											OldX = gtk4compat_event_x(e)
+										#else
+											OldX = e->button.x
+										#endif
 									End If
 								Else
-									If Bands.Item(DraggedItem)->Width - (OldX - e->button.x) >= Bands.Item(DraggedItem)->MinWidth Then
+									#ifdef __USE_GTK4__
+										If Bands.Item(DraggedItem)->Width - (OldX - gtk4compat_event_x(e)) >= Bands.Item(DraggedItem)->MinWidth Then
+									#else
+										If Bands.Item(DraggedItem)->Width - (OldX - e->button.x) >= Bands.Item(DraggedItem)->MinWidth Then
+									#endif
 										bWithoutUpdate = True
-										Bands.Item(DraggedItem)->RequestedWidth = Bands.Item(DraggedItem)->Width - (OldX - e->button.x)
+										#ifdef __USE_GTK4__
+											Bands.Item(DraggedItem)->RequestedWidth = Bands.Item(DraggedItem)->Width - (OldX - gtk4compat_event_x(e))
+										#else
+											Bands.Item(DraggedItem)->RequestedWidth = Bands.Item(DraggedItem)->Width - (OldX - e->button.x)
+										#endif
 										bWithoutUpdate = False
 									End If
-									Bands.Item(DraggedItem - 1)->RequestedWidth = Bands.Item(DraggedItem - 1)->Width + (e->button.x - OldX)
-									OldX = e->button.x
+									#ifdef __USE_GTK4__
+										Bands.Item(DraggedItem - 1)->RequestedWidth = Bands.Item(DraggedItem - 1)->Width + (gtk4compat_event_x(e) - OldX)
+									#else
+										Bands.Item(DraggedItem - 1)->RequestedWidth = Bands.Item(DraggedItem - 1)->Width + (e->button.x - OldX)
+									#endif
+									#ifdef __USE_GTK4__
+										OldX = gtk4compat_event_x(e)
+									#else
+										OldX = e->button.x
+									#endif
 								End If
 							End If
 						End If
@@ -792,7 +852,11 @@ Namespace My.Sys.Forms
 					For i As Integer = 0 To Bands.Count - 1
 						If Not Bands.Item(i)->Visible Then Continue For
 						With *Bands.Item(i)
-							If e->button.x >= .Left AndAlso e->button.x <= .Left + 11 AndAlso e->button.y >= .Top AndAlso e->button.y <= .Top + .Height Then
+							#ifdef __USE_GTK4__
+								If gtk4compat_event_x(e) >= .Left AndAlso gtk4compat_event_x(e) <= .Left + 11 AndAlso gtk4compat_event_y(e) >= .Top AndAlso gtk4compat_event_y(e) <= .Top + .Height Then
+							#else
+								If e->button.x >= .Left AndAlso e->button.x <= .Left + 11 AndAlso e->button.y >= .Top AndAlso e->button.y <= .Top + .Height Then
+							#endif
 								DraggedItem = i
 								InRect = True
 								Exit For
@@ -986,6 +1050,11 @@ Namespace My.Sys.Forms
 					Return
 				End If
 			#endif
+			#ifdef __USE_GTK4__
+				' GTK4 calls this later (in idle): if the parent set a new width meanwhile, the allocation is old
+				' and its width would replace the new one (Height moves the control with the allocated Width)
+				If rb->FWidth > 0 AndAlso allocation->width <> rb->ScaleX(rb->FWidth) Then Return
+			#endif
 			If allocation->width <> rb->AllocatedWidth OrElse allocation->height <> rb->AllocatedHeight Then
 				rb->AllocatedWidth = allocation->width
 				rb->AllocatedHeight = allocation->height
@@ -1085,18 +1154,32 @@ Namespace My.Sys.Forms
 			Dim As ReBar Ptr rb = Cast(Any Ptr, data1)
 			Dim allocation As GtkAllocation
 			gtk_widget_get_allocation(widget, @allocation)
-			If allocation.width <> rb->AllocatedWidth OrElse allocation.height <> rb->AllocatedHeight Then
-				Layout_SizeAllocate(widget, @allocation, data1)
-			End If
+			#ifndef __USE_GTK4__
+				If allocation.width <> rb->AllocatedWidth OrElse allocation.height <> rb->AllocatedHeight Then
+					Layout_SizeAllocate(widget, @allocation, data1)
+				End If
+			#endif
 			rb->Canvas.HandleSetted = True
 			rb->Canvas.Handle = cr
 			If rb->cr = 0 Then
 				rb->cr = cr
 				rb->pdisplay = gtk_widget_get_display(widget)
-				rb->gdkCursorDefault = gdk_cursor_new_from_name(rb->pdisplay, "default")
-				rb->gdkCursorWEResize = gdk_cursor_new_from_name(rb->pdisplay, crSizeWE)
-				rb->gdkCursorColResize = gdk_cursor_new_from_name(rb->pdisplay, "col-resize")
-				#ifdef __USE_GTK3__
+				#ifdef __USE_GTK4__
+					rb->gdkCursorDefault = gdk_cursor_new_from_name("default", NULL)
+				#else
+					rb->gdkCursorDefault = gdk_cursor_new_from_name(rb->pdisplay, "default")
+				#endif
+				#ifdef __USE_GTK4__
+					rb->gdkCursorWEResize = gdk_cursor_new_from_name(crSizeWE, NULL)
+				#else
+					rb->gdkCursorWEResize = gdk_cursor_new_from_name(rb->pdisplay, crSizeWE)
+				#endif
+				#ifdef __USE_GTK4__
+					rb->gdkCursorColResize = gdk_cursor_new_from_name("col-resize", NULL)
+				#else
+					rb->gdkCursorColResize = gdk_cursor_new_from_name(rb->pdisplay, "col-resize")
+				#endif
+				#ifndef __USE_GTK2__
 					rb->win = gtk_layout_get_bin_window(GTK_LAYOUT(widget))
 				#endif
 			End If
@@ -1145,8 +1228,16 @@ Namespace My.Sys.Forms
 		
 		Private Function ReBar.Layout_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 			Dim As ReBar Ptr rb = Cast(Any Ptr, data1)
-			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
-			rb->win = Event->window
+			#ifdef __USE_GTK4__
+				Dim As cairo_t Ptr cr = gdk_cairo_create(NULL)
+			#else
+				Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#endif
+			#ifdef __USE_GTK4__
+				rb->win = NULL
+			#else
+				rb->win = Event->window
+			#endif
 			Layout_Draw(widget, cr, data1)
 			cairo_destroy(cr)
 			Return False
@@ -1167,11 +1258,20 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				widget = gtk_layout_new(NULL, NULL)
 				layoutwidget = widget
-				#ifdef __USE_GTK3__
-					g_signal_connect(widget, "draw", G_CALLBACK(@Layout_Draw), @This)
+				#ifndef __USE_GTK2__
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(widget, "draw", G_CALLBACK(@Layout_Draw), @This)
+						gtk4compat_signal_connect(widget, "size-allocate", G_CALLBACK(@Layout_SizeAllocate), @This)
+					#else
+						g_signal_connect(widget, "draw", G_CALLBACK(@Layout_Draw), @This)
+					#endif
 				#else
 					g_signal_connect(widget, "expose-event", G_CALLBACK(@Layout_ExposeEvent), @This)
-					g_signal_connect(widget, "size-allocate", G_CALLBACK(@Layout_SizeAllocate), @This)
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(widget, "size-allocate", G_CALLBACK(@Layout_SizeAllocate), @This)
+					#else
+						g_signal_connect(widget, "size-allocate", G_CALLBACK(@Layout_SizeAllocate), @This)
+					#endif
 				#endif
 				.RegisterClass "ReBar", @This
 			#else

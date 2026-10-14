@@ -17,7 +17,7 @@
 'https://www.cnblogs.com/browser-yy/p/3295939.html   C# 格式化字符串（转载）
 #include once "Control.bi"
 #include once "WStringList.bi"
-#ifdef __USE_GTK__
+#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK4__)
 	#include once "glib-object.bi"
 #endif
 

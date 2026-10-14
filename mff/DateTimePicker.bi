@@ -29,7 +29,7 @@ Namespace My.Sys.Forms
 		PrevPart            As Integer
 		PrevDateTimePart    As String
 		#ifdef __USE_GTK__
-			#ifndef __USE_GTK3__
+			#ifdef __USE_GTK2__
 				Dim As GtkWidget Ptr CheckLayoutWidget, ButtonLayoutWidget
 			#endif
 			Dim As GtkWidget Ptr CheckWidget, TextWidget, ButtonWidget, UpDownWidget, PopupWindow, CalendarWidget

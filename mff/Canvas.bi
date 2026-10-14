@@ -154,10 +154,6 @@ Namespace My.Sys.Drawing
 	Protected:
 		#ifdef __USE_GTK__
 			Dim As PangoContext Ptr pcontext
-			#ifdef __USE_GTK4__
-				Dim As cairo_region_t Ptr cairoRegion
-				Dim As GdkDrawingContext Ptr DrawingContext
-			#endif
 		#elseif defined(__USE_CAIRO__)
 			Dim As cairo_surface_t Ptr cairoSurface
 			Dim As HDC DeviceContextHandle

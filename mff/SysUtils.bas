@@ -21,6 +21,7 @@
 		#include once "gir_headers/Gir/PangoCairo-1.0.bi"
 		#include once "gir_headers/Gir/Gtk-4.0.bi"
 		#include once "gir_headers/Gir/_GObjectMacros-2.0.bi"
+		#include once "gtk4compat.bi"
 	#else
 		#include once "gtk/gtk.bi"
 		#ifdef __USE_GTK3__

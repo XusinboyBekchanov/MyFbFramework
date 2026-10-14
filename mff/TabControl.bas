@@ -247,7 +247,11 @@ Namespace My.Sys.Forms
 	Private Property TabPage.ImageKey(ByRef Value As WString)
 		WLet(FImageKey, Value)
 		#ifdef __USE_GTK__
-			gtk_image_set_from_icon_name(GTK_IMAGE(_Icon), ToUtf8(Value), GTK_ICON_SIZE_MENU)
+			#ifdef __USE_GTK4__
+				gtk_image_set_from_icon_name(GTK_IMAGE(_Icon), ToUtf8(Value))
+			#else
+				gtk_image_set_from_icon_name(GTK_IMAGE(_Icon), ToUtf8(Value), GTK_ICON_SIZE_MENU)
+			#endif
 		#else
 			Update
 		#endif
@@ -605,7 +609,13 @@ Namespace My.Sys.Forms
 	Private Function TabControl.ItemHeight(Index As Integer) As Integer
 		If Index >= 0 And Index < TabCount Then
 			#ifdef __USE_GTK__
-				#ifdef __USE_GTK3__
+				#ifdef __USE_GTK4__
+					' Before the first layout (e.g. in OnShow) the tab is not allocated yet: its natural size is returned
+					Dim As GtkWidget Ptr TabLabel = gtk_notebook_get_tab_label(GTK_NOTEBOOK(widget), Tabs[Index]->widget)
+					Dim As gint Size = gtk_widget_get_allocated_height(TabLabel)
+					If Size <= 0 AndAlso TabLabel <> 0 Then gtk_widget_measure(TabLabel, GTK_ORIENTATION_VERTICAL, -1, NULL, @Size, NULL, NULL)
+					Return Size
+				#elseif Not defined(__USE_GTK2__)
 					Return gtk_widget_get_allocated_height(gtk_notebook_get_tab_label(GTK_NOTEBOOK(widget), Tabs[Index]->widget))
 				#else
 					Return gtk_notebook_get_tab_label(GTK_NOTEBOOK(widget), Tabs[Index]->widget)->allocation.height
@@ -622,7 +632,13 @@ Namespace My.Sys.Forms
 	Private Function TabControl.ItemWidth(Index As Integer) As Integer
 		If Index >= 0 And Index < TabCount Then
 			#ifdef __USE_GTK__
-				#ifdef __USE_GTK3__
+				#ifdef __USE_GTK4__
+					' Before the first layout (e.g. in OnShow) the tab is not allocated yet: its natural size is returned
+					Dim As GtkWidget Ptr TabLabel = gtk_notebook_get_tab_label(GTK_NOTEBOOK(widget), Tabs[Index]->widget)
+					Dim As gint Size = gtk_widget_get_allocated_width(TabLabel)
+					If Size <= 0 AndAlso TabLabel <> 0 Then gtk_widget_measure(TabLabel, GTK_ORIENTATION_HORIZONTAL, -1, NULL, @Size, NULL, NULL)
+					Return Size
+				#elseif Not defined(__USE_GTK2__)
 					Return gtk_widget_get_allocated_width(gtk_notebook_get_tab_label(GTK_NOTEBOOK(widget), Tabs[Index]->widget))
 				#else
 					Return gtk_notebook_get_tab_label(GTK_NOTEBOOK(widget), Tabs[Index]->widget)->allocation.width
@@ -947,12 +963,20 @@ Namespace My.Sys.Forms
 		Tabs[FTabCount - 1] = tp
 		#ifdef __USE_GTK__
 			If widget Then
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					tp->_Box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+					#ifdef __USE_GTK4__
+						' The children packed at the end expand (gtk_box_pack_end), the tab must not take the whole bar
+						gtk_widget_set_hexpand(tp->_Box, False)
+					#endif
 				#else
 					tp->_Box = gtk_hbox_new(False, 1)
 				#endif
-				tp->_Icon = gtk_image_new_from_icon_name(ToUtf8(tp->ImageKey), GTK_ICON_SIZE_MENU)
+				#ifdef __USE_GTK4__
+					tp->_Icon = gtk_image_new_from_icon_name(ToUtf8(tp->ImageKey))
+				#else
+					tp->_Icon = gtk_image_new_from_icon_name(ToUtf8(tp->ImageKey), GTK_ICON_SIZE_MENU)
+				#endif
 				gtk_container_add (GTK_CONTAINER (tp->_Box), tp->_Icon)
 				tp->_Label = gtk_label_new(ToUtf8(tp->Caption))
 				gtk_container_add (GTK_CONTAINER (tp->_Box), tp->_Label)
@@ -981,7 +1005,12 @@ Namespace My.Sys.Forms
 			SetMargins
 		#endif
 		This.Add(tp)
-		tp->Visible = FTabCount = 1
+		#ifdef __USE_GTK4__
+			' GtkNotebook hides the tab of a hidden page, and GTK4 has no show_all to restore it
+			tp->Visible = True
+		#else
+			tp->Visible = FTabCount = 1
+		#endif
 		If OnTabAdded Then OnTabAdded(*Designer, This, Tabs[FTabCount - 1], FTabCount - 1)
 		Return Tabs[FTabCount - 1]
 	End Function
@@ -1010,12 +1039,20 @@ Namespace My.Sys.Forms
 		End If
 		#ifdef __USE_GTK__
 			If widget Then
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					tp->_Box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+					#ifdef __USE_GTK4__
+						' The children packed at the end expand (gtk_box_pack_end), the tab must not take the whole bar
+						gtk_widget_set_hexpand(tp->_Box, False)
+					#endif
 				#else
 					tp->_Box = gtk_hbox_new(False, 1)
 				#endif
-				tp->_Icon = gtk_image_new_from_icon_name(ToUtf8(tp->ImageKey), GTK_ICON_SIZE_MENU)
+				#ifdef __USE_GTK4__
+					tp->_Icon = gtk_image_new_from_icon_name(ToUtf8(tp->ImageKey))
+				#else
+					tp->_Icon = gtk_image_new_from_icon_name(ToUtf8(tp->ImageKey), GTK_ICON_SIZE_MENU)
+				#endif
 				gtk_container_add (GTK_CONTAINER (tp->_Box), tp->_Icon)
 				tp->_Label = gtk_label_new(ToUtf8(tp->Caption))
 				gtk_container_add (GTK_CONTAINER (tp->_Box), tp->_Label)
@@ -1026,7 +1063,12 @@ Namespace My.Sys.Forms
 				gtk_notebook_set_tab_detachable(GTK_NOTEBOOK(widget), tp->widget, FDetachable)
 				'RequestAlign
 			End If
-			tp->Visible = FTabCount = 1
+			#ifdef __USE_GTK4__
+				' GtkNotebook hides the tab of a hidden page, and GTK4 has no show_all to restore it
+				tp->Visible = True
+			#else
+				tp->Visible = FTabCount = 1
+			#endif
 			If widget Then
 				gtk_widget_show_all(widget)
 			End If
@@ -1165,12 +1207,20 @@ Namespace My.Sys.Forms
 			'tp->TabPageControl = @This
 			#ifdef __USE_GTK__
 				If widget Then
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						tp->_Box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+						#ifdef __USE_GTK4__
+							' The children packed at the end expand (gtk_box_pack_end), the tab must not take the whole bar
+							gtk_widget_set_hexpand(tp->_Box, False)
+						#endif
 					#else
 						tp->_Box = gtk_hbox_new(False, 1)
 					#endif
-					tp->_Icon = gtk_image_new_from_icon_name(ToUtf8(tp->ImageKey), GTK_ICON_SIZE_MENU)
+					#ifdef __USE_GTK4__
+						tp->_Icon = gtk_image_new_from_icon_name(ToUtf8(tp->ImageKey))
+					#else
+						tp->_Icon = gtk_image_new_from_icon_name(ToUtf8(tp->ImageKey), GTK_ICON_SIZE_MENU)
+					#endif
 					gtk_container_add (GTK_CONTAINER (tp->_Box), tp->_Icon)
 					tp->_Label = gtk_label_new(ToUtf8(tp->Caption))
 					gtk_container_add (GTK_CONTAINER (tp->_Box), tp->_Label)
@@ -1191,7 +1241,12 @@ Namespace My.Sys.Forms
 			#endif
 			SetMargins
 			This.Add(tp)
-			tp->Visible = FTabCount = 1
+			#ifdef __USE_GTK4__
+				' GtkNotebook hides the tab of a hidden page, and GTK4 has no show_all to restore it
+				tp->Visible = True
+			#else
+				tp->Visible = FTabCount = 1
+			#endif
 			If OnTabAdded Then OnTabAdded(*Designer, This, tp, iIndex)
 			Return Tabs[iIndex]
 		'End If
@@ -1205,12 +1260,20 @@ Namespace My.Sys.Forms
 		Tabs[FTabCount - 1] = tp
 		#ifdef __USE_GTK__
 			If widget Then
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					tp->_Box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
+					#ifdef __USE_GTK4__
+						' The children packed at the end expand (gtk_box_pack_end), the tab must not take the whole bar
+						gtk_widget_set_hexpand(tp->_Box, False)
+					#endif
 				#else
 					tp->_Box = gtk_hbox_new(False, 1)
 				#endif
-				tp->_Icon = gtk_image_new_from_icon_name(ToUtf8(tp->ImageKey), GTK_ICON_SIZE_MENU)
+				#ifdef __USE_GTK4__
+					tp->_Icon = gtk_image_new_from_icon_name(ToUtf8(tp->ImageKey))
+				#else
+					tp->_Icon = gtk_image_new_from_icon_name(ToUtf8(tp->ImageKey), GTK_ICON_SIZE_MENU)
+				#endif
 				gtk_container_add (GTK_CONTAINER (tp->_Box), tp->_Icon)
 				tp->_Label = gtk_label_new(ToUtf8(tp->Caption))
 				gtk_container_add (GTK_CONTAINER (tp->_Box), tp->_Label)
@@ -1221,7 +1284,12 @@ Namespace My.Sys.Forms
 				gtk_notebook_set_tab_detachable(GTK_NOTEBOOK(widget), tp->widget, FDetachable)
 				'RequestAlign
 			End If
-			tp->Visible = FTabCount = 1
+			#ifdef __USE_GTK4__
+				' GtkNotebook hides the tab of a hidden page, and GTK4 has no show_all to restore it
+				tp->Visible = True
+			#else
+				tp->Visible = FTabCount = 1
+			#endif
 			If widget Then
 				gtk_widget_show_all(widget)
 			End If

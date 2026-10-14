@@ -800,7 +800,14 @@ Namespace My.Sys.Forms
 	Private Function Chart.PtInPath(hPath As Any Ptr, X As Single, Y As Single) As Boolean
 		#ifdef __USE_GTK__
 			Dim As Boolean bResult
-			Dim As cairo_t Ptr cr1 = gdk_cairo_create(gtk_widget_get_window(widget))
+			#ifdef __USE_GTK4__
+				' Only the path geometry is needed
+				Dim As cairo_surface_t Ptr TempSurface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1)
+				Dim As cairo_t Ptr cr1 = cairo_create(TempSurface)
+				cairo_surface_destroy(TempSurface)
+			#else
+				Dim As cairo_t Ptr cr1 = gdk_cairo_create(gtk_widget_get_window(widget))
+			#endif
 			Dim As cairo_path_t Ptr path = hPath
 			cairo_new_path(cr1)
 			cairo_append_path(cr1, path)
@@ -4620,7 +4627,16 @@ Namespace My.Sys.Forms
 	Private Sub Chart.ProcessMessage(ByRef Message As Message)
 		Static DownButton As Integer = -1
 		Dim As Integer HitResult
-		#ifdef __USE_GTK__
+		#ifdef __USE_GTK4__
+			Dim As GdkEvent Ptr e = Message.Event
+			Dim As gdouble ex, ey
+			gtk4compat_event_get_widget_position(widget, e, @ex, @ey)
+			Select Case gtk4compat_event_type(e)
+			Case GDK_BUTTON_PRESS: DownButton = gdk_button_event_get_button(e) - 1
+			Case GDK_BUTTON_RELEASE: MouseUp gdk_button_event_get_button(e) - 1, gdk_event_get_modifier_state(e), ex, ey: DownButton = -1
+			Case GDK_MOTION_NOTIFY: MouseMove(DownButton, gdk_event_get_modifier_state(e), ex, ey)
+			End Select
+		#elseif defined(__USE_GTK__)
 			Dim As GdkEvent Ptr e = Message.Event
 			Select Case Message.Event->type
 			Case GDK_BUTTON_PRESS: DownButton = e->button.button - 1
@@ -4704,7 +4720,7 @@ Namespace My.Sys.Forms
 					.mHotSerie = -1
 				End With
 			End If
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				chrt->cr = cr
 			#else
 				chrt->cr = cr
@@ -4716,11 +4732,13 @@ Namespace My.Sys.Forms
 		End Function
 		
 		Private Function Chart.OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
-			Dim As Chart Ptr chrt = Cast(Any Ptr, data1)
-			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
-			chrt->win = Event->window
-			chrt->OnDraw widget, cr, data1
-			cairo_destroy(cr)
+			#ifndef __USE_GTK4__
+				Dim As Chart Ptr chrt = Cast(Any Ptr, data1)
+				Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+				chrt->win = Event->window
+				chrt->OnDraw widget, cr, data1
+				cairo_destroy(cr)
+			#endif
 			Return False
 		End Function
 		
@@ -4755,11 +4773,20 @@ Namespace My.Sys.Forms
 				GDK_BUTTON_RELEASE_MASK Or _
 				GDK_POINTER_MOTION_MASK Or _
 				GDK_POINTER_MOTION_HINT_MASK)
-				g_signal_connect(widget, "size-allocate", G_CALLBACK(@OnSizeAllocate), @This)
-				#ifdef __USE_GTK3__
-					g_signal_connect(widget, "draw", G_CALLBACK(@OnDraw), @This)
+				#ifdef __USE_GTK4__
+					mff_widget_set_size_allocate_func(widget, @OnSizeAllocate, @This)
+					mff_widget_set_draw_func(widget, @OnDraw, @This)
 				#else
-					g_signal_connect(widget, "expose-event", G_CALLBACK(@OnExposeEvent), @This)
+					g_signal_connect(widget, "size-allocate", G_CALLBACK(@OnSizeAllocate), @This)
+					#ifndef __USE_GTK2__
+						#ifdef __USE_GTK4__
+							gtk4compat_signal_connect(widget, "draw", G_CALLBACK(@OnDraw), @This)
+						#else
+							g_signal_connect(widget, "draw", G_CALLBACK(@OnDraw), @This)
+						#endif
+					#else
+						g_signal_connect(widget, "expose-event", G_CALLBACK(@OnExposeEvent), @This)
+					#endif
 				#endif
 				pcontext = gtk_widget_create_pango_context(widget)
 				layout = pango_layout_new(pcontext)

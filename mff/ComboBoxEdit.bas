@@ -758,7 +758,7 @@ Namespace My.Sys.Forms
 		ItemCount = 0
 		Items.Clear
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT(widget))
 			#else
 				Dim As GtkListStore Ptr store
@@ -894,7 +894,7 @@ Namespace My.Sys.Forms
 			#endif
 			.Width          = 121
 			#ifdef __USE_GTK__
-				#ifndef __USE_GTK3__
+				#ifdef __USE_GTK2__
 					.FMinHeight     = 33
 				#endif
 				.Height        = 20
@@ -911,14 +911,14 @@ Namespace My.Sys.Forms
 			#ifndef __FB_WIN32__
 				If DropDownWidget AndAlso GTK_IS_WIDGET(DropDownWidget) Then
 					#ifdef __USE_GTK4__
-						g_object_unref(DropDownWidget)
+						gtk_widget_destroy(DropDownWidget)
 					#else
 						gtk_widget_destroy(DropDownWidget)
 					#endif
 				End If
 				If DropDownListWidget AndAlso GTK_IS_WIDGET(DropDownListWidget) Then
 					#ifdef __USE_GTK4__
-						g_object_unref(DropDownListWidget)
+						gtk_widget_destroy(DropDownListWidget)
 					#else
 						gtk_widget_destroy(DropDownListWidget)
 					#endif

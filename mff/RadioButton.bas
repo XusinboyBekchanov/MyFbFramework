@@ -96,7 +96,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			For i As Integer = 0 To Value->ControlCount - 1
 				If Value->Controls[i]->ClassName = "RadioButton" Then
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						gtk_radio_button_join_group(GTK_RADIO_BUTTON(widget), GTK_RADIO_BUTTON(Value->Controls[i]->widget))
 					#else
 						gtk_radio_button_set_group(GTK_RADIO_BUTTON(widget), gtk_radio_button_get_group(GTK_RADIO_BUTTON(Value->Controls[i]->widget)))
@@ -114,7 +114,11 @@ Namespace My.Sys.Forms
 	Private Property RadioButton.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
-			gtk_label_set_text_with_mnemonic(GTK_LABEL(gtk_bin_get_child(GTK_BIN(widget))), ToUtf8(Replace(Value, "&", "_")))
+			#ifdef __USE_GTK4__
+				gtk_check_button_set_use_underline(GTK_CHECK_BUTTON(widget), True): gtk_check_button_set_label(GTK_CHECK_BUTTON(widget), ToUtf8(Replace(Value, "&", "_")))
+			#else
+				gtk_label_set_text_with_mnemonic(GTK_LABEL(gtk_bin_get_child(GTK_BIN(widget))), ToUtf8(Replace(Value, "&", "_")))
+			#endif
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(FText)))
@@ -125,7 +129,11 @@ Namespace My.Sys.Forms
 	Private Property RadioButton.Checked As Boolean
 		If FHandle Then
 			#ifdef __USE_GTK__
-				FChecked = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))
+				#ifdef __USE_GTK4__
+					FChecked = gtk_check_button_get_active(GTK_CHECK_BUTTON(widget))
+				#else
+					FChecked = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))
+				#endif
 			#elseif defined(__USE_WINAPI__)
 				FChecked = Perform(BM_GETCHECK, 0, 0)
 			#elseif defined(__USE_JNI__)
@@ -141,7 +149,11 @@ Namespace My.Sys.Forms
 		FChecked = Value
 		If FHandle Then
 			#ifdef __USE_GTK__
-				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), Value)
+				#ifdef __USE_GTK4__
+					gtk_check_button_set_active(GTK_CHECK_BUTTON(widget), Value)
+				#else
+					gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), Value)
+				#endif
 			#elseif defined(__USE_WINAPI__)
 				Perform(BM_SETCHECK, FChecked, 0)
 				If FChecked Then

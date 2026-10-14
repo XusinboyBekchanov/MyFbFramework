@@ -217,7 +217,11 @@ Namespace My.Sys.Forms
 		End Function
 
 		Private Function PrintPreviewControl.DrawingArea_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
-			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#ifdef __USE_GTK4__
+				Dim As cairo_t Ptr cr = gdk_cairo_create(NULL)
+			#else
+				Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#endif
 			DrawingArea_Draw(widget, cr, data1)
 			cairo_destroy(cr)
 			Return True
@@ -539,7 +543,11 @@ Namespace My.Sys.Forms
 	
 	Private Constructor PrintPreviewControl
 		#ifdef __USE_GTK__
-			widget = gtk_scrolled_window_new(NULL, NULL)
+			#ifdef __USE_GTK4__
+				widget = gtk_scrolled_window_new()
+			#else
+				widget = gtk_scrolled_window_new(NULL, NULL)
+			#endif
 			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 			'g_signal_connect(widget, "value-changed", G_CALLBACK(@Range_ValueChanged), @This)
 			FDrawingArea = gtk_drawing_area_new()
@@ -548,8 +556,12 @@ Namespace My.Sys.Forms
 			#else
 				gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(widget), FDrawingArea)
 			#endif
-			#ifdef __USE_GTK3__
-				g_signal_connect(FDrawingArea, "draw", G_CALLBACK(@DrawingArea_Draw), @This)
+			#ifndef __USE_GTK2__
+				#ifdef __USE_GTK4__
+					gtk4compat_signal_connect(FDrawingArea, "draw", G_CALLBACK(@DrawingArea_Draw), @This)
+				#else
+					g_signal_connect(FDrawingArea, "draw", G_CALLBACK(@DrawingArea_Draw), @This)
+				#endif
 			#else
 				g_signal_connect(FDrawingArea, "expose-event", G_CALLBACK(@DrawingArea_ExposeEvent), @This)
 			#endif

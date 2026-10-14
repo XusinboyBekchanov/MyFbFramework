@@ -31,7 +31,7 @@ Namespace My.Sys.Forms
 				Select Case LCase(PropertyName)
 				Case "designmode": DesignMode = QBoolean(Value)
 					If FDesignMode Then 
-						#if defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
+						#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK2__)
 							gtk_widget_set_can_focus(UpDownButton.widget, False)
 							gtk_overlay_add_overlay(GTK_OVERLAY(overlaywidget), NumericUpDownControl.widget)
 							gtk_overlay_add_overlay(GTK_OVERLAY(overlaywidget), UpDownButton.widget)
@@ -105,7 +105,7 @@ Namespace My.Sys.Forms
 		Private Function PagePanel.GetContent() As UString
 			Return ""
 		End Function
-	#elseif defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
+	#elseif defined(__USE_GTK__) AndAlso Not defined(__USE_GTK2__)
 		Private Function PagePanel.Overlay_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
 			Dim As PagePanel Ptr pp = user_data
 			If GTK_IS_BUTTON(widget) Then
@@ -257,7 +257,7 @@ Namespace My.Sys.Forms
 	Private Property PagePanel.SelectedPanelIndex(Value As Integer)
 		If Value >= -1 AndAlso Value <= FControlCount - 1 Then
 			FSelectedPanelIndex = Value
-			#if defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
+			#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK2__)
 				Dim As Boolean bVisible
 				If FSelectedPanelIndex = -1 Then
 					bVisible = False
@@ -337,7 +337,7 @@ Namespace My.Sys.Forms
 	Private Sub PagePanel.Add(Ctrl As Control Ptr, Index As Integer = -1)
 		Base.Add(Ctrl, Index)
 		If FDesignMode Then
-			#if defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
+			#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK2__)
 				NumericUpDownControl.MaxValue = Max(-1, ControlCount - 1)
 				NumericUpDownControl.Position = ControlCount - 1
 			#else
@@ -375,7 +375,7 @@ Namespace My.Sys.Forms
 		If OnSelChange Then OnSelChange(*Designer, This, FSelectedPanelIndex)
 	End Sub
 	
-	#if defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
+	#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK2__)
 	Private Sub PagePanel.UpDownButton_Click(ByRef Sender As Control)
 	#else
 	Private Sub PagePanel.UpDownControl_Changing(ByRef Sender As UpDown, Value As Integer, Direction As Integer)
@@ -390,7 +390,7 @@ Namespace My.Sys.Forms
 			Var mnu = mnuShowPanel.Add(WStr(j) & ": " & Controls[i]->Name, "", , Cast(NotifyEvent, @MenuItem_Click))
 			mnu->Designer = @This
 		Next
-		#if defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
+		#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK2__)
 			Dim p As My.Sys.Drawing.Point = Type(UpDownButton.Left, UpDownButton.Top + UpDownButton.Height)
 		#else
 			Dim p As My.Sys.Drawing.Point = Type(UpDownPanel.Left, UpDownPanel.Top + UpDownPanel.Height)
@@ -422,7 +422,7 @@ Namespace My.Sys.Forms
 			NumericUpDownControl.UpDownWidth = 28
 			NumericUpDownControl.Designer = @This
 			NumericUpDownControl.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As NumericUpDown), @NumericUpDownControl_Change)
-			#if defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
+			#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK2__)
 				UpDownButton.Caption = "V"
 				UpDownButton.Designer = @This
 				UpDownButton.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @UpDownButton_Click)
@@ -450,7 +450,7 @@ Namespace My.Sys.Forms
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "div")
 			#elseif defined(__USE_GTK__)
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					widget = gtk_stack_new()
 					overlaywidget = gtk_overlay_new()
 					gtk_container_add(GTK_CONTAINER(overlaywidget), widget)

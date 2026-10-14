@@ -28,9 +28,7 @@ Type As UInteger gsize, size_t
 #ifndef FILE
  Type As Any Ptr FILE
 #endif
-#undef True
-#undef False
-Const As gboolean True = 1, False = 0
+' FreeBASIC's True and False are kept (gboolean values are converted)
 #undef NULL
 Const As Any Ptr NULL = 0
 

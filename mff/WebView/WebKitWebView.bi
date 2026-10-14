@@ -1,4 +1,6 @@
-﻿#ifdef __USE_GTK3__
+﻿#ifdef __USE_GTK4__
+	#inclib "webkitgtk-6.0"
+#elseif defined(__USE_GTK3__)
 	#inclib "webkitgtk-3.0"
 #else
 	#inclib "webkitgtk-1.0"

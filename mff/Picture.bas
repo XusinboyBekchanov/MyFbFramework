@@ -377,7 +377,7 @@ Namespace My.Sys.Forms
 			' ImageWidget is 0 if GTK has already destroyed it (see WatchWeakPointer)
 			If ImageWidget AndAlso GTK_IS_WIDGET(ImageWidget) Then
 				#ifdef __USE_GTK4__
-					g_object_unref(ImageWidget)
+					gtk_widget_destroy(ImageWidget)
 				#else
 					gtk_widget_destroy(ImageWidget)
 				#endif

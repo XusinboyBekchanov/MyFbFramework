@@ -6,7 +6,7 @@
 
 #include once "Control.bi"
 #include once "WStringList.bi"
-#ifdef __USE_GTK__
+#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK4__)
 	#include once "glib-object.bi"
 #endif
 

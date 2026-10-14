@@ -12,13 +12,17 @@
 	#endif
 #elseif defined(__USE_GTK__) AndAlso defined(__FB_WIN32__)
 	#ifdef __FB_64BIT__
-		#ifdef __USE_GTK3__
+		#ifdef __USE_GTK4__
+			#cmdline "-x ../mff64_gtk4.dll"
+		#elseif defined(__USE_GTK3__)
 			#cmdline "-x ../mff64_gtk3.dll"
 		#else
 			#cmdline "-x ../mff64_gtk2.dll"
 		#endif
 	#else
-		#ifdef __USE_GTK3__
+		#ifdef __USE_GTK4__
+			#cmdline "-x ../mff32_gtk4.dll"
+		#elseif defined(__USE_GTK3__)
 			#cmdline "-x ../mff32_gtk3.dll"
 		#else
 			#cmdline "-x ../mff32_gtk2.dll"
@@ -26,13 +30,17 @@
 	#endif
 #else
 	#ifdef __FB_64BIT__
-		#ifdef __USE_GTK3__
+		#ifdef __USE_GTK4__
+			#cmdline "-x ../libmff64_gtk4.so"
+		#elseif defined(__USE_GTK3__)
 			#cmdline "-x ../libmff64_gtk3.so"
 		#else
 			#cmdline "-x ../libmff64_gtk2.so"
 		#endif
 	#else
-		#ifdef __USE_GTK3__
+		#ifdef __USE_GTK4__
+			#cmdline "-x ../libmff32_gtk4.so"
+		#elseif defined(__USE_GTK3__)
 			#cmdline "-x ../libmff32_gtk3.so"
 		#else
 			#cmdline "-x ../libmff32_gtk2.so"

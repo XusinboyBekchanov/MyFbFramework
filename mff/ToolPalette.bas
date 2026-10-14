@@ -919,7 +919,11 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				widget = gtk_tool_palette_new()
 				gtk_tool_palette_set_style(GTK_TOOL_PALETTE(widget), GTK_TOOLBAR_BOTH_HORIZ)
-				scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+				#ifdef __USE_GTK4__
+					scrolledwidget = gtk_scrolled_window_new()
+				#else
+					scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+				#endif
 				gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 				gtk_container_add(GTK_CONTAINER(scrolledwidget), widget)
 				.RegisterClass "ToolPalette", @This

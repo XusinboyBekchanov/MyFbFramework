@@ -127,7 +127,11 @@ Namespace My.Sys.Forms
 	Private Property OpenFileControl.InitialDir ByRef As WString
 		If FHandle Then
 			#ifdef __USE_GTK__
-				Dim As ZString Ptr pDir = gtk_file_chooser_get_current_folder(GTK_FILE_CHOOSER (widget))
+				#ifdef __USE_GTK4__
+					Dim As ZString Ptr pDir = gtk_file_chooser_get_current_folder_path(GTK_FILE_CHOOSER (widget))
+				#else
+					Dim As ZString Ptr pDir = gtk_file_chooser_get_current_folder(GTK_FILE_CHOOSER (widget))
+				#endif
 				If pDir Then
 					WLet(FInitialDir, WStr(*pDir))
 					g_free(pDir)
@@ -147,7 +151,11 @@ Namespace My.Sys.Forms
 		If @Value <> FInitialDir Then WLet(FInitialDir, Value) ' guard against aliasing
 		#ifdef __USE_GTK__
 			If WGet(FInitialDir) = "" Then WLet(FInitialDir, CurDir)
-			gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUtf8(*FInitialDir))
+			#ifdef __USE_GTK4__
+				gtk_file_chooser_set_current_folder_path(GTK_FILE_CHOOSER (widget), ToUtf8(*FInitialDir))
+			#else
+				gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUtf8(*FInitialDir))
+			#endif
 		#endif
 	End Property
 	

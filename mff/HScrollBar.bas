@@ -69,7 +69,11 @@ Namespace My.Sys.Forms
 	Private Property HScrollBar.MinValue(Value As Integer)
 		FMin = Value
 		#ifdef __USE_GTK__
-			gtk_range_set_range(gtk_range(widget), FMin, FMax)
+			#ifdef __USE_GTK4__
+				gtk4compat_range_set_range(widget, FMin, FMax)
+			#else
+				gtk_range_set_range(gtk_range(widget), FMin, FMax)
+			#endif
 		#else
 			If Handle Then Perform(SBM_SETRANGE, FMin, FMax)
 		#endif
@@ -82,7 +86,11 @@ Namespace My.Sys.Forms
 	Private Property HScrollBar.MaxValue(Value As Integer)
 		FMax = Value
 		#ifdef __USE_GTK__
-			gtk_range_set_range(gtk_range(widget), FMin, FMax)
+			#ifdef __USE_GTK4__
+				gtk4compat_range_set_range(widget, FMin, FMax)
+			#else
+				gtk_range_set_range(gtk_range(widget), FMin, FMax)
+			#endif
 		#else
 			If Handle Then Perform(SBM_SETRANGE, FMin, FMax)
 		#endif
@@ -90,7 +98,11 @@ Namespace My.Sys.Forms
 	
 	Private Property HScrollBar.Position As Integer
 		#ifdef __USE_GTK__
-			FPosition = gtk_range_get_value(gtk_range(widget))
+			#ifdef __USE_GTK4__
+				FPosition = gtk4compat_range_get_value(widget)
+			#else
+				FPosition = gtk_range_get_value(gtk_range(widget))
+			#endif
 		#else
 			If Handle Then FPosition = Perform(SBM_GETPOS, 0, 0)
 		#endif
@@ -100,7 +112,11 @@ Namespace My.Sys.Forms
 	Private Property HScrollBar.Position(Value As Integer)
 		FPosition = Value
 		#ifdef __USE_GTK__
-			gtk_range_set_value(gtk_range(widget), CDbl(Value))
+			#ifdef __USE_GTK4__
+				gtk4compat_range_set_value(widget, CDbl(Value))
+			#else
+				gtk_range_set_value(gtk_range(widget), CDbl(Value))
+			#endif
 		#else
 			If Handle Then Perform(SBM_SETPOS, FPosition, True)
 		#endif
@@ -113,7 +129,11 @@ Namespace My.Sys.Forms
 	Private Property HScrollBar.ArrowChangeSize(Value As Integer)
 		FArrowChangeSize = Value
 		#ifdef __USE_GTK__
-			gtk_range_set_increments(gtk_range(widget), FArrowChangeSize, FPageSize)
+			#ifdef __USE_GTK4__
+				gtk4compat_range_set_increments(widget, FArrowChangeSize, FPageSize)
+			#else
+				gtk_range_set_increments(gtk_range(widget), FArrowChangeSize, FPageSize)
+			#endif
 		#endif
 	End Property
 	
@@ -125,7 +145,11 @@ Namespace My.Sys.Forms
 		If FPageSize > FMax Or Value = FPageSize Then Exit Property
 		FPageSize = Value
 		#ifdef __USE_GTK__
-			gtk_range_set_increments(gtk_range(widget), FArrowChangeSize, FPageSize)
+			#ifdef __USE_GTK4__
+				gtk4compat_range_set_increments(widget, FArrowChangeSize, FPageSize)
+			#else
+				gtk_range_set_increments(gtk_range(widget), FArrowChangeSize, FPageSize)
+			#endif
 		#else
 			SIF.fMask = SIF_PAGE
 			SIF.nPage = FPageSize
@@ -209,18 +233,26 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Private Sub HScrollBar.Range_ValueChanged(range As GtkRange Ptr, user_data As Any Ptr)
 			Dim As HScrollBar Ptr scr = user_data
-			If scr->OnScroll Then scr->OnScroll(*scr->Designer, *scr, gtk_range_get_value(range))
+			#ifdef __USE_GTK4__
+				If scr->OnScroll Then scr->OnScroll(*scr->Designer, *scr, gtk4compat_range_get_value(range))
+			#else
+				If scr->OnScroll Then scr->OnScroll(*scr->Designer, *scr, gtk_range_get_value(range))
+			#endif
 		End Sub
 	#endif
 	
 	Private Constructor HScrollBar
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				widget = gtk_scrollbar_new(GTK_ORIENTATION_HORIZONTAL, NULL)
 			#else
 				widget = gtk_hscrollbar_new(NULL)
 			#endif
-			g_signal_connect(widget, "value-changed", G_CALLBACK(@Range_ValueChanged), @This)
+			#ifdef __USE_GTK4__
+				g_signal_connect(gtk4compat_range_adjustment(widget), "value-changed", G_CALLBACK(@Range_ValueChanged), @This)
+			#else
+				g_signal_connect(widget, "value-changed", G_CALLBACK(@Range_ValueChanged), @This)
+			#endif
 			This.RegisterClass "HScrollBar", @This
 		#else
 			SIF.cbSize = SizeOf(SCROLLINFO)

@@ -1,0 +1,17 @@
+Alias
+And
+AndAlso
+Const
+Delete
+Eqv
+Imp
+Mod
+New
+Not
+Or
+OrElse
+Pointer
+Ptr
+Shl
+Shr
+Xor

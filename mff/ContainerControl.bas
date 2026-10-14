@@ -46,11 +46,7 @@ Namespace My.Sys.Forms
 					If GTK_IS_WIDGET(box) Then gtk_container_add(GTK_CONTAINER(widget), box)
 					layoutwidget = gtk_layout_new(NULL, NULL)
 					'gtk_container_add(GTK_CONTAINER(widget), layoutwidget)
-					#ifdef __USE_GTK4__
-						gtk_box_pack_end(GTK_BOX(box), layoutwidget)
-					#else
-						gtk_box_pack_end(GTK_BOX(box), layoutwidget, True, True, 0)
-					#endif
+					gtk_box_pack_end(GTK_BOX(box), layoutwidget, True, True, 0)
 					'g_signal_connect(layoutwidget, "event", G_CALLBACK(IIF(WndProcAddr = 0, @EventProc, Proc)), Obj)
 					'g_signal_connect(layoutwidget, "event-after", G_CALLBACK(IIF(WndProcAddr = 0, @EventAfterProc, Proc)), Obj)
 					'g_signal_connect(layoutwidget, "size-allocate", G_CALLBACK(@Control_SizeAllocate), Obj)
@@ -61,7 +57,7 @@ Namespace My.Sys.Forms
 					fixedwidget = widget
 				ElseIf GTK_IS_BOX(widget) = 1 Then
 					box = widget
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 				ElseIf GTK_IS_STACK(widget) = 1 Then
 				#endif
 				ElseIf GTK_IS_SCROLLED_WINDOW(widget) Then
@@ -141,7 +137,7 @@ Namespace My.Sys.Forms
 					fixedwidget = 0
 				ElseIf GTK_IS_BOX(widget) = 1 Then
 					box = 0
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 				ElseIf GTK_IS_STACK(widget) = 1 Then
 				#endif
 				ElseIf GTK_IS_SCROLLED_WINDOW(widget) Then

@@ -460,7 +460,7 @@ Namespace My.Sys.Forms
 	Private Constructor TrackBar
 		Dim As Boolean Result
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				widget = gtk_scale_new(GTK_ORIENTATION_HORIZONTAL, NULL)
 			#else
 				widget = gtk_hscale_new(NULL)

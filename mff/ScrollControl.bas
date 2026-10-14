@@ -297,7 +297,11 @@ Namespace My.Sys.Forms
 	
 	Private Constructor ScrollControl
 		#ifdef __USE_GTK__
-			widget = gtk_scrolled_window_new(NULL, NULL)
+			#ifdef __USE_GTK4__
+				widget = gtk_scrolled_window_new()
+			#else
+				widget = gtk_scrolled_window_new(NULL, NULL)
+			#endif
 			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(widget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 			'g_signal_connect(widget, "value-changed", G_CALLBACK(@Range_ValueChanged), @This)
 			This.RegisterClass "ScrollControl", @This

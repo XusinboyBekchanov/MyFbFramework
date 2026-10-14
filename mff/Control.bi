@@ -480,6 +480,26 @@ Namespace My.Sys.Forms
 				Declare Static Function Control_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 				Declare Static Sub DragDataReceived(self As GtkWidget Ptr, CONTEXT As GdkDragContext Ptr, x As gint, y As gint, Data As GtkSelectionData Ptr, info As guint, Time As guint, user_data As Any Ptr)
 				Declare Static Function ConfigureEventProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+				#ifdef __USE_GTK4__
+					FLastPressTime As guint32
+					FLastPressButton As guint
+					FLastPressX As Double
+					FLastPressY As Double
+					Declare Sub UpdateDropTarget(Value As Boolean)
+					Declare Sub DoMap()
+					Declare Function IsEventForThis(e As GdkEvent Ptr) As Boolean
+					Declare Function IsDoubleClick(e As GdkEvent Ptr) As Boolean
+					Declare Static Sub SendPseudoEvent(widget As GtkWidget Ptr, Ctrl As Control Ptr, EventType As Integer)
+					Declare Static Function DropTarget_Drop(target As GtkDropTarget Ptr, value As Const GValue Ptr, x As gdouble, y As gdouble, user_data As Any Ptr) As Boolean
+					Declare Static Function LegacyEventProc(controller As GtkEventController Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+					Declare Static Sub Control_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
+					Declare Static Sub Control_Unmap(widget As GtkWidget Ptr, user_data As Any Ptr)
+					Declare Static Sub Control_Destroy(widget As GtkWidget Ptr, user_data As Any Ptr)
+					Declare Static Sub Control_FocusEnter(controller As GtkEventController Ptr, user_data As Any Ptr)
+					Declare Static Sub Control_FocusLeave(controller As GtkEventController Ptr, user_data As Any Ptr)
+					Declare Static Sub Control_PointerEnter(controller As GtkEventController Ptr, x As gdouble, y As gdouble, user_data As Any Ptr)
+					Declare Static Sub Control_PointerLeave(controller As GtkEventController Ptr, user_data As Any Ptr)
+				#endif
 			#elseif defined(__USE_WASM__)
 				FType As String
 				FElementStyle As String

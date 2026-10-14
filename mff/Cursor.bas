@@ -171,8 +171,12 @@ Namespace My.Sys.Drawing
 			If Ctrl AndAlso Ctrl->Handle Then
 				Dim As GdkDisplay Ptr pdisplay = gtk_widget_get_display(Ctrl->Handle)
 				Handle = NewFromName(pdisplay, Value)
-				Dim As GdkWindow Ptr win = TargetWindow
-				If win Then gdk_window_set_cursor(win, Handle)
+				#ifdef __USE_GTK4__
+					gtk_widget_set_cursor(Ctrl->Handle, Handle)
+				#else
+					Dim As GdkWindow Ptr win = TargetWindow
+					If win Then gdk_window_set_cursor(win, Handle)
+				#endif
 			End If
 		#endif
 	End Operator
@@ -182,7 +186,11 @@ Namespace My.Sys.Drawing
 		' A NULL cursor resets the window to the inherited (root) cursor, under XWayland/WSLg it
 		' keeps the last shape, e.g. the I-beam of an editor. The core X cursors always exist.
 		Private Function Cursor.NewFromName(pdisplay As GdkDisplay Ptr, ByRef Value As WString) As GdkCursor Ptr
-			Dim As GdkCursor Ptr Result = gdk_cursor_new_from_name(pdisplay, Value)
+			#ifdef __USE_GTK4__
+				Dim As GdkCursor Ptr Result = gdk_cursor_new_from_name(Value, NULL)
+			#else
+				Dim As GdkCursor Ptr Result = gdk_cursor_new_from_name(pdisplay, Value)
+			#endif
 			If Result Then Return Result
 			Dim As GdkCursorType CursorType
 			Select Case LCase(Value)
@@ -241,6 +249,9 @@ Namespace My.Sys.Drawing
 			If Value = 0 Then
 				Handle = 0
 				WLet(FResName, "")
+				#ifdef __USE_GTK4__
+					If Ctrl AndAlso Ctrl->Handle Then gtk_widget_set_cursor(Ctrl->Handle, NULL)
+				#endif
 				Dim As GdkWindow Ptr win = TargetWindow
 				If win Then
 					#ifndef __USE_GTK4__
@@ -250,8 +261,6 @@ Namespace My.Sys.Drawing
 						Else
 							gdk_window_set_cursor(win, NULL)
 						End If
-					#else
-						gdk_window_set_cursor(win, NULL)
 					#endif
 				End If
 			End If

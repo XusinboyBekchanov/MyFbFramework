@@ -60,7 +60,7 @@ Namespace My.Sys.Forms
 	
 	#ifdef __USE_GTK__
 		Private Function ImageBox.DesignDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
 			#else
 				Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
@@ -77,7 +77,11 @@ Namespace My.Sys.Forms
 		End Function
 		
 		Private Function ImageBox.DesignExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
-			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#ifdef __USE_GTK4__
+				Dim As cairo_t Ptr cr = gdk_cairo_create(NULL)
+			#else
+				Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#endif
 			DesignDraw(widget, cr, data1)
 			cairo_destroy(cr)
 			Return False
@@ -88,8 +92,12 @@ Namespace My.Sys.Forms
 		FDesignMode = Value
 		If Value Then
 			#ifdef __USE_GTK__
-				#ifdef __USE_GTK3__
-					g_signal_connect(widget, "draw", G_CALLBACK(@DesignDraw), @This)
+				#ifndef __USE_GTK2__
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(widget, "draw", G_CALLBACK(@DesignDraw), @This)
+					#else
+						g_signal_connect(widget, "draw", G_CALLBACK(@DesignDraw), @This)
+					#endif
 				#else
 					g_signal_connect(widget, "expose-event", G_CALLBACK(@DesignExposeEvent), @This)
 				#endif
@@ -151,9 +159,17 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					Select Case ImageType
 					Case 0
-						gtk_image_set_from_pixbuf(GTK_IMAGE(.Ctrl->widget), .Bitmap.Handle)
+						#ifdef __USE_GTK4__
+							gtk_picture_set_pixbuf(GTK_PICTURE(.Ctrl->widget), .Bitmap.Handle)
+						#else
+							gtk_image_set_from_pixbuf(GTK_IMAGE(.Ctrl->widget), .Bitmap.Handle)
+						#endif
 					Case 1
-						gtk_image_set_from_pixbuf(GTK_IMAGE(.Ctrl->widget), .Icon.Handle)
+						#ifdef __USE_GTK4__
+							gtk_picture_set_pixbuf(GTK_PICTURE(.Ctrl->widget), .Icon.Handle)
+						#else
+							gtk_image_set_from_pixbuf(GTK_IMAGE(.Ctrl->widget), .Icon.Handle)
+						#endif
 					End Select
 				#elseif defined(__USE_WINAPI__)
 					Select Case ImageType
@@ -244,7 +260,15 @@ Namespace My.Sys.Forms
 	
 	Private Constructor ImageBox
 		#ifdef __USE_GTK__
-			widget = gtk_image_new()
+			#ifdef __USE_GTK4__
+				' GtkImage fits the image into a square of the smaller side of the widget, GtkPicture shows it
+				' in its real size (smaller when it does not fit) like GtkImage of GTK3
+				widget = gtk_picture_new()
+				gtk_picture_set_can_shrink(GTK_PICTURE(widget), True)
+				gtk_picture_set_content_fit(GTK_PICTURE(widget), GTK_CONTENT_FIT_SCALE_DOWN)
+			#else
+				widget = gtk_image_new()
+			#endif
 			eventboxwidget = gtk_event_box_new()
 			gtk_container_add(GTK_CONTAINER(eventboxwidget), widget)
 			This.RegisterClass "ImageBox", @This

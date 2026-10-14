@@ -421,9 +421,11 @@ Namespace My.Sys.Forms
 					End If
 				End Select
 			ElseIf widget = psc->Handle Then
-				If allocation.width <> psc->AllocatedWidth OrElse allocation.height <> psc->AllocatedHeight Then
-					Layout_SizeAllocate(widget, @allocation, data1)
-				End If
+				#ifndef __USE_GTK4__
+					If allocation.width <> psc->AllocatedWidth OrElse allocation.height <> psc->AllocatedHeight Then
+						Layout_SizeAllocate(widget, @allocation, data1)
+					End If
+				#endif
 				If Not psc->bCreated Then
 					gtk_widget_hide(psc->Layout1)
 					Dim As GtkAllocation ChildAllocation, LayoutAllocation
@@ -444,7 +446,11 @@ Namespace My.Sys.Forms
 		
 		Private Function PageScroller.Layout_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 			Dim As PageScroller Ptr psc = Cast(Any Ptr, data1)
-			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#ifdef __USE_GTK4__
+				Dim As cairo_t Ptr cr = gdk_cairo_create(NULL)
+			#else
+				Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#endif
 			Layout_Draw(widget, cr, data1)
 			cairo_destroy(cr)
 			Return False
@@ -464,15 +470,27 @@ Namespace My.Sys.Forms
 		Private Function PageScroller.Layout_EventProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			Dim As PageScroller Ptr psc = user_data
 			Dim As GdkEvent Ptr e = Event
-			Select Case Event->Type
+			#ifdef __USE_GTK4__
+				Select Case gtk4compat_event_type(Event)
+			#else
+				Select Case Event->Type
+			#endif
 			Case GDK_BUTTON_PRESS
 				psc->PressedLayout = widget
 				psc->Layout_Press(widget)
 				gtk_widget_queue_draw(widget)
-				If gtk_layout_get_bin_window(gtk_layout(widget)) = e->Motion.window Then
+				#ifdef __USE_GTK4__
+					If gtk_layout_get_bin_window(gtk_layout(widget)) = gtk4compat_event_window(e) Then
+				#else
+					If gtk_layout_get_bin_window(gtk_layout(widget)) = e->Motion.window Then
+				#endif
 					hover_timer_id = 0
 					If widget <> psc->EndedLayout Then
-						MouseHoverMessage = Type(psc, e->Motion.x, e->Motion.y, e->Motion.state, 0, widget)
+						#ifdef __USE_GTK4__
+							MouseHoverMessage = Type(psc, gtk4compat_event_x(e), gtk4compat_event_y(e), gdk_event_get_modifier_state(e), 0, widget)
+						#else
+							MouseHoverMessage = Type(psc, e->Motion.x, e->Motion.y, e->Motion.state, 0, widget)
+						#endif
 						hover_timer_id = g_timeout_add(500, Cast(GSourceFunc, @Layout_hover_cb), widget)
 						Return True
 					End If
@@ -488,10 +506,18 @@ Namespace My.Sys.Forms
 					psc->EnteredLayout = widget
 					gtk_widget_queue_draw(widget)
 				End If
-				If gtk_layout_get_bin_window(gtk_layout(widget)) = e->Motion.window Then
+				#ifdef __USE_GTK4__
+					If gtk_layout_get_bin_window(gtk_layout(widget)) = gtk4compat_event_window(e) Then
+				#else
+					If gtk_layout_get_bin_window(gtk_layout(widget)) = e->Motion.window Then
+				#endif
 					hover_timer_id = 0
 					If widget <> psc->EndedLayout AndAlso psc->FAutoScroll = True Then
-						MouseHoverMessage = Type(psc, e->Motion.x, e->Motion.y, e->Motion.state, 0, widget)
+						#ifdef __USE_GTK4__
+							MouseHoverMessage = Type(psc, gtk4compat_event_x(e), gtk4compat_event_y(e), gdk_event_get_modifier_state(e), 0, widget)
+						#else
+							MouseHoverMessage = Type(psc, e->Motion.x, e->Motion.y, e->Motion.state, 0, widget)
+						#endif
 						hover_timer_id = g_timeout_add(500, Cast(GSourceFunc, @Layout_hover_cb), widget)
 						Return True
 					End If
@@ -520,15 +546,40 @@ Namespace My.Sys.Forms
 				Layout2 = gtk_layout_new(NULL, NULL)
 				gtk_layout_put(gtk_layout(widget), Layout1, 0, 0)
 				gtk_layout_put(gtk_layout(widget), Layout2, 0, 0)
-				#ifdef __USE_GTK3__
-					g_signal_connect(widget, "draw", G_CALLBACK(@Layout_Draw), @This)
-					g_signal_connect(Layout1, "draw", G_CALLBACK(@Layout_Draw), @This)
-					g_signal_connect(Layout2, "draw", G_CALLBACK(@Layout_Draw), @This)
+				#ifndef __USE_GTK2__
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(widget, "draw", G_CALLBACK(@Layout_Draw), @This)
+						gtk4compat_signal_connect(widget, "size-allocate", G_CALLBACK(@Layout_SizeAllocate), @This)
+					#else
+						g_signal_connect(widget, "draw", G_CALLBACK(@Layout_Draw), @This)
+					#endif
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(Layout1, "draw", G_CALLBACK(@Layout_Draw), @This)
+					#else
+						g_signal_connect(Layout1, "draw", G_CALLBACK(@Layout_Draw), @This)
+					#endif
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(Layout2, "draw", G_CALLBACK(@Layout_Draw), @This)
+					#else
+						g_signal_connect(Layout2, "draw", G_CALLBACK(@Layout_Draw), @This)
+					#endif
 				#else
 					g_signal_connect(widget, "expose-event", G_CALLBACK(@Layout_ExposeEvent), @This)
-					g_signal_connect(widget, "size-allocate", G_CALLBACK(@Layout_SizeAllocate), @This)
-					g_signal_connect(Layout1, "expose-event", G_CALLBACK(@Layout_ExposeEvent), @This)
-					g_signal_connect(Layout2, "expose-event", G_CALLBACK(@Layout_ExposeEvent), @This)
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(widget, "size-allocate", G_CALLBACK(@Layout_SizeAllocate), @This)
+					#else
+						g_signal_connect(widget, "size-allocate", G_CALLBACK(@Layout_SizeAllocate), @This)
+					#endif
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(Layout1, "expose-event", G_CALLBACK(@Layout_ExposeEvent), @This)
+					#else
+						g_signal_connect(Layout1, "expose-event", G_CALLBACK(@Layout_ExposeEvent), @This)
+					#endif
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(Layout2, "expose-event", G_CALLBACK(@Layout_ExposeEvent), @This)
+					#else
+						g_signal_connect(Layout2, "expose-event", G_CALLBACK(@Layout_ExposeEvent), @This)
+					#endif
 				#endif
 				gtk_widget_set_events(Layout1, _
 				GDK_EXPOSURE_MASK Or _
@@ -554,8 +605,16 @@ Namespace My.Sys.Forms
 				GDK_BUTTON_RELEASE_MASK Or _
 				GDK_POINTER_MOTION_MASK Or _
 				GDK_POINTER_MOTION_HINT_MASK)
-				g_signal_connect(Layout1, "event", G_CALLBACK(@Layout_EventProc), @This)
-				g_signal_connect(Layout2, "event", G_CALLBACK(@Layout_EventProc), @This)
+				#ifdef __USE_GTK4__
+					gtk4compat_signal_connect(Layout1, "event", G_CALLBACK(@Layout_EventProc), @This)
+				#else
+					g_signal_connect(Layout1, "event", G_CALLBACK(@Layout_EventProc), @This)
+				#endif
+				#ifdef __USE_GTK4__
+					gtk4compat_signal_connect(Layout2, "event", G_CALLBACK(@Layout_EventProc), @This)
+				#else
+					g_signal_connect(Layout2, "event", G_CALLBACK(@Layout_EventProc), @This)
+				#endif
 				.RegisterClass "PageScroller", @This
 			#else
 				.RegisterClass "PageScroller", "SysPager"

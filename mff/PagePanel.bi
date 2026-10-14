@@ -26,11 +26,11 @@ Namespace My.Sys.Forms
 	Protected:
 		#ifdef __USE_WASM__
 			Declare Virtual Function GetContent() As UString
-		#elseif defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
+		#elseif defined(__USE_GTK__) AndAlso Not defined(__USE_GTK2__)
 			Declare Static Function Overlay_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
 		#endif
 		NumericUpDownControl As NumericUpDown
-		#if defined(__USE_GTK__) AndAlso defined(__USE_GTK3__)
+		#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK2__)
 			UpDownButton As CommandButton
 			Declare Sub UpDownButton_Click(ByRef Sender As Control)
 		#else

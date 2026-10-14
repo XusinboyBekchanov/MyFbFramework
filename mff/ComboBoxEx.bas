@@ -213,7 +213,7 @@ Namespace My.Sys.Forms
 			If Cast(ComboBoxEx Ptr, Parent)->Sort Then
 				gtk_list_store_insert(Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter, i)
 			Else
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					gtk_list_store_insert(Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter, Index)
 				#else
 					gtk_list_store_insert(Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter, IIf(Index = -1, FItems.Count, Index))

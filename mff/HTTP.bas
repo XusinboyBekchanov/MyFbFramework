@@ -214,15 +214,17 @@ Namespace My.Sys.Forms
 			strrequest += "Connection: close" & Chr(13) & Chr(10) & Chr(13) & Chr(10)
 			strrequest += body
 			
-			Dim bytes_written As Long = g_output_stream_write(out, StrPtr(strrequest), Len(strrequest), 0, 0)
+			Dim bytes_written As Long = g_output_stream_write(out, Cast(Any Ptr, StrPtr(strrequest)), Len(strrequest), 0, 0)
 			
-			Dim buffer As ZString * 1024
+			Dim buffer As String = Space(1024)
+			Dim chunk As String
 			Dim bytes_read As Long
 			Do
-				bytes_read = g_input_stream_read(inp, @buffer, 1024, 0, 0)
+				bytes_read = g_input_stream_read(inp, Cast(Any Ptr, StrPtr(buffer)), 1024, 0, 0)
 				If bytes_read > 0 Then
-					Responce.Body &= bytes_read
-					If OnReceive Then OnReceive(*Designer, This, Request, buffer)
+					chunk = .Left(buffer, bytes_read)
+					Responce.Body &= chunk
+					If OnReceive Then OnReceive(*Designer, This, Request, chunk)
 				End If
 			Loop Until bytes_read <= 0
 			

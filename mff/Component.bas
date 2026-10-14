@@ -259,7 +259,12 @@ Namespace My.Sys.ComponentModel
 					iHeight = ScaleY(iHeight)
 					If GTK_IS_WIDGET(widget) AndAlso gtk_widget_is_toplevel(widget) Then
 						gtk_window_move(GTK_WINDOW(widget), iLeft, iTop)
-						gtk_window_resize(GTK_WINDOW(widget), Max(0, iWidth), Max(0, iHeight - 20))
+						#ifdef __USE_GTK4__
+							' The default size of GTK4 includes the title bar (GTK3 adds it to the size)
+							gtk_window_resize(GTK_WINDOW(widget), Max(0, iWidth), Max(0, iHeight))
+						#else
+							gtk_window_resize(GTK_WINDOW(widget), Max(0, iWidth), Max(0, iHeight - 20))
+						#endif
 						'gtk_window_resize(GTK_WINDOW(widget), Max(1, iWidth), Max(1, iHeight))
 						'RequestAlign iWidth, iHeight
 					Else
@@ -280,6 +285,13 @@ Namespace My.Sys.ComponentModel
 						'gtk_widget_set_size_allocation(widget, @allocation)
 						'gtk_widget_set_size_request(widget, Max(0, iWidth), Max(0, iHeight))
 						gtk_widget_set_size_request(CtrlWidget, Max(0, iWidth), Max(0, iHeight))
+						#ifdef __USE_GTK4__
+							' The widget fills its overlay or event box: a size request from before it was put into
+							' the wrapper would be the minimum size of the wrapper (it could not become smaller)
+							If CtrlWidget <> widget AndAlso (CtrlWidget = overlaywidget OrElse CtrlWidget = eventboxwidget) AndAlso GTK_IS_WIDGET(widget) Then
+								gtk_widget_set_size_request(widget, -1, -1)
+							End If
+						#endif
 						'gtk_widget_set_size_request(widget, Max(0, iWidth), Max(0, iHeight))
 						'gtk_widget_size_allocate(IIF(scrolledwidget, scrolledwidget, widget), @allocation)
 						'gtk_widget_queue_draw(widget)
@@ -565,9 +577,9 @@ Namespace My.Sys.ComponentModel
 				Dim As GtkWidget Ptr TempWidget = widget
 				widget = 0
 				#ifdef __USE_GTK4__
-					g_object_unref(TempWidget)
+					gtk_widget_destroy(TempWidget)
 				#else
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						gtk_widget_destroy(TempWidget)
 					#else
 						If GTK_IS_MENU_SHELL(TempWidget) = 0 Then
@@ -587,7 +599,7 @@ Namespace My.Sys.ComponentModel
 			End If
 			If overlaywidget <> 0 AndAlso GTK_IS_WIDGET(overlaywidget) Then
 				#ifdef __USE_GTK4__
-					g_object_unref(overlaywidget)
+					gtk_widget_destroy(overlaywidget)
 				#else
 					gtk_widget_destroy(overlaywidget)
 				#endif
@@ -595,7 +607,7 @@ Namespace My.Sys.ComponentModel
 			End If
 			If scrolledwidget <> 0 AndAlso GTK_IS_WIDGET(scrolledwidget) Then
 				#ifdef __USE_GTK4__
-					g_object_unref(scrolledwidget)
+					gtk_widget_destroy(scrolledwidget)
 				#else
 					gtk_widget_destroy(scrolledwidget)
 				#endif
@@ -603,7 +615,7 @@ Namespace My.Sys.ComponentModel
 			End If
 			If eventboxwidget <> 0 AndAlso GTK_IS_WIDGET(eventboxwidget) Then
 				#ifdef __USE_GTK4__
-					g_object_unref(eventboxwidget)
+					gtk_widget_destroy(eventboxwidget)
 				#else
 					gtk_widget_destroy(eventboxwidget)
 				#endif
@@ -611,7 +623,7 @@ Namespace My.Sys.ComponentModel
 			End If
 			If fixedwidget <> 0 AndAlso GTK_IS_WIDGET(fixedwidget) Then
 				#ifdef __USE_GTK4__
-					g_object_unref(fixedwidget)
+					gtk_widget_destroy(fixedwidget)
 				#else
 					gtk_widget_destroy(fixedwidget)
 				#endif
@@ -619,7 +631,7 @@ Namespace My.Sys.ComponentModel
 			End If
 			If layoutwidget <> 0 AndAlso GTK_IS_WIDGET(layoutwidget) Then
 				#ifdef __USE_GTK4__
-					g_object_unref(layoutwidget)
+					gtk_widget_destroy(layoutwidget)
 				#else
 					gtk_widget_destroy(layoutwidget)
 				#endif
@@ -627,7 +639,7 @@ Namespace My.Sys.ComponentModel
 			End If
 			If box <> 0 AndAlso GTK_IS_WIDGET(box) Then
 				#ifdef __USE_GTK4__
-					g_object_unref(box)
+					gtk_widget_destroy(box)
 				#else
 					gtk_widget_destroy(box)
 				#endif
@@ -635,7 +647,7 @@ Namespace My.Sys.ComponentModel
 			End If
 			If containerwidget <> 0 AndAlso GTK_IS_WIDGET(containerwidget) Then
 				#ifdef __USE_GTK4__
-					g_object_unref(containerwidget)
+					gtk_widget_destroy(containerwidget)
 				#else
 					gtk_widget_destroy(containerwidget)
 				#endif

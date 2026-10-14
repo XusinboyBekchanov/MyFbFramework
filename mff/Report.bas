@@ -400,21 +400,21 @@ Namespace My.Sys.Forms
 
 			Select Case Align
 				Case 1
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						gtk_label_set_xalign(GTK_LABEL(widget), 0.5)
 					#else
 						gtk_misc_set_alignment(GTK_MISC(widget), 0.5, 0)
 					#endif
 					gtk_label_set_justify(GTK_LABEL(widget), GTK_JUSTIFY_CENTER)
 				Case 2
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						gtk_label_set_xalign(GTK_LABEL(widget), 1.0)
 					#else
 						gtk_misc_set_alignment(GTK_MISC(widget), 1, 0)
 					#endif
 					gtk_label_set_justify(GTK_LABEL(widget), GTK_JUSTIFY_RIGHT)
 				Case Else
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						gtk_label_set_xalign(GTK_LABEL(widget), 0.0)
 					#else
 						gtk_misc_set_alignment(GTK_MISC(widget), 0, 0)

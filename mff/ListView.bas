@@ -386,7 +386,11 @@ Namespace My.Sys.Forms
 					If Value <> "" Then
 						Dim As GtkIconTheme Ptr theme = gtk_icon_theme_get_default()
 						If theme Then
-							Dim As GtkIconInfo Ptr info = gtk_icon_theme_lookup_icon(theme, ToUtf8(Value), iSize, GTK_ICON_LOOKUP_USE_BUILTIN)
+							#ifdef __USE_GTK4__
+								Dim As GtkIconInfo Ptr info = gtk4compat_icon_theme_lookup_icon(theme, ToUtf8(Value), iSize, GTK_ICON_LOOKUP_USE_BUILTIN)
+							#else
+								Dim As GtkIconInfo Ptr info = gtk_icon_theme_lookup_icon(theme, ToUtf8(Value), iSize, GTK_ICON_LOOKUP_USE_BUILTIN)
+							#endif
 							If info Then
 						 		Dim As GdkPixbuf Ptr pixbuf = gtk_icon_info_load_icon(info, @gerr)
 						 		If pixbuf Then
@@ -499,7 +503,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub ListViewColumn.Update
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(-1, FWidth))
 			#else
 				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(1, FWidth))
@@ -872,7 +876,11 @@ Namespace My.Sys.Forms
 				Dim As GtkCellRenderer Ptr rendertext = gtk_cell_renderer_text_new()
 				If ColEditable Then
 					Dim As GValue bValue '= G_VALUE_INIT
-					g_value_init_(@bValue, G_TYPE_BOOLEAN)
+					#ifdef __USE_GTK4__
+						g_value_init(@bValue, G_TYPE_BOOLEAN)
+					#else
+						g_value_init_(@bValue, G_TYPE_BOOLEAN)
+					#endif
 					g_value_set_boolean(@bValue, True)
 					g_object_set_property(G_OBJECT(rendertext), "editable", @bValue)
 					g_value_unset(@bValue)
@@ -903,7 +911,7 @@ Namespace My.Sys.Forms
 				Else
 					gtk_tree_view_append_column(GTK_TREE_VIEW(g_object_get_data(G_OBJECT(Parent->Handle), "@@@TreeView")), PColumn->Column)
 				End If
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(-1, iWidth))
 				#else
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(1, iWidth))
@@ -1075,7 +1083,7 @@ Namespace My.Sys.Forms
 	Private Property ListView.SingleClickActivate(Value As Boolean)
 		FSingleClickActivate = Value
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(TreeViewWidget), Value)
 				gtk_icon_view_set_activate_on_single_click(GTK_ICON_VIEW(IconViewWidget), Value)
 			#else
@@ -1406,14 +1414,18 @@ Namespace My.Sys.Forms
 		'?message.msg, GetMessageName(message.msg)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.Event
-			Select Case Message.Event->type
+			#ifdef __USE_GTK4__
+				Select Case gtk4compat_event_type(Message.Event)
+			#else
+				Select Case Message.Event->type
+			#endif
 			Case GDK_MAP
 				Init
 			Case GDK_BUTTON_RELEASE
 				If SelectedItemIndex <> -1 Then
 					If OnItemClick Then OnItemClick(*Designer, This, SelectedItemIndex)
 				End If
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 			Case GDK_2BUTTON_PRESS, GDK_DOUBLE_BUTTON_PRESS
 			#else
 			Case GDK_2BUTTON_PRESS
@@ -1423,7 +1435,11 @@ Namespace My.Sys.Forms
 				End If
 			Case GDK_KEY_PRESS
 				If SelectedItemIndex <> -1 Then
-					If OnItemKeyDown Then OnItemKeyDown(*Designer, This, SelectedItemIndex, Message.Event->key.keyval, Message.Event->key.state)
+					#ifdef __USE_GTK4__
+						If OnItemKeyDown Then OnItemKeyDown(*Designer, This, SelectedItemIndex, gtk4compat_event_keyval(Message.Event), gdk_event_get_modifier_state(Message.Event))
+					#else
+						If OnItemKeyDown Then OnItemKeyDown(*Designer, This, SelectedItemIndex, Message.Event->key.keyval, Message.Event->key.state)
+					#endif
 				End If
 			End Select
 		#elseif defined(__USE_WINAPI__)
@@ -1719,7 +1735,11 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			' GtkIconView emits item-activated from its own handler of GDK_2BUTTON_PRESS,
 			' do not stop this event here, otherwise OnItemActivate is not called in icon views
-			If GTK_IS_ICON_VIEW(widget) AndAlso e->type = GDK_2BUTTON_PRESS Then Message.Result = False
+			#ifdef __USE_GTK4__
+				If GTK_IS_ICON_VIEW(widget) AndAlso gtk4compat_event_type(e) = GDK_2BUTTON_PRESS Then Message.Result = False
+			#else
+				If GTK_IS_ICON_VIEW(widget) AndAlso e->type = GDK_2BUTTON_PRESS Then Message.Result = False
+			#endif
 		#endif
 	End Sub
 	
@@ -1893,7 +1913,11 @@ Namespace My.Sys.Forms
 	Private Constructor ListView
 		#ifdef __USE_GTK__
 			ListStore = gtk_list_store_new(3, G_TYPE_BOOLEAN, GDK_TYPE_PIXBUF, G_TYPE_STRING)
-			scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+			#ifdef __USE_GTK4__
+				scrolledwidget = gtk_scrolled_window_new()
+			#else
+				scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+			#endif
 			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 			'widget = gtk_tree_view_new_with_model(gtk_tree_model(ListStore))
 			TreeViewWidget = gtk_tree_view_new()
@@ -1905,7 +1929,7 @@ Namespace My.Sys.Forms
 			WatchWeakPointer Cast(Any Ptr Ptr, @TreeViewWidget)
 			WatchWeakPointer Cast(Any Ptr Ptr, @IconViewWidget)
 			WatchWeakPointer Cast(Any Ptr Ptr, @TreeSelection)
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				g_signal_connect(gtk_scrollable_get_hadjustment(GTK_SCROLLABLE(widget)), "value-changed", G_CALLBACK(@ListView_Scroll), @This)
 				g_signal_connect(gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(widget)), "value-changed", G_CALLBACK(@ListView_Scroll), @This)
 			#else
@@ -1969,14 +1993,14 @@ Namespace My.Sys.Forms
 				' The fields are 0 if GTK has already destroyed the objects (weak pointers, see the constructor)
 				If TreeViewWidget AndAlso GTK_IS_WIDGET(TreeViewWidget) AndAlso TreeViewWidget <> widget Then
 					#ifdef __USE_GTK4__
-						g_object_unref(widget)
+						gtk_widget_destroy(widget)
 					#else
 						gtk_widget_destroy(TreeViewWidget)
 					#endif
 				End If
 				If IconViewWidget AndAlso GTK_IS_WIDGET(IconViewWidget) AndAlso IconViewWidget <> widget Then
 					#ifdef __USE_GTK4__
-						g_object_unref(widget)
+						gtk_widget_destroy(widget)
 					#else
 						gtk_widget_destroy(IconViewWidget)
 					#endif

@@ -366,7 +366,11 @@ Namespace My.Sys.Forms
 			Dim As GtkTreeViewColumn Ptr col = gtk_tree_view_column_new()
 			rendertoggle = gtk_cell_renderer_toggle_new()
 			Dim As GtkCellRenderer Ptr rendertext = gtk_cell_renderer_text_new()
-			scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+			#ifdef __USE_GTK4__
+				scrolledwidget = gtk_scrolled_window_new()
+			#else
+				scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+			#endif
 			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 			gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_SHADOW_OUT)
 			ListStore = gtk_list_store_new(2, G_TYPE_BOOLEAN, G_TYPE_STRING)

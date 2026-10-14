@@ -414,7 +414,7 @@ Namespace My.Sys.Forms
 	Private Property GridDataColumn.ColWidth(Value As Integer)
 		FColWidth = Value
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(-1, Value))
 			#else
 				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(1, Value))
@@ -904,7 +904,7 @@ Namespace My.Sys.Forms
 				gtk_tree_view_column_set_resizable(PColumn->Column, True)
 				gtk_tree_view_column_set_title(PColumn->Column, ToUtf8(FCaption))
 				gtk_tree_view_append_column(GTK_TREE_VIEW(Cast(GridData Ptr, Parent)->Handle), PColumn->Column)
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(-1, iWidth))
 				#else
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(1, iWidth))
@@ -1072,7 +1072,7 @@ Namespace My.Sys.Forms
 	Private Property GridData.SingleClickActivate(Value As Boolean)
 		FSingleClickActivate = Value
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(widget), Value)
 			#else
 				
@@ -1832,7 +1832,11 @@ Namespace My.Sys.Forms
 		'?message.msg, GetMessageName(message.msg)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.Event
-			Select Case Message.Event->type
+			#ifdef __USE_GTK4__
+				Select Case gtk4compat_event_type(Message.Event)
+			#else
+				Select Case Message.Event->type
+			#endif
 			Case GDK_MAP
 				Init
 			End Select
@@ -2534,7 +2538,11 @@ Namespace My.Sys.Forms
 	Private Constructor GridData
 		#ifdef __USE_GTK__
 			TreeStore = gtk_tree_store_new(1, G_TYPE_STRING)
-			scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+			#ifdef __USE_GTK4__
+				scrolledwidget = gtk_scrolled_window_new()
+			#else
+				scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+			#endif
 			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 			'widget = gtk_tree_view_new_with_model(gtk_tree_model(ListStore))
 			widget = gtk_tree_view_new()

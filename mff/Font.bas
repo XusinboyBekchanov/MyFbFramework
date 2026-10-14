@@ -82,6 +82,8 @@ Namespace My.Sys.Drawing
 							#ifndef __USE_GTK2__
 								#ifndef __USE_GTK4__
 									gtk_widget_override_font(QComponent(FParent).Handle, Handle)
+								#else
+									gtk4compat_widget_set_font(QComponent(FParent).Handle, Handle)
 								#endif
 							#else
 								gtk_widget_modify_font(QComponent(FParent).Handle, Handle)
@@ -109,11 +111,13 @@ Namespace My.Sys.Drawing
 		If FDefaultSize AndAlso FSize <> DefaultFont.Size Then FSize = DefaultFont.Size
 		#ifdef __USE_GTK__
 			If *FParent Is My.Sys.ComponentModel.Component Then
-				#ifndef __USE_GTK2__
+				#ifdef __USE_GTK4__
+					If QComponent(FParent).Handle = 0 Then Exit Property
+					Dim As PangoFontDescription Ptr pfd = pango_context_get_font_description(gtk_widget_get_pango_context(QComponent(FParent).Handle))
+					If pfd = 0 Then Exit Property
+				#elseif Not defined(__USE_GTK2__)
 					Dim As GtkStyleContext Ptr WidgetStyle = gtk_widget_get_style_context(QComponent(FParent).Handle)
 					#ifdef __USE_GTK4__
-						Dim As PangoFontDescription Ptr pfd
-						gtk_style_context_get(WidgetStyle, GTK_STATE_FLAG_NORMAL, "font", @pfd, NULL)
 					#else
 						Var pfd = gtk_style_context_get_font(WidgetStyle, GTK_STATE_FLAG_NORMAL)
 					#endif

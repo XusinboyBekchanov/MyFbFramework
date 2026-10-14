@@ -19,6 +19,12 @@
 	#include once "win/uxtheme.bi"
 #endif
 
+' GTK4 menus: GtkPopoverMenuBar and GtkPopoverMenu built from a GMenuModel, the items are GActions.
+' __USE_GTK4_MENU_EMULATION__ keeps the emulation with widgets (GtkPopover, GtkBox and GtkButton)
+#if defined(__USE_GTK4__) AndAlso Not defined(__USE_GTK4_MENU_EMULATION__)
+	#define __MFF_MENU_MODEL__
+#endif
+
 #ifdef __USE_GTK__
 	Dim Shared As GdkPixbuf Ptr EmptyPixbuf
 	EmptyPixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB, True, 8, 16, 16)
@@ -120,6 +126,28 @@ Namespace My.Sys.Forms
 			Declare Static Sub MenuItemActivate(MenuItem As GtkMenuItem Ptr, user_data As Any Ptr)
 			'GTK+ button press handler
 			Declare Static Function MenuItemButtonPressEvent(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
+			#ifdef __USE_GTK4__
+				Declare Sub SetAcceleratorText()
+			#endif
+			#ifdef __MFF_MENU_MODEL__
+				'The item is an action of the menus which show it (Widget, Box, Icon and Label are 0)
+				FCheckable As Boolean
+				FAction As GSimpleAction Ptr
+				Declare Function ModelActionName() As String
+				Declare Sub ModelEnsureAction()
+				Declare Sub ModelChanged()
+				'Caption, ImageKey and ShortCut as shown by the model: the menus are built again only after a change
+				FModelSig As String
+				Declare Sub ModelPropertyChanged()
+				Declare Sub ModelFillChildren(gm As GMenu Ptr, ByRef Prefix As String, Group As GSimpleActionGroup Ptr, ByRef Customs As List)
+				Declare Static Sub ModelFill(gm As GMenu Ptr, ByRef Prefix As String, Group As GSimpleActionGroup Ptr, Items As PMenuItem Ptr, ItemsCount As Integer, MenuBar As Boolean, ByRef Customs As List)
+				'Items are custom widgets (GtkModelButton hides the icon of an item with a text)
+				Declare Function ModelCustomId() As String
+				Declare Function ModelCreateWidget(ByRef Prefix As String) As GtkWidget Ptr
+				Declare Static Sub ModelCustomClicked(button As GtkButton Ptr, user_data As Any Ptr)
+				Declare Static Sub ModelCheckUpdate(action As GObject Ptr, pspec As GParamSpec Ptr, user_data As Any Ptr)
+				Declare Static Sub ModelActionActivate(action As GSimpleAction Ptr, parameter As GVariant Ptr, user_data As Any Ptr)
+			#endif
 		#endif
 		Declare Property Owner As PMenu
 		'Parent form/control reference
@@ -246,6 +274,17 @@ Namespace My.Sys.Forms
 			Widget As GtkWidget Ptr
 			'Object watched by MenuWidget_Watch (0 after the widget is destroyed)
 			FWatchedWidget As GObject Ptr
+			#ifdef __MFF_MENU_MODEL__
+				FModel As GMenu Ptr
+				FActionGroup As GSimpleActionGroup Ptr
+				FModelIdle As guint
+				Declare Function ModelPrefix() As String
+				Declare Sub ModelInit(MenuBar As Boolean)
+				Declare Sub ModelRequestRebuild()
+				Declare Sub ModelRebuild()
+				Declare Function ModelPopoverOpen() As Boolean
+				Declare Static Function ModelRebuildIdle(user_data As gpointer) As gboolean
+			#endif
 		#endif
 		#ifndef ReadProperty_Off
 			'Loads menu structure from stream

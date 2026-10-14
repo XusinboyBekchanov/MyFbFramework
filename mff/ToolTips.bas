@@ -128,9 +128,13 @@ Namespace My.Sys.Forms
 			WLet(FClassName, "ToolTips")
 			WLet(FClassAncestor, "tooltips_class32")
 			#ifdef __USE_GTK__
-				winTooltip = gtk_window_new(GTK_WINDOW_POPUP)
+				#ifdef __USE_GTK4__
+					winTooltip = gtk4compat_window_new(GTK_WINDOW_POPUP)
+				#else
+					winTooltip = gtk_window_new(GTK_WINDOW_POPUP)
+				#endif
 				lblTooltip = gtk_label_new(NULL)
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					gtk_widget_set_margin_left(lblTooltip, 1)
 					gtk_widget_set_margin_top(lblTooltip, 1)
 					gtk_widget_set_margin_right(lblTooltip, 1)

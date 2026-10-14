@@ -109,14 +109,23 @@ Namespace My.Sys.Forms
 	
 	Private Sub Splitter.ProcessMessage(ByRef Message As Message)
 		Static As Long xOrig, yOrig, xCur, yCur, i, down1
+		' The size of the control at the press: the new size is computed from it and not from the current size,
+		' the current size of GTK is the allocated size, which changes only after the next frame
+		Static As Integer iStartLeft, iStartTop, iStartWidth, iStartHeight
+		Static As Control Ptr SizeCtrl
+		Dim As Integer iNewSize
 		#ifdef __USE_GTK__
 			Dim As GdkDisplay Ptr display = gdk_display_get_default()
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				Dim As GdkDeviceManager Ptr device_manager = gdk_display_get_device_manager(display)
 				Dim As GdkDevice Ptr device = gdk_device_manager_get_client_pointer(device_manager)
 			#endif
 			Dim As GdkEvent Ptr e = Message.event
-			Select Case Message.event->Type
+			#ifdef __USE_GTK4__
+				Select Case gtk4compat_event_type(Message.event)
+			#else
+				Select Case Message.event->Type
+			#endif
 		#else
 			Static As ..Point g_OrigCursorPos, g_CurCursorPos
 			Select Case Message.Msg
@@ -160,7 +169,7 @@ Namespace My.Sys.Forms
 			#endif
 			down1 = 1
 			#ifdef __USE_GTK__
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					gdk_device_get_position (device, NULL, @xOrig, @yOrig)
 				#else
 					gdk_display_get_pointer (display, NULL, @xOrig, @yOrig, NULL)
@@ -189,6 +198,12 @@ Namespace My.Sys.Forms
 				xOrig = g_OrigCursorPos.x
 				yOrig = g_OrigCursorPos.y
 			#endif
+			SizeCtrl = 0
+			i = This.Parent->IndexOf(@This)
+			If i > 0 Then
+				SizeCtrl = This.Parent->Controls[i - 1]
+				SizeCtrl->GetBounds iStartLeft, iStartTop, iStartWidth, iStartHeight
+			End If
 			'SetCapture Handle 'Parent->Handle
 			'            x1 = loword(message.lparam)
 			'            y1 = hiword(message.lparam)
@@ -208,7 +223,7 @@ Namespace My.Sys.Forms
 			If down1 = 1 Then
 				i = This.Parent->IndexOf(@This)
 				#ifdef __USE_GTK__
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						gdk_device_get_position (device, NULL, @xCur, @yCur)
 					#else
 						gdk_display_get_pointer (display, NULL, @xCur, @yCur, NULL)
@@ -218,20 +233,28 @@ Namespace My.Sys.Forms
 						xCur = g_CurCursorPos.x
 						yCur = g_CurCursorPos.y
 				#endif
-					If This.Parent->ControlCount Then
+					If This.Parent->ControlCount AndAlso i > 0 AndAlso SizeCtrl = This.Parent->Controls[i - 1] Then
 						This.Parent->UpdateLock
+						' The control and the splitter are moved at once: the right and the bottom control keep their
+						' right and bottom edge (with only the new size the edge moves until the parent aligns again)
 						Select Case Align
 						Case SplitterAlignmentConstants.alLeft
-							If i > 0 Then This.Parent->Controls[i - 1]->Width = This.Parent->Controls[i - 1]->Width - UnScaleX(xOrig) + UnScaleX(xCur)
+							iNewSize = Max(0, iStartWidth - UnScaleX(xOrig) + UnScaleX(xCur))
+							SizeCtrl->SetBounds iStartLeft, iStartTop, iNewSize, iStartHeight
+							This.Left = iStartLeft + iNewSize
 						Case SplitterAlignmentConstants.alRight
-							If i > 0 Then This.Parent->Controls[i - 1]->Width = This.Parent->Controls[i - 1]->Width + UnScaleX(xOrig) - UnScaleX(xCur)
+							iNewSize = Max(0, iStartWidth + UnScaleX(xOrig) - UnScaleX(xCur))
+							SizeCtrl->SetBounds iStartLeft + iStartWidth - iNewSize, iStartTop, iNewSize, iStartHeight
+							This.Left = iStartLeft + iStartWidth - iNewSize - This.Width
 						Case SplitterAlignmentConstants.alTop
-							If i > 0 Then This.Parent->Controls[i - 1]->Height = This.Parent->Controls[i - 1]->Height - UnScaleY(yOrig) + UnScaleY(yCur)
+							iNewSize = Max(0, iStartHeight - UnScaleY(yOrig) + UnScaleY(yCur))
+							SizeCtrl->SetBounds iStartLeft, iStartTop, iStartWidth, iNewSize
+							This.Top = iStartTop + iNewSize
 						Case SplitterAlignmentConstants.alBottom
-							If i > 0 Then This.Parent->Controls[i - 1]->Height = This.Parent->Controls[i - 1]->Height + UnScaleY(yOrig) - UnScaleY(yCur)
+							iNewSize = Max(0, iStartHeight + UnScaleY(yOrig) - UnScaleY(yCur))
+							SizeCtrl->SetBounds iStartLeft, iStartTop + iStartHeight - iNewSize, iStartWidth, iNewSize
+							This.Top = iStartTop + iStartHeight - iNewSize - This.Height
 						End Select
-						xOrig = xCur
-						yOrig = yCur
 						If OnMoving Then OnMoving(*Designer, This)
 						This.Parent->RequestAlign
 						#ifdef __USE_GTK__
@@ -268,6 +291,7 @@ Namespace My.Sys.Forms
 			Case WM_LBUTTONUP
 			#endif
 			down1 = 0
+			SizeCtrl = 0
 			#ifndef __USE_GTK__
 				ClipCursor 0
 				releaseCapture
@@ -348,7 +372,11 @@ Namespace My.Sys.Forms
 		End Function
 		
 		Private Function Splitter.OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
-			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#ifdef __USE_GTK4__
+				Dim As cairo_t Ptr cr = gdk_cairo_create(NULL)
+			#else
+				Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#endif
 			OnDraw(widget, cr, data1)
 			cairo_destroy(cr)
 			Return False
@@ -376,8 +404,12 @@ Namespace My.Sys.Forms
 				GDK_POINTER_MOTION_HINT_MASK)
 				'gtk_scrolled_window_set_policy(gtk_scrolled_window(widget), GTK_POLICY_EXTERNAL, GTK_POLICY_EXTERNAL)
 				.RegisterClass "Splitter", @This
-				#ifdef __USE_GTK3__
-					g_signal_connect(widget, "draw", G_CALLBACK(@OnDraw), @This)
+				#ifndef __USE_GTK2__
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(widget, "draw", G_CALLBACK(@OnDraw), @This)
+					#else
+						g_signal_connect(widget, "draw", G_CALLBACK(@OnDraw), @This)
+					#endif
 				#else
 					g_signal_connect(widget, "expose-event", G_CALLBACK(@OnExposeEvent), @This)
 				#endif

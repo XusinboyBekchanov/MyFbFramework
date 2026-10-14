@@ -53,8 +53,7 @@ Namespace My.Sys.Forms
 		FMarkerCount As Integer
 		Declare Sub DrawRuler(ByRef Canvas As My.Sys.Drawing.Canvas)
 		#ifdef __USE_GTK__
-			Declare Function GtkDrawAfter(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
-			Declare Static Sub HandleAllocated(ByRef Sender As Control)
+			Declare Static Function GtkDrawAfter(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
 		#endif
 		#ifdef __USE_WINAPI__
 			Declare Virtual Sub SetDark(Value As Boolean)

@@ -311,7 +311,11 @@ Namespace My
 	Private Property Application.MainForm(Value As My.Sys.Forms.Form Ptr)
 		FMainForm = Value
 		#ifdef __USE_GTK__
-			If FMainForm AndAlso FMainForm->Handle Then g_signal_connect(FMainForm->Handle, "delete-event", G_CALLBACK(@gtk_main_quit), NULL)
+			#ifdef __USE_GTK4__
+				If FMainForm AndAlso FMainForm->Handle Then gtk4compat_signal_connect(FMainForm->Handle, "delete-event", G_CALLBACK(@gtk_main_quit), NULL)
+			#else
+				If FMainForm AndAlso FMainForm->Handle Then g_signal_connect(FMainForm->Handle, "delete-event", G_CALLBACK(@gtk_main_quit), NULL)
+			#endif
 		#elseif defined(__USE_JNI__)
 			My.Sys.Forms.AppMainForm = FMainForm
 		#endif
@@ -680,6 +684,9 @@ Namespace My
 				#endif
 			#endif
 			generic_gtk_init()
+			#ifdef __USE_GTK4__
+				gtk4compat_install_popover_hook
+			#endif
 			
 			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUtf8(ExePath & "/resources"))
 			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUtf8(ExePath & "/Resources"))
@@ -985,9 +992,9 @@ Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As
 		gtk_window_set_title(GTK_WINDOW(dialog), ToUtf8(*FCaption))
 		If ButtonsType = btYesNoCancel Then
 			#ifdef __USE_GTK4__
-				gtk_dialog_add_button(GTK_DIALOG(dialog), "gtk-cancel", GTK_RESPONSE_CANCEL)
-				gtk_dialog_add_button(GTK_DIALOG(dialog), "gtk-no", GTK_RESPONSE_NO)
-				gtk_dialog_add_button(GTK_DIALOG(dialog), "gtk-yes", GTK_RESPONSE_YES)
+				gtk_dialog_add_button(GTK_DIALOG(dialog), "_Cancel", GTK_RESPONSE_CANCEL)
+				gtk_dialog_add_button(GTK_DIALOG(dialog), "_No", GTK_RESPONSE_NO)
+				gtk_dialog_add_button(GTK_DIALOG(dialog), "_Yes", GTK_RESPONSE_YES)
 			#else
 				#ifndef __USE_GTK2__
 					gtk_dialog_add_button(GTK_DIALOG(dialog), ToUtf8(*Cast(WString Ptr, GTK_STOCK_CANCEL)), GTK_RESPONSE_CANCEL)
@@ -1001,24 +1008,14 @@ Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As
 			#endif
 			gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_YES)
 		End If
-		#ifdef __USE_GTK4__
-			g_signal_connect_swapped (dialog, "response", G_CALLBACK(@gtk_dialog_response_sub), dialog)
-			gtk_widget_set_visible(dialog, True)
-			Result = DialogResult
-		#else
-			Result = gtk_dialog_run (GTK_DIALOG (dialog))
-		#endif
+		Result = gtk_dialog_run (GTK_DIALOG (dialog))
 		Select Case Result
 		Case GTK_RESPONSE_CANCEL: Result = mrCancel
 		Case GTK_RESPONSE_NO: Result = mrNo
 		Case GTK_RESPONSE_OK: Result = mrOK
 		Case GTK_RESPONSE_YES: Result = mrYes
 		End Select
-		#ifdef __USE_GTK4__
-			g_object_unref(dialog)
-		#else
-			gtk_widget_destroy(dialog)
-		#endif
+		gtk_widget_destroy(dialog)
 	#elseif defined(__USE_WINAPI__)
 		'		Wnd = GetActiveWindow()
 		'		If App.MainForm <> 0 Then
@@ -1116,7 +1113,11 @@ End Type
 		
 		Dim As TInputBox Ptr tib = data_
 		
-		If tib->iFlag = 0 AndAlso Cast(GdkEventButton Ptr,gEvent)->type = GDK_BUTTON_PRESS Then
+		#ifdef __USE_GTK4__
+			If tib->iFlag = 0 AndAlso gdk_event_get_event_type(gEvent) = GDK_BUTTON_PRESS Then
+		#else
+			If tib->iFlag = 0 AndAlso Cast(GdkEventButton Ptr,gEvent)->type = GDK_BUTTON_PRESS Then
+		#endif
 			
 			#ifdef __USE_GTK4__
 				gtk_entry_buffer_set_text(gtk_entry_get_buffer(Cast(Any Ptr, tib->entry)), "", -1)
@@ -1129,8 +1130,14 @@ End Type
 		End If
 		
 		Return False
-		
+
 	End Function
+
+	#ifdef __USE_GTK4__
+		Function EventEntryInputBoxLegacyFunc cdecl(controller As GtkEventController Ptr, gEvent As GdkEvent Ptr, data_ As gpointer) As gboolean
+			Return EventEntryInputBoxFunc(gtk_event_controller_get_widget(controller), gEvent, data_)
+		End Function
+	#endif
 #endif
 
 Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WString = "Enter text:" , ByRef sDefaultText As WString = "" , iFlag As Long = 0 , iFlag2 As Long = 0, hParentWin As Any Ptr = 0) As UString __EXPORT__
@@ -1258,7 +1265,11 @@ Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WStrin
 		
 		If iFlag2 Then
 			
-			g_signal_connect(G_OBJECT(entry), "event", G_CALLBACK (@EventEntryInputBoxFunc), tib)
+			#ifdef __USE_GTK4__
+				gtk4compat_signal_connect(G_OBJECT(entry), "event", G_CALLBACK (@EventEntryInputBoxFunc), tib)
+			#else
+				g_signal_connect(G_OBJECT(entry), "event", G_CALLBACK (@EventEntryInputBoxFunc), tib)
+			#endif
 			
 		End If
 		
@@ -1275,12 +1286,54 @@ Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WStrin
 		End If
 		
 		_Delete(tib)
-		
+
 		#ifdef __USE_GTK4__
 			g_object_unref(dialog)
 		#else
 			gtk_widget_destroy(dialog)
 		#endif
+	#elseif defined(__USE_GTK4__)
+		Dim As GtkWidget Ptr dialog = gtk_dialog_new()
+		If hParentWin Then gtk_window_set_transient_for(GTK_WINDOW(dialog), Cast(Any Ptr, hParentWin))
+		gtk_window_set_title(GTK_WINDOW(dialog), ToUtf8(sCaption))
+		gtk_window_set_resizable(GTK_WINDOW(dialog), False)
+		Dim As GtkWidget Ptr vBox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6)
+		gtk_widget_set_margin_start(vBox, 12)
+		gtk_widget_set_margin_end(vBox, 12)
+		gtk_widget_set_margin_top(vBox, 12)
+		gtk_widget_set_margin_bottom(vBox, 6)
+		Dim As GtkWidget Ptr label = gtk_label_new(ToUtf8(sMessageText))
+		gtk_label_set_xalign(GTK_LABEL(label), 0.0)
+		Dim As GtkWidget Ptr entry = gtk_entry_new()
+		gtk_widget_set_size_request(entry, 300, -1)
+		If Len(sDefaultText) Then gtk_editable_set_text(GTK_EDITABLE(entry), ToUtf8(sDefaultText))
+		gtk_entry_set_activates_default(GTK_ENTRY(entry), True)
+		gtk_box_append(GTK_BOX(vBox), label)
+		gtk_box_append(GTK_BOX(vBox), entry)
+		gtk_box_append(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), vBox)
+		gtk_dialog_add_button(GTK_DIALOG(dialog), "_OK", GTK_RESPONSE_OK)
+		gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK)
+		Dim As TInputBox Ptr tib = _New(TInputBox)
+		tib->dialog = dialog
+		tib->entry = entry
+		If iFlag2 Then
+			' The default text is cleared with the first click
+			Dim As GtkEventController Ptr LegacyController = gtk_event_controller_legacy_new()
+			gtk_event_controller_set_propagation_phase(LegacyController, GTK_PHASE_CAPTURE)
+			#ifdef __USE_GTK4__
+				gtk4compat_signal_connect(LegacyController, "event", G_CALLBACK(@EventEntryInputBoxLegacyFunc), tib)
+			#else
+				g_signal_connect(LegacyController, "event", G_CALLBACK(@EventEntryInputBoxLegacyFunc), tib)
+			#endif
+			gtk_widget_add_controller(entry, LegacyController)
+		End If
+		If iFlag Then gtk_entry_set_visibility(GTK_ENTRY(entry), False)
+		If gtk_dialog_run(GTK_DIALOG(dialog)) = GTK_RESPONSE_OK Then
+			Dim As WString Ptr EntryText = FromUtf8(Cast(ZString Ptr, gtk_editable_get_text(GTK_EDITABLE(entry))))
+			If EntryText Then Function = *EntryText: _Deallocate(EntryText)
+		End If
+		gtk_widget_destroy(dialog)
+		_Delete(tib)
 	#else
 		Function = ""
 	#endif

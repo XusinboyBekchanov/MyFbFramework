@@ -99,6 +99,11 @@ Namespace My.Sys.Forms
 			Declare Static Function Client_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Declare Static Function Client_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 			Declare Static Function deactivate_cb(ByVal user_data As gpointer) As gboolean
+			#ifdef __USE_GTK4__
+				' GTK4 has no delete and focus change events for windows
+				Declare Static Function Form_CloseRequest(window_ As GtkWindow Ptr, user_data As Any Ptr) As Boolean
+				Declare Static Sub Form_ActiveChanged(window_ As GtkWindow Ptr, pspec As GParamSpec Ptr, user_data As Any Ptr)
+			#endif
 		#else
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)

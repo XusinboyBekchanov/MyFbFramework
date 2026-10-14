@@ -110,7 +110,11 @@ Namespace My.Sys.Forms
 	Private Property CheckBox.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
-			gtk_button_set_label(GTK_BUTTON(widget), ToUtf8(Value))
+			#ifdef __USE_GTK4__
+				gtk_check_button_set_label(GTK_CHECK_BUTTON(widget), ToUtf8(Value))
+			#else
+				gtk_button_set_label(GTK_BUTTON(widget), ToUtf8(Value))
+			#endif
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(*FText)))
@@ -123,7 +127,11 @@ Namespace My.Sys.Forms
 	Private Property CheckBox.Checked As Boolean
 		If FHandle Then
 			#ifdef __USE_GTK__
-				FChecked = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))
+				#ifdef __USE_GTK4__
+					FChecked = gtk_check_button_get_active(GTK_CHECK_BUTTON(widget))
+				#else
+					FChecked = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))
+				#endif
 			#elseif defined(__USE_WINAPI__)
 				FChecked = Perform(BM_GETCHECK, 0, 0)
 			#elseif defined(__USE_JNI__)
@@ -139,7 +147,11 @@ Namespace My.Sys.Forms
 		FChecked = Value
 		If FHandle Then
 			#ifdef __USE_GTK__
-				gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), Value)
+				#ifdef __USE_GTK4__
+					gtk_check_button_set_active(GTK_CHECK_BUTTON(widget), Value)
+				#else
+					gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(widget), Value)
+				#endif
 			#elseif defined(__USE_WINAPI__)
 				Perform(BM_SETCHECK, FChecked, 0)
 			#elseif defined(__USE_JNI__)

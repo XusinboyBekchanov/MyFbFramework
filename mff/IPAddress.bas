@@ -152,7 +152,11 @@ Namespace My.Sys.Forms
 	Private Sub IPAddress.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.Event
-			Select Case Message.Event->type
+			#ifdef __USE_GTK4__
+				Select Case gtk4compat_event_type(Message.Event)
+			#else
+				Select Case Message.Event->type
+			#endif
 			Case GDK_BUTTON_PRESS
 				'Return
 			Case GDK_BUTTON_RELEASE
@@ -202,10 +206,12 @@ Namespace My.Sys.Forms
 				Dim allocation As GtkAllocation
 				Dim bSizeChanged As Boolean
 				gtk_widget_get_allocation(widget, @allocation)
-				If allocation.width <> Ctrl->AllocatedWidth OrElse allocation.height <> Ctrl->AllocatedHeight Then
-					Layout_SizeAllocate(widget, @allocation, data1)
-					bSizeChanged = True
-				End If
+				#ifndef __USE_GTK4__
+					If allocation.width <> Ctrl->AllocatedWidth OrElse allocation.height <> Ctrl->AllocatedHeight Then
+						Layout_SizeAllocate(widget, @allocation, data1)
+						bSizeChanged = True
+					End If
+				#endif
 				Ctrl->Canvas.HandleSetted = True
 				Ctrl->Canvas.Handle = cr
 				cairo_rectangle(cr, 0.0, 0.0, Ctrl->AllocatedWidth, Ctrl->AllocatedHeight)
@@ -221,7 +227,7 @@ Namespace My.Sys.Forms
 				Dim As Integer LayoutWidth
 				If Not Ctrl->bCreated Then
 					Ctrl->pdisplay = gtk_widget_get_display(widget)
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						Ctrl->win = gtk_layout_get_bin_window(GTK_LAYOUT(widget))
 					#endif
 					gdk_window_set_cursor(Ctrl->win, gdk_cursor_new_for_display(Ctrl->pdisplay, GDK_XTERM))
@@ -280,8 +286,16 @@ Namespace My.Sys.Forms
 		
 		Private Function IPAddress.Layout_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 			Dim As IPAddress Ptr ipa = Cast(Any Ptr, data1)
-			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
-			ipa->win = Event->window
+			#ifdef __USE_GTK4__
+				Dim As cairo_t Ptr cr = gdk_cairo_create(NULL)
+			#else
+				Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#endif
+			#ifdef __USE_GTK4__
+				ipa->win = NULL
+			#else
+				ipa->win = Event->window
+			#endif
 			Layout_Draw(widget, cr, data1)
 			cairo_destroy(cr)
 			Return False
@@ -289,7 +303,11 @@ Namespace My.Sys.Forms
 		
 		Private Function IPAddress.Entry_KeyPress(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			Dim As IPAddress Ptr ipa = user_data
-			Select Case Event->key.keyval
+			#ifdef __USE_GTK4__
+				Select Case gtk4compat_event_keyval(Event)
+			#else
+				Select Case Event->key.keyval
+			#endif
 			Case GDK_KEY_Home
 				ipa->Position = 0
 				gtk_widget_grab_focus(ipa->Entries(0))
@@ -332,7 +350,11 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			Case GDK_KEY_Left
-				If Event->key.state And GDK_SHIFT_MASK Then Return False
+				#ifdef __USE_GTK4__
+					If gdk_event_get_modifier_state(Event) And GDK_SHIFT_MASK Then Return False
+				#else
+					If Event->key.state And GDK_SHIFT_MASK Then Return False
+				#endif
 				Dim As Integer Pos1 = gtk_editable_get_position(GTK_EDITABLE(widget)), Index, Length
 				If widget = ipa->Entries(1) Then
 					Index = 1
@@ -342,7 +364,11 @@ Namespace My.Sys.Forms
 					Index = 3
 				End If
 				If Index > 0 Then
-					If Event->key.state And GDK_CONTROL_MASK Then
+					#ifdef __USE_GTK4__
+						If gdk_event_get_modifier_state(Event) And GDK_CONTROL_MASK Then
+					#else
+						If Event->key.state And GDK_CONTROL_MASK Then
+					#endif
 						ipa->Position = -1
 						gtk_widget_grab_focus(ipa->Entries(Index - 1))
 					ElseIf Pos1 = 0 Then
@@ -355,7 +381,11 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			Case GDK_KEY_Right
-				If Event->key.state And GDK_SHIFT_MASK Then Return False
+				#ifdef __USE_GTK4__
+					If gdk_event_get_modifier_state(Event) And GDK_SHIFT_MASK Then Return False
+				#else
+					If Event->key.state And GDK_SHIFT_MASK Then Return False
+				#endif
 				Dim As Integer Pos1 = gtk_editable_get_position(GTK_EDITABLE(widget)), Index = 3
 				If widget = ipa->Entries(0) Then
 					Index = 0
@@ -365,7 +395,11 @@ Namespace My.Sys.Forms
 					Index = 2
 				End If
 				If Index < 3 Then
-					If Event->key.state And GDK_CONTROL_MASK Then
+					#ifdef __USE_GTK4__
+						If gdk_event_get_modifier_state(Event) And GDK_CONTROL_MASK Then
+					#else
+						If Event->key.state And GDK_CONTROL_MASK Then
+					#endif
 						ipa->Position = -1
 						gtk_widget_grab_focus(ipa->Entries(Index + 1))
 					ElseIf Pos1 = gtk_entry_get_text_length(GTK_ENTRY(widget)) Then
@@ -377,7 +411,11 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			Case Else
-				Select Case *Event->key.string
+				#ifdef __USE_GTK4__
+					Select Case gtk4compat_event_string(Event)
+				#else
+					Select Case *Event->key.string
+				#endif
 				Case "0" To "9"
 					Dim As Integer Pos1 = gtk_editable_get_position(GTK_EDITABLE(widget)), Length = gtk_entry_get_text_length(GTK_ENTRY(widget))
 					If Length = 2 Then
@@ -386,7 +424,11 @@ Namespace My.Sys.Forms
 						#else
 							Dim EntryText As String = *gtk_entry_get_text(GTK_ENTRY(widget))
 						#endif
-						If Val(..Left(EntryText, Pos1) & *Event->key.string & Mid(EntryText, Pos1 + 1)) > 255 Then
+						#ifdef __USE_GTK4__
+							If Val(..Left(EntryText, Pos1) & gtk4compat_event_string(Event) & Mid(EntryText, Pos1 + 1)) > 255 Then
+						#else
+							If Val(..Left(EntryText, Pos1) & *Event->key.string & Mid(EntryText, Pos1 + 1)) > 255 Then
+						#endif
 							#ifdef __USE_GTK4__
 								gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), "255", -1)
 							#else
@@ -403,7 +445,7 @@ Namespace My.Sys.Forms
 							End If
 							If Index < 3 Then
 								#ifdef __USE_GTK4__
-									gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), *gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget))) & *Event->key.string, -1)
+									gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), *gtk_entry_buffer_get_text(gtk_entry_get_buffer(GTK_ENTRY(widget))) & gtk4compat_event_string(Event), -1)
 								#else
 									gtk_entry_set_text(GTK_ENTRY(widget), *gtk_entry_get_text(GTK_ENTRY(widget)) & *Event->key.string)
 								#endif
@@ -510,18 +552,31 @@ Namespace My.Sys.Forms
 					gtk_entry_set_alignment(gtk_entry(Entries(i)), 0.5)
 					gtk_entry_set_max_length(gtk_entry(Entries(i)), 3)
 					g_signal_connect(gtk_entry(Entries(i)), "activate", G_CALLBACK(@Entry_Activate), @This)
-					g_signal_connect(Entries(i), "key-press-event", G_CALLBACK(@Entry_KeyPress), @This)
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(Entries(i), "key-press-event", G_CALLBACK(@Entry_KeyPress), @This)
+					#else
+						g_signal_connect(Entries(i), "key-press-event", G_CALLBACK(@Entry_KeyPress), @This)
+					#endif
 					g_signal_connect_after(Entries(i), "grab-focus", G_CALLBACK(@Entry_GrabFocus), @This)
 					g_signal_connect(gtk_entry(Entries(i)), "changed", G_CALLBACK(@Entry_Changed), @This)
 					gtk_layout_put(gtk_layout(Layouts(i)), Entries(i), -1, -1)
 					gtk_layout_put(gtk_layout(Widget), Layouts(i), 0, 0)
 					gtk_widget_show_all(Layouts(i))
 				Next i
-				#ifdef __USE_GTK3__
-					g_signal_connect(widget, "draw", G_CALLBACK(@Layout_Draw), @This)
+				#ifndef __USE_GTK2__
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(widget, "draw", G_CALLBACK(@Layout_Draw), @This)
+						gtk4compat_signal_connect(widget, "size-allocate", G_CALLBACK(@Layout_SizeAllocate), @This)
+					#else
+						g_signal_connect(widget, "draw", G_CALLBACK(@Layout_Draw), @This)
+					#endif
 				#else
 					g_signal_connect(widget, "expose-event", G_CALLBACK(@Layout_ExposeEvent), @This)
-					g_signal_connect(widget, "size-allocate", G_CALLBACK(@Layout_SizeAllocate), @This)
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(widget, "size-allocate", G_CALLBACK(@Layout_SizeAllocate), @This)
+					#else
+						g_signal_connect(widget, "size-allocate", G_CALLBACK(@Layout_SizeAllocate), @This)
+					#endif
 				#endif
 			#else
 				.RegisterClass "IPAddress", WC_IPADDRESS, @IPAddressWndProc

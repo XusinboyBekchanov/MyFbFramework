@@ -24,22 +24,22 @@ Namespace Cursors
 	#define crNo          "not-allowed"
 	#define crSize        "move"
 	#define crSizeAll     "all-scroll"
-	#ifdef __USE_GTK3__
+	#ifndef __USE_GTK2__
 		#define crSizeNESW    "nesw-resize"
 	#else
 		#define crSizeNESW    "crosshair"
 	#endif
-	#ifdef __USE_GTK3__
+	#ifndef __USE_GTK2__
 		#define crSizeNS      "ns-resize"
 	#else
 		#define crSizeNS      "sb_v_double_arrow"
 	#endif
-	#ifdef __USE_GTK3__
+	#ifndef __USE_GTK2__
 		#define crSizeNWSE    "nwse-resize"
 	#else
 		#define crSizeNWSE    "crosshair"
 	#endif
-	#ifdef __USE_GTK3__
+	#ifndef __USE_GTK2__
 		#define crSizeWE      "ew-resize"
 	#else
 		#define crSizeWE      "sb_h_double_arrow"

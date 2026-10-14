@@ -74,7 +74,11 @@ Namespace My.Sys.Forms
 			FImageIndex = Value
 			QHeader(HeaderControl).UpdateItems
 			#ifdef __USE_GTK__
-				ImageHandle = gtk_image_new_from_icon_name(ToUTF8(HeaderControl->Images->Items.Get(FImageIndex)), GTK_ICON_SIZE_MENU)
+				#ifdef __USE_GTK4__
+					ImageHandle = gtk_image_new_from_icon_name(ToUTF8(HeaderControl->Images->Items.Get(FImageIndex)))
+				#else
+					ImageHandle = gtk_image_new_from_icon_name(ToUTF8(HeaderControl->Images->Items.Get(FImageIndex)), GTK_ICON_SIZE_MENU)
+				#endif
 			#endif
 		End If
 	End Property
@@ -89,7 +93,11 @@ Namespace My.Sys.Forms
 			If HeaderControl AndAlso HeaderControl->Images Then FImageIndex = HeaderControl->Images->IndexOf(*FImageKey)
 			QHeader(HeaderControl).UpdateItems
 			#ifdef __USE_GTK__
-				If HeaderControl AndAlso HeaderControl->Images Then ImageHandle = gtk_image_new_from_icon_name(ToUTF8(HeaderControl->Images->Items.Get(FImageIndex)), GTK_ICON_SIZE_MENU)
+				#ifdef __USE_GTK4__
+					If HeaderControl AndAlso HeaderControl->Images Then ImageHandle = gtk_image_new_from_icon_name(ToUTF8(HeaderControl->Images->Items.Get(FImageIndex)))
+				#else
+					If HeaderControl AndAlso HeaderControl->Images Then ImageHandle = gtk_image_new_from_icon_name(ToUTF8(HeaderControl->Images->Items.Get(FImageIndex)), GTK_ICON_SIZE_MENU)
+				#endif
 			#endif
 		End If
 	End Property
@@ -442,7 +450,11 @@ Namespace My.Sys.Forms
 	Private Sub Header.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.Event
-			Select Case Message.Event->type
+			#ifdef __USE_GTK4__
+				Select Case gtk4compat_event_type(Message.Event)
+			#else
+				Select Case Message.Event->type
+			#endif
 			Case GDK_MAP
 				Init
 			End Select
@@ -538,17 +550,29 @@ Namespace My.Sys.Forms
 		End Function
 		
 		Private Function Header.Column_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
-			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#ifdef __USE_GTK4__
+				Dim As cairo_t Ptr cr = gdk_cairo_create(NULL)
+			#else
+				Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#endif
 			Column_Draw(widget, cr, data1)
 			cairo_destroy(cr)
 			Return False
 		End Function
 		
 		Private Function Header.Column_ButtonPressEvent(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
-			If Event->button.type = GDK_2BUTTON_PRESS Then
+			#ifdef __USE_GTK4__
+				If gtk4compat_event_type(Event) = GDK_2BUTTON_PRESS Then
+			#else
+				If Event->button.type = GDK_2BUTTON_PRESS Then
+			#endif
 				Dim As HeaderSection Ptr hsec = user_data
 				Dim As Header Ptr hdr = hsec->HeaderControl
-				If hdr->OnSectionDblClick Then hdr->OnSectionDblClick(*hdr->Designer, *hdr, *hsec, hdr->FSections.IndexOf(hsec), Event->button.button - 1)
+				#ifdef __USE_GTK4__
+					If hdr->OnSectionDblClick Then hdr->OnSectionDblClick(*hdr->Designer, *hdr, *hsec, hdr->FSections.IndexOf(hsec), gtk4compat_event_button(Event) - 1)
+				#else
+					If hdr->OnSectionDblClick Then hdr->OnSectionDblClick(*hdr->Designer, *hdr, *hsec, hdr->FSections.IndexOf(hsec), Event->button.button - 1)
+				#endif
 			End If
 			Return False
 		End Function
@@ -575,19 +599,23 @@ Namespace My.Sys.Forms
 			gtk_tree_view_column_set_resizable(PSection->Handle, FResizable AndAlso bResizable)
 			gtk_tree_view_column_set_clickable(PSection->Handle, FStyle = HeaderStyle.hsNormal)
 			If Images Then
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					PSection->BoxHandle = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 1)
 				#else
 					PSection->BoxHandle = gtk_hbox_new(False, 1)
 				#endif
-				PSection->ImageHandle = gtk_image_new_from_icon_name(ToUTF8(Images->Items.Get(FImageIndex)), GTK_ICON_SIZE_MENU)
+				#ifdef __USE_GTK4__
+					PSection->ImageHandle = gtk_image_new_from_icon_name(ToUTF8(Images->Items.Get(FImageIndex)))
+				#else
+					PSection->ImageHandle = gtk_image_new_from_icon_name(ToUTF8(Images->Items.Get(FImageIndex)), GTK_ICON_SIZE_MENU)
+				#endif
 				gtk_container_add (GTK_CONTAINER (PSection->BoxHandle), PSection->ImageHandle)
 				PSection->LabelHandle = gtk_label_new(ToUTF8(FCaption))
 				gtk_container_add(GTK_CONTAINER (PSection->BoxHandle), PSection->LabelHandle)
 				gtk_widget_show_all(PSection->BoxHandle)
 				gtk_tree_view_column_set_widget(PSection->Handle, PSection->BoxHandle)
 			Else
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					gtk_tree_view_column_set_title(PSection->Handle, ToUTF8(FCaption))
 				#else
 					PSection->LabelHandle = gtk_label_new(ToUTF8(FCaption))
@@ -596,7 +624,7 @@ Namespace My.Sys.Forms
 				#endif
 			End If
 			gtk_tree_view_append_column(GTK_TREE_VIEW(FHandle), PSection->Handle)
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				PSection->ButtonHandle = gtk_tree_view_column_get_button(PSection->Handle)
 			#else
 				If Images Then
@@ -612,12 +640,20 @@ Namespace My.Sys.Forms
 				gtk_tree_view_column_set_fixed_width(PSection->Handle, Max(1, FWidth))
 			End If
 			PSection->Alignment = FAlignment
-			#ifdef __USE_GTK3__
-				g_signal_connect(PSection->ButtonHandle, "draw", G_CALLBACK(@Column_Draw), PSection)
+			#ifndef __USE_GTK2__
+				#ifdef __USE_GTK4__
+					gtk4compat_signal_connect(PSection->ButtonHandle, "draw", G_CALLBACK(@Column_Draw), PSection)
+				#else
+					g_signal_connect(PSection->ButtonHandle, "draw", G_CALLBACK(@Column_Draw), PSection)
+				#endif
 			#else
 				g_signal_connect(PSection->ButtonHandle, "expose-event", G_CALLBACK(@Column_ExposeEvent), PSection)
 			#endif
-			g_signal_connect(PSection->ButtonHandle, "button-press-event", G_CALLBACK(@Column_ButtonPressEvent), PSection)
+			#ifdef __USE_GTK4__
+				gtk4compat_signal_connect(PSection->ButtonHandle, "button-press-event", G_CALLBACK(@Column_ButtonPressEvent), PSection)
+			#else
+				g_signal_connect(PSection->ButtonHandle, "button-press-event", G_CALLBACK(@Column_ButtonPressEvent), PSection)
+			#endif
 			g_signal_connect(gtk_tree_view_column(PSection->Handle), "clicked", G_CALLBACK(@Column_Clicked), PSection)
 		#else
 			Dim As HDITEM HI
@@ -737,7 +773,7 @@ Namespace My.Sys.Forms
 		
 		Private Function Header.Header_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Dim As Header Ptr hdr = data1
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
 			#else
 				Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
@@ -756,7 +792,11 @@ Namespace My.Sys.Forms
 		End Function
 		
 		Private Function Header.Header_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
-			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#ifdef __USE_GTK4__
+				Dim As cairo_t Ptr cr = gdk_cairo_create(NULL)
+			#else
+				Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#endif
 			Header_Draw(widget, cr, data1)
 			cairo_destroy(cr)
 			Return False
@@ -791,8 +831,12 @@ Namespace My.Sys.Forms
 				ColumnTypes = _New(GType[1])
 				ColumnTypes[0] = G_TYPE_STRING
 				g_signal_connect(gtk_tree_view(widget), "map", G_CALLBACK(@Header_Map), @This)
-				#ifdef __USE_GTK3__
-					g_signal_connect(widget, "draw", G_CALLBACK(@Header_Draw), @This)
+				#ifndef __USE_GTK2__
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(widget, "draw", G_CALLBACK(@Header_Draw), @This)
+					#else
+						g_signal_connect(widget, "draw", G_CALLBACK(@Header_Draw), @This)
+					#endif
 				#else
 					g_signal_connect(widget, "expose-event", G_CALLBACK(@Header_ExposeEvent), @This)
 				#endif

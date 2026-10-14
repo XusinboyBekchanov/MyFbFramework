@@ -212,6 +212,10 @@ Namespace My.Sys.Forms
 			Else
 				gtk_container_add(GTK_CONTAINER(Widget), Value->Handle)
 			End If
+			#ifdef __USE_GTK4__
+				' The child added after Expand expands too
+				If FExpand Then gtk_tool_item_set_expand(GTK_TOOL_ITEM(Widget), True)
+			#endif
 		#endif
 	End Property
 	
@@ -283,7 +287,11 @@ Namespace My.Sys.Forms
 				If Value = "" Then
 					Icon = gtk_image_new_from_pixbuf(EmptyPixbuf)
 				Else
-					Icon = gtk_image_new_from_icon_name(ToUtf8(Value), GTK_ICON_SIZE_MENU)
+					#ifdef __USE_GTK4__
+						Icon = gtk_image_new_from_icon_name(ToUtf8(Value))
+					#else
+						Icon = gtk_image_new_from_icon_name(ToUtf8(Value), GTK_ICON_SIZE_MENU)
+					#endif
 				End If
 				Dim As Integer BitmapSize = 16
 				If Ctrl AndAlso Ctrl->ClassName = "ToolBar" Then BitmapSize = QToolBar(Ctrl).BitmapWidth
@@ -410,7 +418,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolButton.Width As Integer
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				FButtonWidth = UnScaleX(gtk_widget_get_allocated_width(Widget))
 			#else
 				FButtonWidth = UnScaleX(Widget->allocation.width)
@@ -479,7 +487,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolButton.Height As Integer
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				FButtonHeight = UnScaleY(gtk_widget_get_allocated_height(Widget))
 			#else
 				FButtonHeight = UnScaleY(Widget->allocation.height)
@@ -508,6 +516,17 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ToolButton.Visible(Value As Boolean)
+		#ifdef __USE_GTK__
+			' gtk_widget_show_all of the parent shows the hidden button again while FVisible stays False,
+			' so the state is applied always and show_all must skip the hidden button
+			FVisible = Value
+			If Widget Then
+				gtk_widget_set_no_show_all(Widget, Not Value)
+				' The icon set while the button was hidden was skipped by show_all: it is shown with the button
+				If Value Then gtk_widget_show_all(Widget) Else gtk_widget_set_visible(Widget, False)
+			End If
+			Exit Property
+		#endif
 		If Value <> FVisible Then
 			FVisible = Value
 			If Ctrl Then
@@ -568,7 +587,7 @@ Namespace My.Sys.Forms
 	Private Property ToolButton.Expand(Value As Boolean)
 		FExpand = Value
 		#ifdef __USE_GTK__
-			gtk_tool_item_set_expand(GTK_TOOL_ITEM(Widget), FEnabled)
+			gtk_tool_item_set_expand(GTK_TOOL_ITEM(Widget), FExpand)
 		#endif
 	End Property
 	
@@ -639,11 +658,11 @@ Namespace My.Sys.Forms
 			' Dynamic buttons watch Widget with a weak pointer (ToolButtons.Add, ToolGroupButtons.Add),
 			' it must be removed with every GTK version, otherwise GLib writes into this freed button later
 			If FDynamic AndAlso Widget <> 0 Then g_object_remove_weak_pointer(G_OBJECT(Widget), Cast(gpointer Ptr, @Widget))
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				#ifndef __FB_WIN32__
 					If Widget <> 0 AndAlso GTK_IS_WIDGET(Widget) Then
 						#ifdef __USE_GTK4__
-							g_object_unref(Widget)
+							gtk_widget_destroy(Widget)
 						#else
 							gtk_widget_destroy(Widget)
 						#endif
@@ -692,19 +711,25 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Private Sub on_menu_position(ByVal menu_ As GtkMenu Ptr, ByVal x As gint Ptr, ByVal y As gint Ptr, ByVal push_in As gboolean Ptr, ByVal user_data As gpointer)
-			Dim As GtkWidget Ptr button = GTK_WIDGET(user_data)
-			Dim As GdkWindow Ptr Window1 = gtk_widget_get_window(gtk_widget_get_parent(button))
-			Dim As GtkAllocation allocation
-			Dim As gint bx, by
-			gtk_widget_get_allocation(button, @allocation)
-			gdk_window_get_origin(Window1, @bx, @by)
-			*x = bx + allocation.x
-			*y = by + allocation.y + allocation.height
-			*push_in = False
+			#ifndef __USE_GTK4__
+				Dim As GtkWidget Ptr button = GTK_WIDGET(user_data)
+				Dim As GdkWindow Ptr Window1 = gtk_widget_get_window(gtk_widget_get_parent(button))
+				Dim As GtkAllocation allocation
+				Dim As gint bx, by
+				gtk_widget_get_allocation(button, @allocation)
+				gdk_window_get_origin(Window1, @bx, @by)
+				*x = bx + allocation.x
+				*y = by + allocation.y + allocation.height
+				*push_in = False
+			#endif
 		End Sub
 
 		Private Sub on_popup_menu(button As GtkWidget Ptr, Menu_ As GtkMenu Ptr)
-			gtk_menu_popup(Menu_, NULL, NULL, Cast(GtkMenuPositionFunc, @on_menu_position), button, 1, gtk_get_current_event_time())
+			#ifdef __USE_GTK4__
+				gtk4compat_menu_popup_at Menu_, button, 0, gtk_widget_get_height(button)
+			#else
+				gtk_menu_popup(Menu_, NULL, NULL, Cast(GtkMenuPositionFunc, @on_menu_position), button, 1, gtk_get_current_event_time())
+			#endif
 		End Sub
 	#endif
 	
@@ -718,7 +743,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				If GTK_IS_WIDGET(.Widget) Then 
 					#ifdef __USE_GTK4__
-						g_object_unref(widget)
+						gtk_widget_destroy(widget)
 					#else
 						gtk_widget_destroy(.Widget)
 					#endif

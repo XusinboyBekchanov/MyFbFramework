@@ -475,13 +475,10 @@ DECLARE FUNCTION alloca() AS ZSTRING PTR
 #ENDIF ' DEFINED (G_OS_W...
 
 #IFNDEF G_DISABLE_DEPRECATED
-#IFNDEF ATEXIT
-#DEFINE ATEXIT(proc) g_ATEXIT(proc)
-#ELSE ' ATEXIT
+' ATEXIT is not redefined (it would rename atexit of the C runtime)
 #DEFINE G_NATIVE_ATEXIT
-#ENDIF ' ATEXIT
 #IFDEF G_OS_WIN32
-#DEFINE g_atexit(func) atexit(func)
+' g_atexit is declared in GLib-2.0.bi (a macro would declare atexit)
 #ENDIF ' G_OS_WIN32
 #ENDIF ' G_DISABLE_DEPRECATED
 

@@ -713,7 +713,11 @@ Namespace My.Sys.Forms
 		FEditLabels = Value
 		#ifdef __USE_GTK__
 			Dim As GValue bValue '= G_VALUE_INIT
-			g_value_init_(@bValue, G_TYPE_BOOLEAN)
+			#ifdef __USE_GTK4__
+				g_value_init(@bValue, G_TYPE_BOOLEAN)
+			#else
+				g_value_init_(@bValue, G_TYPE_BOOLEAN)
+			#endif
 			g_value_set_boolean(@bValue, Value)
 			g_object_set_property(G_OBJECT(rendertext), "editable", @bValue)
 			g_object_set_property(G_OBJECT(rendertext), "editable-set", @bValue)
@@ -822,12 +826,16 @@ Namespace My.Sys.Forms
 	Private Sub TreeView.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.Event
-			Select Case Message.Event->type
+			#ifdef __USE_GTK4__
+				Select Case gtk4compat_event_type(Message.Event)
+			#else
+				Select Case Message.Event->type
+			#endif
 			Case GDK_BUTTON_RELEASE
 				If SelectedNode <> 0 Then
 					If OnNodeClick Then OnNodeClick(*Designer, This, *SelectedNode)
 				End If
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 				Case GDK_2BUTTON_PRESS, GDK_DOUBLE_BUTTON_PRESS
 				#else
 				Case GDK_2BUTTON_PRESS
@@ -1116,10 +1124,18 @@ Namespace My.Sys.Forms
 		Private Function TreeView.TreeView_ButtonRelease(widget As GtkWidget Ptr, e As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			Dim As TreeView Ptr tv = user_data
 			Dim Message As Message
-			If e->button.button = 3 AndAlso tv->ContextMenu Then
+			#ifdef __USE_GTK4__
+				If gtk4compat_event_button(e) = 3 AndAlso tv->ContextMenu Then
+			#else
+				If e->button.button = 3 AndAlso tv->ContextMenu Then
+			#endif
 				If tv->ContextMenu->Handle Then
 					Message = Type(tv, widget, e, False)
-					tv->ContextMenu->Popup(e->button.x, e->button.y, @Message)
+					#ifdef __USE_GTK4__
+						tv->ContextMenu->Popup(gtk4compat_event_x(e), gtk4compat_event_y(e), @Message)
+					#else
+						tv->ContextMenu->Popup(e->button.x, e->button.y, @Message)
+					#endif
 				End If
 			End If
 			Return False
@@ -1130,7 +1146,11 @@ Namespace My.Sys.Forms
 			Dim As GtkTreeIter iter
 			Dim As GtkTreePath Ptr path
 			Dim As GtkTreeModel Ptr model
-			If Not gtk_tree_view_get_tooltip_context(GTK_TREE_VIEW(widget), @x, @y, keyboard_mode, @model, @path, @iter) Then
+			#ifdef __USE_GTK4__
+				If Not gtk_tree_view_get_tooltip_context(GTK_TREE_VIEW(widget), x, y, keyboard_mode, @model, @path, @iter) Then
+			#else
+				If Not gtk_tree_view_get_tooltip_context(GTK_TREE_VIEW(widget), @x, @y, keyboard_mode, @model, @path, @iter) Then
+			#endif
 				Return False
 			End If
 			Dim As TreeNode Ptr tn = tv->Nodes.FindByIterUser_Data(iter.user_data)
@@ -1215,7 +1235,11 @@ Namespace My.Sys.Forms
 				Dim As GtkTreeViewColumn Ptr col = gtk_tree_view_column_new()
 				Dim As GtkCellRenderer Ptr renderpixbuf = gtk_cell_renderer_pixbuf_new()
 				rendertext = gtk_cell_renderer_text_new()
-				scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+				#ifdef __USE_GTK4__
+					scrolledwidget = gtk_scrolled_window_new()
+				#else
+					scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+				#endif
 				gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 				TreeStore = gtk_tree_store_new(2, G_TYPE_STRING, G_TYPE_STRING)
 				widget = gtk_tree_view_new_with_model(GTK_TREE_MODEL(TreeStore))
@@ -1232,13 +1256,17 @@ Namespace My.Sys.Forms
 				
 				gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(widget), False)
 				gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(widget), True)
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					gtk_widget_set_has_tooltip(widget, True)
 				#endif
 				
 				g_signal_connect(G_OBJECT(rendertext), "edited", G_CALLBACK(@Cell_Edited), @This)
 				g_signal_connect(G_OBJECT(rendertext), "editing-started", G_CALLBACK(@Cell_Editing), @This)
-				g_signal_connect(GTK_TREE_VIEW(widget), "button-release-event", G_CALLBACK(@TreeView_ButtonRelease), @This)
+				#ifdef __USE_GTK4__
+					gtk4compat_signal_connect(GTK_TREE_VIEW(widget), "button-release-event", G_CALLBACK(@TreeView_ButtonRelease), @This)
+				#else
+					g_signal_connect(GTK_TREE_VIEW(widget), "button-release-event", G_CALLBACK(@TreeView_ButtonRelease), @This)
+				#endif
 				g_signal_connect(widget, "row-activated", G_CALLBACK(@TreeView_RowActivated), @This)
 				g_signal_connect(widget, "query-tooltip", G_CALLBACK(@TreeView_QueryTooltip), @This)
 				g_signal_connect(G_OBJECT(TreeSelection), "changed", G_CALLBACK (@TreeView_SelectionChanged), @This)

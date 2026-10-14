@@ -396,7 +396,7 @@ Namespace My.Sys.Forms
 	#ifndef GridColumn_Update_Off
 		Private Sub GridColumn.Update()
 			#ifdef __USE_GTK__
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(-1, FWidth))
 				#else
 					If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(1, FWidth))
@@ -1164,7 +1164,11 @@ Namespace My.Sys.Forms
 				Dim As GtkCellRenderer Ptr rendertext = gtk_cell_renderer_text_new()
 				If ColEditable Then
 					Dim As GValue bValue '= G_VALUE_INIT
-					g_value_init_(@bValue, G_TYPE_BOOLEAN)
+					#ifdef __USE_GTK4__
+						g_value_init(@bValue, G_TYPE_BOOLEAN)
+					#else
+						g_value_init_(@bValue, G_TYPE_BOOLEAN)
+					#endif
 					g_value_set_boolean(@bValue, True)
 					g_object_set_property(G_OBJECT(rendertext), "editable", @bValue)
 					g_value_unset(@bValue)
@@ -1188,7 +1192,7 @@ Namespace My.Sys.Forms
 				Else
 					gtk_tree_view_append_column(GTK_TREE_VIEW(g_object_get_data(G_OBJECT(Parent->Handle), "@@@TreeView")), PColumn->Column)
 				End If
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(-1, iWidth))
 				#else
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(1, iWidth))
@@ -1469,7 +1473,7 @@ Namespace My.Sys.Forms
 		If FSingleClickActivate = Value Then Return
 		FSingleClickActivate = Value
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(widget), Value)
 			#else
 				
@@ -1745,14 +1749,18 @@ Namespace My.Sys.Forms
 	Private Sub Grid.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.Event
-			Select Case Message.Event->type
+			#ifdef __USE_GTK4__
+				Select Case gtk4compat_event_type(Message.Event)
+			#else
+				Select Case Message.Event->type
+			#endif
 			Case GDK_MAP
 				Clear
 			Case GDK_BUTTON_RELEASE
 				If SelectedRowIndex <> -1 Then
 					If OnRowClick Then OnRowClick(*Designer, This, SelectedRowIndex)
 				End If
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 				Case GDK_2BUTTON_PRESS, GDK_DOUBLE_BUTTON_PRESS
 				#else
 				Case GDK_2BUTTON_PRESS
@@ -1762,7 +1770,11 @@ Namespace My.Sys.Forms
 				End If
 			Case GDK_KEY_PRESS
 				If SelectedRowIndex <> -1 Then
-					If OnRowKeyDown Then OnRowKeyDown(*Designer, This, SelectedRowIndex, Message.Event->key.keyval, Message.Event->key.state)
+					#ifdef __USE_GTK4__
+						If OnRowKeyDown Then OnRowKeyDown(*Designer, This, SelectedRowIndex, gtk4compat_event_keyval(Message.Event), gdk_event_get_modifier_state(Message.Event))
+					#else
+						If OnRowKeyDown Then OnRowKeyDown(*Designer, This, SelectedRowIndex, Message.Event->key.keyval, Message.Event->key.state)
+					#endif
 				End If
 			End Select
 		#elseif defined(__USE_WINAPI__)
@@ -2628,13 +2640,17 @@ Namespace My.Sys.Forms
 	Private Constructor Grid
 		#ifdef __USE_GTK__
 			ListStore = gtk_list_store_new(3, G_TYPE_BOOLEAN, GDK_TYPE_PIXBUF, G_TYPE_STRING)
-			scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+			#ifdef __USE_GTK4__
+				scrolledwidget = gtk_scrolled_window_new()
+			#else
+				scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+			#endif
 			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 			'widget = gtk_tree_view_new_with_model(gtk_tree_model(ListStore))
 			widget = gtk_tree_view_new()
 			gtk_container_add(GTK_CONTAINER(scrolledwidget), widget)
 			TreeSelection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget))
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				g_signal_connect(gtk_scrollable_get_hadjustment(GTK_SCROLLABLE(widget)), "value-changed", G_CALLBACK(@Grid_Scroll), @This)
 				g_signal_connect(gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(widget)), "value-changed", G_CALLBACK(@Grid_Scroll), @This)
 			#else

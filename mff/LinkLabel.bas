@@ -118,9 +118,13 @@ Namespace My.Sys.Forms
 			WLet(FClassName, "LinkLabel")
 			#ifdef __USE_GTK__
 				widget = gtk_label_new("")
-				scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+				#ifdef __USE_GTK4__
+					scrolledwidget = gtk_scrolled_window_new()
+				#else
+					scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+				#endif
 				gtk_scrolled_window_set_policy(gtk_scrolled_window(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					gtk_container_add(gtk_container(scrolledwidget), widget)
 				#else
 					gtk_scrolled_window_add_with_viewport(gtk_scrolled_window(scrolledwidget), widget)

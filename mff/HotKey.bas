@@ -61,7 +61,11 @@ Namespace My.Sys.Forms
 	Private Sub HotKey.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.Event
-			Select Case Message.Event->type
+			#ifdef __USE_GTK4__
+				Select Case gtk4compat_event_type(Message.Event)
+			#else
+				Select Case Message.Event->type
+			#endif
 			Case GDK_BUTTON_PRESS
 				Message.Result = True
 				Return
@@ -69,7 +73,11 @@ Namespace My.Sys.Forms
 				Message.Result = True
 				Return
 			Case GDK_KEY_PRESS
-				Dim As String KeyName = *gdk_keyval_name(e->key.keyval)
+				#ifdef __USE_GTK4__
+					Dim As String KeyName = *gdk_keyval_name(gtk4compat_event_keyval(e))
+				#else
+					Dim As String KeyName = *gdk_keyval_name(e->key.keyval)
+				#endif
 				Select Case KeyName
 				Case "Shift_L", "Shift_R", "Control_L", "Control_R", "Meta_L", "Meta_R", "Alt_L", "Alt_R", "Super_L", "Super_R", "Hyper_L", "Hyper_R"
 					bKeyPressed = False
@@ -107,12 +115,36 @@ Namespace My.Sys.Forms
 					KeyName = UCase(KeyName)
 					'If KeyName <> "ISO_NEXT_GROUP" Then
 						bKeyPressed = True
-						If e->key.state And GDK_MOD1_MASK Then KeyName = "Alt + " & KeyName
-						If e->key.state And GDK_SHIFT_MASK Then KeyName = "Shift + " & KeyName
-						If e->key.state And GDK_CONTROL_MASK Then KeyName = "Ctrl + " & KeyName
-						If e->key.state And GDK_META_MASK Then KeyName = "Meta + " & KeyName
-						If e->key.state And GDK_SUPER_MASK Then KeyName = "Super + " & KeyName
-						If e->key.state And GDK_HYPER_MASK Then KeyName = "Hyper + " & KeyName
+						#ifdef __USE_GTK4__
+							If gdk_event_get_modifier_state(e) And GDK_MOD1_MASK Then KeyName = "Alt + " & KeyName
+						#else
+							If e->key.state And GDK_MOD1_MASK Then KeyName = "Alt + " & KeyName
+						#endif
+						#ifdef __USE_GTK4__
+							If gdk_event_get_modifier_state(e) And GDK_SHIFT_MASK Then KeyName = "Shift + " & KeyName
+						#else
+							If e->key.state And GDK_SHIFT_MASK Then KeyName = "Shift + " & KeyName
+						#endif
+						#ifdef __USE_GTK4__
+							If gdk_event_get_modifier_state(e) And GDK_CONTROL_MASK Then KeyName = "Ctrl + " & KeyName
+						#else
+							If e->key.state And GDK_CONTROL_MASK Then KeyName = "Ctrl + " & KeyName
+						#endif
+						#ifdef __USE_GTK4__
+							If gdk_event_get_modifier_state(e) And GDK_META_MASK Then KeyName = "Meta + " & KeyName
+						#else
+							If e->key.state And GDK_META_MASK Then KeyName = "Meta + " & KeyName
+						#endif
+						#ifdef __USE_GTK4__
+							If gdk_event_get_modifier_state(e) And GDK_SUPER_MASK Then KeyName = "Super + " & KeyName
+						#else
+							If e->key.state And GDK_SUPER_MASK Then KeyName = "Super + " & KeyName
+						#endif
+						#ifdef __USE_GTK4__
+							If gdk_event_get_modifier_state(e) And GDK_HYPER_MASK Then KeyName = "Hyper + " & KeyName
+						#else
+							If e->key.state And GDK_HYPER_MASK Then KeyName = "Hyper + " & KeyName
+						#endif
 '						If bAlt Then KeyName = "Alt + " & KeyName
 '						If bShift Then KeyName = "Shift + " & KeyName
 '						If bCtrl Then KeyName = "Ctrl + " & KeyName
@@ -134,7 +166,11 @@ Namespace My.Sys.Forms
 					'End If
 				End Select
 			Case GDK_KEY_RELEASE
-				Dim As String KeyName = *gdk_keyval_name(e->key.keyval)
+				#ifdef __USE_GTK4__
+					Dim As String KeyName = *gdk_keyval_name(gtk4compat_event_keyval(e))
+				#else
+					Dim As String KeyName = *gdk_keyval_name(e->key.keyval)
+				#endif
 				Select Case KeyName
 				Case "Shift_L", "Shift_R", "Control_L", "Control_R", "Meta_L", "Meta_R", "Alt_L", "Alt_R", "Super_L", "Super_R", "Hyper_L", "Hyper_R"
 					KeyName = ..Left(KeyName, Len(KeyName) - 2)

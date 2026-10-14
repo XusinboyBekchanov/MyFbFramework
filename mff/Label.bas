@@ -129,21 +129,21 @@ Namespace My.Sys.Forms
 			#elseif defined(__USE_GTK__)
 				Select Case FAlignment
 				Case AlignmentConstants.taLeft
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						gtk_label_set_xalign(GTK_LABEL (widget), 0.0)
 					#else
 						gtk_label_set_justify(GTK_LABEL(widget), GTK_JUSTIFY_LEFT)
 						gtk_misc_set_alignment(GTK_MISC(widget), 0, 0)
 					#endif
 				Case AlignmentConstants.taCenter
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						gtk_label_set_xalign(GTK_LABEL (widget), 0.5)
 					#else
 						gtk_label_set_justify(GTK_LABEL(widget), GTK_JUSTIFY_CENTER)
 						gtk_misc_set_alignment(GTK_MISC(widget), 0.5, 0)
 					#endif
 				Case AlignmentConstants.taRight
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						gtk_label_set_xalign(GTK_LABEL (widget), 1.0)
 					#else
 						gtk_label_set_justify(GTK_LABEL(widget), GTK_JUSTIFY_RIGHT)
@@ -363,13 +363,13 @@ Namespace My.Sys.Forms
 	Private Constructor Label
 		#ifdef __USE_GTK__
 			widget = gtk_label_new("")
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				gtk_label_set_xalign (GTK_LABEL (widget), 0.0)
 			#else
 				gtk_misc_set_alignment(GTK_MISC(widget), 0, 0)
 			#endif
 			gtk_label_set_line_wrap(GTK_LABEL(widget), True)
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				eventboxwidget = gtk_event_box_new()
 				gtk_container_add(GTK_CONTAINER(eventboxwidget), widget)
 			#endif

@@ -211,7 +211,7 @@ Namespace My.Sys.Forms
 				iWidth = This.Width
 				iHeight = This.Height
 				#ifdef __USE_GTK__
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						gtk_orientable_set_orientation(gtk_orientable(widget), GTK_ORIENTATION_VERTICAL)
 					#else
 						gtk_progress_bar_set_orientation(gtk_progress_bar(widget), GTK_PROGRESS_BOTTOM_TO_TOP)
@@ -223,7 +223,7 @@ Namespace My.Sys.Forms
 				iWidth = This.Width
 				iHeight = This.Height
 				#ifdef __USE_GTK__
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						gtk_orientable_set_orientation(gtk_orientable(widget), GTK_ORIENTATION_HORIZONTAL)
 					#else
 						gtk_progress_bar_set_orientation(gtk_progress_bar(widget), GTK_PROGRESS_LEFT_TO_RIGHT)

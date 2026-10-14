@@ -844,7 +844,7 @@ Namespace My.Sys.Forms
 		
 		Private Function Animate.DesignDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Dim As Animate Ptr anim = data1
-			#if defined(__USE_GTK3__) OrElse defined(__USE_GTK4__)
+			#if Not defined(__USE_GTK2__) OrElse defined(__USE_GTK4__)
 				Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
 			#else
 				Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
@@ -887,7 +887,11 @@ Namespace My.Sys.Forms
 		
 		Private Function Animate.DesignExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
 			#ifndef __USE_GTK4__
-				Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+				#ifdef __USE_GTK4__
+					Dim As cairo_t Ptr cr = gdk_cairo_create(NULL)
+				#else
+					Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+				#endif
 				DesignDraw(widget, cr, data1)
 				cairo_destroy(cr)
 			#endif
@@ -896,18 +900,21 @@ Namespace My.Sys.Forms
 		
 		Private Sub Animate.Screen_Changed(widget As GtkWidget Ptr, old_screen As GdkScreen Ptr, userdata As gpointer)
 			Dim As Animate Ptr anim = userdata
+			#ifdef __USE_GTK4__
+				' GTK4 always supports alpha channels
+				anim->SupportsAlpha = True
+				Exit Sub
+			#else
 			/' To check If the display supports Alpha channels, Get the colormap '/
 			Dim As GdkScreen Ptr pScreen = gtk_widget_get_screen(widget)
-			#if defined(__USE_GTK3__)
+			#if Not defined(__USE_GTK2__)
 				Dim As GdkVisual Ptr VisualOrColormap = gdk_screen_get_rgba_visual(pScreen)
-			#elseif defined(__USE_GTK4__)
-				Dim As GdkVisual Ptr VisualOrColormap = gdk_display_get_rgba_visual(pScreen)
 			#else
 				Dim As GdkColormap Ptr VisualOrColormap = gdk_screen_get_rgba_colormap(pScreen)
 			#endif
 			If (VisualOrColormap <> 0) Then
 				Print "Your screen does not support alpha channels!"
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					'VisualOrColormap = gdk_screen_get_rgb_visual(pScreen)
 				#else
 					VisualOrColormap = gdk_screen_get_rgb_colormap(pScreen)
@@ -918,12 +925,13 @@ Namespace My.Sys.Forms
 				anim->SupportsAlpha = True
 			End If
 			/' Now we have a colormap appropriate for the screen, use it '/
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				'If VisualOrColormap <> 0 Then
 				gtk_widget_set_visual(widget, VisualOrColormap)
 				'End If
 			#else
 				gtk_widget_set_colormap(widget, VisualOrColormap)
+			#endif
 			#endif
 		End Sub
 	#else
@@ -945,18 +953,36 @@ Namespace My.Sys.Forms
 	Private Constructor Animate
 		Dim As Boolean Result
 		#ifdef __USE_GTK__
-			widget = gtk_image_new()
+			#ifdef __USE_GTK4__
+				' GTK4 draws only in drawing areas (or snapshots)
+				widget = gtk_drawing_area_new()
+			#else
+				widget = gtk_image_new()
+			#endif
 			eventboxwidget = gtk_event_box_new()
 			gtk_container_add(GTK_CONTAINER(eventboxwidget), widget)
 			gtk_widget_set_app_paintable(widget, True)
 			#ifdef __USE_GTK__
-				#ifdef __USE_GTK3__
-					g_signal_connect(widget, "draw", G_CALLBACK(@DesignDraw), @This)
+				#ifdef __USE_GTK4__
+					mff_widget_set_draw_func(widget, @DesignDraw, @This)
+					SupportsAlpha = True
+				#elseif Not defined(__USE_GTK2__)
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(widget, "draw", G_CALLBACK(@DesignDraw), @This)
+					#else
+						g_signal_connect(widget, "draw", G_CALLBACK(@DesignDraw), @This)
+					#endif
 				#else
 					g_signal_connect(widget, "expose-event", G_CALLBACK(@DesignExposeEvent), @This)
 				#endif
 			#endif
-			g_signal_connect(G_OBJECT(widget), "screen-changed", G_CALLBACK(@Screen_Changed), @This)
+			#ifndef __USE_GTK4__
+				#ifdef __USE_GTK4__
+					gtk4compat_signal_connect(G_OBJECT(widget), "screen-changed", G_CALLBACK(@Screen_Changed), @This)
+				#else
+					g_signal_connect(G_OBJECT(widget), "screen-changed", G_CALLBACK(@Screen_Changed), @This)
+				#endif
+			#endif
 			This.RegisterClass "Animate", @This
 		#else
 			Dim As INITCOMMONCONTROLSEX ICC

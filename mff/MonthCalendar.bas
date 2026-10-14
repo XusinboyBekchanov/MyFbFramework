@@ -65,7 +65,11 @@ Namespace My.Sys.Forms
 		If This.FHandle Then
 			#ifdef __USE_GTK__
 				Dim As guint y, m, d
-				gtk_calendar_get_date(gtk_calendar(FHandle), @y, @m, @d)
+				#ifdef __USE_GTK4__
+					gtk4compat_calendar_get_date(gtk_calendar(FHandle), @y, @m, @d)
+				#else
+					gtk_calendar_get_date(gtk_calendar(FHandle), @y, @m, @d)
+				#endif
 				FSelectedDate = DateSerial(y, m + 1, d)
 			#elseif defined(__USE_WINAPI__)
 				Dim As SYSTEMTIME pst
@@ -82,7 +86,11 @@ Namespace My.Sys.Forms
 		If This.FHandle Then
 			#ifdef __USE_GTK__
 				gtk_calendar_select_month(gtk_calendar(FHandle), Month(FSelectedDate) - 1, Year(FSelectedDate))
-				gtk_calendar_select_day(gtk_calendar(FHandle), Day(FSelectedDate))
+				#ifdef __USE_GTK4__
+					gtk4compat_calendar_select_day(gtk_calendar(FHandle), Day(FSelectedDate))
+				#else
+					gtk_calendar_select_day(gtk_calendar(FHandle), Day(FSelectedDate))
+				#endif
 				If FTodayCircle Then
 					If Month(FSelectedDate) = Month(Now) AndAlso Year(FSelectedDate) = Year(Now) Then
 						gtk_calendar_mark_day(gtk_calendar(FHandle), Day(Now))

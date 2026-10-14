@@ -12,6 +12,14 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				widget = gtk_layout_new(NULL, NULL)
 				.RegisterClass "Ruler", @This
+				' The widget exists already, OnHandleIsAllocated is not called for it on GTK
+				#ifdef __USE_GTK4__
+					gtk4compat_signal_connect_after(widget, "draw", G_CALLBACK(@GtkDrawAfter), @This)
+				#elseif Not defined(__USE_GTK2__)
+					g_signal_connect_after(widget, "draw", G_CALLBACK(@GtkDrawAfter), @This)
+				#endif
+				' The default font of GTK (11) is too big for the ruler, like the 8 of WinAPI
+				.Canvas.Font.Size = 8
 			#endif
 			.Child          = @This
 			.Canvas.Ctrl    = @This
@@ -40,9 +48,6 @@ Namespace My.Sys.Forms
 		FZeroOffset  = 0
 		FMousePos    = -1
 		FMarkerCount = 0
-		#ifdef __USE_GTK__
-			OnHandleIsAllocated = @HandleAllocated
-		#endif
 	End Constructor
 
 	Destructor Ruler
@@ -134,8 +139,14 @@ Namespace My.Sys.Forms
 		If W <= 0 OrElse H <= 0 Then Return
 
 		Dim As Integer clrBack, clrTick, clrText, clrMarker, clrTracker
-		
-		If FDarkMode Then
+
+		#ifdef __USE_GTK__
+			' GTK has no SetDark: the dark theme of the application
+			Dim As Boolean bDark = g_darkModeEnabled
+		#else
+			Dim As Boolean bDark = FDarkMode
+		#endif
+		If bDark Then
 			clrBack    = BGR(45, 45, 48)
 			clrTick    = BGR(110, 110, 118)
 			clrText    = BGR(200, 200, 205)
@@ -216,17 +227,9 @@ Namespace My.Sys.Forms
 			Return False 'let the signal keep propagating - we're only adding to the drawing
 		End Function
 
-		'Connected via OnHandleIsAllocated (Constructor), not called directly from the
-		'Constructor itself, because Panel/Control create their native GTK widget lazily -
-		'`widget` isn't valid yet at Constructor time.
-		Private Sub Ruler.HandleAllocated(ByRef Sender As Control)
-			Dim As Ruler Ptr R = Cast(Ruler Ptr, @Sender)
-			If R AndAlso R->widget Then g_signal_connect_after(R->widget, "draw", G_CALLBACK(@GtkDrawAfter), R)
-		End Sub
-
 		Private Sub Ruler.ProcessMessage(ByRef Message As Message)
 			'Nothing extra to do here on GTK - the actual tick/marker/tracker drawing happens
-			'in GtkDrawAfter, connected once via HandleAllocated above, which keeps it
+			'in GtkDrawAfter, connected once in the Constructor, which keeps it
 			'independent of the public OnPaint field the same way the Win32 branch does.
 			Base.ProcessMessage(Message)
 		End Sub

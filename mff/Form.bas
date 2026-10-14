@@ -144,7 +144,7 @@ Namespace My.Sys.Forms
 				gtk_container_remove(GTK_CONTAINER(WindowWidget), box)
 				widget = box
 				gtk_widget_set_size_request(widget, FWidth, FHeight)
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					HeaderBarWidget = gtk_header_bar_new()
 					gtk_widget_set_sensitive(HeaderBarWidget, False)
 					gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(HeaderBarWidget), False)
@@ -263,7 +263,7 @@ Namespace My.Sys.Forms
 			#else
 				Dim As GdkScreen Ptr Screen_ = IIf(widget, gtk_widget_get_screen(widget), gdk_screen_get_default())
 				Dim As gint Monitor = gdk_screen_get_primary_monitor(Screen_)
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					gdk_screen_get_monitor_workarea(Screen_, Monitor, @Area)
 				#else
 					gdk_screen_get_monitor_geometry(Screen_, Monitor, @Area)
@@ -313,7 +313,7 @@ Namespace My.Sys.Forms
 	Private Property Form.Opacity(Value As Integer)
 		FOpacity = Value
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				gtk_widget_set_opacity(widget, Value / 255.0)
 			#else
 				If GTK_IS_WINDOW(widget) Then
@@ -609,8 +609,14 @@ Namespace My.Sys.Forms
 		Case 1 'fsMDIForm
 			#ifdef __USE_GTK__
 				FClient = gtk_layout_new(NULL, NULL)
-				#ifdef __USE_GTK3__
-					g_signal_connect(FClient, "draw", G_CALLBACK(@Client_Draw), @This)
+				#ifdef __USE_GTK4__
+					mff_widget_set_draw_func(FClient, @Client_Draw, @This)
+				#elseif Not defined(__USE_GTK2__)
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(FClient, "draw", G_CALLBACK(@Client_Draw), @This)
+					#else
+						g_signal_connect(FClient, "draw", G_CALLBACK(@Client_Draw), @This)
+					#endif
 				#else
 					g_signal_connect(FClient, "expose-event", G_CALLBACK(@Client_ExposeEvent), @This)
 				#endif
@@ -779,7 +785,7 @@ Namespace My.Sys.Forms
 					gtk_window_set_title(GTK_WINDOW(widget), ToUtf8(Value))
 				End If
 			ElseIf HeaderBarWidget Then
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					If Value = "" Then
 						gtk_header_bar_set_title(GTK_HEADER_BAR(HeaderBarWidget), !"\0")
 					Else
@@ -992,6 +998,58 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 	#endif
+
+	#ifdef __USE_GTK4__
+		' The "close-request" signal (the delete event of GTK3). Returns True to keep the window
+		Private Function Form.Form_CloseRequest(window_ As GtkWindow Ptr, user_data As Any Ptr) As Boolean
+			Dim As Form Ptr frm = user_data
+			If frm = 0 Then Return False
+			Dim As Integer Action = 1
+			If frm->OnClose Then frm->OnClose(*frm->Designer, *frm, Action)
+			Select Case Action
+			Case 0
+				Return True
+			Case 1
+				If frm->MainForm Then
+					gtk_main_quit()
+					Return False
+				Else
+					If gtk_window_get_modal(window_) Then gtk_main_quit()
+					gtk_widget_hide(GTK_WIDGET(window_))
+					' See CloseForm (WSLg). GTK destroys the window in this signal too (default handler), unrealizing is safe
+					If gtk_widget_get_realized(GTK_WIDGET(window_)) Then gtk_widget_unrealize(GTK_WIDGET(window_))
+					frm->FCreated = False
+					Return True
+				End If
+			Case Else
+				Return True
+			End Select
+		End Function
+
+		' The "notify::is-active" signal (the focus change event of GTK3)
+		Private Sub Form.Form_ActiveChanged(window_ As GtkWindow Ptr, pspec As GParamSpec Ptr, user_data As Any Ptr)
+			Dim As Form Ptr frm = user_data
+			If frm = 0 Then Exit Sub
+			If gtk_window_is_active(window_) Then
+				If frm->OnActivateApp OrElse frm->OnDeActivateApp Then
+					If pApp Then
+						pApp->FActivated = True
+						If frm->OnActivateApp AndAlso CInt(pApp->FDeactivated = False) Then frm->OnActivateApp(*frm->Designer, *frm)
+					End If
+				End If
+				If pApp Then pApp->ActiveForm = frm
+				If frm->OnActivate Then frm->OnActivate(*frm->Designer, *frm)
+			Else
+				If frm->OnDeActivate Then frm->OnDeActivate(*frm->Designer, *frm)
+				If frm->OnActivateApp OrElse frm->OnDeActivateApp Then
+					If pApp Then
+						pApp->FDeactivated = True
+						g_timeout_add(500, Cast(GSourceFunc, @deactivate_cb), frm)
+					End If
+				End If
+			End If
+		End Sub
+	#endif
 	
 	#ifdef __USE_WINAPI__
 		Private Sub Form.SetDark(Value As Boolean)
@@ -1015,7 +1073,9 @@ Namespace My.Sys.Forms
 	
 	Private Sub Form.ProcessMessage(ByRef msg As Message)
 		Dim As Integer Action = 1
-		#ifdef __USE_GTK__
+		#ifdef __USE_GTK4__
+			' See Form_CloseRequest and Form_ActiveChanged
+		#elseif defined(__USE_GTK__)
 			Select Case msg.Event->type
 			Case GDK_DELETE
 				If OnClose Then OnClose(*Designer, This, Action)
@@ -1726,6 +1786,10 @@ Namespace My.Sys.Forms
 				'				gtk_widget_show(widget)
 				#ifdef __USE_GTK4__
 					gtk_widget_show(widget)
+					FVisible = True
+					HideItems @This
+					' MFF_GTK4_DUMP: prints the widget tree (debugging of the GTK4 layout)
+					If Environ("MFF_GTK4_DUMP") <> "" Then g_timeout_add(Val(Environ("MFF_GTK4_DUMP")) * 1000 + 100, Cast(GSourceFunc, @gtk4compat_dump_timeout), widget)
 				#else
 					gtk_widget_show_all(widget)
 					' An explicit arrow on the toplevel: child windows without own cursor inherit it.
@@ -1850,7 +1914,7 @@ Namespace My.Sys.Forms
 	Private Sub Form.Hide
 		#ifdef __USE_GTK__
 			If widget Then
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					If gtk_widget_is_visible(widget) Then
 				#else
 					If gtk_widget_get_visible(widget) Then
@@ -1911,7 +1975,7 @@ Namespace My.Sys.Forms
 				If MainForm Then
 					If GTK_IS_WIDGET(widget) Then
 						#ifdef __USE_GTK4__
-							g_object_unref(widget)
+							gtk_widget_destroy(widget)
 						#else
 							gtk_widget_destroy(widget)
 						#endif
@@ -1926,6 +1990,11 @@ Namespace My.Sys.Forms
 						End If
 					End If
 					gtk_widget_hide(widget)
+					#ifdef __USE_GTK4__
+						' WSLg (weston RDP RAIL) can leave a hidden window on the screen while its Wayland surface
+						' exists: the surface is destroyed, it is created again when the form is shown
+						If GTK_IS_WINDOW(widget) AndAlso gtk_widget_get_realized(widget) Then gtk_widget_unrealize(widget)
+					#endif
 				End If
 			Case 2
 			End Select
@@ -2065,10 +2134,18 @@ Namespace My.Sys.Forms
 	Private Constructor Form
 		#ifdef __USE_GTK__
 			ImageWidget = gtk_image_new()
-			WindowWidget = gtk_window_new(GTK_WINDOW_TOPLEVEL)
+			#ifdef __USE_GTK4__
+				WindowWidget = gtk_window_new()
+			#else
+				WindowWidget = gtk_window_new(GTK_WINDOW_TOPLEVEL)
+			#endif
 			widget = WindowWidget
 			'gtk_window_set_policy(GTK_WINDOW(widget), true, false, false)
 			This.RegisterClass "Form", @This
+			#ifdef __USE_GTK4__
+				g_signal_connect(widget, "close-request", G_CALLBACK(@Form_CloseRequest), @This)
+				g_signal_connect(widget, "notify::is-active", G_CALLBACK(@Form_ActiveChanged), @This)
+			#endif
 			If GTK_IS_WIDGET(layoutwidget) Then gtk_layout_put(GTK_LAYOUT(layoutwidget), ImageWidget, 0, 0)
 		#elseif defined(__USE_WINAPI__)
 			FMainStyle(0)  = 0

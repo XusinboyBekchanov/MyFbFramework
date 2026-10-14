@@ -293,7 +293,7 @@ Namespace My.Sys.Forms
 				widget = UpDownWidget
 				gtk_widget_show(UpDownWidget)
 				gtk_widget_hide(TextWidget)
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					gtk_widget_hide(ButtonWidget)
 				#else
 					gtk_widget_hide(ButtonLayoutWidget)
@@ -302,7 +302,7 @@ Namespace My.Sys.Forms
 				widget = TextWidget
 				gtk_widget_hide(UpDownWidget)
 				gtk_widget_show(TextWidget)
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					gtk_widget_show(ButtonWidget)
 				#else
 					gtk_widget_show(ButtonLayoutWidget)
@@ -325,13 +325,13 @@ Namespace My.Sys.Forms
 		FShowNone = Value
 		#ifdef __USE_GTK__
 			If Value Then
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					gtk_widget_show(CheckWidget)
 				#else
 					gtk_widget_show(CheckLayoutWidget)
 				#endif
 			Else
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					gtk_widget_hide(CheckWidget)
 				#else
 					gtk_widget_hide(CheckLayoutWidget)
@@ -719,33 +719,68 @@ Namespace My.Sys.Forms
 	Private Sub DateTimePicker.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.event
-			Select Case Message.event->Type
+			' The event fields are read once (GdkEvent is opaque in GTK4)
+			Dim As Integer EventType, ScrollDir, FocusIn
+			Dim As guint KeyVal
+			Dim As String KeyStr
+			#ifdef __USE_GTK4__
+				EventType = gtk4compat_event_type(e)
+				Select Case EventType
+				Case GDK_SCROLL
+					ScrollDir = gdk_scroll_event_get_direction(e)
+					If ScrollDir = GDK_SCROLL_SMOOTH Then
+						Dim As gdouble dx, dy
+						gdk_scroll_event_get_deltas(e, @dx, @dy)
+						ScrollDir = IIf(dy < 0, GDK_SCROLL_UP, GDK_SCROLL_DOWN)
+					End If
+				Case GDK_KEY_PRESS, GDK_KEY_RELEASE
+					KeyVal = gdk_key_event_get_keyval(e)
+					Dim As guint32 KeyChar = gdk_keyval_to_unicode(KeyVal)
+					If KeyChar > 0 AndAlso KeyChar < 128 Then KeyStr = Chr(KeyChar)
+				End Select
+			#else
+				EventType = e->type
+				Select Case EventType
+				Case GDK_SCROLL
+					ScrollDir = e->scroll.direction
+				Case GDK_KEY_PRESS, GDK_KEY_RELEASE
+					KeyVal = e->key.keyval
+					KeyStr = *e->key.string
+				Case GDK_FOCUS_CHANGE
+					FocusIn = Cast(GdkEventFocus Ptr, e)->in
+				End Select
+			#endif
+			Select Case EventType
 			Case GDK_BUTTON_PRESS
 '				SelectRegion
 '				Message.Result = True
 				Return
 			Case GDK_BUTTON_RELEASE
 				SelectRegion
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 '					If Not FDesignMode Then
 '						Message.Result = True
 '					End If
 				#endif
 				Return
+			#ifndef __USE_GTK4__
 			Case GDK_FOCUS_CHANGE
-				If Cast(GdkEventFocus Ptr, e)->in Then
+			#else
+			Case -1
+			#endif
+				If FocusIn Then
 					SelectRegion 0
 					Message.Result = True
 					Return
 				End If
 			Case GDK_SCROLL
-				If e->Scroll.direction = GDK_SCROLL_UP Then
+				If ScrollDir = GDK_SCROLL_UP Then
 					DatePartUp
 				Else
 					DatePartDown
 				End If
 			Case GDK_KEY_PRESS
-				Select Case e->Key.keyval
+				Select Case KeyVal
 				Case GDK_KEY_Escape
 					If gtk_widget_get_visible(PopupWindow) Then
 						gtk_widget_hide(PopupWindow)
@@ -754,7 +789,7 @@ Namespace My.Sys.Forms
 					Button_Clicked(gtk_button(ButtonWidget), @This)
 				Case GDK_KEY_TAB, GDK_KEY_Return, GDK_KEY_KP_Enter
 				Case Else
-					Select Case e->Key.keyval
+					Select Case KeyVal
 					Case GDK_KEY_Left
 						SelectRegion , -1
 					Case GDK_KEY_Right
@@ -796,21 +831,21 @@ Namespace My.Sys.Forms
 					Case GDK_KEY_Down
 						DatePartDown
 					End Select
-					Select Case *e->key.string
+					Select Case KeyStr
 					Case "0" To "9"
-						PressedNumber &= *e->key.string
+						PressedNumber &= KeyStr
 						Select Case ..Left(FDateTimePart, 1)
 						Case "y"
 						Case "M"
-							If Len(PressedNumber) = 2 AndAlso (Val(PressedNumber) = 0 OrElse Val(PressedNumber) > 12) Then PressedNumber = *e->key.string
+							If Len(PressedNumber) = 2 AndAlso (Val(PressedNumber) = 0 OrElse Val(PressedNumber) > 12) Then PressedNumber = KeyStr
 						Case "d"
-							If Len(PressedNumber) = 2 AndAlso (Val(PressedNumber) = 0 OrElse Val(PressedNumber) > GetLastDay(Year(SelectedDate), Month(SelectedDate))) Then PressedNumber = *e->key.string
+							If Len(PressedNumber) = 2 AndAlso (Val(PressedNumber) = 0 OrElse Val(PressedNumber) > GetLastDay(Year(SelectedDate), Month(SelectedDate))) Then PressedNumber = KeyStr
 						Case "H", "h"
-							If Len(PressedNumber) = 2 AndAlso Val(PressedNumber) > 23 Then PressedNumber = *e->key.string
+							If Len(PressedNumber) = 2 AndAlso Val(PressedNumber) > 23 Then PressedNumber = KeyStr
 						Case "m"
-							If Len(PressedNumber) = 2 AndAlso Val(PressedNumber) > 59 Then PressedNumber = *e->key.string
+							If Len(PressedNumber) = 2 AndAlso Val(PressedNumber) > 59 Then PressedNumber = KeyStr
 						Case "s"
-							If Len(PressedNumber) = 2 AndAlso Val(PressedNumber) > 59 Then PressedNumber = *e->key.string
+							If Len(PressedNumber) = 2 AndAlso Val(PressedNumber) > 59 Then PressedNumber = KeyStr
 						End Select
 						If Not (StartsWith(LCase(FDateTimePart), "mmm") OrElse StartsWith(LCase(FDateTimePart), "ddd")) Then
 							Dim As UString txt = Text
@@ -889,12 +924,12 @@ Namespace My.Sys.Forms
 				dtp->AllocatedHeight = allocation->height
 				gtk_widget_set_size_request(dtp->Handle, allocation->width, allocation->height)
 				gtk_widget_set_size_request(dtp->UpDownWidget, allocation->width, allocation->height)
-				#ifndef __USE_GTK3__
+				#ifdef __USE_GTK2__
 					gtk_widget_set_size_request(dtp->ButtonLayoutWidget, allocation->height - 4, allocation->height - 4)
 				#endif
 				gtk_widget_set_size_request(dtp->ButtonWidget, allocation->height - 2, allocation->height - 2)
 				gtk_widget_get_allocation(dtp->Handle, @TextAllocation)
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					gtk_widget_get_allocation(dtp->CheckWidget, @CheckAllocation)
 					gtk_widget_get_allocation(dtp->ButtonWidget, @ButtonAllocation)
 				#else
@@ -903,7 +938,7 @@ Namespace My.Sys.Forms
 				#endif
 				If dtp->ShowNone Then
 					Dim As GdkPixbuf Ptr EmptyPixbuf
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						gtk_layout_move(GTK_LAYOUT(widget), dtp->CheckWidget, (allocation->height - CheckAllocation.height) / 2, (allocation->height - CheckAllocation.height) / 2)
 						EmptyPixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, True, 8, allocation->height * 2, 16)
 					#else
@@ -919,7 +954,7 @@ Namespace My.Sys.Forms
 				If TextAllocation.height > allocation->height Then
 					gtk_widget_set_size_request(widget, allocation->width, TextAllocation.height)
 				End If
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					gtk_layout_move(GTK_LAYOUT(widget), dtp->ButtonWidget, allocation->width - ButtonAllocation.width, 0)
 				#else
 					gtk_layout_move(GTK_LAYOUT(widget), dtp->ButtonLayoutWidget, allocation->width - allocation->height + 2, 2)
@@ -933,9 +968,11 @@ Namespace My.Sys.Forms
 			If Ctrl <> 0 AndAlso (GTK_IS_LAYOUT(widget) OrElse GTK_IS_EVENT_BOX(widget)) Then
 				Dim allocation As GtkAllocation
 				gtk_widget_get_allocation(widget, @allocation)
-				If allocation.width <> Ctrl->AllocatedWidth OrElse allocation.height <> Ctrl->AllocatedHeight Then
-					SizeAllocate(widget, @allocation, data1)
-				End If
+				#ifndef __USE_GTK4__
+					If allocation.width <> Ctrl->AllocatedWidth OrElse allocation.height <> Ctrl->AllocatedHeight Then
+						SizeAllocate(widget, @allocation, data1)
+					End If
+				#endif
 				Ctrl->Canvas.HandleSetted = True
 				Ctrl->Canvas.Handle = cr
 				If Ctrl->OnPaint Then Ctrl->OnPaint(*Ctrl->Designer, *Ctrl, Ctrl->Canvas)
@@ -945,9 +982,11 @@ Namespace My.Sys.Forms
 		End Function
 		
 		Private Function DateTimePicker.ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
-			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
-			DateTimePicker_Draw(widget, cr, data1)
-			cairo_destroy(cr)
+			#ifndef __USE_GTK4__
+				Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+				DateTimePicker_Draw(widget, cr, data1)
+				cairo_destroy(cr)
+			#endif
 			Return False
 		End Function
 		
@@ -971,7 +1010,7 @@ Namespace My.Sys.Forms
 		Private Function DateTimePicker.SpinButton_Output(spin_button As GtkSpinButton Ptr, user_data As Any Ptr) As Integer
 			Dim As DateTimePicker Ptr dtp = user_data
 			#ifdef __USE_GTK4__
-				gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(spin_button)), ToUtf8(Format(dtp->SelectedDateTime, *dtp->FFormat)), -1)
+				gtk_editable_set_text(GTK_EDITABLE(spin_button), ToUtf8(Format(dtp->SelectedDateTime, *dtp->FFormat)))
 			#else
 				gtk_entry_set_text(GTK_ENTRY(spin_button), ToUtf8(Format(dtp->SelectedDateTime, *dtp->FFormat)))
 			#endif
@@ -980,7 +1019,11 @@ Namespace My.Sys.Forms
 		
 		Private Sub DateTimePicker.CheckButton_Toggled(widget As GtkToggleButton Ptr, user_data As Any Ptr)
 			Dim As DateTimePicker Ptr dtp = user_data
-			gtk_widget_set_sensitive(dtp->Handle, gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
+			#ifdef __USE_GTK4__
+				gtk_widget_set_sensitive(dtp->Handle, gtk_check_button_get_active(GTK_CHECK_BUTTON(widget)))
+			#else
+				gtk_widget_set_sensitive(dtp->Handle, gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)))
+			#endif
 		End Sub
 		
 		Private Sub DateTimePicker.Button_Clicked(widget As GtkButton Ptr, user_data As Any Ptr)
@@ -988,6 +1031,23 @@ Namespace My.Sys.Forms
 			If dtp->FFocusChanged Then
 				dtp->FFocusChanged = False
 			Else
+				#ifdef __USE_GTK4__
+					' The calendar is in a popover under the control
+					Dim SelDate As Long = dtp->SelectedDate
+					Dim As GDateTime Ptr dt = g_date_time_new_local(Year(SelDate), Month(SelDate), Day(SelDate), 0, 0, 0)
+					gtk_calendar_select_day(GTK_CALENDAR(dtp->CalendarWidget), dt)
+					g_date_time_unref(dt)
+					gtk_calendar_clear_marks(GTK_CALENDAR(dtp->CalendarWidget))
+					If Month(SelDate) = Month(Now) AndAlso Year(SelDate) = Year(Now) Then
+						gtk_calendar_mark_day(GTK_CALENDAR(dtp->CalendarWidget), Day(Now))
+					End If
+					Dim As GdkRectangle r
+					r.x = IIf(dtp->CalendarRightAlign, gtk_widget_get_width(dtp->layoutwidget), 0)
+					r.y = gtk_widget_get_height(dtp->layoutwidget)
+					r.width = 1: r.height = 1
+					gtk_popover_set_pointing_to(GTK_POPOVER(dtp->PopupWindow), @r)
+					gtk_popover_popup(GTK_POPOVER(dtp->PopupWindow))
+				#else
 				Dim As gint x, y
 				gdk_window_get_origin(gtk_widget_get_window(dtp->Handle), @x, @y)
 				Dim As GtkAllocation CalendarAllocation
@@ -995,7 +1055,11 @@ Namespace My.Sys.Forms
 				gtk_window_move(GTK_WINDOW(dtp->PopupWindow), x + IIf(dtp->CalendarRightAlign, dtp->Width - CalendarAllocation.width, 0), y + dtp->Height)
 				Dim SelDate As Long = dtp->SelectedDate
 				gtk_calendar_select_month(gtk_calendar(dtp->CalendarWidget), Month(SelDate) - 1, Year(SelDate))
-				gtk_calendar_select_day(gtk_calendar(dtp->CalendarWidget), Day(SelDate))
+				#ifdef __USE_GTK4__
+					gtk4compat_calendar_select_day(gtk_calendar(dtp->CalendarWidget), Day(SelDate))
+				#else
+					gtk_calendar_select_day(gtk_calendar(dtp->CalendarWidget), Day(SelDate))
+				#endif
 				If Month(SelDate) = Month(Now) AndAlso Year(SelDate) = Year(Now) Then
 					gtk_calendar_mark_day(gtk_calendar(dtp->CalendarWidget), Day(Now))
 				End If
@@ -1005,13 +1069,21 @@ Namespace My.Sys.Forms
 				'				gtk_window_activate_focus(gtk_window(dtp->PopupWindow))
 				'				gtk_window_activate_default(gtk_window(dtp->PopupWindow))
 				'gtk_widget_grab_focus(dtp->PopupWindow)
+				#endif
 			End If
 		End Sub
 		
 		Private Sub DateTimePicker.Calendar_DaySelected(calendar As GtkCalendar Ptr, user_data As Any Ptr)
 			Dim As DateTimePicker Ptr dtp = user_data
 			Dim As guint y, m, d
-			gtk_calendar_get_date(calendar, @y, @m, @d)
+			#ifdef __USE_GTK4__
+				' GTK3 months are 0-based
+				Dim As GDateTime Ptr dt = gtk_calendar_get_date(calendar)
+				y = g_date_time_get_year(dt): m = g_date_time_get_month(dt) - 1: d = g_date_time_get_day_of_month(dt)
+				g_date_time_unref(dt)
+			#else
+				gtk_calendar_get_date(calendar, @y, @m, @d)
+			#endif
 			If Month(dtp->SelectedDate) = m + 1 AndAlso Year(dtp->SelectedDate) = y Then
 				gtk_widget_hide(dtp->PopupWindow)
 				gtk_widget_grab_focus(dtp->Widget)
@@ -1035,12 +1107,14 @@ Namespace My.Sys.Forms
 		
 		Private Function DateTimePicker.Calendar_KeyPress(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			Dim As DateTimePicker Ptr dtp = user_data
-			Select Case Event->key.keyval
-			Case GDK_KEY_Escape
-				gtk_widget_hide(dtp->PopupWindow)
-			Case GDK_KEY_Return, GDK_KEY_KP_Enter
-				Event->key.keyval = GDK_KEY_Space
-			End Select
+			#ifndef __USE_GTK4__
+				Select Case Event->key.keyval
+				Case GDK_KEY_Escape
+					gtk_widget_hide(dtp->PopupWindow)
+				Case GDK_KEY_Return, GDK_KEY_KP_Enter
+					Event->key.keyval = GDK_KEY_Space
+				End Select
+			#endif
 			Return False
 		End Function
 		
@@ -1074,18 +1148,29 @@ Namespace My.Sys.Forms
 				UpDownWidget = gtk_spin_button_new_with_range(1, 40, 1)
 				gtk_spin_button_set_increments(gtk_spin_button(UpDownWidget), 1, 1)
 				'PopupWindow = gtk_window_new(GTK_WINDOW_POPUP)
-				PopupWindow = gtk_window_new(GTK_WINDOW_TOPLEVEL)
-				'gtk_widget_set_can_focus(PopupWindow, True)
-				gtk_window_set_decorated(GTK_WINDOW(PopupWindow), False)
-				gtk_window_set_type_hint(GTK_WINDOW(PopupWindow), GDK_WINDOW_TYPE_HINT_POPUP_MENU)
-				gtk_window_set_destroy_with_parent(GTK_WINDOW(PopupWindow), True)
 				CalendarWidget = gtk_calendar_new()
-				gtk_container_add(gtk_container(PopupWindow), CalendarWidget)
+				#ifdef __USE_GTK4__
+					PopupWindow = gtk_popover_new()
+					gtk_popover_set_child(GTK_POPOVER(PopupWindow), CalendarWidget)
+					gtk_popover_set_position(GTK_POPOVER(PopupWindow), GTK_POS_BOTTOM)
+				#else
+					PopupWindow = gtk_window_new(GTK_WINDOW_TOPLEVEL)
+					'gtk_widget_set_can_focus(PopupWindow, True)
+					gtk_window_set_decorated(GTK_WINDOW(PopupWindow), False)
+					gtk_window_set_type_hint(GTK_WINDOW(PopupWindow), GDK_WINDOW_TYPE_HINT_POPUP_MENU)
+					gtk_window_set_destroy_with_parent(GTK_WINDOW(PopupWindow), True)
+					gtk_container_add(gtk_container(PopupWindow), CalendarWidget)
+				#endif
 				widget = UpDownWidget
 				Base.RegisterClass WStr("DateTimePicker"), @This
 				widget = TextWidget
 				layoutwidget = gtk_layout_new(NULL, NULL)
-				gtk_toggle_button_set_active(gtk_toggle_button(CheckWidget), True)
+				#ifdef __USE_GTK4__
+					gtk_widget_set_parent(PopupWindow, layoutwidget)
+					gtk_check_button_set_active(GTK_CHECK_BUTTON(CheckWidget), True)
+				#else
+					gtk_toggle_button_set_active(gtk_toggle_button(CheckWidget), True)
+				#endif
 				gtk_widget_set_size_request(layoutwidget, 175, 21)
 				gtk_widget_set_size_request(TextWidget, 175, 21)
 				gtk_widget_set_size_request(UpDownWidget, 175, 21)
@@ -1095,7 +1180,7 @@ Namespace My.Sys.Forms
 				gtk_widget_set_no_show_all(TextWidget, True)
 				gtk_widget_set_no_show_all(UpDownWidget, True)
 				gtk_button_set_alignment(gtk_button(ButtonWidget), 0.5, 0.5)
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					gtk_widget_set_no_show_all(CheckWidget, True)
 					gtk_widget_set_no_show_all(ButtonWidget, True)
 					gtk_widget_show(ButtonWidget)
@@ -1117,29 +1202,64 @@ Namespace My.Sys.Forms
 					gtk_widget_show(CheckWidget)
 					gtk_widget_show(ButtonWidget)
 				#endif
-				gtk_drag_dest_unset(TextWidget)
-				gtk_drag_dest_unset(UpDownWidget)
-				gtk_drag_source_unset(TextWidget)
-				gtk_drag_source_unset(UpDownWidget)
+				#ifndef __USE_GTK4__
+					gtk_drag_dest_unset(TextWidget)
+					gtk_drag_dest_unset(UpDownWidget)
+					gtk_drag_source_unset(TextWidget)
+					gtk_drag_source_unset(UpDownWidget)
+				#endif
 				gtk_widget_set_can_focus(ButtonWidget, False)
 				gtk_entry_set_icon_activatable(gtk_entry(TextWidget), GTK_ENTRY_ICON_PRIMARY, False)
-				gtk_entry_set_icon_activatable(gtk_entry(UpDownWidget), GTK_ENTRY_ICON_PRIMARY, False)
 				g_signal_connect(CheckWidget, "toggled", G_CALLBACK(@CheckButton_Toggled), @This)
-				g_signal_connect(gtk_entry(TextWidget), "activate", G_CALLBACK(@Entry_Activate), @This)
-				g_signal_connect(gtk_entry(UpDownWidget), "activate", G_CALLBACK(@Entry_Activate), @This)
-				g_signal_connect(gtk_entry(UpDownWidget), "input", G_CALLBACK(@SpinButton_Input), @This)
-				g_signal_connect(gtk_entry(UpDownWidget), "output", G_CALLBACK(@SpinButton_Output), @This)
-				#ifdef __USE_GTK3__
-					g_signal_connect(layoutwidget, "draw", G_CALLBACK(@DateTimePicker_Draw), @This)
+				g_signal_connect(TextWidget, "activate", G_CALLBACK(@Entry_Activate), @This)
+				#ifdef __USE_GTK4__
+					' GtkSpinButton is not a GtkEntry in GTK4
+					g_signal_connect(UpDownWidget, "activate", G_CALLBACK(@Entry_Activate), @This)
+					g_signal_connect(UpDownWidget, "input", G_CALLBACK(@SpinButton_Input), @This)
+					g_signal_connect(UpDownWidget, "output", G_CALLBACK(@SpinButton_Output), @This)
+				#else
+					gtk_entry_set_icon_activatable(gtk_entry(UpDownWidget), GTK_ENTRY_ICON_PRIMARY, False)
+					g_signal_connect(gtk_entry(UpDownWidget), "activate", G_CALLBACK(@Entry_Activate), @This)
+					g_signal_connect(gtk_entry(UpDownWidget), "input", G_CALLBACK(@SpinButton_Input), @This)
+					g_signal_connect(gtk_entry(UpDownWidget), "output", G_CALLBACK(@SpinButton_Output), @This)
+				#endif
+				#ifdef __USE_GTK4__
+					mff_widget_set_draw_func(layoutwidget, @DateTimePicker_Draw, @This)
+					mff_widget_set_size_allocate_func(layoutwidget, @SizeAllocate, @This)
+				#elseif Not defined(__USE_GTK2__)
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(layoutwidget, "draw", G_CALLBACK(@DateTimePicker_Draw), @This)
+					#else
+						g_signal_connect(layoutwidget, "draw", G_CALLBACK(@DateTimePicker_Draw), @This)
+					#endif
 				#else
 					g_signal_connect(layoutwidget, "expose-event", G_CALLBACK(@ExposeEvent), @This)
-					g_signal_connect(layoutwidget, "size-allocate", G_CALLBACK(@SizeAllocate), @This)
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(layoutwidget, "size-allocate", G_CALLBACK(@SizeAllocate), @This)
+					#else
+						g_signal_connect(layoutwidget, "size-allocate", G_CALLBACK(@SizeAllocate), @This)
+					#endif
 				#endif
 				g_signal_connect(ButtonWidget, "clicked", G_CALLBACK(@Button_Clicked), @This)
 				g_signal_connect(CalendarWidget, "day-selected", G_CALLBACK(@Calendar_DaySelected), @This)
-				g_signal_connect(CalendarWidget, "focus-out-event", G_CALLBACK(@Calendar_FocusOut), @This)
-				g_signal_connect(CalendarWidget, "key-press-event", G_CALLBACK(@Calendar_KeyPress), @This)
-				g_signal_connect(CalendarWidget, "key-release-event", G_CALLBACK(@Calendar_KeyRelease), @This)
+				#ifndef __USE_GTK4__
+					' The popover closes itself (Escape, click outside)
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(CalendarWidget, "focus-out-event", G_CALLBACK(@Calendar_FocusOut), @This)
+					#else
+						g_signal_connect(CalendarWidget, "focus-out-event", G_CALLBACK(@Calendar_FocusOut), @This)
+					#endif
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(CalendarWidget, "key-press-event", G_CALLBACK(@Calendar_KeyPress), @This)
+					#else
+						g_signal_connect(CalendarWidget, "key-press-event", G_CALLBACK(@Calendar_KeyPress), @This)
+					#endif
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(CalendarWidget, "key-release-event", G_CALLBACK(@Calendar_KeyRelease), @This)
+					#else
+						g_signal_connect(CalendarWidget, "key-release-event", G_CALLBACK(@Calendar_KeyRelease), @This)
+					#endif
+				#endif
 				gtk_spin_button_set_numeric(gtk_spin_button(UpDownWidget), False)
 				
 				gtk_spin_button_set_update_policy(gtk_spin_button(UpDownWidget), GTK_UPDATE_ALWAYS)

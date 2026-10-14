@@ -562,7 +562,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub TreeListViewColumn.Update
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(-1, FWidth))
 			#else
 				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(1, FWidth))
@@ -646,7 +646,11 @@ Namespace My.Sys.Forms
 			End If
 			#ifdef __USE_GTK__
 				Dim As GValue bValue '= G_VALUE_INIT
-				g_value_init_(@bValue, G_TYPE_BOOLEAN)
+				#ifdef __USE_GTK4__
+					g_value_init(@bValue, G_TYPE_BOOLEAN)
+				#else
+					g_value_init_(@bValue, G_TYPE_BOOLEAN)
+				#endif
 				g_value_set_boolean(@bValue, Value)
 				g_object_set_property(G_OBJECT(rendertext), "editable", @bValue)
 				g_object_set_property(G_OBJECT(rendertext), "editable-set", @bValue)
@@ -1040,7 +1044,11 @@ Namespace My.Sys.Forms
 				PColumn->rendertext = gtk_cell_renderer_text_new()
 				If ColEditable Then
 					Dim As GValue bValue '= G_VALUE_INIT
-					g_value_init_(@bValue, G_TYPE_BOOLEAN)
+					#ifdef __USE_GTK4__
+						g_value_init(@bValue, G_TYPE_BOOLEAN)
+					#else
+						g_value_init_(@bValue, G_TYPE_BOOLEAN)
+					#endif
 					g_value_set_boolean(@bValue, True)
 					g_object_set_property(G_OBJECT(PColumn->rendertext), "editable", @bValue)
 					g_object_set_property(G_OBJECT(PColumn->rendertext), "editable-set", @bValue)
@@ -1062,7 +1070,7 @@ Namespace My.Sys.Forms
 				gtk_tree_view_column_set_resizable(PColumn->Column, True)
 				gtk_tree_view_column_set_title(PColumn->Column, ToUtf8(FCaption))
 				gtk_tree_view_append_column(GTK_TREE_VIEW(Cast(TreeListView Ptr, Parent)->Handle), PColumn->Column)
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(-1, iWidth))
 				#else
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(1, iWidth))
@@ -1332,7 +1340,7 @@ Namespace My.Sys.Forms
 	Private Property TreeListView.SingleClickActivate(Value As Boolean)
 		FSingleClickActivate = Value
 		#ifdef __USE_GTK__
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(widget), Value)
 			#else
 				
@@ -1524,7 +1532,11 @@ Namespace My.Sys.Forms
 		'?message.msg, GetMessageName(message.msg)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.Event
-			Select Case Message.Event->type
+			#ifdef __USE_GTK4__
+				Select Case gtk4compat_event_type(Message.Event)
+			#else
+				Select Case Message.Event->type
+			#endif
 			Case GDK_MAP
 				Init
 			End Select
@@ -2059,13 +2071,17 @@ Namespace My.Sys.Forms
 	Private Constructor TreeListView
 		#ifdef __USE_GTK__
 			TreeStore = gtk_tree_store_new(1, G_TYPE_STRING)
-			scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+			#ifdef __USE_GTK4__
+				scrolledwidget = gtk_scrolled_window_new()
+			#else
+				scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+			#endif
 			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 			'widget = gtk_tree_view_new_with_model(gtk_tree_model(ListStore))
 			widget = gtk_tree_view_new()
 			gtk_container_add(GTK_CONTAINER(scrolledwidget), widget)
 			TreeSelection = gtk_tree_view_get_selection(GTK_TREE_VIEW(widget))
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				g_signal_connect(gtk_scrollable_get_hadjustment(GTK_SCROLLABLE(widget)), "value-changed", G_CALLBACK(@TreeListView_Scroll), @This)
 				g_signal_connect(gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(widget)), "value-changed", G_CALLBACK(@TreeListView_Scroll), @This)
 			#else

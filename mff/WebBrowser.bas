@@ -183,7 +183,7 @@ Namespace My.Sys.Forms
 	
 	Private Function WebBrowser.GetBody(ByVal flag As Long = 0) As UString
 		#ifdef __USE_GTK__
-			#ifndef __USE_GTK3__
+			#ifdef __USE_GTK2__
 				Dim As String Ptr bBuf = webkit_web_resource_get_data(webkit_web_view_get_main_resource(widget))
 				If bBuf = 0 Then
 					Return ""
@@ -767,8 +767,12 @@ Namespace My.Sys.Forms
 			FTabStop           = True
 			#ifdef __USE_GTK__
 				widget = webkit_web_view_new()
-				#ifndef __USE_GTK3__
-					scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+				#ifdef __USE_GTK2__
+					#ifdef __USE_GTK4__
+						scrolledwidget = gtk_scrolled_window_new()
+					#else
+						scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+					#endif
 					gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 					gtk_container_add(GTK_CONTAINER(scrolledwidget), widget)
 				#endif

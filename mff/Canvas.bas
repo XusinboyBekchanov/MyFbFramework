@@ -11,6 +11,15 @@
 
 #include once "Canvas.bi"
 
+#ifdef __USE_GTK__
+	' The canvas of a draw callback (SetHandle) has no layout from GetDevice: the layout is made for the context
+	#macro CanvasEnsureLayout
+		If layout = 0 AndAlso HANDLE <> 0 Then layout = pango_cairo_create_layout(HANDLE)
+		' The font can be changed after the layout was made
+		If layout <> 0 AndAlso Font.Handle <> 0 Then pango_layout_set_font_description(layout, Font.Handle)
+	#endmacro
+#endif
+
 Namespace My.Sys.Drawing
 	#ifndef ReadProperty_Off
 		Private Function Canvas.ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -380,7 +389,7 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then Handle_ = GetDevice
 		If ParentControl > 0 Then
 			#ifdef __USE_CAIRO__
-				cairo_set_source_rgb(Handle, GetRed(FBackColor), GetGreen(FBackColor), GetBlue(FBackColor))
+				cairo_set_source_rgb(Handle, GetRed(FBackColor) / 255.0, GetGreen(FBackColor) / 255.0, GetBlue(FBackColor) / 255.0)
 			#elseif defined(__USE_WINAPI__)
 				Dim As HBRUSH B = CreateSolidBrush(FBackColor)
 				If FUseDirect2D AndAlso pRenderTarget <> 0 Then
@@ -502,11 +511,8 @@ Namespace My.Sys.Drawing
 						If Not HandleSetted Then
 							If ParentControl->layoutwidget Then
 								#ifdef __USE_GTK4__
-									Dim As GdkDrawContext Ptr drawContext
-									cairoRegion = cairo_region_create()
-									Dim As GdkDrawingContext Ptr drawingContext
-									drawingContext = gdk_window_begin_draw_frame(gtk_widget_get_window(ParentControl->layoutwidget), drawContext, cairoRegion)
-									Handle_ = gdk_drawing_context_get_cairo_context(drawingContext)
+									' GTK4 draws only in the frame cycle: paints into the buffer of the widget (see mff_layout_snapshot)
+									Handle_ = mff_widget_begin_paint(ParentControl->layoutwidget)
 								#else
 									Handle_ = gdk_cairo_create(gtk_layout_get_bin_window(GTK_LAYOUT(ParentControl->layoutwidget)))
 								#endif
@@ -568,10 +574,18 @@ Namespace My.Sys.Drawing
 		Dim As Any Ptr Handle_ = Handle
 		If Handle_ = 0 Then Handle_ = This.Handle
 		#ifdef __USE_GTK__
-			If layout Then g_object_unref(layout)
+			If layout Then g_object_unref(layout): layout = 0
 			#ifdef __USE_GTK4__
-				gdk_window_end_draw_frame(gtk_widget_get_window(ParentControl->layoutwidget), DrawingContext)
-				cairo_region_destroy(cairoRegion)
+				If pcontext Then g_object_unref(pcontext): pcontext = 0
+				If Handle_ Then
+					If ParentControl AndAlso ParentControl->layoutwidget Then
+						mff_widget_end_paint(ParentControl->layoutwidget, Handle_)
+					Else
+						cairo_destroy(Handle_)
+					End If
+				End If
+				This.Handle = 0
+				HandleSetted = False
 			#else
 				If pcontext Then g_object_unref(pcontext)
 				If Handle_ AndAlso G_IS_OBJECT(Handle_) Then cairo_destroy(Handle_)
@@ -650,6 +664,7 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_CAIRO__
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_line_to(Handle, FMoveToXNew, FMoveToYNew)
+			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
@@ -712,6 +727,7 @@ Namespace My.Sys.Drawing
 				cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 				cairo_move_to(Handle, ScaleX(x) * imgScaleX + imgOffsetX - 0.5, ScaleY(y) * imgScaleY + imgOffsetY - 0.5)
 				cairo_line_to(Handle, ScaleX(x1) * imgScaleX + imgOffsetX - 0.5, ScaleY(y1) * imgScaleY + imgOffsetY - 0.5)
+				cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 				cairo_stroke(Handle)
 			#elseif defined(__USE_WINAPI__)
 				If FUseDirect2D AndAlso pRenderTarget <> 0 Then
@@ -741,6 +757,7 @@ Namespace My.Sys.Drawing
 				cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
 				cairo_fill_preserve(Handle)
 				cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+				cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 				cairo_stroke(Handle)
 			#elseif defined(__USE_WINAPI__)
 				If FUseDirect2D AndAlso pRenderTarget <> 0 Then
@@ -765,6 +782,7 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
 			cairo_fill_preserve(Handle)
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
@@ -791,6 +809,7 @@ Namespace My.Sys.Drawing
 			cairo_arc(Handle, ScaleX(x + (x1 - x) / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + (y1 - y) / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX((x1 - x) / 2) * imgScaleX, 0, 2 * G_PI)
 			cairo_fill_preserve(Handle)
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
@@ -815,6 +834,7 @@ Namespace My.Sys.Drawing
 			cairo_arc(Handle, ScaleX(R.Left + (R.Right - R.Left) / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(R.Top + (R.Bottom - R.Top) / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX((R.Right - R.Left) / 2) * imgScaleX, 0, 2 * G_PI)
 			cairo_fill_preserve(Handle)
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
@@ -843,6 +863,7 @@ Namespace My.Sys.Drawing
 			cairo_arc(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(Radial) / 2 * imgScaleX, 0, 2 * G_PI)
 			cairo_fill_preserve(Handle)
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
@@ -876,6 +897,7 @@ Namespace My.Sys.Drawing
 			cairo_close_path Handle
 			cairo_fill_preserve(Handle)
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)   '添加描边
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
@@ -919,6 +941,7 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
 			cairo_fill_preserve(Handle)
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
@@ -994,6 +1017,7 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
 			cairo_fill_preserve(Handle)
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
@@ -1068,6 +1092,7 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
 			cairo_fill_preserve(Handle)
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
@@ -1131,6 +1156,7 @@ Namespace My.Sys.Drawing
 			' Cairo 的逻辑已在之前提供，此处省略或保留原有
 			cairo_move_to Handle, ScaleX(x) * imgScaleX + imgOffsetX - 0.5, ScaleY(y) * imgScaleY + imgOffsetY - 0.5
 			cairo_arc(Handle, cx, cy, Min(sw, sh) / 2, startAngle, endAngle)
+			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
@@ -1191,6 +1217,7 @@ Namespace My.Sys.Drawing
 			cairo_line_to(Handle, sX_, sY_) ' 连线到弧起点
 			cairo_arc(Handle, cx, cy, r, startAngle, endAngle)
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
 			' 更新当前点
 			FMoveToX = eX_: FMoveToY = eY_
@@ -1244,6 +1271,7 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			' Cairo的角度是弧度，且Y轴向下为正，因此负的sweepAngle对应GDI的正sweepAngle
 			cairo_arc(Handle, cx, cy, r, -startAngle * G_PI / 180.0, -(startAngle + sweepAngle) * G_PI / 180.0)
+			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
@@ -1298,6 +1326,7 @@ Namespace My.Sys.Drawing
 				cairo_line_to(Handle, ScaleX(Points(i).X) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i).Y) * imgScaleY + imgOffsetY - 0.5)
 			Next
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle) ' 折线不闭合不填充
 		#elseif defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
@@ -1349,6 +1378,7 @@ Namespace My.Sys.Drawing
 				cairo_line_to(Handle, px, py)
 			Next
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
 			FMoveToX = ScaleX(Points(Count-1).X) * imgScaleX + imgOffsetX - 0.5
 			FMoveToY = ScaleY(Points(Count - 1).Y) * imgScaleY + imgOffsetY - 0.5
@@ -1411,6 +1441,7 @@ Namespace My.Sys.Drawing
 				i += 3
 			Wend
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
@@ -1472,6 +1503,7 @@ Namespace My.Sys.Drawing
 				i += 3
 			Wend
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
 			FMoveToX = ScaleX(Points(Count - 1).X)*imgScaleX + imgOffsetX - 0.5
 			FMoveToY = ScaleY(Points(Count - 1).Y)*imgScaleY + imgOffsetY - 0.5
@@ -1739,6 +1771,7 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend2
 			Dim As Double iRed, iGreen, iBlue
+			CanvasEnsureLayout
 			pango_layout_set_text(layout, ToUtf8(s), Len(ToUtf8(s)))
 			pango_cairo_update_layout(Handle, layout)
 			#ifdef pango_version
@@ -1753,7 +1786,8 @@ Namespace My.Sys.Drawing
 				cairo_rectangle (Handle, StartX- 0.5, StartY- 0.5, extend2.width, extend2.height)
 				cairo_fill (Handle)
 			End If
-			cairo_move_to(Handle, StartX + 0.5, StartY + extend2.height + 0.5)
+			' The text begins at y like in WinAPI: the baseline is the ascent (-y of the logical extents) below it
+			cairo_move_to(Handle, StartX + 0.5, StartY - extend2.y + 0.5)
 			If FG = -1 Then
 				iRed = Abs(GetRed(Font.Color) / 255.0): iGreen = Abs(GetGreen(Font.Color) / 255.0): iBlue = Abs(GetBlue(Font.Color) / 255.0)
 			Else
@@ -2020,7 +2054,7 @@ Namespace My.Sys.Drawing
 			End If
 		#elseif defined(__USE_GTK__)
 			Dim As cairo_surface_t Ptr image_surface
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				image_surface = gdk_cairo_surface_create_from_pixbuf(Image, 1, NULL)
 			#else
 				Dim As Integer image_width = gdk_pixbuf_get_width(Image)
@@ -2105,7 +2139,7 @@ Namespace My.Sys.Drawing
 		#elseif defined(__USE_GTK__)
 			' 补充 Cairo 后端 Draw 实现
 			Dim As cairo_surface_t Ptr image_surface
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				image_surface = gdk_cairo_surface_create_from_pixbuf(Image, 1, NULL)
 			#else
 				Dim As Integer image_width = gdk_pixbuf_get_width(Image)
@@ -2328,7 +2362,7 @@ Namespace My.Sys.Drawing
 		#elseif defined(__USE_GTK__)
 			' 补充 Cairo DrawStretch 实现
 			Dim As cairo_surface_t Ptr image_surface
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				image_surface = gdk_cairo_surface_create_from_pixbuf(Image, 1, NULL)
 			#else
 				Dim As Integer image_width = gdk_pixbuf_get_width(Image)
@@ -2436,9 +2470,10 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then Handle_ = GetDevice
 		If FillColorBK = -1 Then FillColorBK = FBackColor
 		#ifdef __USE_CAIRO__
-			cairo_set_source_rgb(Handle, GetRed(FillColorBK), GetGreen(FillColorBK), GetBlue(FillColorBK))
-			cairo_rectangle(Handle, ScaleX(R.Left) * imgScaleX + imgOffsetX - 0.5, ScaleY(R.Top) * imgScaleX + imgOffsetX - 0.5, ScaleX(R.Right - R.Left) - 0.5, ScaleY(R.Bottom - R.Top) - 0.5)
-			cairo_fill_preserve(Handle)
+			' The color components of cairo are 0..1; the path is not kept (the next lines would draw it too)
+			cairo_set_source_rgb(Handle, GetRed(FillColorBK) / 255.0, GetGreen(FillColorBK) / 255.0, GetBlue(FillColorBK) / 255.0)
+			cairo_rectangle(Handle, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right - R.Left) * imgScaleX, ScaleY(R.Bottom - R.Top) * imgScaleY)
+			cairo_fill(Handle)
 		#elseif defined(__USE_WINAPI__)
 			Static As HBRUSH B
 			If B Then DeleteObject B
@@ -2509,6 +2544,7 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend
+			CanvasEnsureLayout
 			pango_layout_set_text(layout, ToUtf8(sText), Len(ToUtf8(sText)))
 			pango_cairo_update_layout(Handle, layout)
 			#ifdef pango_version
@@ -2538,6 +2574,7 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend
+			CanvasEnsureLayout
 			pango_layout_set_text(layout, ToUtf8(sText), Len(ToUtf8(sText)))
 			pango_cairo_update_layout(Handle, layout)
 			#ifdef pango_version

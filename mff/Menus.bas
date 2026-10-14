@@ -581,8 +581,404 @@ Namespace My.Sys.Forms
 			If mi->OnClick Then mi->OnClick(*mi->Designer, *mi)
 			Return False
 		End Function
+
+		#ifdef __USE_GTK4__
+			' Shows the accelerator in the item (the accelerator itself is added in MainMenu.ParentWindow)
+			Private Sub MenuItem.SetAcceleratorText()
+				If Widget = 0 Then Exit Sub
+				Dim As GtkWidget Ptr AccelText = g_object_get_data(G_OBJECT(Widget), "mff-accel-text")
+				If AccelText = 0 Then Exit Sub
+				If accelerator_key = 0 Then
+					gtk_label_set_text(GTK_LABEL(AccelText), "")
+				Else
+					Dim As gchar Ptr AccelLabel = gtk_accelerator_get_label(accelerator_key, accelerator_mods)
+					gtk_label_set_text(GTK_LABEL(AccelText), AccelLabel)
+					g_free(AccelLabel)
+				End If
+			End Sub
+		#endif
 	#endif
 	
+	
+	#ifdef __MFF_MENU_MODEL__
+		' GMenuModel variant: every menu (the bar or a popover) has a model and an action group,
+		' an item is an action. The actions are shared by the groups of the menus which show the item
+		' The ids of the custom items are new for every model (GTK keeps the ids of the removed items)
+		Dim Shared As UInteger MenuModelSerial
+		
+		Private Function MenuItem.ModelActionName() As String
+			Return "a" & Hex(Cast(UInteger, @This))
+		End Function
+		
+		Private Sub MenuItem.ModelActionActivate(action As GSimpleAction Ptr, parameter As GVariant Ptr, user_data As Any Ptr)
+			Dim As MenuItem Ptr mi = user_data
+			If mi = 0 Then Exit Sub
+			' Like a check menu item of GTK3: the mark changes, Checked is set by the handler
+			Dim As GVariant Ptr State = g_action_get_state(G_ACTION(action))
+			If State Then
+				g_simple_action_set_state(action, g_variant_new_boolean(g_variant_get_boolean(State) = 0))
+				g_variant_unref(State)
+			End If
+			If mi->OnClick Then mi->OnClick(*mi->Designer, *mi)
+		End Sub
+		
+		Private Sub MenuItem.ModelEnsureAction()
+			If FAction Then Exit Sub
+			Dim As String ActionName = ModelActionName
+			If FCheckable OrElse FRadioItem Then
+				FAction = g_simple_action_new_stateful(StrPtr(ActionName), NULL, g_variant_new_boolean(FChecked))
+			Else
+				FAction = g_simple_action_new(StrPtr(ActionName), NULL)
+			End If
+			g_signal_connect(FAction, "activate", G_CALLBACK(@ModelActionActivate), @This)
+			g_simple_action_set_enabled(FAction, FEnabled)
+		End Sub
+		
+		' The menus which show the item are built again: the submenus of the item and its parents and the owner
+		Private Sub MenuItem.ModelChanged()
+			Dim As MenuItem Ptr mi = @This
+			While mi
+				If mi->SubMenu Then mi->SubMenu->ModelRequestRebuild
+				If mi->FParentMenuItem = 0 AndAlso mi->FOwner <> 0 Then mi->FOwner->ModelRequestRebuild
+				mi = mi->FParentMenuItem
+			Wend
+		End Sub
+		
+		Private Sub MenuItem.ModelPropertyChanged()
+			Dim As String Sig = WGet(FCaption) & Chr(1) & WGet(FText) & Chr(1) & WGet(FImageKey) & Chr(1) & accelerator_key & Chr(1) & accelerator_mods
+			If Sig = FModelSig Then Exit Sub
+			FModelSig = Sig
+			ModelChanged
+		End Sub
+		
+		Private Sub MenuItem.ModelFillChildren(gm As GMenu Ptr, ByRef Prefix As String, Group As GSimpleActionGroup Ptr, ByRef Customs As List)
+			ModelFill gm, Prefix, Group, FItems, FCount, False, Customs
+		End Sub
+		
+		Private Function MenuItem.ModelCustomId() As String
+			Return "c" & Hex(Cast(UInteger, @This)) & "_" & Hex(MenuModelSerial)
+		End Function
+		
+		' The mark of a checkable item follows the state of its action
+		Private Sub MenuItem.ModelCheckUpdate(action As GObject Ptr, pspec As GParamSpec Ptr, user_data As Any Ptr)
+			Dim As GVariant Ptr State = g_action_get_state(G_ACTION(action))
+			If State = 0 Then Exit Sub
+			gtk_widget_set_opacity(GTK_WIDGET(user_data), IIf(g_variant_get_boolean(State), 1.0, 0.0))
+			g_variant_unref(State)
+		End Sub
+		
+		' Like GtkModelButton: the menus are closed after the click (the button activates the action itself)
+		Private Sub MenuItem.ModelCustomClicked(button As GtkButton Ptr, user_data As Any Ptr)
+			Dim As GtkWidget Ptr Popover = gtk_widget_get_ancestor(GTK_WIDGET(button), GTK_TYPE_POPOVER)
+			While Popover
+				gtk_popover_popdown(GTK_POPOVER(Popover))
+				If gtk_widget_get_parent(Popover) = 0 Then Exit While
+				Popover = gtk_widget_get_ancestor(gtk_widget_get_parent(Popover), GTK_TYPE_POPOVER)
+			Wend
+		End Sub
+		
+		' A flat button with the mark, the icon, the text and the accelerator, it activates the action of the item
+		Private Function MenuItem.ModelCreateWidget(ByRef Prefix As String) As GtkWidget Ptr
+			Dim As String DetailedAction = Prefix & "." & ModelActionName
+			Dim As GtkWidget Ptr Button = gtk_button_new()
+			gtk_button_set_has_frame(GTK_BUTTON(Button), False)
+			gtk_widget_add_css_class(Button, "flat")
+			gtk_widget_add_css_class(Button, "menuitem")
+			gtk_widget_set_focus_on_click(Button, False)
+			gtk_actionable_set_action_name(GTK_ACTIONABLE(Button), StrPtr(DetailedAction))
+			g_signal_connect(Button, "clicked", G_CALLBACK(@ModelCustomClicked), NULL)
+			Dim As GtkWidget Ptr Box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6)
+			If FCheckable OrElse FRadioItem Then
+				Dim As String MarkIcon = IIf(FRadioItem, "media-record-symbolic", "object-select-symbolic")
+				Dim As GtkWidget Ptr Mark = gtk_image_new_from_icon_name(StrPtr(MarkIcon))
+				gtk_image_set_pixel_size(GTK_IMAGE(Mark), 16)
+				gtk_box_append(GTK_BOX(Box), Mark)
+				ModelCheckUpdate G_OBJECT(FAction), NULL, Mark
+				' Disconnected when the mark is destroyed (the widgets are created again for every model)
+				g_signal_connect_object(FAction, "notify::state", G_CALLBACK(@ModelCheckUpdate), Mark, 0)
+			End If
+			Dim As GtkWidget Ptr Img
+			If WGet(FImageKey) <> "" Then
+				Img = gtk_image_new_from_icon_name(ToUtf8(WGet(FImageKey)))
+			Else
+				Img = gtk_image_new()
+			End If
+			gtk_image_set_pixel_size(GTK_IMAGE(Img), 16)
+			gtk_widget_set_size_request(Img, 16, 16)
+			gtk_box_append(GTK_BOX(Box), Img)
+			Dim As GtkWidget Ptr Lbl = gtk_label_new_with_mnemonic(ToUtf8(WGet(FText)))
+			gtk_label_set_xalign(GTK_LABEL(Lbl), 0.0)
+			gtk_widget_set_hexpand(Lbl, True)
+			gtk_box_append(GTK_BOX(Box), Lbl)
+			If accelerator_key <> 0 Then
+				Dim As gchar Ptr AccelLabel = gtk_accelerator_get_label(accelerator_key, accelerator_mods)
+				Dim As GtkWidget Ptr AccelText = gtk_label_new(AccelLabel)
+				g_free(AccelLabel)
+				gtk_widget_add_css_class(AccelText, "dim-label")
+				gtk_widget_set_margin_start(AccelText, 24)
+				gtk_box_append(GTK_BOX(Box), AccelText)
+			End If
+			gtk_button_set_child(GTK_BUTTON(Button), Box)
+			Return Button
+		End Function
+		
+		' Separators divide the items into sections (the bar has no sections). Hidden items keep their actions
+		' in the group (shortcuts). The items are custom widgets: Customs gets the items, their widgets are added
+		' after the model is set (see Menu.ModelRebuild)
+		Private Sub MenuItem.ModelFill(gm As GMenu Ptr, ByRef Prefix As String, Group As GSimpleActionGroup Ptr, Items As PMenuItem Ptr, ItemsCount As Integer, MenuBar As Boolean, ByRef Customs As List)
+			Dim As GMenu Ptr Section = IIf(MenuBar, gm, g_menu_new())
+			For i As Integer = 0 To ItemsCount - 1
+				Dim As MenuItem Ptr mi = Items[i]
+				If mi = 0 Then Continue For
+				If WGet(mi->FCaption) = "-" Then
+					If (Not MenuBar) AndAlso g_menu_model_get_n_items(G_MENU_MODEL(Section)) > 0 Then
+						g_menu_append_section(gm, NULL, G_MENU_MODEL(Section))
+						g_object_unref(Section)
+						Section = g_menu_new()
+					End If
+					Continue For
+				End If
+				Dim As GMenuItem Ptr gmi
+				If mi->FCount > 0 Then
+					Dim As GMenu Ptr SubMenuModel = g_menu_new()
+					ModelFill SubMenuModel, Prefix, Group, mi->FItems, mi->FCount, False, Customs
+					If mi->FVisible Then gmi = g_menu_item_new_submenu(ToUtf8(WGet(mi->FText)), G_MENU_MODEL(SubMenuModel))
+					g_object_unref(SubMenuModel)
+				Else
+					mi->ModelEnsureAction
+					g_action_map_add_action(G_ACTION_MAP(Group), G_ACTION(mi->FAction))
+					If mi->FVisible Then
+						gmi = g_menu_item_new(ToUtf8(WGet(mi->FText)), NULL)
+						Dim As String CustomId = mi->ModelCustomId
+						g_menu_item_set_attribute_value(gmi, "custom", g_variant_new_string(StrPtr(CustomId)))
+						Customs.Add mi
+					End If
+				End If
+				If gmi Then
+					g_menu_append_item(Section, gmi)
+					g_object_unref(gmi)
+				End If
+			Next
+			If Not MenuBar Then
+				If g_menu_model_get_n_items(G_MENU_MODEL(Section)) > 0 Then g_menu_append_section(gm, NULL, G_MENU_MODEL(Section))
+				g_object_unref(Section)
+			End If
+		End Sub
+		
+		Private Function Menu.ModelPrefix() As String
+			Return "m" & Hex(Cast(UInteger, @This))
+		End Function
+		
+		' WSLg sends leave and enter (at the same position) to the window when a popup grabs the pointer.
+		' GtkPopoverMenuBar opens the item under the pointer on enter: after the keyboard selected another
+		' item the menus were opened again and again. Enter without a move of the pointer is ignored
+		Private Sub MenuBarMotion(ctrl As GtkEventController Ptr, x As Double, y As Double, user_data As gpointer)
+			Dim As Double Ptr LastPos = g_object_get_data(G_OBJECT(gtk_event_controller_get_widget(ctrl)), "mff-pointer-pos")
+			If LastPos = 0 Then Exit Sub
+			LastPos[0] = x: LastPos[1] = y: LastPos[2] = 1
+		End Sub
+
+		Private Sub MenuBarItemEnter(ctrl As GtkEventController Ptr, x As Double, y As Double, user_data As gpointer)
+			Static As Boolean Busy
+			If Busy Then Exit Sub
+			Dim As GtkWidget Ptr Item = gtk_event_controller_get_widget(ctrl)
+			Dim As GtkWidget Ptr Bar = gtk_widget_get_ancestor(Item, GTK_TYPE_POPOVER_MENU_BAR)
+			If Bar = 0 Then Exit Sub
+			Dim As Double Ptr LastPos = g_object_get_data(G_OBJECT(Bar), "mff-pointer-pos")
+			Dim As Double bx, by
+			' Enter outside of the item comes from the grab of the popover (the pointer did not move there)
+			Dim As Boolean bInside = x >= 0 AndAlso y >= 0 AndAlso x < gtk_widget_get_width(Item) AndAlso y < gtk_widget_get_height(Item)
+			If CBool(LastPos <> 0) AndAlso bInside AndAlso CBool(gtk_widget_translate_coordinates(Item, Bar, x, y, @bx, @by)) Then
+				If LastPos[2] <> 0 AndAlso Abs(bx - LastPos[0]) < 0.5 AndAlso Abs(by - LastPos[1]) < 0.5 Then Exit Sub
+				LastPos[0] = bx: LastPos[1] = by: LastPos[2] = 1
+			End If
+			' The handler of GTK
+			Dim As gulong HandlerId = Cast(gulong, g_object_get_data(G_OBJECT(ctrl), "mff-enter-handler"))
+			Busy = True
+			g_signal_handler_unblock(ctrl, HandlerId)
+			g_signal_emit_by_name(ctrl, "enter", x, y)
+			g_signal_handler_block(ctrl, HandlerId)
+			Busy = False
+		End Sub
+
+		' The items are created again with the model
+		Private Sub MenuBarHookItems(Bar As GtkWidget Ptr)
+			Dim As guint EnterId = g_signal_lookup("enter", GTK_TYPE_EVENT_CONTROLLER_MOTION)
+			Dim As GtkWidget Ptr Item = gtk_widget_get_first_child(Bar)
+			While Item
+				If g_object_get_data(G_OBJECT(Item), "mff-enter-hook") = 0 Then
+					g_object_set_data(G_OBJECT(Item), "mff-enter-hook", Cast(gpointer, 1))
+					Dim As GListModel Ptr Controllers = gtk_widget_observe_controllers(Item)
+					For i As Integer = 0 To CInt(g_list_model_get_n_items(Controllers)) - 1
+						Dim As GObject Ptr ctrl = g_list_model_get_item(Controllers, i)
+						If ctrl AndAlso GTK_IS_EVENT_CONTROLLER_MOTION(ctrl) Then
+							Dim As gulong HandlerId = g_signal_handler_find(ctrl, G_SIGNAL_MATCH_ID, EnterId, 0, NULL, NULL, NULL)
+							If HandlerId Then
+								g_signal_handler_block(ctrl, HandlerId)
+								g_object_set_data(ctrl, "mff-enter-handler", Cast(gpointer, HandlerId))
+								g_signal_connect(ctrl, "enter", G_CALLBACK(@MenuBarItemEnter), NULL)
+							End If
+						End If
+						If ctrl Then g_object_unref(ctrl)
+					Next
+					g_object_unref(Controllers)
+				End If
+				Item = gtk_widget_get_next_sibling(Item)
+			Wend
+		End Sub
+
+		' GtkPopoverMenuBar (GTK 4.14) does not forget its active item when the items are removed with the model:
+		' the freed item was used on the next enter or leave of the pointer (crash in set_active_item, bar_leave_cb).
+		' The leave handler of the bar resets the active item (the menus are closed while the model is built)
+		Private Sub MenuBarClearActiveItem(Bar As GtkWidget Ptr)
+			Dim As GListModel Ptr Controllers = gtk_widget_observe_controllers(Bar)
+			For i As Integer = 0 To CInt(g_list_model_get_n_items(Controllers)) - 1
+				Dim As GObject Ptr ctrl = g_list_model_get_item(Controllers, i)
+				If ctrl AndAlso GTK_IS_EVENT_CONTROLLER_MOTION(ctrl) Then g_signal_emit_by_name(ctrl, "leave")
+				If ctrl Then g_object_unref(ctrl)
+			Next
+			g_object_unref(Controllers)
+		End Sub
+
+		' The items of GTK4 are higher than the menu items of GTK3, the menus did not fit the screen
+		Private Sub MenuModelInstallCss()
+			Dim As GdkDisplay Ptr display = gdk_display_get_default()
+			If display = 0 OrElse g_object_get_data(G_OBJECT(display), "mff-menu-css") <> 0 Then Exit Sub
+			g_object_set_data(G_OBJECT(display), "mff-menu-css", Cast(gpointer, 1))
+			Dim As GtkCssProvider Ptr Provider = gtk_css_provider_new()
+			Dim As String Css = "popover.menu button.menuitem, popover.menu modelbutton { min-height: 0; padding: 3px 8px; }" & _
+				"popover.menu separator { margin-top: 2px; margin-bottom: 2px; }" & _
+				"popover.menu contents { padding: 3px; }"
+			gtk_css_provider_load_from_data(Provider, StrPtr(Css), -1)
+			gtk_style_context_add_provider_for_display(display, GTK_STYLE_PROVIDER(Provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION)
+			g_object_unref(Provider)
+		End Sub
+
+		Private Sub Menu.ModelInit(MenuBar As Boolean)
+			MenuModelInstallCss
+			FModel = g_menu_new()
+			FActionGroup = g_simple_action_group_new()
+			If MenuBar Then
+				Widget = gtk_popover_menu_bar_new_from_model(G_MENU_MODEL(FModel))
+				g_object_set_data_full(G_OBJECT(Widget), "mff-pointer-pos", g_malloc0(3 * SizeOf(Double)), @g_free)
+				Dim As GtkEventController Ptr Motion = gtk_event_controller_motion_new()
+				gtk_event_controller_set_propagation_phase(Motion, GTK_PHASE_CAPTURE)
+				g_signal_connect(Motion, "motion", G_CALLBACK(@MenuBarMotion), NULL)
+				gtk_widget_add_controller(Widget, Motion)
+				MenuBarHookItems Widget
+			Else
+				Widget = gtk_popover_menu_new_from_model(G_MENU_MODEL(FModel))
+				gtk_popover_set_has_arrow(GTK_POPOVER(Widget), False)
+				gtk_widget_set_halign(Widget, GTK_ALIGN_START)
+				' The menu lives until it is destroyed (also while it has no parent), like gtk_menu_new
+				g_object_ref_sink(Widget)
+			End If
+			Dim As String Prefix = ModelPrefix
+			gtk_widget_insert_action_group(Widget, StrPtr(Prefix), G_ACTION_GROUP(FActionGroup))
+			MenuWidget_Watch Widget, FWatchedWidget
+		End Sub
+		
+		Private Function Menu.ModelRebuildIdle(user_data As gpointer) As gboolean
+			Dim As Menu Ptr mnu = user_data
+			mnu->FModelIdle = 0
+			' Building the model destroys the open popovers (and WSLg activates another window)
+			If mnu->ModelPopoverOpen Then
+				mnu->FModelIdle = g_timeout_add(300, Cast(GSourceFunc, @ModelRebuildIdle), mnu)
+				Return False
+			End If
+			mnu->ModelRebuild
+			Return False
+		End Function
+		
+		' Changes are collected, the model is built again in idle (or before a popup)
+		Private Sub Menu.ModelRequestRebuild()
+			If FModel = 0 OrElse FModelIdle <> 0 Then Exit Sub
+			FModelIdle = g_idle_add(Cast(GSourceFunc, @ModelRebuildIdle), @This)
+		End Sub
+		
+		' Nested submenus (the menu bar) are separate popovers inside the item buttons,
+		' gtk_popover_(menu_bar_)add_child does not search them
+		Private Function MenuModelHasOpenPopover(w As GtkWidget Ptr) As Boolean
+			If w = 0 Then Return False
+			If GTK_IS_POPOVER(w) AndAlso gtk_widget_get_visible(w) Then Return True
+			Dim As GtkWidget Ptr c = gtk_widget_get_first_child(w)
+			While c
+				If MenuModelHasOpenPopover(c) Then Return True
+				c = gtk_widget_get_next_sibling(c)
+			Wend
+			Return False
+		End Function
+		
+		Private Function Menu.ModelPopoverOpen() As Boolean
+			Return MenuModelHasOpenPopover(Widget)
+		End Function
+		
+		Private Sub MenuModelCollectPopovers(w As GtkWidget Ptr, ByRef Popovers As List)
+			If GTK_IS_POPOVER_MENU(w) Then Popovers.Add w
+			Dim As GtkWidget Ptr c = gtk_widget_get_first_child(w)
+			While c
+				MenuModelCollectPopovers c, Popovers
+				c = gtk_widget_get_next_sibling(c)
+			Wend
+		End Sub
+		
+		Private Sub Menu.ModelRebuild()
+			If FModelIdle Then
+				g_source_remove_(FModelIdle)
+				FModelIdle = 0
+			End If
+			If FModel = 0 Then Exit Sub
+			MenuModelSerial += 1
+			' Actions of removed items do not stay in the group
+			Dim As gchar Ptr Ptr Names = g_action_group_list_actions(G_ACTION_GROUP(FActionGroup))
+			If Names Then
+				Dim As Integer i
+				While Names[i]
+					g_action_map_remove_action(G_ACTION_MAP(FActionGroup), Names[i])
+					i += 1
+				Wend
+				g_strfreev(Names)
+			End If
+			Dim As List Customs
+			' The sliding submenus of a popover are pages of a stack named by their labels: GTK does not
+			' remove the pages when the items of the model are removed (duplicate child name in GtkStack).
+			' The popover gets a new model, its contents are built again
+			Dim As Boolean bNewModel = GTK_IS_POPOVER_MENU(Widget)
+			If bNewModel Then
+				g_object_unref(FModel)
+				FModel = g_menu_new()
+			Else
+				If GTK_IS_POPOVER_MENU_BAR(Widget) Then MenuBarClearActiveItem Widget
+				g_menu_remove_all(FModel)
+			End If
+			If FParentMenuItem Then
+				FParentMenuItem->ModelFillChildren FModel, ModelPrefix, FActionGroup, Customs
+			Else
+				MenuItem.ModelFill FModel, ModelPrefix, FActionGroup, FItems, FCount, ClassName = "MainMenu", Customs
+			End If
+			If bNewModel Then gtk_popover_menu_set_menu_model(GTK_POPOVER_MENU(Widget), G_MENU_MODEL(FModel))
+			' The widgets of the custom items (the old ones are removed with the old model)
+			Dim As String Prefix = ModelPrefix
+			Dim As Boolean bAdded
+			Dim As List Popovers
+			If Customs.Count > 0 Then MenuModelCollectPopovers Widget, Popovers
+			For i As Integer = 0 To Customs.Count - 1
+				Dim As MenuItem Ptr mi = Customs.Items[i]
+				Dim As String CustomId = mi->ModelCustomId
+				Dim As GtkWidget Ptr ItemWidget = mi->ModelCreateWidget(Prefix)
+				bAdded = False
+				For j As Integer = 0 To Popovers.Count - 1
+					bAdded = gtk_popover_menu_add_child(GTK_POPOVER_MENU(Popovers.Items[j]), ItemWidget, StrPtr(CustomId))
+					If bAdded Then Exit For
+				Next
+				If Not bAdded Then
+					g_object_ref_sink(ItemWidget)
+					g_object_unref(ItemWidget)
+				End If
+			Next
+			If GTK_IS_POPOVER_MENU_BAR(Widget) Then MenuBarHookItems Widget
+		End Sub
+	#endif
 	Private Property MenuItem.ImageKey ByRef As WString
 		Return WGet(FImageKey)
 	End Property
@@ -591,10 +987,17 @@ Namespace My.Sys.Forms
 		WLet(FImageKey, value)
 		#ifdef __USE_GTK__
 			If Icon Then
-				gtk_image_set_from_icon_name(GTK_IMAGE(Icon), value, GTK_ICON_SIZE_MENU)
+				#ifdef __USE_GTK4__
+					gtk_image_set_from_icon_name(GTK_IMAGE(Icon), ToUtf8(value))
+				#else
+					gtk_image_set_from_icon_name(GTK_IMAGE(Icon), value, GTK_ICON_SIZE_MENU)
+				#endif
 			Else
-				
+
 			End If
+			#ifdef __MFF_MENU_MODEL__
+				ModelPropertyChanged
+			#endif
 		#endif
 		'gtk_container_add (GTK_CONTAINER (box), icon)
 		'gtk_container_add (GTK_CONTAINER (widget), box)
@@ -694,13 +1097,15 @@ Namespace My.Sys.Forms
 					Dim As String HotKey = Mid(value, p + 1)
 					WLet(FText, Replace(.Left(value, p), "&", "_"))
 					WLet(FAccelerator, HotKey)
-					gtk_label_set_text_with_mnemonic(GTK_LABEL(Label), ToUtf8(*FText))
+					If Label Then gtk_label_set_text_with_mnemonic(GTK_LABEL(Label), ToUtf8(*FText))
 					If HotKey <> "" Then
 						HotKey = Replace(HotKey, "Ctrl+", "<Ctrl>")
 						HotKey = Replace(HotKey, "Alt+", "<Alt>")
 						HotKey = Replace(HotKey, "Shift+", "<Shift>")
 						gtk_accelerator_parse(ToUtf8(HotKey), @accelerator_key, @accelerator_mods)
-						#ifdef __USE_GTK3__
+						#ifdef __USE_GTK4__
+							SetAcceleratorText
+						#elseif Not defined(__USE_GTK2__)
 							gtk_accel_label_set_accel(GTK_ACCEL_LABEL (Label), accelerator_key, accelerator_mods) 'accelerator_mods)
 						#else
 							If Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Accelerator Then
@@ -715,13 +1120,17 @@ Namespace My.Sys.Forms
 					End If
 				Else
 					WLet(FText, Replace(value, "&", "_"))
-					If *FText = "" Then
+					If Label = 0 Then
+					ElseIf *FText = "" Then
 						gtk_label_set_text_with_mnemonic(GTK_LABEL(Label), !"\0")
 					Else
 						gtk_label_set_text_with_mnemonic(GTK_LABEL(Label), ToUtf8(*FText))
 					End If
 				End If
 			End If
+			#ifdef __MFF_MENU_MODEL__
+				ModelPropertyChanged
+			#endif
 		#elseif defined(__USE_WINAPI__)
 			FInfo.cbSize      = SizeOf(FInfo)
 			FInfo.fMask       = MIIM_STRING Or MIIM_FTYPE
@@ -760,7 +1169,9 @@ Namespace My.Sys.Forms
 				HotKey = Replace(HotKey, "Alt+", "<Alt>")
 				HotKey = Replace(HotKey, "Shift+", "<Shift>")
 				gtk_accelerator_parse(ToUtf8(HotKey), @accelerator_key, @accelerator_mods)
-				#ifdef __USE_GTK3__
+				#ifdef __USE_GTK4__
+					SetAcceleratorText
+				#elseif Not defined(__USE_GTK2__)
 					gtk_accel_label_set_accel(GTK_ACCEL_LABEL (Label), accelerator_key, accelerator_mods) 'accelerator_mods)
 				#else
 					If Owner AndAlso Owner->ParentWindow AndAlso Owner->ParentWindow->Accelerator Then
@@ -768,6 +1179,9 @@ Namespace My.Sys.Forms
 					End If
 				#endif
 			End If
+			#ifdef __MFF_MENU_MODEL__
+				ModelPropertyChanged
+			#endif
 		#elseif defined(__USE_WINAPI__)
 			FInfo.cbSize      = SizeOf(FInfo)
 			FInfo.fMask       = MIIM_STRING Or MIIM_FTYPE
@@ -799,10 +1213,15 @@ Namespace My.Sys.Forms
 	Private Property MenuItem.Checked(value As Boolean)
 		#ifdef __USE_GTK__
 			FChecked = value
-			If GTK_IS_CHECK_MENU_ITEM(Widget) Then
-				FMenuItemChecked = True
-				gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(Widget), value)
-			End If
+			#ifdef __MFF_MENU_MODEL__
+				' The mark of a checkable item is the state of its action
+				If FAction AndAlso g_action_get_state_type(G_ACTION(FAction)) <> 0 Then g_simple_action_set_state(FAction, g_variant_new_boolean(value))
+			#else
+				If GTK_IS_CHECK_MENU_ITEM(Widget) Then
+					FMenuItemChecked = True
+					gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(Widget), value)
+				End If
+			#endif
 		#elseif defined(__USE_WINAPI__)
 			FChecked = value
 			Dim As Integer FCheck(-1 To 1) =>{MF_CHECKED, MF_UNCHECKED, MF_CHECKED}
@@ -828,6 +1247,15 @@ Namespace My.Sys.Forms
 	
 	Private Property MenuItem.RadioItem(value As Boolean)
 		FRadioItem = value
+		#ifdef __MFF_MENU_MODEL__
+			' A radio item needs an action with a state: the action is created again
+			If FAction <> 0 AndAlso CBool(g_action_get_state_type(G_ACTION(FAction)) <> 0) <> CBool(FCheckable OrElse FRadioItem) Then
+				g_signal_handlers_disconnect_by_data(FAction, @This)
+				g_object_unref(FAction)
+				FAction = 0
+			End If
+			ModelChanged
+		#endif
 		Dim As Integer First,Last
 		If ParentMenuItem OrElse ParentMenu Then
 			If ParentMenuItem Then
@@ -854,7 +1282,9 @@ Namespace My.Sys.Forms
 	
 	Private Property MenuItem.Enabled(value As Boolean)
 		FEnabled = value
-		#ifdef __USE_GTK__
+		#ifdef __MFF_MENU_MODEL__
+			If FAction Then g_simple_action_set_enabled(FAction, FEnabled)
+		#elseif defined(__USE_GTK__)
 			gtk_widget_set_sensitive(Widget, FEnabled)
 		#elseif defined(__USE_WINAPI__)
 			Dim As Integer FEnable(0 To 1) => {MF_DISABLED Or MF_GRAYED, MF_ENABLED}
@@ -876,7 +1306,9 @@ Namespace My.Sys.Forms
 	Private Property MenuItem.Visible(value As Boolean)
 		If FVisible = value Then Exit Property
 		FVisible = value
-		#ifdef __USE_GTK__
+		#ifdef __MFF_MENU_MODEL__
+			ModelChanged
+		#elseif defined(__USE_GTK__)
 			gtk_widget_set_visible(Widget, FVisible)
 		#elseif defined(__USE_WINAPI__)
 			If FVisible = False Then
@@ -944,11 +1376,20 @@ Namespace My.Sys.Forms
 			'			#EndIf
 			AllocateCommand(value)
 			FItems[Index]            = value
-			#ifdef __USE_GTK__
+			#ifdef __MFF_MENU_MODEL__
+				' The submenu shows the items of this item (e.g. as a context menu)
+				If SubMenu = 0 Then
+					SubMenu = _New( PopupMenu)
+					SubMenu->ParentMenuItem = @This
+				End If
+				ModelChanged
+			#elseif defined(__USE_GTK__)
 				If SubMenu = 0 Then
 					SubMenu = _New( PopupMenu)
 					gtk_menu_item_set_submenu(GTK_MENU_ITEM(Widget), SubMenu->Handle)
-					gtk_widget_show(SubMenu->Handle)
+					#ifndef __USE_GTK4__
+						gtk_widget_show(SubMenu->Handle)
+					#endif
 				End If
 				If Index = -1 Then
 					gtk_menu_shell_append(GTK_MENU_SHELL(SubMenu->Handle), value->Widget)
@@ -1088,6 +1529,13 @@ Namespace My.Sys.Forms
 					For i As Integer = 0 To FCount-1
 						FItems[i]->MenuIndex = i
 					Next i
+					#ifdef __MFF_MENU_MODEL__
+						If SubMenu = 0 Then
+							SubMenu = _New( PopupMenu)
+							SubMenu->ParentMenuItem = @This
+						End If
+						ModelChanged
+					#endif
 				End If
 			End If
 		End Sub
@@ -1116,7 +1564,9 @@ Namespace My.Sys.Forms
 					FItems[i]->MenuIndex = i
 				Next i
 			End If
-			#ifdef __USE_GTK__
+			#ifdef __MFF_MENU_MODEL__
+				ModelChanged
+			#elseif defined(__USE_GTK__)
 				If Widget Then
 					'gtk_container_remove(gtk_container(widget), value->widget)
 				End If
@@ -1141,9 +1591,13 @@ Namespace My.Sys.Forms
 			'Remove FItems[i]
 			'FItems[i] = NULL
 		Next i
+		Dim As Boolean HadItems = FCount > 0
 		If FItems <> 0 Then _Deallocate(FItems)
 		FItems = 0 'CAllocate_(0)
 		FCount = 0
+		#ifdef __MFF_MENU_MODEL__
+			If HadItems Then ModelChanged
+		#endif
 	End Sub
 	
 	Private Function MenuItem.IndexOf(value As PMenuItem) As Integer
@@ -1200,7 +1654,10 @@ Namespace My.Sys.Forms
 		FVisible    = True
 		FEnabled    = True
 		FChecked    = False
-		#ifdef __USE_GTK__
+		#ifdef __MFF_MENU_MODEL__
+			' No widgets: the item is shown by the models of its menus (see ModelFill)
+			FCheckable = Checkable
+		#elseif defined(__USE_GTK__)
 			If wCaption = "-" Then
 				Widget = gtk_separator_menu_item_new()
 				'ElseIf wImageKey = "" Then
@@ -1215,12 +1672,20 @@ Namespace My.Sys.Forms
 				'	widget = gtk_menu_item_new_with_mnemonic(wCaption)
 				Label = gtk_bin_get_child (GTK_BIN (Widget))
 				'g_signal_connect(widget, "button-release-event", G_CALLBACK(@MenuItemButtonPressEvent), @This)
-				g_signal_connect(Widget, "activate", G_CALLBACK(@MenuItemActivate), @This)
+				#ifdef __USE_GTK4__
+					g_signal_connect(Widget, "clicked", G_CALLBACK(@MenuItemActivate), @This)
+				#else
+					g_signal_connect(Widget, "activate", G_CALLBACK(@MenuItemActivate), @This)
+				#endif
 			Else
 				If wImageKey = "" Then
 					Icon = gtk_image_new_from_pixbuf(EmptyPixbuf)
 				Else
-					Icon = gtk_image_new_from_icon_name(ToUtf8(wImageKey), GTK_ICON_SIZE_MENU)
+					#ifdef __USE_GTK4__
+						Icon = gtk_image_new_from_icon_name(ToUtf8(wImageKey))
+					#else
+						Icon = gtk_image_new_from_icon_name(ToUtf8(wImageKey), GTK_ICON_SIZE_MENU)
+					#endif
 					'				#ifndef __USE_GTK3__
 					'					gtk_misc_set_alignment (GTK_MISC (icon), 0.0, 0.0)
 					'				#endif
@@ -1242,11 +1707,15 @@ Namespace My.Sys.Forms
 					Label = gtk_accel_label_new (ToUtf8(wCaption & "   "))
 					gtk_accel_label_set_accel_widget (GTK_ACCEL_LABEL (Label), Widget)
 					#ifdef __USE_GTK4__
-						gtk_box_pack_end(GTK_BOX (Box), Label)
-					#else
-						gtk_box_pack_end(GTK_BOX (Box), Label, True, True, 0)
+						' The accelerator is shown in an own label at the end
+						Dim As GtkWidget Ptr AccelText = gtk_label_new("")
+						gtk_widget_add_css_class(AccelText, "dim-label")
+						gtk_widget_set_margin_start(AccelText, 12)
+						gtk_box_pack_end(GTK_BOX (Box), AccelText, False, False, 0)
+						g_object_set_data(G_OBJECT(Widget), "mff-accel-text", AccelText)
 					#endif
-					#ifdef __USE_GTK3__
+					gtk_box_pack_end(GTK_BOX (Box), Label, True, True, 0)
+					#ifndef __USE_GTK2__
 						gtk_label_set_xalign (GTK_LABEL (Label), 0.0)
 					#else
 						gtk_label_set_justify(GTK_LABEL (Label), GTK_JUSTIFY_LEFT)
@@ -1254,7 +1723,11 @@ Namespace My.Sys.Forms
 					'gtk_container_add (GTK_CONTAINER (box), label)
 					gtk_container_add (GTK_CONTAINER (Widget), Box)
 				#endif
-				g_signal_connect(Widget, "activate", G_CALLBACK(@MenuItemActivate), @This)
+				#ifdef __USE_GTK4__
+					g_signal_connect(Widget, "clicked", G_CALLBACK(@MenuItemActivate), @This)
+				#else
+					g_signal_connect(Widget, "activate", G_CALLBACK(@MenuItemActivate), @This)
+				#endif
 				'g_signal_connect(widget, "event", G_CALLBACK(@EventProc), @This)
 				'g_signal_connect(widget, "event-after", G_CALLBACK(@EventAfterProc), @This)
 			End If
@@ -1279,6 +1752,11 @@ Namespace My.Sys.Forms
 		'	If FParent Then
 		'		FParent->Remove(@This)
 		'	End If
+		#ifdef __MFF_MENU_MODEL__
+			' The parents can be destroyed already (global menus at the program end), Clear does not update them
+			FOwner = 0
+			FParentMenuItem = 0
+		#endif
 		This.Clear
 		WDeAllocate(pCaption)
 		WDeAllocate(FCaption)
@@ -1286,13 +1764,24 @@ Namespace My.Sys.Forms
 		WDeAllocate(FAccelerator)
 		WDeAllocate(FName)
 		WDeAllocate(FImageKey)
+		#ifdef __USE_GTK4__
+			If SubMenu AndAlso Widget AndAlso GTK_IS_WIDGET(Widget) Then gtk_menu_item_set_submenu(Widget, NULL)
+		#endif
 		If SubMenu Then _Delete(SubMenu)
+		#ifdef __MFF_MENU_MODEL__
+			' The groups of the menus can keep the action, it does not call this item anymore
+			If FAction Then
+				g_signal_handlers_disconnect_by_data(FAction, @This)
+				g_object_unref(FAction)
+				FAction = 0
+			End If
+		#endif
 		#ifdef __USE_GTK__
 			#ifndef __FB_WIN32__
 				' Widget is 0 if GTK has already destroyed it (see MenuWidget_Watch)
 				If Widget AndAlso GTK_IS_WIDGET(Widget) Then
 					#ifdef __USE_GTK4__
-						g_object_unref(Widget)
+						gtk_widget_destroy(Widget)
 					#else
 						gtk_widget_destroy(Widget)
 					#endif
@@ -1529,7 +2018,9 @@ Namespace My.Sys.Forms
 			'				#EndIf
 			value->Owner     = @This
 			AllocateCommand(value)
-			#ifdef __USE_GTK__
+			#ifdef __MFF_MENU_MODEL__
+				ModelRequestRebuild
+			#elseif defined(__USE_GTK__)
 				gtk_menu_shell_insert(GTK_MENU_SHELL(widget), value->Widget, Index)
 				gtk_widget_show(value->Widget)
 				If value->Label Then gtk_widget_show(value->Label)
@@ -1659,6 +2150,9 @@ Namespace My.Sys.Forms
 					'					value->item(i)->Menu  = Handle
 					'				#EndIf
 				Next i
+				#ifdef __MFF_MENU_MODEL__
+					ModelRequestRebuild
+				#endif
 				#ifdef __USE_WINAPI__
 					If FParentWindow AndAlso IsWindow(FParentWindow->Handle) Then DrawMenuBar(FParentWindow->Handle)
 				#endif
@@ -1685,6 +2179,9 @@ Namespace My.Sys.Forms
 			For i As Integer = 0 To FCount-1
 				FItems[i]->MenuIndex = i
 			Next i
+			#ifdef __MFF_MENU_MODEL__
+				ModelRequestRebuild
+			#endif
 			#ifdef __USE_WINAPI__
 				If FParentWindow AndAlso IsWindow(FParentWindow->Handle) Then DrawMenuBar(FParentWindow->Handle)
 			#endif
@@ -1768,8 +2265,28 @@ Namespace My.Sys.Forms
 	
 	Private Destructor Menu
 		This.Clear
+		#ifdef __MFF_MENU_MODEL__
+			If FModelIdle Then
+				g_source_remove_(FModelIdle)
+				FModelIdle = 0
+			End If
+		#endif
 		#ifdef __USE_GTK__
-			MenuWidget_Unwatch Widget, FWatchedWidget
+			#ifdef __USE_GTK4__
+				' Popup menus are popovers referenced by gtk_menu_new
+				Dim As GtkWidget Ptr MenuWidget = Widget
+				MenuWidget_Unwatch Widget, FWatchedWidget
+				If MenuWidget AndAlso GTK_IS_POPOVER(MenuWidget) Then
+					If gtk_widget_get_parent(MenuWidget) Then gtk_widget_unparent(MenuWidget)
+					g_object_unref(MenuWidget)
+				End If
+			#else
+				MenuWidget_Unwatch Widget, FWatchedWidget
+			#endif
+		#endif
+		#ifdef __MFF_MENU_MODEL__
+			If FModel Then g_object_unref(FModel): FModel = 0
+			If FActionGroup Then g_object_unref(FActionGroup): FActionGroup = 0
 		#endif
 		#ifdef __USE_WINAPI__
 			If FInfo.hbrBack Then DeleteObject(FInfo.hbrBack)
@@ -1947,7 +2464,22 @@ Namespace My.Sys.Forms
 				EnumMenuItems *Item(i)
 			Next i
 			Dim As MenuItem Ptr mi
-			#ifdef __USE_GTK__
+			#ifdef __MFF_MENU_MODEL__
+				' The actions are also in the window: the shortcuts activate them there (their state is respected)
+				ModelRebuild
+				Dim As String Prefix = ModelPrefix
+				gtk_widget_insert_action_group(FParentWindow->widget, StrPtr(Prefix), G_ACTION_GROUP(FActionGroup))
+				For i As Integer = 0 To FMenuItems.Count - 1
+					mi = FMenuItems.Items[i]
+					If mi->accelerator_key = 0 OrElse mi->FAction = 0 Then Continue For
+					If FParentWindow->Accelerator = 0 Then
+						FParentWindow->Accelerator = gtk_accel_group_new()
+						gtk_window_add_accel_group (GTK_WINDOW (FParentWindow->widget), FParentWindow->Accelerator)
+					End If
+					Dim As String DetailedAction = ModelPrefix & "." & mi->ModelActionName
+					gtk_shortcut_controller_add_shortcut(GTK_SHORTCUT_CONTROLLER(FParentWindow->Accelerator), gtk_shortcut_new(gtk_keyval_trigger_new(mi->accelerator_key, mi->accelerator_mods), gtk_named_action_new(StrPtr(DetailedAction))))
+				Next i
+			#elseif defined(__USE_GTK__)
 				For i As Integer = 0 To FMenuItems.Count - 1
 					mi = FMenuItems.Items[i]
 					If mi->accelerator_key = 0 AndAlso mi->accelerator_mods = 0 Then Continue For
@@ -2003,7 +2535,9 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Private Constructor MainMenu
-		#ifdef __USE_GTK__
+		#ifdef __MFF_MENU_MODEL__
+			ModelInit True
+		#elseif defined(__USE_GTK__)
 			widget = gtk_menu_bar_new()
 			MenuWidget_Watch Widget, FWatchedWidget
 		#elseif defined(__USE_WINAPI__)
@@ -2065,7 +2599,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property PopupMenu.ParentWindow(value As Component Ptr)
-		#ifdef __USE_GTK__
+		#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK4__)
 			If FParentWindow = 0 Then
 				'gtk_menu_attach_to_widget(gtk_menu(widget), value->widget, NULL)
 				gtk_widget_show(widget)
@@ -2076,19 +2610,28 @@ Namespace My.Sys.Forms
 	
 	Private Sub PopupMenu.Popup(x As Integer, y As Integer, msg As Message Ptr = 0)
 		#ifdef __USE_GTK__
-			If msg <> 0 Then
-				'gtk_widget_show(widget)
-				#ifdef __USE_GTK4__
-					'gtk_menu_popup_at_pointer(GTK_MENU(widget), msg.Event)
-				#else
+			#ifdef __USE_GTK4__
+				#ifdef __MFF_MENU_MODEL__
+					' The changes of the items are applied before the menu is shown
+					If FModelIdle Then ModelRebuild
+				#endif
+				' x and y are relative to the widget of the message
+				If msg <> 0 AndAlso msg->widget <> 0 Then
+					gtk4compat_menu_popup_at widget, msg->widget, x, y
+				ElseIf FParentWindow AndAlso FParentWindow->Handle Then
+					Dim As gdouble px, py
+					gtk4compat_widget_get_pointer FParentWindow->Handle, @px, @py
+					gtk4compat_menu_popup_at widget, FParentWindow->Handle, px, py
+				Else
+					gtk_menu_popup_at_pointer widget, NULL
+				End If
+			#else
+				If msg <> 0 Then
 					gtk_menu_popup(GTK_MENU(widget), NULL, NULL, NULL, NULL, msg->Event->button.button, msg->Event->button.time)
-				#endif
-			Else
-				#ifdef __USE_GTK4__
-				#else
+				Else
 					gtk_menu_popup(GTK_MENU(widget), NULL, NULL, NULL, NULL, NULL, NULL)
-				#endif
-			End If
+				End If
+			#endif
 		#elseif defined(__USE_WINAPI__)
 			If FParentWindow AndAlso FParentWindow->Handle Then
 				TrackPopupMenuEx(This.FHandle, 0, x, y, FParentWindow->Handle, 0)
@@ -2110,7 +2653,9 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Private Constructor PopupMenu
-		#ifdef __USE_GTK__
+		#ifdef __MFF_MENU_MODEL__
+			ModelInit False
+		#elseif defined(__USE_GTK__)
 			widget = gtk_menu_new()
 			MenuWidget_Watch Widget, FWatchedWidget
 			gtk_menu_set_reserve_toggle_size(GTK_MENU(widget) , False)
