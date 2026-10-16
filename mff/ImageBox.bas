@@ -265,7 +265,7 @@ Namespace My.Sys.Forms
 				' in its real size (smaller when it does not fit) like GtkImage of GTK3
 				widget = gtk_picture_new()
 				gtk_picture_set_can_shrink(GTK_PICTURE(widget), True)
-				gtk_picture_set_content_fit(GTK_PICTURE(widget), GTK_CONTENT_FIT_SCALE_DOWN)
+				gtk4compat_picture_set_content_fit(GTK_PICTURE(widget), GTK_CONTENT_FIT_SCALE_DOWN)
 			#else
 				widget = gtk_image_new()
 			#endif

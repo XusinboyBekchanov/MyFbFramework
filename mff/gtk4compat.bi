@@ -363,6 +363,105 @@ Private Sub gtk4compat_set_parent(ByVal child As GtkWidget Ptr, ByVal parent As 
 	End If
 End Sub
 
+' Functions added after GTK 4.4 are found at run time, so the program also starts with older GTK4 versions
+Declare Function gtk4compat_dlsym Cdecl Alias "dlsym"(ByVal handle As Any Ptr, ByVal symbol As Const ZString Ptr) As Any Ptr
+
+Type gtk4compat_set_child_func As Sub Cdecl(ByVal widget As Any Ptr, ByVal child As GtkWidget Ptr)
+Type gtk4compat_get_child_func As Function Cdecl(ByVal widget As Any Ptr) As GtkWidget Ptr
+Type gtk4compat_content_fit_func As Sub Cdecl(ByVal picture As GtkPicture Ptr, ByVal content_fit As Long)
+Type gtk4compat_get_color_func As Sub Cdecl(ByVal widget As GtkWidget Ptr, ByVal pColor As GdkRGBA Ptr)
+Type gtk4compat_load_string_func As Sub Cdecl(ByVal provider As GtkCssProvider Ptr, ByVal s As Const gchar Ptr)
+
+Private Function gtk4compat_symbol(ByVal SymbolName As Const ZString Ptr) As Any Ptr
+	' RTLD_DEFAULT (0): searches the already loaded libraries
+	Return gtk4compat_dlsym(0, SymbolName)
+End Function
+
+' GTK 4.8+
+Private Sub gtk4compat_check_button_set_child(ByVal button As GtkCheckButton Ptr, ByVal child As GtkWidget Ptr)
+	Static As Boolean bLoaded
+	Static As gtk4compat_set_child_func pFunc
+	If Not bLoaded Then pFunc = Cast(gtk4compat_set_child_func, gtk4compat_symbol("gtk_check_button_set_child")): bLoaded = True
+	If pFunc Then
+		pFunc(button, child)
+	ElseIf child = 0 Then
+		gtk_check_button_set_label(button, NULL)
+	ElseIf GTK_IS_LABEL(child) Then
+		' Older GTK4: the check button has only a text label
+		gtk_check_button_set_label(button, gtk_label_get_text(GTK_LABEL(child)))
+	End If
+End Sub
+
+' GTK 4.8+
+Private Function gtk4compat_check_button_get_child(ByVal button As GtkCheckButton Ptr) As GtkWidget Ptr
+	Static As Boolean bLoaded
+	Static As gtk4compat_get_child_func pFunc
+	If Not bLoaded Then pFunc = Cast(gtk4compat_get_child_func, gtk4compat_symbol("gtk_check_button_get_child")): bLoaded = True
+	If pFunc Then Return pFunc(button)
+	Return NULL
+End Function
+
+' GTK 4.6+
+Private Sub gtk4compat_menu_button_set_child(ByVal button As GtkMenuButton Ptr, ByVal child As GtkWidget Ptr)
+	Static As Boolean bLoaded
+	Static As gtk4compat_set_child_func pFunc
+	If Not bLoaded Then pFunc = Cast(gtk4compat_set_child_func, gtk4compat_symbol("gtk_menu_button_set_child")): bLoaded = True
+	If pFunc Then
+		pFunc(button, child)
+	ElseIf child = 0 Then
+	ElseIf GTK_IS_LABEL(child) Then
+		' Older GTK4: the menu button has only a text label or an icon
+		gtk_menu_button_set_label(button, gtk_label_get_text(GTK_LABEL(child)))
+	ElseIf GTK_IS_IMAGE(child) Then
+		If gtk_image_get_icon_name(GTK_IMAGE(child)) <> 0 Then gtk_menu_button_set_icon_name(button, gtk_image_get_icon_name(GTK_IMAGE(child)))
+	End If
+End Sub
+
+' GTK 4.6+
+Private Function gtk4compat_menu_button_get_child(ByVal button As GtkMenuButton Ptr) As GtkWidget Ptr
+	Static As Boolean bLoaded
+	Static As gtk4compat_get_child_func pFunc
+	If Not bLoaded Then pFunc = Cast(gtk4compat_get_child_func, gtk4compat_symbol("gtk_menu_button_get_child")): bLoaded = True
+	If pFunc Then Return pFunc(button)
+	Return NULL
+End Function
+
+' GTK 4.8+
+Private Sub gtk4compat_picture_set_content_fit(ByVal picture As GtkPicture Ptr, ByVal content_fit As Long)
+	Static As Boolean bLoaded
+	Static As gtk4compat_content_fit_func pFunc
+	If Not bLoaded Then pFunc = Cast(gtk4compat_content_fit_func, gtk4compat_symbol("gtk_picture_set_content_fit")): bLoaded = True
+	If pFunc Then
+		pFunc(picture, content_fit)
+	Else
+		gtk_picture_set_keep_aspect_ratio(picture, content_fit <> GTK_CONTENT_FIT_FILL)
+	End If
+End Sub
+
+' GTK 4.10+
+Private Sub gtk4compat_widget_get_color(ByVal widget As GtkWidget Ptr, ByVal pColor As GdkRGBA Ptr)
+	Static As Boolean bLoaded
+	Static As gtk4compat_get_color_func pFunc
+	If Not bLoaded Then pFunc = Cast(gtk4compat_get_color_func, gtk4compat_symbol("gtk_widget_get_color")): bLoaded = True
+	If pFunc Then
+		pFunc(widget, pColor)
+	Else
+		gtk_style_context_get_color(gtk_widget_get_style_context(widget), pColor)
+	End If
+End Sub
+
+' GTK 4.12+
+Private Sub gtk4compat_css_provider_load_from_string(ByVal provider As GtkCssProvider Ptr, ByVal s As Const gchar Ptr)
+	Static As Boolean bLoaded
+	Static As gtk4compat_load_string_func pFunc
+	If Not bLoaded Then pFunc = Cast(gtk4compat_load_string_func, gtk4compat_symbol("gtk_css_provider_load_from_string")): bLoaded = True
+	If pFunc Then
+		pFunc(provider, s)
+	Else
+		gtk_css_provider_load_from_data(provider, s, -1)
+	End If
+End Sub
+
 Private Sub gtk4compat_box_pack(ByVal box As GtkBox Ptr, ByVal child As GtkWidget Ptr, ByVal expand As gboolean, ByVal fill As gboolean, ByVal padding As guint, ByVal AtEnd As Boolean)
 	If box = 0 OrElse child = 0 Then Exit Sub
 	If GTK_IS_BOX(box) = 0 Then
@@ -428,11 +527,11 @@ Private Sub gtk_container_add(ByVal container As GtkWidget Ptr, ByVal child As G
 	ElseIf GTK_IS_FRAME(container) Then
 		gtk_frame_set_child(GTK_FRAME(container), child)
 	ElseIf GTK_IS_MENU_BUTTON(container) Then
-		gtk_menu_button_set_child(GTK_MENU_BUTTON(container), child)
+		gtk4compat_menu_button_set_child(GTK_MENU_BUTTON(container), child)
 	ElseIf GTK_IS_BUTTON(container) Then
 		gtk_button_set_child(GTK_BUTTON(container), child)
 	ElseIf GTK_IS_CHECK_BUTTON(container) Then
-		gtk_check_button_set_child(GTK_CHECK_BUTTON(container), child)
+		gtk4compat_check_button_set_child(GTK_CHECK_BUTTON(container), child)
 	ElseIf GTK_IS_POPOVER(container) Then
 		gtk_popover_set_child(GTK_POPOVER(container), child)
 	ElseIf GTK_IS_VIEWPORT(container) Then
@@ -452,7 +551,7 @@ Private Sub gtk_container_add(ByVal container As GtkWidget Ptr, ByVal child As G
 	ElseIf GTK_IS_LIST_BOX_ROW(container) Then
 		gtk_list_box_row_set_child(GTK_LIST_BOX_ROW(container), child)
 	ElseIf GTK_IS_FLOW_BOX(container) Then
-		gtk_flow_box_append(GTK_FLOW_BOX(container), child)
+		gtk_flow_box_insert(GTK_FLOW_BOX(container), child, -1)
 	ElseIf GTK_IS_STACK(container) Then
 		gtk_stack_add_child(GTK_STACK(container), child)
 	ElseIf GTK_IS_GRID(container) Then
@@ -507,11 +606,11 @@ Private Sub gtk_container_remove(ByVal container As GtkWidget Ptr, ByVal child A
 	ElseIf GTK_IS_FRAME(container) Then
 		MainChild = gtk_frame_get_child(GTK_FRAME(container))
 	ElseIf GTK_IS_MENU_BUTTON(container) Then
-		MainChild = gtk_menu_button_get_child(GTK_MENU_BUTTON(container))
+		MainChild = gtk4compat_menu_button_get_child(GTK_MENU_BUTTON(container))
 	ElseIf GTK_IS_BUTTON(container) Then
 		MainChild = gtk_button_get_child(GTK_BUTTON(container))
 	ElseIf GTK_IS_CHECK_BUTTON(container) Then
-		MainChild = gtk_check_button_get_child(GTK_CHECK_BUTTON(container))
+		MainChild = gtk4compat_check_button_get_child(GTK_CHECK_BUTTON(container))
 	ElseIf GTK_IS_POPOVER(container) Then
 		MainChild = gtk_popover_get_child(GTK_POPOVER(container))
 	ElseIf GTK_IS_VIEWPORT(container) Then
@@ -533,11 +632,11 @@ Private Sub gtk_container_remove(ByVal container As GtkWidget Ptr, ByVal child A
 		ElseIf GTK_IS_FRAME(container) Then
 			gtk_frame_set_child(GTK_FRAME(container), NULL)
 		ElseIf GTK_IS_MENU_BUTTON(container) Then
-			gtk_menu_button_set_child(GTK_MENU_BUTTON(container), NULL)
+			gtk4compat_menu_button_set_child(GTK_MENU_BUTTON(container), NULL)
 		ElseIf GTK_IS_BUTTON(container) Then
 			gtk_button_set_child(GTK_BUTTON(container), NULL)
 		ElseIf GTK_IS_CHECK_BUTTON(container) Then
-			gtk_check_button_set_child(GTK_CHECK_BUTTON(container), NULL)
+			gtk4compat_check_button_set_child(GTK_CHECK_BUTTON(container), NULL)
 		ElseIf GTK_IS_POPOVER(container) Then
 			gtk_popover_set_child(GTK_POPOVER(container), NULL)
 		ElseIf GTK_IS_VIEWPORT(container) Then
@@ -599,11 +698,11 @@ Private Function gtk_bin_get_child(ByVal bin_ As GtkWidget Ptr) As GtkWidget Ptr
 	ElseIf GTK_IS_FRAME(bin_) Then
 		Return gtk_frame_get_child(GTK_FRAME(bin_))
 	ElseIf GTK_IS_MENU_BUTTON(bin_) Then
-		Return gtk_menu_button_get_child(GTK_MENU_BUTTON(bin_))
+		Return gtk4compat_menu_button_get_child(GTK_MENU_BUTTON(bin_))
 	ElseIf GTK_IS_BUTTON(bin_) Then
 		Return gtk_button_get_child(GTK_BUTTON(bin_))
 	ElseIf GTK_IS_CHECK_BUTTON(bin_) Then
-		Return gtk_check_button_get_child(GTK_CHECK_BUTTON(bin_))
+		Return gtk4compat_check_button_get_child(GTK_CHECK_BUTTON(bin_))
 	ElseIf GTK_IS_POPOVER(bin_) Then
 		Return gtk_popover_get_child(GTK_POPOVER(bin_))
 	ElseIf GTK_IS_VIEWPORT(bin_) Then
@@ -814,8 +913,9 @@ Private Function mff_fixed_layout_get_type() As GType
 	Static As Boolean bChecked
 	If bChecked Then Return t
 	bChecked = True
-	' G_TYPE_FLAG_FINAL (1 Shl 6): GtkFixedLayout can not be derived, the children size is requested then
-	If g_type_test_flags(GTK_TYPE_FIXED_LAYOUT, 1 Shl 6) Then Return 0
+	' G_TYPE_FLAG_FINAL (1 Shl 6): GtkFixedLayout can not be derived, the children size is requested then.
+	' The flag exists since GLib 2.70: before it g_type_test_flags returns True for it, the type can be derived
+	If glib_check_version(2, 70, 0) = 0 AndAlso g_type_test_flags(GTK_TYPE_FIXED_LAYOUT, 1 Shl 6) Then Return 0
 	Dim As GTypeQuery q
 	g_type_query(GTK_TYPE_FIXED_LAYOUT, @q)
 	If q.type = 0 Then Return 0
@@ -988,7 +1088,7 @@ Private Sub gtk4compat_widget_set_font(ByVal widget As GtkWidget Ptr, ByVal pfd 
 	If iSize > 0 Then css &= " font-size: " & Str(iSize / PANGO_SCALE) & IIf(pango_font_description_get_size_is_absolute(pfd), "px", "pt") & ";"
 	css &= " font-weight: " & Str(CInt(pango_font_description_get_weight(pfd))) & ";"
 	css &= " font-style: " & IIf(pango_font_description_get_style(pfd) = PANGO_STYLE_ITALIC, "italic", IIf(pango_font_description_get_style(pfd) = PANGO_STYLE_OBLIQUE, "oblique", "normal")) & "; }"
-	gtk_css_provider_load_from_string(provider, StrPtr(css))
+	gtk4compat_css_provider_load_from_string(provider, StrPtr(css))
 End Sub
 
 ' Like GTK3: windows are destroyed, other widgets are removed from their parent
@@ -2505,7 +2605,7 @@ Private Sub gtk4compat_tool_toggle_css()
 	Dim As GdkDisplay Ptr display = gdk_display_get_default()
 	If display = 0 OrElse g_object_get_data(G_OBJECT(display), "mff-tool-toggle-css") <> 0 Then Exit Sub
 	Dim As GtkCssProvider Ptr provider = gtk_css_provider_new()
-	gtk_css_provider_load_from_string(provider, "button.mff-tool-toggle:checked { background-color: alpha(currentColor, 0.18); box-shadow: inset 0 0 0 1px alpha(currentColor, 0.35); }")
+	gtk4compat_css_provider_load_from_string(provider, "button.mff-tool-toggle:checked { background-color: alpha(currentColor, 0.18); box-shadow: inset 0 0 0 1px alpha(currentColor, 0.35); }")
 	gtk_style_context_add_provider_for_display(display, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION)
 	g_object_set_data_full(G_OBJECT(display), "mff-tool-toggle-css", provider, Cast(GDestroyNotify, @g_object_unref))
 End Sub
