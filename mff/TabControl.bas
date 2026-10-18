@@ -58,7 +58,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub TabPage.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTabPage(Sender.Child)
@@ -72,7 +72,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub TabPage.ProcessMessage(ByRef msg As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			'FTheme = GetWindowTheme(Msg.hWnd)
 			Dim As ..Rect rct
 			Select Case msg.Msg
@@ -149,7 +149,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub TabPage.Update()
 		If This.Parent AndAlso *Base.Parent Is TabControl Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If This.Parent->Handle Then
 					Dim As TCITEM Ti
 					Ti.mask = TCIF_TEXT Or TCIF_IMAGE Or TCIF_PARAM
@@ -200,7 +200,9 @@ Namespace My.Sys.Forms
 			If GTK_IS_LABEL(_Label) Then
 				gtk_label_set_text(GTK_LABEL(_Label), ToUtf8(Value))
 			End If
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FParent AndAlso *Base.Parent Is TabControl Then Cast(TabControl Ptr, FParent)->UpdateTabs
+		#elseif defined(__USE_WINAPI__)
 			Update
 		#endif
 	End Property
@@ -252,7 +254,7 @@ Namespace My.Sys.Forms
 			#else
 				gtk_image_set_from_icon_name(GTK_IMAGE(_Icon), ToUtf8(Value), GTK_ICON_SIZE_MENU)
 			#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Update
 		#endif
 	End Property
@@ -312,11 +314,13 @@ Namespace My.Sys.Forms
 		Child = @This
 		#ifdef __USE_GTK__
 			This.RegisterClass "TabPage", @This
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Align = DockStyle.alClient
 			Base.Style = WS_CHILD Or DS_SETFOREGROUND
 			This.OnHandleIsAllocated = @HandleIsAllocated
 			This.RegisterClass "TabPage", "Panel"
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Align = DockStyle.alClient
 		#endif
 	End Constructor
 	
@@ -392,8 +396,10 @@ Namespace My.Sys.Forms
 	Private Property TabControl.SelectedTabIndex As Integer
 		#ifdef __USE_GTK__
 			Return gtk_notebook_get_current_page(GTK_NOTEBOOK(widget))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Return Perform(TCM_GETCURSEL,0,0)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Return FSelectedTabIndex
 		#endif
 	End Property
 	
@@ -401,7 +407,7 @@ Namespace My.Sys.Forms
 		FSelectedTabIndex = Value
 		#ifdef __USE_GTK__
 			gtk_notebook_set_current_page(GTK_NOTEBOOK(widget), Value)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				Perform(TCM_SETCURSEL,FSelectedTabIndex,0)
 				Dim Id As Integer = SelectedTabIndex
@@ -415,10 +421,25 @@ Namespace My.Sys.Forms
 				RequestAlign
 				If OnSelChange Then OnSelChange(*Designer, This, Id)
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			For i As Integer = 0 To FTabCount - 1
+				Tabs[i]->Visible = (i = FSelectedTabIndex)
+			Next i
+			If FHandle Then SetPosition(FHandle, FSelectedTabIndex)
+			RequestAlign
+			If OnSelChange Then OnSelChange(*Designer, This, FSelectedTabIndex)
 		#endif
 	End Property
 	
 	Private Sub TabControl.SetMargins()
+		#ifdef __USE_WASM__
+			'The pages are in the client element under the tab strip (SETTABS, mff_lib.js)
+			Base.SetMargins 0, 0, 0, 0
+			Exit Sub
+		#elseif defined(__USE_JNI__)
+			Base.SetMargins 0, 48, 0, 0
+			Exit Sub
+		#endif
 		Select Case FTabPosition
 		Case 0: Base.SetMargins 4 + ItemWidth(0), 2, 4, 3
 		Case 1: Base.SetMargins 2, 2, 4 + ItemWidth(0), 3
@@ -445,7 +466,7 @@ Namespace My.Sys.Forms
 					gtk_label_set_angle(GTK_LABEL(Tabs[i]->_Label), 0)
 				End Select
 			Next
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Select Case FTabPosition
 			Case 0
 				ChangeStyle(TCS_BOTTOM, False)
@@ -482,7 +503,7 @@ Namespace My.Sys.Forms
 	
 	Private Property TabControl.TabStyle(Value As My.Sys.Forms.TabStyle)
 		FTabStyle = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case FTabStyle
 			Case 0
 				ChangeStyle TCS_BUTTONS, False
@@ -506,7 +527,7 @@ Namespace My.Sys.Forms
 	
 	Private Property TabControl.FlatButtons(Value As Boolean)
 		FFlatButtons = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case FFlatButtons
 			Case True
 				If (Style And TCS_FLATBUTTONS) <> TCS_FLATBUTTONS Then
@@ -527,7 +548,7 @@ Namespace My.Sys.Forms
 	
 	Private Property TabControl.Multiline(Value As Boolean)
 		FMultiline = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case FMultiline
 			Case False
 				If (Style And TCS_MULTILINE) = TCS_MULTILINE Then
@@ -575,7 +596,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property TabControl.TabCount As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then
 				FTabCount = Perform(TCM_GETITEMCOUNT,0,0)
 			End If
@@ -620,7 +641,7 @@ Namespace My.Sys.Forms
 				#else
 					Return gtk_notebook_get_tab_label(GTK_NOTEBOOK(widget), Tabs[Index]->widget)->allocation.height
 				#endif
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim As ..Rect R
 				Perform(TCM_GETITEMRECT, Index, CInt(@R))
 				Return UnScaleY(R.Bottom - R.Top)
@@ -643,7 +664,7 @@ Namespace My.Sys.Forms
 				#else
 					Return gtk_notebook_get_tab_label(GTK_NOTEBOOK(widget), Tabs[Index]->widget)->allocation.width
 				#endif
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim As ..Rect R
 				Perform(TCM_GETITEMRECT, Index, CInt(@R))
 				Return UnScaleX(R.Right - R.Left)
@@ -654,7 +675,7 @@ Namespace My.Sys.Forms
 	
 	Private Function TabControl.ItemLeft(Index As Integer) As Integer
 		If Index >= 0 And Index < TabCount Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Dim As ..Rect R
 				Perform(TCM_GETITEMRECT, Index, CInt(@R))
 				Return UnScaleX(R.Left)
@@ -665,7 +686,7 @@ Namespace My.Sys.Forms
 	
 	Private Function TabControl.ItemTop(Index As Integer) As Integer
 		If Index >= 0 And Index < TabCount Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Dim As ..Rect R
 				Perform(TCM_GETITEMRECT, Index, CInt(@R))
 				Return UnScaleY(R.Top)
@@ -674,7 +695,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Function
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub TabControl.WndProc(ByRef Message As Message)
 		End Sub
 		
@@ -745,10 +766,59 @@ Namespace My.Sys.Forms
 			End If
 			Return CallWindowProc(GetProp(hDlg, "@@@@Proc"), hDlg, uMsg, wParam, lParam)
 		End Function
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Sub TabControl.WndProc(ByRef Message As Message)
+		End Sub
+		
+		Private Sub TabControl.HandleIsAllocated(ByRef Sender As Control)
+			If Sender.Child Then
+				With QTabControl(Sender.Child)
+					.SetMargins
+					.UpdateTabs
+					.RequestAlign
+				End With
+			End If
+		End Sub
+		
+		Private Sub TabControl.UpdateTabs()
+			If FHandle = 0 Then Exit Sub
+			Dim As UString Titles
+			For i As Integer = 0 To FTabCount - 1
+				If i > 0 Then Titles &= Chr(10)
+				Titles &= Tabs[i]->Caption
+			Next i
+			SetTabs(FHandle, ToUtf8(Titles))
+			If FSelectedTabIndex >= FTabCount Then FSelectedTabIndex = FTabCount - 1
+			If FSelectedTabIndex < 0 AndAlso FTabCount > 0 Then FSelectedTabIndex = 0
+			SetPosition(FHandle, FSelectedTabIndex)
+			For i As Integer = 0 To FTabCount - 1
+				Tabs[i]->Visible = (i = FSelectedTabIndex)
+			Next i
+		End Sub
 	#endif
 	
 	Private Sub TabControl.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Message.Msg = CM_CHANGE Then
+				Dim As Integer NewIndex
+				#ifdef __USE_JNI__
+					NewIndex = Message.wParam
+				#else
+					NewIndex = GetPosition(FHandle)
+				#endif
+				If NewIndex <> FSelectedTabIndex Then
+					Dim As Boolean Cancel
+					If OnSelChanging Then OnSelChanging(*Designer, This, Cancel)
+					If Cancel Then
+						SetPosition(FHandle, FSelectedTabIndex)
+					Else
+						SelectedTabIndex = NewIndex
+					End If
+				End If
+				Message.Handled = True
+			End If
+		#endif
+		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case WM_PARENTNOTIFY
 				Select Case Message.wParamLo
@@ -987,7 +1057,7 @@ Namespace My.Sys.Forms
 				gtk_notebook_set_tab_detachable(GTK_NOTEBOOK(widget), tp->widget, FDetachable)
 				'gtk_notebook_append_page(gtk_notebook(widget), tp->widget, gtk_label_new(ToUTF8(Caption)))
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				Dim As TCITEMW Ti
 				Dim As Integer LenSt = Len(Caption) + 1
@@ -1003,6 +1073,8 @@ Namespace My.Sys.Forms
 				Ti.lParam = 0
 			End If
 			SetMargins
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			SetMargins
 		#endif
 		This.Add(tp)
 		#ifdef __USE_GTK4__
@@ -1010,6 +1082,9 @@ Namespace My.Sys.Forms
 			tp->Visible = True
 		#else
 			tp->Visible = FTabCount = 1
+		#endif
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			UpdateTabs
 		#endif
 		If OnTabAdded Then OnTabAdded(*Designer, This, Tabs[FTabCount - 1], FTabCount - 1)
 		Return Tabs[FTabCount - 1]
@@ -1072,7 +1147,7 @@ Namespace My.Sys.Forms
 			If widget Then
 				gtk_widget_show_all(widget)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				Dim As TCITEMW Ti
 				Dim As WString Ptr St
@@ -1093,8 +1168,14 @@ Namespace My.Sys.Forms
 			End If
 			SetMargins
 			tp->Visible = FTabCount = 1
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			SetMargins
+			tp->Visible = FTabCount = 1
 		#endif
 		This.Add(Tabs[FTabCount - 1])
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			UpdateTabs
+		#endif
 		If OnTabAdded Then OnTabAdded(*Designer, This, Tabs[FTabCount - 1], FTabCount - 1)
 		Tabs[FTabCount - 1]->SendToBack
 	End Sub
@@ -1161,7 +1242,7 @@ Namespace My.Sys.Forms
 			End If
 			#ifdef __USE_GTK__
 				gtk_notebook_remove_page(GTK_NOTEBOOK(widget), Index)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Perform(TCM_DELETEITEM, Index, 0)
 			#endif
 			If Index > 0 Then
@@ -1170,6 +1251,9 @@ Namespace My.Sys.Forms
 				SelectedTabIndex = Index + 1
 			End If
 			If FTabCount = 0 Then SetMargins
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				UpdateTabs
+			#endif
 			If OnTabRemoved Then OnTabRemoved(*Designer, This, Prev, Index)
 		End If
 	End Sub
@@ -1181,7 +1265,7 @@ Namespace My.Sys.Forms
 	Private Function TabControl.InsertTab(Index As Integer, ByRef Caption As WString, AObject As Any Ptr = 0) As TabPage Ptr
 		Dim As Integer i
 		Dim As TabPage Ptr It, tp
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As TCITEM Ti
 			Ti.mask = TCIF_TEXT Or TCIF_IMAGE Or TCIF_PARAM
 		#endif
@@ -1231,13 +1315,14 @@ Namespace My.Sys.Forms
 					gtk_notebook_set_tab_detachable(GTK_NOTEBOOK(widget), tp->widget, FDetachable)
 					'gtk_notebook_append_page(gtk_notebook(widget), tp->widget, gtk_label_new(ToUTF8(Caption)))
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Ti.pszText    = @(tp->Caption)
 				Ti.cchTextMax = Len(tp->Caption) + 1
 				If tp->Object Then Ti.lParam = Cast(LPARAM, tp->Object)
 				Perform(TCM_INSERTITEM, iIndex, CInt(@Ti))
 				SetTabPageIndex(tp, iIndex)
 				Ti.lParam = 0
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 			#endif
 			SetMargins
 			This.Add(tp)
@@ -1246,6 +1331,9 @@ Namespace My.Sys.Forms
 				tp->Visible = True
 			#else
 				tp->Visible = FTabCount = 1
+			#endif
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				UpdateTabs
 			#endif
 			If OnTabAdded Then OnTabAdded(*Designer, This, tp, iIndex)
 			Return Tabs[iIndex]
@@ -1293,7 +1381,7 @@ Namespace My.Sys.Forms
 			If widget Then
 				gtk_widget_show_all(widget)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				Dim As TCITEMW Ti
 				Dim As WString Ptr St
@@ -1309,8 +1397,14 @@ Namespace My.Sys.Forms
 			End If
 			SetMargins
 			tp->Visible = FTabCount = 1
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			SetMargins
+			tp->Visible = FTabCount = 1
 		#endif
 		This.Add(Tabs[Index])
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			UpdateTabs
+		#endif
 		If OnTabAdded Then OnTabAdded(*Designer, This, Tabs[Index], Index)
 	End Sub
 	
@@ -1401,14 +1495,21 @@ Namespace My.Sys.Forms
 				g_signal_connect(GTK_NOTEBOOK(widget), "page-removed", G_CALLBACK(@TabControl_PageRemoved), @This)
 				g_signal_connect(GTK_NOTEBOOK(widget), "page-reordered", G_CALLBACK(@TabControl_PageReordered), @This)
 				.RegisterClass "TabControl", @This
-			#else
+			#elseif defined(__USE_WINAPI__)
 				WLet(FClassAncestor, "SysTabControl32")
 				.RegisterClass "TabControl", "SysTabControl32"
 				UpDownControl.Style = UpDownOrientation.udHorizontal
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "div")
+				FElementStyle = "border: 1px solid #aaa;"
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "mff:Layout")
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			WLet(FClassName, "TabControl")
 			.Child       = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.ChildProc   = @WndProc
 				Base.ExStyle     = 0
 				Base.Style       = WS_CHILD

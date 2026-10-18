@@ -119,6 +119,31 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
+	#ifdef __USE_WASM__
+		'The value of <input type="date">, "time" and "datetime-local" as a date serial and back
+		Private Function DateTimePickerFromHtml(ByRef Value As WString) As Double
+			Dim As String s = Value
+			Dim As Double Result
+			Dim As String sTime
+			If Len(s) >= 10 AndAlso Mid(s, 5, 1) = "-" Then
+				Result = DateSerial(Val(Mid(s, 1, 4)), Val(Mid(s, 6, 2)), Val(Mid(s, 9, 2)))
+				If InStr(s, "T") > 0 Then sTime = Mid(s, InStr(s, "T") + 1)
+			ElseIf InStr(s, ":") > 0 Then
+				sTime = s
+			End If
+			If sTime <> "" Then Result += TimeSerial(Val(Mid(sTime, 1, 2)), Val(Mid(sTime, 4, 2)), Val(Mid(sTime, 7, 2)))
+			Return Result
+		End Function
+
+		Private Function DateTimePickerToHtml(ByRef sType As String, Value As Double) As String
+			Select Case sType
+			Case "date": Return Format(Value, "yyyy-mm-dd")
+			Case "time": Return Format(Value, "hh:nn:ss")
+			Case Else: Return Format(Value, "yyyy-mm-dd") & "T" & Format(Value, "hh:nn:ss")
+			End Select
+		End Function
+	#endif
+
 	Private Property DateTimePicker.SelectedDate As Long
 		If FHandle Then
 			#ifdef __USE_GTK__
@@ -132,8 +157,10 @@ Namespace My.Sys.Forms
 					
 				End If
 			#elseif defined(__USE_WASM__)
-				Dim As String SelectedText = Text
-				FSelectedDate = DateSerial(Val(.Left(SelectedText, 4)), Val(Mid(SelectedText, 6, 2)), Val(Mid(SelectedText, 9, 2)))
+				If FType <> "time" Then FSelectedDate = Int(DateTimePickerFromHtml(Text))
+			#elseif defined(__USE_JNI__)
+				Dim As Integer YMD = GetPosition(FHandle)
+				If YMD > 0 Then FSelectedDate = DateSerial(YMD \ 10000, (YMD \ 100) Mod 100, YMD Mod 100)
 			#endif
 		End If
 		Return FSelectedDate
@@ -156,7 +183,9 @@ Namespace My.Sys.Forms
 				pst.wSecond = Second(sTime)
 				DateTime_SetSystemtime(FHandle, GDT_VALID, @pst)
 			#elseif defined(__USE_WASM__)
-				SetStringValue(FHandle, Format(Value + SelectedTime, "yyyy-MM-ddThh:mm:ss"))
+				SetStringValue(FHandle, DateTimePickerToHtml(FType, Value + SelectedTime))
+			#elseif defined(__USE_JNI__)
+				SetPosition(FHandle, Year(Value) * 10000 + Month(Value) * 100 + Day(Value))
 			#endif
 		End If
 	End Property
@@ -168,7 +197,10 @@ Namespace My.Sys.Forms
 				DateTime_GetSystemtime(FHandle, @pst)
 				FSelectedDateTime = DateSerial(pst.wYear, pst.wMonth, pst.wDay) + TimeSerial(pst.wHour, pst.wMinute, pst.wSecond)
 			#elseif defined(__USE_WASM__)
-				Dim As String SelectedText = Text
+				FSelectedDateTime = DateTimePickerFromHtml(Text)
+				If FType = "date" Then FSelectedDateTime += FSelectedTime
+			#elseif defined(__USE_JNI__)
+				FSelectedDateTime = SelectedDate + FSelectedTime
 			#endif
 		End If
 		Return FSelectedDateTime
@@ -194,7 +226,10 @@ Namespace My.Sys.Forms
 				pst.wSecond = Second(Value)
 				DateTime_SetSystemtime(FHandle, GDT_VALID, @pst)
 			#elseif defined(__USE_WASM__)
-				SetStringValue(FHandle, Format(Value, "yyyy-MM-ddThh:mm:ss"))
+				SetStringValue(FHandle, DateTimePickerToHtml(FType, Value))
+			#elseif defined(__USE_JNI__)
+				FSelectedTime = Frac(Value)
+				SetPosition(FHandle, Year(Value) * 10000 + Month(Value) * 100 + Day(Value))
 			#endif
 		End If
 	End Property
@@ -208,9 +243,7 @@ Namespace My.Sys.Forms
 			#endif
 			If FText = 0 Then Return "" Else Return *FText
 		#elseif defined(__USE_WASM__)
-			Dim ptr_ As ZString Ptr = GetStringValue(@This)
-			WLet(FText, *ptr_)
-			FreePtr(ptr_)
+			ReadElementValue(@This, FText)
 			If FText = 0 Then Return "" Else Return *FText
 		#else
 			Return Base.Text
@@ -238,6 +271,8 @@ Namespace My.Sys.Forms
 				Dim As SYSTEMTIME pst
 				DateTime_GetSystemTime(FHandle, @pst)
 				FSelectedTime = TimeSerial(pst.wHour, pst.wMinute, pst.wSecond)
+			#elseif defined(__USE_WASM__)
+				If FType <> "date" Then FSelectedTime = Frac(DateTimePickerFromHtml(Text))
 			#endif
 		End If
 		Return FSelectedTime
@@ -259,7 +294,7 @@ Namespace My.Sys.Forms
 				pst.wSecond = Second(Value)
 				DateTime_SetSystemTime(FHandle, GDT_VALID, @pst)
 			#elseif defined(__USE_WASM__)
-				SetStringValue(FHandle, Format(SelectedDate + Value, "yyyy-MM-ddThh:mm:ss"))
+				SetStringValue(FHandle, DateTimePickerToHtml(FType, SelectedDate + Value))
 			#endif
 		End If
 	End Property
@@ -433,6 +468,17 @@ Namespace My.Sys.Forms
 		Private Sub DateTimePicker.WndProc(ByRef Message As Message)
 		End Sub
 		
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Sub DateTimePicker.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			If Sender.Child Then
+				With QDateTimePicker(Sender.Child)
+					.SelectedDateTime = .FSelectedDateTime
+				End With
+			End If
+		End Sub
+
+		Private Sub DateTimePicker.WndProc(ByRef Message As Message)
+		End Sub
 	#endif
 	
 	Private Property DateTimePicker.TimePicker As Boolean 'David Change
@@ -717,6 +763,19 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub DateTimePicker.ProcessMessage(ByRef Message As Message)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Message.Msg = CM_CHANGE Then
+				#ifdef __USE_JNI__
+					Dim As Integer YMD = Message.wParam
+					FSelectedDate = DateSerial(YMD \ 10000, (YMD \ 100) Mod 100, YMD Mod 100)
+					FSelectedDateTime = FSelectedDate + FSelectedTime
+				#else
+					FSelectedDateTime = SelectedDateTime
+				#endif
+				If OnDateTimeChanged Then OnDateTimeChanged(*Designer, This)
+				Message.Handled = True
+			End If
+		#endif
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.event
 			' The event fields are read once (GdkEvent is opaque in GTK4)
@@ -1274,6 +1333,10 @@ Namespace My.Sys.Forms
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "input")
 				FType = "date"
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "mff:DatePicker")
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.SelectedDateTime = Now
 			.Width        = 175

@@ -18,16 +18,7 @@ Namespace My.Sys.Forms
 	#define QStatusBar(__Ptr__) (*Cast(StatusBar Ptr, __Ptr__))
 	#define QStatusPanel(__Ptr__) (*Cast(StatusPanel Ptr, __Ptr__))
 	
-	#ifdef __USE_GTK__
-		Private Enum BevelStyle
-			pbLowered
-			pbNone
-			pbRaised
-			pbOwnerDraw
-			pbRtlReading
-			pbNoTabParsing
-		End Enum
-	#else
+	#ifdef __USE_WINAPI__
 		Private Enum BevelStyle
 			pbLowered    = 0
 			pbNone       = SBT_NOBORDERS
@@ -35,6 +26,15 @@ Namespace My.Sys.Forms
 			pbOwnerDraw  = SBT_OWNERDRAW
 			pbRtlReading = SBT_RTLREADING
 			pbNoTabParsing = SBT_NOTABPARSING
+		End Enum
+	#else
+		Private Enum BevelStyle
+			pbLowered
+			pbNone
+			pbRaised
+			pbOwnerDraw
+			pbRtlReading
+			pbNoTabParsing
 		End Enum
 	#endif
 	

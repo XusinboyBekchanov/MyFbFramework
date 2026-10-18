@@ -28,8 +28,13 @@ Namespace My.Sys.Forms
 		FDoubleTemp    As Integer
 		FBooleanTemp    As Integer
 		FHandleIsAllocated As Boolean
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Declare Static Sub UpDownControl_Changing(ByRef Designer As My.Sys.Object, ByRef Sender As UpDown, Value As Integer, Direction As Integer)
+		#endif
 		#ifndef __USE_GTK__
-			Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			#ifdef __USE_WINAPI__
+				Declare Static Function HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			#endif
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#elseif defined(__USE_GTK__)

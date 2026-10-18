@@ -36,7 +36,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub Splitter.WndProc(ByRef Message As Message)
 			'        If Message.Sender Then
 			'            If Cast(TControl Ptr,Message.Sender)->Child Then
@@ -51,7 +51,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Sub Splitter.DrawTrackSplit(x As Integer, y As Integer)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 '			Static As Word DotBits(7) =>{&H5555, &HAAAA, &H5555, &HAAAA, &H5555, &HAAAA, &H5555, &HAAAA}
 '			Dim As HDC Dc
 '			Dim As HBRUSH hbr
@@ -80,7 +80,7 @@ Namespace My.Sys.Forms
 		End Select
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub Splitter.ParentWndProc(ByRef Message As Message)
 			Dim As Control Ptr Ctrl
 			Select Case Message.Msg
@@ -107,6 +107,12 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
+	#if Not defined(__USE_GTK__) AndAlso Not defined(__USE_WINAPI__)
+		#define SPLITTER_PRESS   -101
+		#define SPLITTER_MOVE    -102
+		#define SPLITTER_RELEASE -103
+	#endif
+	
 	Private Sub Splitter.ProcessMessage(ByRef Message As Message)
 		Static As Long xOrig, yOrig, xCur, yCur, i, down1
 		' The size of the control at the press: the new size is computed from it and not from the current size,
@@ -126,7 +132,7 @@ Namespace My.Sys.Forms
 			#else
 				Select Case Message.event->Type
 			#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Static As ..Point g_OrigCursorPos, g_CurCursorPos
 			Select Case Message.Msg
 			Case WM_SETCURSOR
@@ -161,11 +167,28 @@ Namespace My.Sys.Forms
 				ReleaseDC Handle, DC
 				Message.Result = 0
 				Exit Sub
+		#else
+			'Web: the drag of the splitter element (SetDragEvent) arrives as CM_CHANGE with data-drag = 1 (press), 2 (move), 3 (release)
+			'and the distance from the press in data-dx and data-dy; the messages below are made for the shared code
+			#ifdef __USE_WASM__
+				If Message.Msg = CM_CHANGE Then
+					Dim As ZString Ptr pValue = GetAttribute(FHandle, "data-drag")
+					Dim As Integer DragState = ValInt(*pValue)
+					FreePtr(pValue)
+					pValue = GetAttribute(FHandle, "data-dx"): xCur = ScaleX(ValInt(*pValue)): FreePtr(pValue)
+					pValue = GetAttribute(FHandle, "data-dy"): yCur = ScaleY(ValInt(*pValue)): FreePtr(pValue)
+					Message.Msg = IIf(DragState = 1, SPLITTER_PRESS, IIf(DragState = 2, SPLITTER_MOVE, SPLITTER_RELEASE))
+					Message.Handled = True
+				End If
+			#endif
+			Select Case Message.Msg
 		#endif
 			#ifdef __USE_GTK__
 			Case GDK_BUTTON_PRESS
-			#else
+			#elseif defined(__USE_WINAPI__)
 			Case WM_LBUTTONDOWN
+			#else
+			Case SPLITTER_PRESS
 			#endif
 			down1 = 1
 			#ifdef __USE_GTK__
@@ -174,7 +197,7 @@ Namespace My.Sys.Forms
 				#else
 					gdk_display_get_pointer (display, NULL, @xOrig, @yOrig, NULL)
 				#endif
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If (GetCursorPos(@g_OrigCursorPos)) Then
 					SetCapture(Handle)
 				End If
@@ -197,6 +220,9 @@ Namespace My.Sys.Forms
 				ClipCursor @R
 				xOrig = g_OrigCursorPos.x
 				yOrig = g_OrigCursorPos.y
+			#else
+				xOrig = 0
+				yOrig = 0
 			#endif
 			SizeCtrl = 0
 			i = This.Parent->IndexOf(@This)
@@ -216,8 +242,10 @@ Namespace My.Sys.Forms
 			'            Down = 1
 			#ifdef __USE_GTK__
 			Case GDK_MOTION_NOTIFY
-			#else
+			#elseif defined(__USE_WINAPI__)
 			Case WM_MOUSEMOVE
+			#else
+			Case SPLITTER_MOVE
 			#endif
 			'        int wnd_x = g_OrigWndPos.x +
 			If down1 = 1 Then
@@ -228,7 +256,7 @@ Namespace My.Sys.Forms
 					#else
 						gdk_display_get_pointer (display, NULL, @xCur, @yCur, NULL)
 					#endif
-				#else
+				#elseif defined(__USE_WINAPI__)
 					If (GetCursorPos(@g_CurCursorPos)) Then
 						xCur = g_CurCursorPos.x
 						yCur = g_CurCursorPos.y
@@ -267,7 +295,7 @@ Namespace My.Sys.Forms
 						'This.Parent->Update
 						'Parent->Update
 					End If
-					#ifndef __USE_GTK__
+					#ifdef __USE_WINAPI__
 					End If
 					#endif
 			End If
@@ -287,12 +315,14 @@ Namespace My.Sys.Forms
 			'             y1 = hiword(Message.lParam)
 			#ifdef __USE_GTK__
 			Case GDK_BUTTON_RELEASE
-			#else
+			#elseif defined(__USE_WINAPI__)
 			Case WM_LBUTTONUP
+			#else
+			Case SPLITTER_RELEASE
 			#endif
 			down1 = 0
 			SizeCtrl = 0
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				ClipCursor 0
 				releaseCapture
 			#endif
@@ -357,6 +387,12 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
+	#ifdef __USE_WASM__
+		Private Sub Splitter.HandleIsAllocated(ByRef Sender As Control)
+			If Sender.Child Then SetDragEvent(Sender.Handle)
+		End Sub
+	#endif
+	
 	Private Operator Splitter.Cast As Control Ptr
 		Return Cast(Control Ptr, @This)
 	End Operator
@@ -413,7 +449,7 @@ Namespace My.Sys.Forms
 				#else
 					g_signal_connect(widget, "expose-event", G_CALLBACK(@OnExposeEvent), @This)
 				#endif
-			#else
+			#elseif defined(__USE_WINAPI__)
 				.RegisterClass "Splitter"
 				.ChildProc = @WndProc
 				.Style     = WS_CHILD
@@ -423,13 +459,20 @@ Namespace My.Sys.Forms
 			#endif
 			WLet(FClassName, "Splitter")
 			WLet(FClassAncestor, "")
+			#ifdef __USE_WASM__
+				WLet(FClassAncestor, "div")
+				FElementStyle = "background-color: #ddd; touch-action: none;"
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "mff:Layout")
+			#endif
 			.Width     = 3
 			.Align     = SplitterAlignmentConstants.alLeft
 		End With
 	End Constructor
 	
 	Private Destructor Splitter
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			UnregisterClass "Splitter", GetModuleHandle(NULL)
 		#endif
 	End Destructor

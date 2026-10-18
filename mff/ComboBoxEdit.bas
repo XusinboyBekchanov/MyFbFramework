@@ -274,7 +274,7 @@ Namespace My.Sys.Forms
 			If widget Then FItemIndex = gtk_combo_box_get_active (GTK_COMBO_BOX(widget))
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then FItemIndex = Perform(CB_GETCURSEL, 0, 0)
-		#elseif defined(__USE_WASM__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 			If FHandle Then FItemIndex = GetSelectedIndex(FHandle)
 		#endif
 		Return FItemIndex
@@ -287,7 +287,7 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(CB_SETCURSEL, FItemIndex, 0)
 			If OnChange Then OnChange(*Designer, This)
-		#elseif defined(__USE_WASM__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 			If FHandle Then
 				SetSelectedIndex(FHandle, Value)
 				If OnChange Then OnChange(*Designer, This)
@@ -431,6 +431,8 @@ Namespace My.Sys.Forms
 				Perform(CB_ADDSTRING, 0, CInt(@FItem))
 				UpdateListHeight
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then InsertSelectItem(FHandle, FNewIndex, ToUtf8(FItem))
 		#endif
 	End Sub
 	
@@ -445,6 +447,8 @@ Namespace My.Sys.Forms
 				Perform(CB_DELETESTRING, FIndex, 0)
 				UpdateListHeight
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then RemoveSelectItem(FHandle, FIndex)
 		#endif
 	End Sub
 	
@@ -462,6 +466,8 @@ Namespace My.Sys.Forms
 				Perform(CB_INSERTSTRING, FIndex, CInt(@FItem))
 				UpdateListHeight
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then InsertSelectItem(FHandle, FIndex, ToUtf8(FItem))
 		#endif
 	End Sub
 	
@@ -506,10 +512,17 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	#if defined(__USE_WINAPI__) OrElse defined(__USE_WASM__)
+	#if defined(__USE_WINAPI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 		Private Sub ComboBoxEdit.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QComboBoxEdit(Sender.Child)
+					#ifdef __USE_JNI__
+						ListInit(.FHandle)
+						For i As Integer = 0 To .Items.Count - 1
+							AddSelectItem(.FHandle, ToUtf8(.Items.Item(i)))
+						Next
+						If .FItemIndex <> -1 Then SetSelectedIndex(.FHandle, .FItemIndex)
+					#endif
 					#ifdef __USE_WINAPI__
 						.GetChilds
 						If .Style <> cbOwnerDrawVariable AndAlso .FItemHeight <> 0 Then
@@ -610,13 +623,25 @@ Namespace My.Sys.Forms
 		Private Function ComboBoxEdit.GetContent() As UString
 			Dim As UString FContent
 			For i As Integer = 0 To Items.Count - 1
-				FContent &= "<option value=""" & Str(i) & """>" & Items.Item(i) & "</option>"
+				FContent &= "<option value=""" & Str(i) & """>" & HtmlEscape(@Items.Item(i)) & "</option>"
 			Next
 			Return FContent
 		End Function
 	#endif
 	
 	Private Sub ComboBoxEdit.ProcessMessage(ByRef Message As Message)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Message.Msg = CM_CHANGE Then
+				#ifdef __USE_JNI__
+					FItemIndex = Message.wParam
+				#else
+					FItemIndex = GetSelectedIndex(FHandle)
+				#endif
+				If OnSelected Then OnSelected(*Designer, This, FItemIndex)
+				If OnChange Then OnChange(*Designer, This)
+				Message.Handled = True
+			End If
+		#endif
 		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case WM_NCCREATE
@@ -767,6 +792,8 @@ Namespace My.Sys.Forms
 			#endif
 		#elseif defined(__USE_WINAPI__)
 			Perform(CB_RESETCONTENT, 0, 0)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then ClearSelectItems(FHandle)
 		#endif
 	End Sub
 	
@@ -890,6 +917,9 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "select")
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "android/widget/Spinner")
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.Width          = 121

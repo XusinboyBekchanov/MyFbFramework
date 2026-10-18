@@ -35,7 +35,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then
 				gtk_list_store_set (Cast(ComboBoxEx Ptr, Parent)->ListStore, @TreeIter, 1, ToUtf8(Value), -1)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				Dim cbei As COMBOBOXEXITEM
 				cbei.mask = CBEIF_TEXT
@@ -71,7 +71,7 @@ Namespace My.Sys.Forms
 	Private Property ComboBoxItem.ImageIndex(Value As Integer)
 		If Value <> FImageIndex Then
 			FImageIndex = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Parent AndAlso Parent->Handle Then
 					Dim cbei As COMBOBOXEXITEM
 					cbei.mask = CBEIF_IMAGE
@@ -103,7 +103,7 @@ Namespace My.Sys.Forms
 	Private Property ComboBoxItem.SelectedImageIndex(Value As Integer)
 		If Value <> FSelectedImageIndex Then
 			FSelectedImageIndex = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Parent AndAlso Parent->Handle Then
 					Dim cbei As COMBOBOXEXITEM
 					cbei.mask = CBEIF_SELECTEDIMAGE
@@ -122,7 +122,7 @@ Namespace My.Sys.Forms
 	Private Property ComboBoxItem.OverlayIndex(Value As Integer)
 		If Value <> FOverlayIndex Then
 			FOverlayIndex = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Parent AndAlso Parent->Handle Then
 					Dim cbei As COMBOBOXEXITEM
 					cbei.mask = CBEIF_OVERLAY
@@ -141,7 +141,7 @@ Namespace My.Sys.Forms
 	Private Property ComboBoxItem.Indent(Value As Integer)
 		If Value <> FIndent Then
 			FIndent = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Parent AndAlso Parent->Handle Then
 					Dim cbei As COMBOBOXEXITEM
 					cbei.mask = CBEIF_INDENT
@@ -221,7 +221,7 @@ Namespace My.Sys.Forms
 			End If
 			gtk_list_store_set (Cast(ComboBoxEx Ptr, Parent)->ListStore, @PItem->TreeIter, 1, ToUtf8(FText), -1)
 			'gtk_widget_show_all(Parent->widget)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			cbei.mask = CBEIF_IMAGE Or CBEIF_INDENT Or CBEIF_OVERLAY Or CBEIF_SELECTEDIMAGE Or CBEIF_TEXT
 			cbei.pszText  = @FText
 			cbei.cchTextMax = Len(FText)
@@ -233,8 +233,10 @@ Namespace My.Sys.Forms
 		#endif
 		If Parent Then
 			PItem->Parent = Parent
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				SendMessage Parent->Handle, CBEM_INSERTITEM, 0, CInt(@cbei)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				If Parent->Handle Then InsertSelectItem(Parent->Handle, IIf(Cast(ComboBoxEx Ptr, Parent)->Sort, i, IIf(Index = -1, FItems.Count - 1, Index)), ToUtf8(FText))
 			#endif
 		End If
 		Return PItem
@@ -258,8 +260,10 @@ Namespace My.Sys.Forms
 		If Parent Then
 			#ifdef __USE_GTK__
 				gtk_list_store_remove(Cast(ComboBoxEx Ptr, Parent)->ListStore, @This.Item(Index)->TreeIter)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				SendMessage Parent->Handle, CBEM_DELETEITEM, Index, 0
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				If Parent->Handle Then RemoveSelectItem(Parent->Handle, Index)
 			#endif
 		End If
 		_Delete( Cast(ComboBoxItem Ptr, FItems.Items[Index]))
@@ -291,8 +295,10 @@ Namespace My.Sys.Forms
 	Private Sub ComboBoxExItems.Clear
 		#ifdef __USE_GTK__
 			If Parent Then gtk_list_store_clear(Cast(ComboBoxEx Ptr, Parent)->ListStore)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent Then SendMessage Parent->Handle, CB_RESETCONTENT, 0, 0
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent AndAlso Parent->Handle Then ClearSelectItems(Parent->Handle)
 		#endif
 		For i As Integer = Count -1 To 0 Step -1
 			_Delete( Cast(ComboBoxItem Ptr, FItems.Items[i]))
@@ -367,7 +373,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ComboBoxEx.IntegralHeight(Value As Boolean)
 		FIntegralHeight = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle CBS_NOINTEGRALHEIGHT, Not Value
 		#endif
 	End Property
@@ -401,7 +407,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ComboBoxEx.ItemCount As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then
 				Return Perform(CB_GETCOUNT,0,0)
 			End If
@@ -439,6 +445,9 @@ Namespace My.Sys.Forms
 '				#else
 '					Base.Text
 '				#endif
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				Var iItem = This.Items.Item(This.ItemIndex)
+				If iItem Then WLet(FText, iItem->Text)
 			#endif
 		End If
 		If FText = 0 Then Return "" Else Return *FText
@@ -460,12 +469,14 @@ Namespace My.Sys.Forms
 			If Index >= 0 Then ItemIndex = Index
 		#elseif defined(__USE_GTK__)
 			If widget Then gtk_combo_box_set_active (GTK_COMBO_BOX(widget), This.IndexOf(Value))
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then SetSelectedIndex(FHandle, This.IndexOf(Value))
 		#endif
 	End Property
 	
 	Private Sub ComboBoxEx.UpdateListHeight
 		If This.Style <> cbSimple Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Dim As LRESULT h
 				h = SendMessageW(FHandle, CBEM_GETCOMBOCONTROL, 0, 0)
 				MoveWindow Cast(HWND, h), 0, 0, ScaleX(This.Width), ScaleY(This.Height + (IIf(ItemHeight = 0, 13, ItemHeight) * FDropDownCount)), 1
@@ -477,7 +488,7 @@ Namespace My.Sys.Forms
 		Items.Clear
 	End Sub
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Function ComboBoxEx.HookChildProc(hDlg As HWND, uMsg As UINT, WPARAM As WPARAM, LPARAM As LPARAM) As LRESULT
 			Dim As ComboBoxEx Ptr cbo = GetProp(hDlg, "MFFControl")
 			If cbo Then
@@ -550,9 +561,27 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		End Sub
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Sub ComboBoxEx.HandleIsAllocated(ByRef Sender As Control)
+			If Sender.Child Then
+				With QComboBoxEx(Sender.Child)
+					#ifdef __USE_JNI__
+						ListInit(.FHandle)
+					#endif
+					'The items are in ComboBoxEx.Items, not in the items of ComboBoxEdit
+					For i As Integer = 0 To .Items.Count - 1
+						AddSelectItem(.FHandle, ToUtf8(.Items.Item(i)->Text))
+					Next
+					If .FItemIndex <> -1 Then SetSelectedIndex(.FHandle, .FItemIndex)
+				End With
+			End If
+		End Sub
+		
+		Private Sub ComboBoxEx.WNDPROC(ByRef Message As Message)
+		End Sub
 	#endif
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub ComboBoxEx.WNDPROC(ByRef Message As Message)
 			'        If Message.Sender Then
 			'            If Cast(TControl Ptr,Message.Sender)->Child Then
@@ -599,7 +628,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub ComboBoxEx.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim pt As ..Point, rc As ..Rect, t As Long, itd As Long
 			Select Case Message.Msg
 			Case WM_ERASEBKGND
@@ -754,7 +783,7 @@ Namespace My.Sys.Forms
 			Base.FStyle = Value
 			#ifdef __USE_GTK__
 				Base.Style = Value
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Base.Base.Style = WS_CHILD Or CBS_AUTOHSCROLL Or AStyle(abs_(Value))
 			#endif
 		End If
@@ -781,7 +810,7 @@ Namespace My.Sys.Forms
 			eventboxwidget = gtk_event_box_new()
 			gtk_container_add(GTK_CONTAINER(eventboxwidget), widget)
 			Base.Base.RegisterClass "ComboBoxEx", @This
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As INITCOMMONCONTROLSEX icex
 			
 			icex.dwSize = SizeOf(INITCOMMONCONTROLSEX)
@@ -796,7 +825,7 @@ Namespace My.Sys.Forms
 		FDropDownCount     = 8
 		With This
 			.Child       = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Base.Base.RegisterClass "ComboBoxEx", "ComboBoxEx32"
 				.ChildProc   = @WNDPROC
 				Type fnRtlGetNtVersionNumbers As Sub(major As LPDWORD, minor As LPDWORD, Build As LPDWORD)
@@ -826,13 +855,24 @@ Namespace My.Sys.Forms
 			WLet(FClassName, "ComboBoxEx")
 			WLet(FClassAncestor, "ComboBoxEx32")
 			.Width       = 121
-			.Height      = 121
+			#ifdef __USE_WASM__
+				WLet(FClassAncestor, "select")
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "android/widget/Spinner")
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#endif
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				.Height      = 24
+			#else
+				.Height      = 121
+			#endif
 		End With
 	End Constructor
 	
 	Private Destructor ComboBoxEx
 		Items.Clear
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			UnregisterClass "ComboBoxEx", GetModuleHandle(NULL)
 		#endif
 	End Destructor

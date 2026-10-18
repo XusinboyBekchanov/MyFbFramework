@@ -193,6 +193,9 @@ Namespace My.Sys.Forms
 					Case 1
 						.Ctrl->FElementStyle &= "background-image: url('" & .Icon.Handle & "');background-repeat: no-repeat;" & IIf(Cast(ImageBox Ptr, .Ctrl)->FCenterImage, "background-position: center;", "background-size: cover;")
 					End Select
+					If .Ctrl->Handle Then LoadImage(.Ctrl->Handle, .Bitmap.Handle, Cast(ImageBox Ptr, .Ctrl)->FCenterImage)
+				#elseif defined(__USE_JNI__)
+					If .Ctrl->Handle Then LoadImage(.Ctrl->Handle, ToUtf8(.Bitmap.ToString), Cast(ImageBox Ptr, .Ctrl)->FCenterImage)
 				#endif
 			End If
 		End With
@@ -204,6 +207,10 @@ Namespace My.Sys.Forms
 				With QImageBox(Sender.Child)
 					#ifdef __USE_WINAPI__
 						.Perform(STM_SETIMAGE, .Graphic.ImageType, CInt(.Graphic.Image))
+					#elseif defined(__USE_WASM__)
+					If .Graphic.Bitmap.Handle <> "" Then LoadImage(.FHandle, .Graphic.Bitmap.Handle, .FCenterImage)
+					#elseif defined(__USE_JNI__)
+					If .Graphic.Bitmap.ToString <> "" Then LoadImage(.FHandle, ToUtf8(.Graphic.Bitmap.ToString), .FCenterImage)
 					#endif
 				End With
 			End If
@@ -302,6 +309,12 @@ Namespace My.Sys.Forms
 				FDefaultBackColor = .BackColor
 				.OnHandleIsAllocated = @HandleIsAllocated
 				WLet(FClassAncestor, "Static")
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "div")
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "mff:ImageView")
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.Width       = 90
 			.Height      = 17

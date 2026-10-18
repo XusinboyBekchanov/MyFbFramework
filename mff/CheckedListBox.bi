@@ -23,7 +23,12 @@ Namespace My.Sys.Forms
 			Declare Static Sub WNDPROC(ByRef Message As Message)
 			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-			fTheme  As HTHEME
+			#ifdef __USE_WINAPI__
+				fTheme  As HTHEME
+			#endif
+			#ifdef __USE_WASM__
+				Declare Virtual Function GetContent() As UString
+			#endif
 		#else
 			As GtkCellRenderer Ptr rendertoggle
 		#endif

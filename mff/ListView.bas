@@ -219,6 +219,8 @@ Namespace My.Sys.Forms
 					lvi.cchTextMax = Len(*FText)
 					ListView_SetItem(Parent->Handle, @lvi)
 				End If
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				If Parent->Handle AndAlso Index >= 0 Then TableSetRow(Parent->Handle, Index, Cast(ListView Ptr, Parent)->RowCells(@This))
 			#endif
 		End If
 	End Property
@@ -678,6 +680,8 @@ Namespace My.Sys.Forms
 		If Parent Then
 			#ifdef __USE_WINAPI__
 				If Parent->Handle Then ListView_InsertItem(Parent->Handle, @lvi)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				If Parent->Handle Then TableInsertRow(Parent->Handle, IIf(iSortStyle <> SortStyle.ssNone OrElse Index <> -1, i, -1), ToUtf8(FCaption))
 			#endif
 			PItem->Parent = Parent
 			PItem->Text(0) = FCaption
@@ -736,6 +740,8 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then
 				ListView_DeleteItem(Parent->Handle, Index)
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent AndAlso Parent->Handle Then TableRemoveRow(Parent->Handle, Index)
 		#endif
 		_Delete(Cast(ListViewItem Ptr, FItems.Items[Index]))
 		FItems.Remove Index
@@ -786,6 +792,8 @@ Namespace My.Sys.Forms
 			If Parent AndAlso GTK_LIST_STORE(ListViewGetModel(Parent->Handle)) Then gtk_list_store_clear(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)))
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent AndAlso Parent->Handle Then TableClear(Parent->Handle)
 		#endif
 		For i As Integer = Count -1 To 0 Step -1
 			_Delete( Cast(ListViewItem Ptr, FItems.Items[i]))
@@ -933,6 +941,8 @@ Namespace My.Sys.Forms
 				If Parent->Handle Then
 					ListView_InsertColumn(Parent->Handle, PColumn->Index, @lvc)
 				End If
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				Cast(ListView Ptr, Parent)->UpdateColumns
 			#endif
 		End If
 		Return PColumn
@@ -967,6 +977,11 @@ Namespace My.Sys.Forms
 					ListView_SetColumnWidth(Parent->Handle, Index, ScaleX(iWidth))
 				End If
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then
+				PColumn->Parent = Parent
+				Cast(ListView Ptr, Parent)->UpdateColumns
+			End If
 		#endif
 	End Sub
 	
@@ -976,6 +991,8 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then
 				SendMessage Parent->Handle, LVM_DELETECOLUMN, Cast(WPARAM, Index), 0
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(ListView Ptr, Parent)->UpdateColumns
 		#endif
 	End Sub
 	
@@ -1311,6 +1328,8 @@ Namespace My.Sys.Forms
 			If Handle Then
 				Return ListView_GetNextItem(Handle, -1, LVNI_SELECTED)
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Handle Then Return TableGetIndex(Handle)
 		#endif
 		Return -1
 	End Property
@@ -1336,6 +1355,8 @@ Namespace My.Sys.Forms
 				ListView_SetItemState(Handle, Value, LVIS_FOCUSED Or LVIS_SELECTED, LVNI_SELECTED Or LVNI_FOCUSED)
 				ListView_EnsureVisible(Handle, Value, True)
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Handle Then TableSetIndex(Handle, Value)
 		#endif
 	End Property
 	
@@ -1411,6 +1432,27 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub ListView.ProcessMessage(ByRef Message As Message)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Message.Msg = CM_CHANGE Then
+				Dim As Integer ItemIndex
+				#ifdef __USE_JNI__
+					ItemIndex = Message.wParam
+				#else
+					ItemIndex = TableGetIndex(FHandle)
+				#endif
+				If TableDblClick(FHandle) Then
+					If OnItemDblClick Then OnItemDblClick(*Designer, This, ItemIndex)
+					If OnItemActivate Then OnItemActivate(*Designer, This, ItemIndex)
+				Else
+					If OnItemClick Then OnItemClick(*Designer, This, ItemIndex)
+					If OnSelectedItemChanged Then OnSelectedItemChanged(*Designer, This, ItemIndex)
+					#ifdef __USE_JNI__
+						If OnItemActivate Then OnItemActivate(*Designer, This, ItemIndex)
+					#endif
+				End If
+				Message.Handled = True
+			End If
+		#endif
 		'?message.msg, GetMessageName(message.msg)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.Event
@@ -1743,6 +1785,46 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Function ListView.RowCells(Item As ListViewItem Ptr) As String
+			Dim As String Cells = ToUtf8(Item->Text(0))
+			For i As Integer = 1 To Columns.Count - 1
+				Cells &= Chr(9) & ToUtf8(Item->Text(i))
+			Next
+			Return Cells
+		End Function
+		
+		Private Sub ListView.UpdateColumns()
+			If FHandle = 0 Then Exit Sub
+			Dim As String Captions, Widths
+			For i As Integer = 0 To Columns.Count - 1
+				If i > 0 Then Captions &= Chr(10): Widths &= Chr(10)
+				Captions &= ToUtf8(Columns.Column(i)->Text)
+				Widths &= Str(Columns.Column(i)->Width)
+			Next
+			If FColumnHeaderHidden Then
+				TableSetColumns(FHandle, "", "")
+			Else
+				TableSetColumns(FHandle, Captions, Widths)
+			End If
+		End Sub
+		
+		Private Sub ListView.HandleIsAllocated(ByRef Sender As Control)
+			If Sender.Child Then
+				With QListView(Sender.Child)
+					TableInit(.FHandle)
+					.UpdateColumns
+					For i As Integer = 0 To .ListItems.Count - 1
+						TableInsertRow(.FHandle, -1, .RowCells(.ListItems.Item(i)))
+					Next
+				End With
+			End If
+		End Sub
+		
+		Private Sub ListView.HandleIsDestroyed(ByRef Sender As Control)
+		End Sub
+	#endif
+	
 	#ifdef __USE_WINAPI__
 		Private Sub ListView.HandleIsDestroyed(ByRef Sender As Control)
 		End Sub
@@ -1973,6 +2055,11 @@ Namespace My.Sys.Forms
 				WLet(FClassAncestor, WC_LISTVIEW)
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "android/widget/ListView")
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "table")
+				FElementStyle = "border: 1px solid #aaa; background: white;"
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			WLet(FClassName, "ListView")
 			.Width             = 121

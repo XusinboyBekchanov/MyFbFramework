@@ -78,6 +78,14 @@ Namespace My.Sys.Forms
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			If widget Then gtk_frame_set_label(GTK_FRAME(widget), ToUtf8(Value))
+		#elseif defined(__USE_JNI__)
+			If FHandle AndAlso Activity Then
+				Dim As jstring jText = (*env)->NewStringUTF(env, ToUtf8(Value))
+				(*env)->CallVoidMethod(env, Activity, ActivityMethodID("groupSetTitle", "(Landroid/view/View;Ljava/lang/String;)V"), FHandle, jText)
+				(*env)->DeleteLocalRef(env, jText)
+			End If
+		#elseif defined(__USE_WASM__)
+			If FHandle Then SetInnerTextByStringId(Trim(Str(FHandle)) & "legend", ToUtf8(Value))
 		#endif
 	End Property
 	
@@ -102,7 +110,7 @@ Namespace My.Sys.Forms
 	
 	#ifdef __USE_WASM__
 		Private Function GroupBox.GetContent() As UString
-			Return "<legend id=""" & Trim(Str(@This)) & "legend"">" & FText & "</legend>"
+			Return "<legend id=""" & Trim(Str(@This)) & "legend"">" & HtmlEscape(FText) & "</legend>"
 		End Function
 	#endif
 	
@@ -218,6 +226,8 @@ Namespace My.Sys.Forms
 				WLet(FClassAncestor, "Button")
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "fieldset")
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "android/widget/AbsoluteLayout")
 			#endif
 			WLet(FClassName, "GroupBox")
 			FTabIndex          = -1

@@ -5,7 +5,7 @@
 '################################################################################
 
 #include once "RichTextBox.bi"
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	#include once "win/richole.bi"
 #endif
 
@@ -99,7 +99,7 @@ Namespace My.Sys.Forms
 			gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, cpMin)
 			gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_end, cpMax)
 			WLet(FSelText, WStr(*gtk_text_buffer_get_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end, True)))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim txtrange As TEXTRANGE
 			If cpMax2 = -1 Then cpMax2 = This.GetTextLength
 			FTextRange = _Reallocate(FTextRange, (cpMax - cpMin + 2) * SizeOf(WString))
@@ -115,7 +115,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As Integer iAlignment = GetIntProperty("justification")
 			Return IIf(iAlignment = GTK_JUSTIFY_CENTER, AlignmentConstants.taCenter, IIf(iAlignment = GTK_JUSTIFY_RIGHT, AlignmentConstants.taRight, AlignmentConstants.taLeft))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Pf.dwMask = PFM_ALIGNMENT
 				Perform(EM_GETPARAFORMAT, 0, Cast(LPARAM, @Pf))
@@ -128,7 +128,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelAlignment(Value As AlignmentConstants)
 		#ifdef __USE_GTK__
 			SetIntProperty "justification", IIf(Value = AlignmentConstants.taLeft, GTK_JUSTIFY_LEFT, IIf(Value = AlignmentConstants.taCenter, GTK_JUSTIFY_CENTER, IIf(Value = AlignmentConstants.taRight, GTK_JUSTIFY_RIGHT, 0)))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Pf.dwMask = PFM_ALIGNMENT
 				Select Case Value
@@ -159,7 +159,7 @@ Namespace My.Sys.Forms
 		Wend
 		g_slist_free(list)
 		Return bBullet
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Pf.dwMask = PFM_NUMBERING
 				Perform(EM_GETPARAFORMAT, 0, Cast(LPARAM, @Pf))
@@ -203,7 +203,7 @@ Namespace My.Sys.Forms
 			End If
 			If NotNeedTextTag <> 0 Then gtk_text_buffer_remove_tag(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), NotNeedTextTag, @FStart, @FEnd)
 			gtk_text_buffer_apply_tag(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), NeedTextTag, @FStart, @FEnd)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Pf.dwMask = PFM_NUMBERING
 				Pf.wNumbering = IIf(Value, PFN_BULLET, 0)
@@ -215,7 +215,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelIndent As Integer
 		#ifdef __USE_GTK__
 			Return gtk_text_view_get_indent(GTK_TEXT_VIEW(widget))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Pf.dwMask = PFM_STARTINDENT
 				Perform(EM_GETPARAFORMAT, 0, Cast(LPARAM, @Pf))
@@ -228,7 +228,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelIndent(Value As Integer)
 		#ifdef __USE_GTK__
 			gtk_text_view_set_indent(GTK_TEXT_VIEW(widget), Value)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Pf.dwMask = PFM_STARTINDENT
 				Pf.dxStartIndent = Value
@@ -240,7 +240,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelRightIndent As Integer
 		#ifdef __USE_GTK__
 			Return GetIntProperty("right-margin")
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Pf.dwMask = PFM_RIGHTINDENT
 				Perform(EM_GETPARAFORMAT, 0, Cast(LPARAM, @Pf))
@@ -253,7 +253,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelRightIndent(Value As Integer)
 		#ifdef __USE_GTK__
 			SetIntProperty("right-margin", Value)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Pf.dwMask = PFM_RIGHTINDENT
 				Pf.dxRightIndent = Value
@@ -265,7 +265,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelHangingIndent As Integer
 		#ifdef __USE_GTK__
 			Return GetIntProperty("indent") - SelIndent
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Pf.dwMask = PFM_OFFSET
 				Perform(EM_GETPARAFORMAT, 0, Cast(LPARAM, @Pf))
@@ -278,7 +278,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelHangingIndent(Value As Integer)
 		#ifdef __USE_GTK__
 			SetIntProperty("indent", SelIndent + Value)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Pf.dwMask = PFM_OFFSET
 				Pf.dxOffset = Value
@@ -304,7 +304,7 @@ Namespace My.Sys.Forms
 		Dim As Integer sTabCount = pango_tab_array_get_size(ptab_array)
 		pango_tab_array_free(ptab_array)
 		Return sTabCount
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Pf.dwMask = PFM_TABSTOPS
 				Perform(EM_GETPARAFORMAT, 0, Cast(LPARAM, @Pf))
@@ -336,7 +336,7 @@ Namespace My.Sys.Forms
 		g_object_set(TextTag, "tabs", ptab_array, NULL)
 		gtk_text_buffer_apply_tag(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), TextTag, @FStart, @FEnd)
 		g_object_unref(TextTag)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Pf.dwMask = PFM_TABSTOPS
 				Perform(EM_GETPARAFORMAT, 0, Cast(LPARAM, @Pf))
@@ -365,7 +365,7 @@ Namespace My.Sys.Forms
 			pango_tab_array_get_tab(ptab_array, sElement, PANGO_TAB_LEFT, @Value)
 			Return Value
 		End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				If sElement >= 0 AndAlso sElement <= 31 Then
 					Pf.dwMask = PFM_TABSTOPS
@@ -399,7 +399,7 @@ Namespace My.Sys.Forms
 			gtk_text_buffer_apply_tag(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), TextTag, @FStart, @FEnd)
 			g_object_unref(TextTag)
 		End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				If sElement >= 0 AndAlso sElement <= 31 Then
 					Pf.dwMask = PFM_TABSTOPS
@@ -414,7 +414,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelBackColor As Integer
 		#ifdef __USE_GTK__
 			Return BGRToRGBA(ValInt(GetStrProperty("background")))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Cf2.dwMask = CFM_BACKCOLOR
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf2))
@@ -428,7 +428,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			'SetStrProperty "background", "#" & Hex(RGBAToBGR(Value), 6), True
 			SetStrProperty "background", "#" & Hex(Value, 6), True
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Cf2.dwMask = CFM_BACKCOLOR
 				Cf2.dwEffects = 0
@@ -442,7 +442,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelColor As Integer
 		#ifdef __USE_GTK__
 			Return BGRToRGBA(ValInt(GetStrProperty("foreground")))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Cf.dwMask = CFM_COLOR
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
@@ -456,7 +456,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			'SetStrProperty "foreground", "#" & Hex(RGBAToBGR(Value), 6), True
 			SetStrProperty "foreground", "#" & Hex(Value, 6), True
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				'Dim As CHARFORMAT2 Cf
 				'Cf.cbSize = SizeOf(Cf)
@@ -476,7 +476,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelFontName ByRef As WString
 		#ifdef __USE_GTK__
 			Return GetStrProperty("family")
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Cf.dwMask = CFM_FACE
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
@@ -490,7 +490,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelFontName(ByRef Value As WString)
 		#ifdef __USE_GTK__
 			SetStrProperty("family", Value)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Cf.dwMask = CFM_FACE
 				Cf.szFaceName = Value
@@ -502,7 +502,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelFontSize As Integer
 		#ifdef __USE_GTK__
 			Return GetIntProperty("size")
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Cf.dwMask = CFM_SIZE
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
@@ -515,7 +515,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelFontSize(Value As Integer)
 		#ifdef __USE_GTK__
 			SetIntProperty "size", Value
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Cf.dwMask = CFM_SIZE
 				Cf.yHeight = Value
@@ -651,7 +651,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelBold As Boolean
 		#ifdef __USE_GTK__
 			Return GetBoolProperty("weight", PANGO_WEIGHT_BOLD)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Cf.dwMask = CFM_BOLD
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
@@ -664,7 +664,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelBold(Value As Boolean)
 		#ifdef __USE_GTK__
 			SetBoolProperty "weight", Value, PANGO_WEIGHT_BOLD, PANGO_WEIGHT_NORMAL
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Cf.dwMask = CFM_BOLD
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
@@ -681,7 +681,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelItalic As Boolean
 		#ifdef __USE_GTK__
 			Return GetBoolProperty("style", PANGO_STYLE_ITALIC)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Cf.dwMask = CFM_ITALIC
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
@@ -694,7 +694,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelItalic(Value As Boolean)
 		#ifdef __USE_GTK__
 			SetBoolProperty "style", Value, PANGO_STYLE_ITALIC, PANGO_STYLE_NORMAL
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Cf.dwMask = CFM_ITALIC
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
@@ -711,7 +711,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelUnderline As Boolean
 		#ifdef __USE_GTK__
 			Return GetBoolProperty("underline", PANGO_UNDERLINE_SINGLE)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Cf.dwMask = CFM_UNDERLINE
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
@@ -724,7 +724,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelUnderline(Value As Boolean)
 		#ifdef __USE_GTK__
 			SetBoolProperty "style", Value, PANGO_UNDERLINE_SINGLE, PANGO_UNDERLINE_NONE
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Cf.dwMask = CFM_UNDERLINE
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
@@ -741,7 +741,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelStrikeout As Boolean
 		#ifdef __USE_GTK__
 			Return GetBoolProperty("strikethrough", True)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Cf.dwMask = CFM_STRIKEOUT
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
@@ -754,7 +754,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelStrikeout(Value As Boolean)
 		#ifdef __USE_GTK__
 			SetBoolProperty "strikethrough", Value, True, False
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Cf.dwMask = CFM_STRIKEOUT
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
@@ -771,7 +771,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelProtected As Boolean
 		#ifdef __USE_GTK__
 			Return GetBoolProperty("editable", True)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Cf.dwMask = CFM_PROTECTED
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
@@ -784,7 +784,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelProtected(Value As Boolean)
 		#ifdef __USE_GTK__
 			SetBoolProperty "editable", Value, True, False
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Cf.dwMask = CFM_PROTECTED
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
@@ -801,7 +801,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelCharOffset As Integer
 		#ifdef __USE_GTK__
 			Return GetIntProperty("rise")
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Cf.dwMask = CFM_OFFSET
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
@@ -814,7 +814,7 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.SelCharOffset(Value As Integer)
 		#ifdef __USE_GTK__
 			SetIntProperty("rise", Value)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Cf.dwMask = CFM_OFFSET
 				Cf.yOffset = Value
@@ -824,7 +824,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property RichTextBox.SelCharSet As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHandle Then
 				Cf.dwMask = CFM_CHARSET
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
@@ -835,7 +835,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property RichTextBox.SelCharSet(Value As Integer)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHandle Then
 				Cf.dwMask = CFM_CHARSET
 				Cf.bCharSet = Value
@@ -845,9 +845,9 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Function RichTextBox.GetCharIndexFromPos(p As My.Sys.Drawing.Point) As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Return Perform(EM_CHARFROMPOS, 0, CInt(@p))
-		#else
+		#elseif defined(__USE_GTK__)
 			Dim As GtkTextIter TextIter
 			gtk_text_view_get_iter_at_position(GTK_TEXT_VIEW(widget), @TextIter, 0, p.X, p.Y)
 			Return gtk_text_iter_get_offset(@TextIter)
@@ -855,7 +855,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Property RichTextBox.Zoom As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then
 				FZoom = 100
 				Perform(EM_GETZOOM, CInt(@FZoomWP), CInt(@FZoomLP))
@@ -867,7 +867,7 @@ Namespace My.Sys.Forms
 	
 	Private Property RichTextBox.Zoom(Value As Integer)
 		FZoom = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Value = 0 Then
 				Perform(EM_SETZOOM, 0, 0)
 			Else
@@ -877,44 +877,44 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Function RichTextBox.BottomLine As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim r As ..Rect, i As Integer
 			Perform(EM_GETRECT, 0, CInt(@r))
 			r.Left = r.Left + 1
 			r.Top  = r.Bottom - 2
 			i = Perform(EM_CHARFROMPOS, 0, CInt(@r))
 			Return Perform(EM_EXLINEFROMCHAR, 0, i)
-		#else
+		#elseif defined(__USE_GTK__)
 			Return 0
 		#endif
 	End Function
 	
 	Private Function RichTextBox.CanRedo As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHandle Then
 				Return (Perform(EM_CANREDO, 0, 0) <> 0)
 			Else
 				Return 0
 			End If
-		#else
+		#elseif defined(__USE_GTK__)
 			Return 0
 		#endif
 	End Function
 	
 	Private Sub RichTextBox.Undo
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHandle Then Perform(EM_UNDO, 0, 0)
 		#endif
 	End Sub
 	
 	Private Sub RichTextBox.Redo
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHandle Then Perform(EM_REDO, 0, 0)
 		#endif
 	End Sub
 	
 	Private Function RichTextBox.Find(ByRef Value As WString) As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHandle = 0 Then Return False
 			Dim ft As FINDTEXTEX, Result As Integer
 			FFindText = _Reallocate(FFindText, (Len(Value) + 1) * SizeOf(FFindText))
@@ -929,7 +929,7 @@ Namespace My.Sys.Forms
 				Perform(EM_EXSETSEL, 0, Cast(LPARAM, @ft.chrgText))
 				Return True
 			End If
-		#else
+		#elseif defined(__USE_GTK__)
 			Dim As GtkTextIter _start, _end, match_start, match_end
 			gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, 0)
 			gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_end, gtk_text_buffer_get_char_count(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))))
@@ -940,7 +940,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Function RichTextBox.FindNext(ByRef Value As WString = "") As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHandle = 0 Then Return False
 			Dim ft As FINDTEXTEX, Result As Integer
 			If Value <> "" Then
@@ -961,7 +961,7 @@ Namespace My.Sys.Forms
 				Perform(EM_EXSETSEL, 0, Cast(LPARAM, @ft.chrgText))
 				Return True
 			End If
-		#else
+		#elseif defined(__USE_GTK__)
 			Dim As GtkTextIter _start, _end, sel_start, sel_end, match_start, match_end
 			gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, 0)
 			gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_end, gtk_text_buffer_get_char_count(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))))
@@ -973,7 +973,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Function RichTextBox.FindPrev(ByRef Value As WString = "") As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHandle = 0 Then Return False
 			Dim ft As FINDTEXTEX, Result As Integer
 			If Value <> "" Then
@@ -991,7 +991,7 @@ Namespace My.Sys.Forms
 				Perform(EM_EXSETSEL, 0, Cast(LPARAM, @ft.chrgText))
 				Return True
 			End If
-		#else
+		#elseif defined(__USE_GTK__)
 			Dim As GtkTextIter _start, _end, sel_start, sel_end, match_start, match_end
 			gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, 0)
 			gtk_text_buffer_get_iter_at_offset(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_end, gtk_text_buffer_get_char_count(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))))
@@ -1002,7 +1002,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub RichTextBox.WndProc(ByRef message As Message)
 		End Sub
 	#endif
@@ -1032,7 +1032,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Sub RichTextBox.ProcessMessage(ByRef message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case message.Msg
 			Case CM_COMMAND
 				Select Case message.wParamHi
@@ -1173,7 +1173,7 @@ Namespace My.Sys.Forms
 	
 	Private Property RichTextBox.EditStyle(Value As Boolean)
 		FEditStyle = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHandle Then
 				If FEditStyle Then Perform(EM_SETEDITSTYLE, 1, 1)
 			End If
@@ -1186,7 +1186,7 @@ Namespace My.Sys.Forms
 			Dim As GtkTextIter _start, _end
 			gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
 			WLet(FSelText, WStr(*gtk_text_buffer_get_text(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end, True)))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				Dim charArr As CHARRANGE
 				SendMessage(FHandle, EM_GETSEL, CInt(@LStart), CInt(@LEnd))
@@ -1208,7 +1208,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As GtkTextIter _start, _end
 			gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), ToUtf8(Value), -1)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim stSetText As SETTEXTEX
 			stSetText.flags = ST_KEEPUNDO
 			stSetText.codepage = 1200
@@ -1216,7 +1216,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Function RichTextBox.StreamInProc(hFile As ..HANDLE, pBuffer As PVOID, NumBytes As Integer, pBytesRead As Integer Ptr) As BOOL
 			Dim As Integer length
 			ReadFile(hFile, pBuffer, NumBytes, Cast(LPDWORD, @length), 0)
@@ -1246,7 +1246,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Property RichTextBox.TextRTF ByRef As WString
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHandle Then
 				WLet(FTextRTF, "")
 				Dim editstream As EDITSTREAM
@@ -1353,7 +1353,7 @@ Namespace My.Sys.Forms
 		Dim As My.Sys.Drawing.BitmapType Bitm
 		#ifdef __USE_GTK__
 			Bitm.Handle = Ico.Handle
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Bitm.Handle = Ico.ToBitmap
 		#endif
 		Return AddImage(Bitm)
@@ -1361,7 +1361,7 @@ Namespace My.Sys.Forms
 	
 	Private Function RichTextBox.AddImage(ByRef Cur As My.Sys.Drawing.Cursor) As Boolean
 		Dim As My.Sys.Drawing.BitmapType Bitm
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Bitm.Handle = Cur.ToBitmap
 		#endif
 		Return AddImage(Bitm)
@@ -1379,7 +1379,7 @@ Namespace My.Sys.Forms
 			'gtk_text_view_add_child_at_anchor(gtk_text_view(widget), img, ChildAnchor)
 			gtk_text_buffer_insert_pixbuf(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, Bitm.Handle)
 			'gtk_widget_show(img)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As HRESULT hr
 			
 			Dim As LPRICHEDITOLE pRichEditOle
@@ -1499,7 +1499,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Sub RichTextBox.LoadFromFile(ByRef Value As WString, bRTF As Boolean)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHandle Then
 				Dim hFile As ..HANDLE
 				hFile = CreateFile(@Value, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
@@ -1516,7 +1516,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Sub RichTextBox.SaveToFile(ByRef Value As WString, bRTF As Boolean)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Not bRTF Then
 				Base.SaveToFile(Value)
 			ElseIf FHandle Then
@@ -1606,7 +1606,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub RichTextBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QRichTextBox(Sender.Child)
@@ -1660,7 +1660,7 @@ Namespace My.Sys.Forms
 		With This
 			#ifdef __USE_GTK__
 				widget = gtk_text_view_new()
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim hRichEditCls As String
 				hRichTextBox = LoadLibrary("msftedit.dll")
 				If hRichTextBox = NULL Then
@@ -1687,6 +1687,10 @@ Namespace My.Sys.Forms
 			.FHideSelection    = False
 			FTabIndex          = -1
 			FTabStop           = True
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				'A multiline text box without the formatting of a rich edit
+				.Multiline = True
+			#endif
 			WLet(.FClassName, "RichTextBox")
 			.Child       = @This
 			.DoubleBuffered = True
@@ -1700,7 +1704,7 @@ Namespace My.Sys.Forms
 		If FSelWStrVal Then _Deallocate(FSelWStrVal)
 		If FSelFontName Then _Deallocate(FSelFontName)
 		If FTextRTF Then _Deallocate(FTextRTF)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			DestroyWindow FHandle
 			FreeLibrary(hRichTextBox)
 		#endif

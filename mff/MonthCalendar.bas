@@ -76,7 +76,13 @@ Namespace My.Sys.Forms
 				MonthCal_GetCurSel(This.FHandle, @pst)
 				FSelectedDate = DateSerial(pst.wYear, pst.wMonth, pst.wDay)
 			#elseif defined(__USE_JNI__)
-				FSelectedDate = (*env)->CallLongMethod(env, FHandle, GetMethodID(*FClassAncestor, "getDate", "()J"))
+				Dim As Integer YMD = GetPosition(FHandle)
+				If YMD > 0 Then FSelectedDate = DateSerial(YMD \ 10000, (YMD \ 100) Mod 100, YMD Mod 100)
+			#elseif defined(__USE_WASM__)
+				Dim As WString Ptr pValue
+				ReadElementValue(FHandle, pValue)
+				If pValue AndAlso Len(*pValue) >= 10 Then FSelectedDate = DateSerial(Val(Mid(*pValue, 1, 4)), Val(Mid(*pValue, 6, 2)), Val(Mid(*pValue, 9, 2)))
+				WDeAllocate(pValue)
 			#endif
 		End If
 		Return FSelectedDate
@@ -105,7 +111,9 @@ Namespace My.Sys.Forms
 				pst.wDay   = Day(Value)
 				MonthCal_SetCurSel(This.FHandle, @pst)
 			#elseif defined(__USE_JNI__)
-				 (*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setDate", "(J)V"), FSelectedDate)
+				SetPosition(FHandle, Year(Value) * 10000 + Month(Value) * 100 + Day(Value))
+			#elseif defined(__USE_WASM__)
+				SetStringValue(FHandle, Format(Value, "yyyy-mm-dd"))
 			#endif
 		End If
 		FSelectedDate = Value
@@ -241,9 +249,34 @@ Namespace My.Sys.Forms
 		
 		Private Sub MonthCalendar.WndProc(ByRef Message As Message)
 		End Sub
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Sub MonthCalendar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			If Sender.Child Then
+				With QMonthCalendar(Sender.Child)
+					If .FSelectedDate = 0 Then .FSelectedDate = Int(Now)
+					.SelectedDate = .FSelectedDate
+				End With
+			End If
+		End Sub
+
+		Private Sub MonthCalendar.WndProc(ByRef Message As Message)
+		End Sub
 	#endif
 	
 	Private Sub MonthCalendar.ProcessMessage(ByRef Message As Message)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Message.Msg = CM_CHANGE Then
+				#ifdef __USE_JNI__
+					Dim As Integer YMD = Message.wParam
+					FSelectedDate = DateSerial(YMD \ 10000, (YMD \ 100) Mod 100, YMD Mod 100)
+				#else
+					FSelectedDate = SelectedDate
+				#endif
+				If OnSelectionChanged Then OnSelectionChanged(*Designer, This)
+				If OnSelect Then OnSelect(*Designer, This)
+				Message.Handled = True
+			End If
+		#endif
 		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case CM_NOTIFY
@@ -288,10 +321,20 @@ Namespace My.Sys.Forms
 				.ChildProc    = @WndProc
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
-				WLet(FClassAncestor, "android/widget/CalendarView")
+				WLet(FClassAncestor, "mff:CalendarView")
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_WASM__)
+				'The date input of the browser with its calendar
+				WLet(FClassAncestor, "input")
+				FType = "date"
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.Width        = 175
-			.Height       = 21
+			#ifdef __USE_JNI__
+				.Height       = 300
+			#else
+				.Height       = 21
+			#endif
 			.Child        = @This
 		End With
 	End Constructor

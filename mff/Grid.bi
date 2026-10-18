@@ -426,6 +426,11 @@ Namespace My.Sys.Forms
 		'Triggered on row activation.
 		OnRowActivate           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer)
 		'Raised on row click.
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'Table view of Web and Android: the cells of a row separated by Chr(9), the captions of the columns
+			Declare Function RowCells(Row As GridRow Ptr) As String
+			Declare Sub UpdateColumns()
+		#endif
 		OnRowClick              As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer)
 		'Raised on row double-click.
 		OnRowDblClick           As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Grid, ByVal RowIndex As Integer)

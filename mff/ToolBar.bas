@@ -170,7 +170,7 @@ Namespace My.Sys.Forms
 			WLet(FCaption, Value)
 			#ifdef __USE_GTK__
 				gtk_tool_button_set_label(GTK_TOOL_BUTTON(Widget), ToUtf8(Value))
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim As TBBUTTON TB
 				If Ctrl Then
 					With QControl(Ctrl)
@@ -187,6 +187,13 @@ Namespace My.Sys.Forms
 				End If
 			#endif
 		End If
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Ctrl Then
+				Dim As Message msg
+				msg.Msg = CM_ITEMSCHANGED
+				Ctrl->ProcessMessage(msg)
+			End If
+		#endif
 	End Property
 	
 	Private Property ToolButton.Child As Control Ptr
@@ -267,7 +274,7 @@ Namespace My.Sys.Forms
 			FImageIndex = Value
 			If Ctrl Then
 				With QControl(Ctrl)
-					#ifndef __USE_GTK__
+					#ifdef __USE_WINAPI__
 						SendMessage(.Handle, TB_CHANGEBITMAP, FCommandID, MAKELONG(FImageIndex, 0))
 					#endif
 				End With
@@ -298,7 +305,7 @@ Namespace My.Sys.Forms
 				gtk_image_set_pixel_size(GTK_IMAGE(Icon), ScaleX(BitmapSize))
 				gtk_tool_button_set_icon_widget(GTK_TOOL_BUTTON(Widget), Icon)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Ctrl AndAlso QToolBar(Ctrl).ImagesList Then
 				ImageIndex = Cast(ToolBar Ptr, Ctrl)->ImagesList->IndexOf(Value)
 			End If
@@ -312,7 +319,7 @@ Namespace My.Sys.Forms
 	Private Property ToolButton.Style(Value As ToolButtonStyle)
 		If Value <> FStyle Then
 			FStyle = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Ctrl AndAlso Ctrl->Handle Then
 					Dim As TBBUTTONINFO info
 					info.cbSize = SizeOf(info)
@@ -324,10 +331,17 @@ Namespace My.Sys.Forms
 			#endif
 			'If Ctrl AndAlso Ctrl->Handle Then QControl(Ctrl).RecreateWnd
 		End If
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Ctrl Then
+				Dim As Message msg
+				msg.Msg = CM_ITEMSCHANGED
+				Ctrl->ProcessMessage(msg)
+			End If
+		#endif
 	End Property
 	
 	Private Property ToolButton.State As ToolButtonState
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Ctrl AndAlso Ctrl->Handle Then
 				Dim As TBBUTTONINFO info
 				info.cbSize = SizeOf(info)
@@ -343,7 +357,7 @@ Namespace My.Sys.Forms
 	Private Property ToolButton.State(Value As ToolButtonState)
 		If Value <> FState Then
 			FState = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Ctrl AndAlso Ctrl->Handle Then
 					Dim As TBBUTTONINFO info
 					info.cbSize = SizeOf(info)
@@ -367,7 +381,7 @@ Namespace My.Sys.Forms
 			FCommandID = Value
 			If Ctrl Then
 				With QControl(Ctrl)
-					#ifndef __USE_GTK__
+					#ifdef __USE_WINAPI__
 						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
 						SendMessage(.Handle, TB_SETCMDID, i, FCommandID)
 					#endif
@@ -377,7 +391,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ToolButton.Left As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As ..Rect R
 			Dim As Integer i
 			If Ctrl Then
@@ -400,7 +414,7 @@ Namespace My.Sys.Forms
 		Dim As Integer i
 		If Ctrl Then
 			With QControl(Ctrl)
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					Dim As ..Rect R
 					If .Handle Then
 						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
@@ -423,7 +437,7 @@ Namespace My.Sys.Forms
 			#else
 				FButtonWidth = UnScaleX(Widget->allocation.width)
 			#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As Integer i
 			If Ctrl Then
 				With QControl(Ctrl)
@@ -492,7 +506,7 @@ Namespace My.Sys.Forms
 			#else
 				FButtonHeight = UnScaleY(Widget->allocation.height)
 			#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As ..Rect R
 			Dim As Integer i
 			If Ctrl Then
@@ -538,7 +552,7 @@ Namespace My.Sys.Forms
 '						Else
 '							gtk_widget_hide(Widget)
 '						End If
-					#else
+					#elseif defined(__USE_WINAPI__)
 '						Dim As TBBUTTONINFO info
 '						info.cbSize = SizeOf(info)
 '						info.dwMask = TBIF_STATE
@@ -558,6 +572,13 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		End If
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Ctrl Then
+				Dim As Message msg
+				msg.Msg = CM_ITEMSCHANGED
+				Ctrl->ProcessMessage(msg)
+			End If
+		#endif
 	End Property
 	
 	Private Property ToolButton.Enabled As Boolean
@@ -571,13 +592,20 @@ Namespace My.Sys.Forms
 				With QControl(Ctrl)
 					#ifdef __USE_GTK__
 						gtk_widget_set_sensitive(Widget, FEnabled)
-					#else
+					#elseif defined(__USE_WINAPI__)
 						SendMessage(.Handle, TB_ENABLEBUTTON, FCommandID, MAKELONG(FEnabled, 0))
 						SendMessage(.Handle, TB_CHANGEBITMAP, FCommandID, MAKELONG(FImageIndex,0))
 					#endif
 				End With
 			End If
 		'End If
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Ctrl Then
+				Dim As Message msg
+				msg.Msg = CM_ITEMSCHANGED
+				Ctrl->ProcessMessage(msg)
+			End If
+		#endif
 	End Property
 	
 	Private Property ToolButton.Expand As Boolean
@@ -600,7 +628,7 @@ Namespace My.Sys.Forms
 					Else
 						FChecked = False
 					End If
-				#else
+				#elseif defined(__USE_WINAPI__)
 					FChecked = SendMessage(.Handle, TB_ISBUTTONCHECKED, FCommandID, 0)
 				#endif
 			End With
@@ -618,7 +646,7 @@ Namespace My.Sys.Forms
 						gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(Widget), Value)
 						If OnClick Then OnClick(*Designer, This)
 					End If
-				#else
+				#elseif defined(__USE_WINAPI__)
 					If .Handle Then
 						SendMessage(.Handle, TB_CHECKBUTTON, FCommandID, MAKELONG(FChecked, 0))
 						If OnClick Then OnClick(*Designer, This)
@@ -630,6 +658,13 @@ Namespace My.Sys.Forms
 			FState = FState Or tstChecked
 		End If
 		'End If
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Ctrl Then
+				Dim As Message msg
+				msg.Msg = CM_ITEMSCHANGED
+				Ctrl->ProcessMessage(msg)
+			End If
+		#endif
 	End Property
 	
 	Private Operator ToolButton.Cast As Any Ptr
@@ -669,7 +704,7 @@ Namespace My.Sys.Forms
 					End If
 				#endif
 			#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If DropDownMenu.Handle Then DestroyMenu DropDownMenu.Handle
 		#endif
 		If FHint Then _Deallocate(FHint)
@@ -812,7 +847,7 @@ Namespace My.Sys.Forms
 			If Parent Then
 				gtk_toolbar_insert(GTK_TOOLBAR(Parent->Handle), GTK_TOOL_ITEM(PButton->Widget), Index)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As TBBUTTON TB
 			TB.fsState   = FState
 			TB.fsStyle   = FStyle
@@ -831,6 +866,9 @@ Namespace My.Sys.Forms
 					SendMessage(Parent->Handle, TB_ADDBUTTONS, 1, CInt(@TB))
 				End If
 			End If
+		#endif
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(ToolBar Ptr, Parent)->UpdateButtons
 		#endif
 		Return PButton
 	End Function
@@ -858,7 +896,7 @@ Namespace My.Sys.Forms
 			If Parent Then
 				gtk_toolbar_insert(GTK_TOOLBAR(Parent->Handle), GTK_TOOL_ITEM(PButton->Widget), Index)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As TBBUTTON TB
 			TB.fsState   = PButton->State
 			TB.fsStyle   = PButton->Style
@@ -878,16 +916,22 @@ Namespace My.Sys.Forms
 				End If
 			End If
 		#endif
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(ToolBar Ptr, Parent)->UpdateButtons
+		#endif
 		Return PButton
 	End Function
 	
 	Private Sub ToolButtons.Remove(Index As Integer)
 		FButtons.Remove Index
 		If Parent Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				SendMessage(Parent->Handle, TB_DELETEBUTTON,Index,0)
 			#endif
 		End If
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(ToolBar Ptr, Parent)->UpdateButtons
+		#endif
 	End Sub
 	
 	Private Function ToolButtons.IndexOf(ByRef FButton As ToolButton Ptr) As Integer
@@ -906,6 +950,9 @@ Namespace My.Sys.Forms
 			If QToolButton(FButtons.Items[i]).FDynamic Then _Delete( @QToolButton(FButtons.Items[i]))
 		Next i
 		FButtons.Clear
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(ToolBar Ptr, Parent)->UpdateButtons
+		#endif
 	End Sub
 	
 	Private Operator ToolButtons.Cast As Any Ptr
@@ -921,7 +968,7 @@ Namespace My.Sys.Forms
 	End Destructor
 	
 	Private Property ToolBar.AutoSize As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FAutosize = StyleExists(TBSTYLE_AUTOSIZE)
 		#endif
 		Return FAutosize
@@ -929,14 +976,14 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolBar.AutoSize(Value As Boolean)
 		FAutosize = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle TBSTYLE_AUTOSIZE, Value
 			If FHandle Then If FAutosize Then Perform(TB_AUTOSIZE, 0, 0)
 		#endif
 	End Property
 	
 	Private Property ToolBar.Flat As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FFlat = StyleExists(TBSTYLE_FLAT)
 		#endif
 		Return FFlat
@@ -944,13 +991,13 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolBar.Flat(Value As Boolean)
 		FFlat = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle TBSTYLE_FLAT, Value
 		#endif
 	End Property
 	
 	Private Property ToolBar.List As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FList = StyleExists(TBSTYLE_LIST)
 		#endif
 		Return FList
@@ -960,14 +1007,14 @@ Namespace My.Sys.Forms
 		FList = Value
 		#ifdef __USE_GTK__
 			gtk_toolbar_set_style(GTK_TOOLBAR(widget), IIf(Value, GTK_TOOLBAR_BOTH_HORIZ, GTK_TOOLBAR_BOTH))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeStyle TBSTYLE_LIST, Value
 		#endif
 	End Property
 	
 	
 	Private Property ToolBar.Divider As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FDivider = Not StyleExists(CCS_NODIVIDER)
 		#endif
 		Return FDivider
@@ -975,13 +1022,13 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolBar.Divider(Value As Boolean)
 		FDivider = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle CCS_NODIVIDER, Not Value
 		#endif
 	End Property
 	
 	Private Property ToolBar.Transparency As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FTransparent = StyleExists(TBSTYLE_TRANSPARENT)
 		#endif
 		Return FTransparent
@@ -989,7 +1036,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolBar.Transparency(Value As Boolean)
 		FTransparent = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle TBSTYLE_TRANSPARENT, Value
 		#endif
 	End Property
@@ -1000,7 +1047,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolBar.BitmapWidth(Value As Integer)
 		FBitmapWidth = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then Perform(TB_SETBITMAPSIZE, 0, MAKELONG(FBitmapWidth, FBitmapHeight))
 		#endif
 	End Property
@@ -1011,13 +1058,13 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolBar.BitmapHeight(Value As Integer)
 		FBitmapHeight = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then Perform(TB_SETBITMAPSIZE, 0, MAKELONG(FBitmapWidth, FBitmapHeight))
 		#endif
 	End Property
 	
 	Private Property ToolBar.ButtonWidth As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then
 				Var Size = Perform(TB_GETBUTTONSIZE, 0, 0)
 				FButtonWidth = UnScaleX(LoWord(Size))
@@ -1028,13 +1075,13 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolBar.ButtonWidth(Value As Integer)
 		FButtonWidth = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then Perform(TB_SETBUTTONSIZE,0,MAKELONG(FButtonWidth,FButtonHeight))
 		#endif
 	End Property
 	
 	Private Property ToolBar.ButtonHeight As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then
 				Var Size = Perform(TB_GETBUTTONSIZE, 0, 0)
 				FButtonHeight = UnScaleY(HiWord(Size))
@@ -1045,13 +1092,13 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolBar.ButtonHeight(Value As Integer)
 		FButtonHeight = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then Perform(TB_SETBUTTONSIZE,0,MAKELONG(FButtonWidth,FButtonHeight))
 		#endif
 	End Property
 	
 	Private Property ToolBar.Wrapable As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FWrapable = StyleExists(TBSTYLE_WRAPABLE)
 		#endif
 		Return FWrapable
@@ -1059,7 +1106,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolBar.Wrapable(Value As Boolean)
 		FWrapable = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle TBSTYLE_WRAPABLE, Value
 		#endif
 	End Property
@@ -1116,8 +1163,53 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Sub ToolBar.UpdateButtons()
+			If FHandle = 0 Then Exit Sub
+			Dim As UString Items
+			For i As Integer = 0 To Buttons.Count - 1
+				With *Buttons.Item(i)
+					Dim As String Flag
+					If .Style And tbsSeparator Then
+						Flag = "3"
+					ElseIf Not .Visible Then
+						Flag = "4"
+					ElseIf Not .Enabled Then
+						Flag = "1"
+					ElseIf .Checked Then
+						Flag = "2"
+					Else
+						Flag = "0"
+					End If
+					If i > 0 Then Items &= Chr(10)
+					Items &= Flag & IIf(.Caption <> "", .Caption, IIf(.Hint <> "", .Hint, .Name))
+				End With
+			Next
+			SetButtons(FHandle, ToUtf8(Items))
+		End Sub
+	#endif
+
 	Private Sub ToolBar.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Message.Msg = CM_ITEMSCHANGED Then UpdateButtons: Message.Handled = True
+			If Message.Msg = CM_CHANGE Then
+				Dim As Integer Index
+				#ifdef __USE_JNI__
+					Index = Message.wParam
+				#else
+					Index = GetPosition(FHandle)
+				#endif
+				If Index >= 0 AndAlso Index < Buttons.Count Then
+					With *Buttons.Item(Index)
+						If .Style And tbsCheck Then .Checked = Not .Checked
+						If .OnClick Then .OnClick(*.Designer, *Buttons.Item(Index))
+					End With
+					If OnButtonClick Then OnButtonClick(*Designer, This, *Buttons.Item(Index))
+				End If
+				Message.Handled = True
+			End If
+		#endif
+		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
@@ -1288,7 +1380,10 @@ Namespace My.Sys.Forms
 	Private Sub ToolBar.HandleIsAllocated(ByRef Sender As Control)
 		If Sender.Child Then
 			With QToolBar(Sender.Child)
-				#ifndef __USE_GTK__
+				#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+					.UpdateButtons
+				#endif
+				#ifdef __USE_WINAPI__
 					If .ImagesList Then .ImagesList->ParentWindow = @Sender: If .ImagesList->Handle Then .Perform(TB_SETIMAGELIST,0,CInt(.ImagesList->Handle))
 					If .HotImagesList Then .HotImagesList->ParentWindow = @Sender: If .HotImagesList->Handle Then .Perform(TB_SETHOTIMAGELIST, 0, CInt(.HotImagesList->Handle))
 					If .DisabledImagesList Then .DisabledImagesList->ParentWindow = @Sender: If .DisabledImagesList->Handle Then .Perform(TB_SETDISABLEDIMAGELIST,0,CInt(.DisabledImagesList->Handle))
@@ -1346,7 +1441,7 @@ Namespace My.Sys.Forms
 				gtk_toolbar_set_style(GTK_TOOLBAR(widget), GTK_TOOLBAR_BOTH_HORIZ)
 				'gtk_toolbar_set_icon_size(GTK_TOOLBAR(widget), GTK_ICON_SIZE_LARGE_TOOLBAR)
 				.RegisterClass "ToolBar", @This
-			#else
+			#elseif defined(__USE_WINAPI__)
 				AFlat(0)        = 0
 				AFlat(1)        = TBSTYLE_FLAT
 				ADivider(0)     = CCS_NODIVIDER
@@ -1374,7 +1469,10 @@ Namespace My.Sys.Forms
 			FBitmapHeight   = 16
 			Buttons.Parent  = This
 			FEnabled = True
-			#ifndef __USE_GTK__
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#endif
+			#ifdef __USE_WINAPI__
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.OnHandleIsDestroyed = @HandleIsDestroyed
 				.ChildProc         = @WndProc
@@ -1389,7 +1487,7 @@ Namespace My.Sys.Forms
 				.Width             = 121
 				#ifdef __USE_GTK__
 					.Height            = 30
-				#else
+				#elseif defined(__USE_WINAPI__)
 					.Height            = 26
 				#endif
 			#endif
@@ -1402,7 +1500,7 @@ Namespace My.Sys.Forms
 	
 	Private Destructor ToolBar
 		Buttons.Clear
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			'UnregisterClass "ToolBar", GetmoduleHandle(NULL)
 		#endif
 	End Destructor

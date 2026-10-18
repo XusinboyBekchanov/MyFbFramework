@@ -166,6 +166,10 @@ Namespace My.Sys.Forms
 						QPicture(.Ctrl->Child).Style = PictureStyle.ssEmf
 						QPicture(.Ctrl->Child).Perform(BM_SETIMAGE,ImageType,CInt(0))
 					End Select
+				#elseif defined(__USE_WASM__)
+					If .Ctrl->Handle Then LoadImage(.Ctrl->Handle, .Bitmap.Handle, QPicture(.Ctrl->Child).FCenterImage)
+				#elseif defined(__USE_JNI__)
+					If .Ctrl->Handle Then LoadImage(.Ctrl->Handle, ToUtf8(.Bitmap.ToString), QPicture(.Ctrl->Child).FCenterImage)
 				#endif
 			End If
 		End With
@@ -177,6 +181,10 @@ Namespace My.Sys.Forms
 				With QPicture(Sender.Child)
 					#ifdef __USE_WINAPI__
 						.Perform(STM_SETIMAGE, .Graphic.ImageType, CInt(.Graphic.Image))
+					#elseif defined(__USE_WASM__)
+						If .Graphic.Bitmap.Handle <> "" Then LoadImage(.FHandle, .Graphic.Bitmap.Handle, .FCenterImage)
+					#elseif defined(__USE_JNI__)
+						If .Graphic.Bitmap.ToString <> "" Then LoadImage(.FHandle, ToUtf8(.Graphic.Bitmap.ToString), .FCenterImage)
 					#endif
 				End With
 			End If
@@ -364,6 +372,9 @@ Namespace My.Sys.Forms
 				FDefaultBackColor = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
 				WLet(FClassAncestor, "Static")
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				'A container (div / AbsoluteLayout) with the picture as the background
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			WLet(FClassName, "Picture")
 			FTabIndex          = -1

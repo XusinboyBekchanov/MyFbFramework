@@ -74,7 +74,9 @@ Namespace My.Sys.Forms
 			#else
 				gtk_range_set_range(GTK_RANGE(widget), FMin, FMax)
 			#endif
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then ..SetRange(FHandle, FMin, FMax)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(SBM_SETRANGE, FMin, FMax)
 		#endif
 	End Property
@@ -91,7 +93,9 @@ Namespace My.Sys.Forms
 			#else
 				gtk_range_set_range(gtk_range(widget), FMin, FMax)
 			#endif
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then ..SetRange(FHandle, FMin, FMax)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(SBM_SETRANGE, FMin, FMax)
 		#endif
 	End Property
@@ -103,7 +107,9 @@ Namespace My.Sys.Forms
 			#else
 				FPosition = gtk_range_get_value(gtk_range(widget))
 			#endif
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then FPosition = GetPosition(FHandle)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then FPosition = Perform(SBM_GETPOS, 0, 0)
 		#endif
 		Return FPosition
@@ -117,7 +123,9 @@ Namespace My.Sys.Forms
 			#else
 				gtk_range_set_value(gtk_range(widget), CDbl(Value))
 			#endif
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then SetPosition(FHandle, FPosition)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(SBM_SETPOS, FPosition, True)
 		#endif
 	End Property
@@ -150,14 +158,14 @@ Namespace My.Sys.Forms
 			#else
 				gtk_range_set_increments(gtk_range(widget), FArrowChangeSize, FPageSize)
 			#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			SIF.fMask = SIF_PAGE
 			SIF.nPage = FPageSize
 			If Handle Then Perform(SBM_SETSCROLLINFO, True, CInt(@SIF))
 		#endif
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub VScrollBar.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QVScrollBar(Sender.Child)
@@ -171,10 +179,37 @@ Namespace My.Sys.Forms
 		
 		Private Sub VScrollBar.WndProc(ByRef Message As Message)
 		End Sub
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Sub VScrollBar.HandleIsAllocated(ByRef Sender As Control)
+			If Sender.Child Then
+				With QVScrollBar(Sender.Child)
+					..SetRange(.FHandle, .FMin, .FMax)
+					SetPosition(.FHandle, .FPosition)
+					#ifdef __USE_WASM__
+						SetAttribute(.FHandle, "step", Str(.FArrowChangeSize))
+						SetAttribute(.FHandle, "orient", "vertical")
+					#endif
+				End With
+			End If
+		End Sub
+		
+		Private Sub VScrollBar.WndProc(ByRef Message As Message)
+		End Sub
 	#endif
 		
 	Private Sub VScrollBar.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Message.Msg = CM_CHANGE Then
+				#ifdef __USE_JNI__
+					FPosition = Message.wParam
+				#else
+					FPosition = GetPosition(FHandle)
+				#endif
+				If OnScroll Then OnScroll(*Designer, This, FPosition)
+				Message.Handled = True
+			End If
+		#endif
+		#ifdef __USE_WINAPI__
 			Static As Integer OldPos
 			Select Case Message.Msg
 			Case WM_PAINT
@@ -254,7 +289,7 @@ Namespace My.Sys.Forms
 				g_signal_connect(widget, "value-changed", G_CALLBACK(@Range_ValueChanged), @This)
 			#endif
 			This.RegisterClass "VScrollBar", @This
-		#else
+		#elseif defined(__USE_WINAPI__)
 			SIF.cbSize = SizeOf(SCROLLINFO)
 		#endif
 		MaxValue        = 100
@@ -265,7 +300,7 @@ Namespace My.Sys.Forms
 		FTabIndex          = -1
 		With This
 			.Child       = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.RegisterClass "VScrollBar", "ScrollBar"
 				.ChildProc   = @WndProc
 				.ExStyle     = 0
@@ -275,6 +310,14 @@ Namespace My.Sys.Forms
 			#endif
 			WLet(FClassName, "VScrollBar")
 			WLet(FClassAncestor, "ScrollBar")
+			#ifdef __USE_WASM__
+				WLet(FClassAncestor, "input")
+				FType = "range"
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "mff:SeekBar")
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#endif
 			.Width       = 17
 			.Height      = 121
 		End With

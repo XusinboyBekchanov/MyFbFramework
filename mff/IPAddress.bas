@@ -58,8 +58,10 @@ Namespace My.Sys.Forms
 					gtk_entry_set_text(GTK_ENTRY(Entries(i)), !"\0")
 				#endif
 			Next
-		#else
+		#elseif defined(__USE_WINAPI__)
 			SendMessage FHandle, IPM_CLEARADDRESS, 0, 0
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then SetStringValue(FHandle, "")
 		#endif
 	End Sub
 	
@@ -78,8 +80,11 @@ Namespace My.Sys.Forms
 				#endif
 			Next
 			If FText = 0 Then Return "" Else Return *FText
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Return Base.Text
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then ReadElementValue(FHandle, FText)
+			If FText = 0 Then Return "" Else Return *FText
 		#endif
 	End Property
 	
@@ -102,13 +107,15 @@ Namespace My.Sys.Forms
 					#endif
 				#endif
 			Next
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				SendMessage FHandle, IPM_SETADDRESS, 0, MAKEIPADDRESS(Addresses(0), Addresses(1), Addresses(2), Addresses(3))
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				If FHandle Then SetStringValue(FHandle, Addresses(0) & "." & Addresses(1) & "." & Addresses(2) & "." & Addresses(3))
 			#endif
 		End If
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub IPAddress.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			With *Cast(IPAddress Ptr, @Sender)
 				If .FText <> 0 Then .Text = * (.FText) Else .Text = ""
@@ -147,6 +154,21 @@ Namespace My.Sys.Forms
 			End If
 			Return Message.Result
 		End Function
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Sub IPAddress.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			If Sender.Child Then
+				With QIPAddress(Sender.Child)
+					If .FText Then .Text = *.FText
+					#ifdef __USE_WASM__
+						SetAttribute(.FHandle, "placeholder", "0.0.0.0")
+						SetAttribute(.FHandle, "pattern", "^((25[0-5]|2[0-4]d|1?d?d).){3}(25[0-5]|2[0-4]d|1?d?d)$")
+					#endif
+				End With
+			End If
+		End Sub
+		
+		Private Sub IPAddress.WndProc(ByRef Message As Message)
+		End Sub
 	#endif
 	
 	Private Sub IPAddress.ProcessMessage(ByRef Message As Message)
@@ -163,7 +185,7 @@ Namespace My.Sys.Forms
 				'SelectRegion
 				'Return
 			End Select
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Select Case Message.Msg
 			Case CM_COMMAND
 				Select Case Message.wParamHi
@@ -182,6 +204,11 @@ Namespace My.Sys.Forms
 					If OnFieldChanged Then OnFieldChanged(*Designer, This, lpnmipa->iField, lpnmipa->iValue)
 				End Select
 			End Select
+		#elseif defined(__USE_WASM__)
+			If Message.Msg = CM_CHANGE Then
+				If OnChange Then OnChange(*Designer, This)
+				Message.Handled = True
+			End If
 		#endif
 		Base.ProcessMessage Message
 	End Sub
@@ -520,7 +547,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Constructor IPAddress
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As INITCOMMONCONTROLSEX icex
 			
 			icex.dwSize = SizeOf(INITCOMMONCONTROLSEX)
@@ -578,12 +605,19 @@ Namespace My.Sys.Forms
 						g_signal_connect(widget, "size-allocate", G_CALLBACK(@Layout_SizeAllocate), @This)
 					#endif
 				#endif
-			#else
+			#elseif defined(__USE_WINAPI__)
 				.RegisterClass "IPAddress", WC_IPADDRESS, @IPAddressWndProc
 				WLet(FClassAncestor, WC_IPADDRESS)
 				.ExStyle      = 0
 				.Style        = WS_CHILD
 				.ChildProc    = @WndProc
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "input")
+				FType = "text"
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "android/widget/EditText")
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.Width        = 150
@@ -593,7 +627,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor IPAddress
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Handle = 0
 			UnregisterClass "IPAddress", GetModuleHandle(NULL)
 		#endif

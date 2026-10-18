@@ -28,7 +28,7 @@ Namespace My.Sys.Forms
 			Case "rate": Return @FRate
 			Case "transparency": Return @FTransparent
 			Case "position": Return @FPosition
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					#ifdef MoviePlayOn
 					Case "balance": Return @FBalance
 					Case "volume": Return @FVolume
@@ -64,7 +64,7 @@ Namespace My.Sys.Forms
 			Case "rate": Rate = QDouble(Value)
 			Case "transparency": Transparency = QBoolean(Value)
 			Case "position": Position = QDouble(Value)
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					#ifdef MoviePlayOn
 					Case "balance": Balance = QDouble(Value)
 					Case "volume": Volume = QLong(Value)
@@ -91,7 +91,7 @@ Namespace My.Sys.Forms
 	
 	Private Property Animate.Center(Value As Boolean)
 		If FCenter <> Value Then FCenter = Value Else Return
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Base.Style = WS_CHILD Or SS_OWNERDRAW Or ACenter(abs_(FCenter)) Or ATransparent(abs_(FTransparent)) Or ATimer(abs_(FTimers)) Or AAutoPlay(abs_(FAutoPlay))
 		#endif
 	End Property
@@ -102,7 +102,7 @@ Namespace My.Sys.Forms
 	
 	Private Property Animate.Transparency(Value As Boolean)
 		If FTransparent <> Value Then FTransparent = Value Else Return
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Base.Style = WS_CHILD Or SS_OWNERDRAW Or ACenter(abs_(FCenter)) Or ATransparent(abs_(FTransparent)) Or ATimer(abs_(FTimers)) Or AAutoPlay(abs_(FAutoPlay))
 		#endif
 	End Property
@@ -113,7 +113,7 @@ Namespace My.Sys.Forms
 	
 	Private Property Animate.Timers(Value As Boolean)
 		If FTimers <> Value Then FTimers = Value Else Return
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Base.Style = WS_CHILD Or SS_OWNERDRAW Or ACenter(abs_(FCenter)) Or ATransparent(abs_(FTransparent)) Or ATimer(abs_(FTimers)) Or AAutoPlay(abs_(FAutoPlay))
 		#endif
 	End Property
@@ -127,7 +127,7 @@ Namespace My.Sys.Forms
 		*FFile = Value
 		#ifdef __USE_GTK__
 			pixbuf_animation = gdk_pixbuf_animation_new_from_file(ToUtf8(*FFile), NULL)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				SetWindowLongPtr Handle, GWLP_HINSTANCE, CInt(GetModuleHandle(NULL))
 			End If
@@ -148,7 +148,7 @@ Namespace My.Sys.Forms
 	
 	Private Property Animate.AutoPlay(Value As Boolean)
 		If FAutoPlay <> Value Then FAutoPlay = Value Else Return
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Base.Style = WS_CHILD Or SS_OWNERDRAW Or ACenter(abs_(FCenter)) Or ATransparent(abs_(FTransparent)) Or ATimer(abs_(FTimers)) Or AAutoPlay(abs_(FAutoPlay))
 		#endif
 	End Property
@@ -167,7 +167,7 @@ Namespace My.Sys.Forms
 	
 	Private Property Animate.CommonAvi(Value As CommonAVIs)
 		FCommonAvi = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then
 				SetWindowLongPtr Handle, GWLP_HINSTANCE, CInt(GetModuleHandle("Shell32"))
 			End If
@@ -175,7 +175,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property Animate.Volume As Long
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			#ifdef MoviePlayOn
 				If BasAudio > 0 Then IBasicAudio_get_Volume(BasAudio, @FVolume)
 			#endif
@@ -185,7 +185,7 @@ Namespace My.Sys.Forms
 	
 	Private Property Animate.Volume(Value As Long)
 		If FVolume <> Value Then FVolume = Value Else Return
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			#ifdef MoviePlayOn
 				If BasAudio > 0 Then IBasicAudio_put_Volume(BasAudio, FVolume)
 			#endif
@@ -193,7 +193,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property Animate.Balance As Long
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			#ifdef MoviePlayOn
 				If BasAudio > 0 Then IBasicAudio_get_Balance(BasAudio, @FBalance)
 			#endif
@@ -204,7 +204,7 @@ Namespace My.Sys.Forms
 	Private Property Animate.Balance(Value As Long)
 		If FBalance <> Value Then FBalance = Value Else Return
 		FBalance = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			#ifdef MoviePlayOn
 				If BasAudio > 0 Then IBasicAudio_put_Balance(BasAudio, FBalance)
 			#endif
@@ -212,7 +212,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property Animate.FullScreenMode As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			#ifdef MoviePlayOn
 				If VidWindow > 0 Then
 					If IVideoWindow_get_FullScreenMode(VidWindow, @FFullScreenMode) < 0 Then FFullScreenMode = OAFALSE
@@ -221,13 +221,13 @@ Namespace My.Sys.Forms
 			#else
 				Return CBool(FFullScreenMode)
 			#endif
-		#else
+		#elseif defined(__USE_GTK__)
 			Return CBool(FFullScreenMode)
 		#endif
 	End Property
 	
 	Private Property Animate.FullScreenMode(Value As Boolean)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			#ifdef MoviePlayOn
 				FFullScreenMode = IIf(Value= True, OATRUE, OAFALSE)
 				If VidWindow > 0 Then IVideoWindow_put_FullScreenMode(VidWindow, FFullScreenMode)
@@ -236,7 +236,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property Animate.Rate As Double
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			#ifdef MoviePlayOn
 				If MedSeek > 0 Then IMediaSeeking_GetRate(MedSeek, @FRate)
 			#endif
@@ -246,7 +246,7 @@ Namespace My.Sys.Forms
 	
 	Private Property Animate.Rate(Value As Double)
 		If FRate <> Value Then FRate = Value Else Return
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			#ifdef MoviePlayOn
 				If MedSeek > 0 Then IMediaSeeking_SetRate(MedSeek, FRate)
 			#endif
@@ -254,7 +254,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property Animate.Position As Double
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FOpenMode= 3 Then
 				#ifdef MoviePlayOn
 					If MedPosition > 0 Then IMediaPosition_get_CurrentPosition(MedPosition, @FPosition)
@@ -285,7 +285,7 @@ Namespace My.Sys.Forms
 	
 	Private Property Animate.Position(Value As Double)
 		If FPosition <> Value Then FPosition = Value Else Return
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FOpenMode= 3  Then
 				#ifdef MoviePlayOn
 					If MedPosition > 0 Then IMediaPosition_put_CurrentPosition(MedPosition, FPosition)
@@ -325,7 +325,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Sub Animate.SetMoviePosition(ByVal ALeft As Long, ByVal ATop As  Long, ByVal AWidth As Long, ByVal AHeight As Long)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FAutoSize Then
 				FFrameWidth = ScaleX(AWidth) : FFrameHeight = ScaleY(AHeight)
 				If FRatioFixed Then
@@ -399,7 +399,7 @@ Namespace My.Sys.Forms
 		FRatioFixed = Value
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub Animate.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QAnimate(Sender.Child)
@@ -414,11 +414,23 @@ Namespace My.Sys.Forms
 			If Message.Sender Then
 			End If
 		End Sub
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Sub Animate.HandleIsAllocated(ByRef Sender As Control)
+			If Sender.Child Then
+				With QAnimate(Sender.Child)
+					If .FOpenMode Then .OpenFile
+					If .FPlay Then .Play
+				End With
+			End If
+		End Sub
+
+		Private Sub Animate.WNDPROC(ByRef Message As Message)
+		End Sub
 	#endif
 	
 	'https://learn.microsoft.com/en-us/windows/win32/directshow/event-notification-codes.
 	Private Sub Animate.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case CM_COMMAND
 				Select Case Message.wParamHi
@@ -480,6 +492,28 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		'Shows a GIF/picture with <img> and other files with <video> (in a WebView on Android)
+		Private Sub AnimateShow(Id As Any Ptr, ByRef FileName As WString, AutoPlay As Boolean)
+			Dim As String sHTML, sFile = ToUtf8(FileName)
+			Dim As String sExt = LCase(Mid(sFile, InStrRev(sFile, ".")))
+			Dim As String sStyle = " style=""width: 100%; height: 100%; object-fit: contain;"""
+			sFile = Replace(sFile, """", "&quot;")
+			If sFile = "" Then
+				sHTML = ""
+			ElseIf sExt = ".gif" OrElse sExt = ".png" OrElse sExt = ".jpg" OrElse sExt = ".jpeg" OrElse sExt = ".webp" OrElse sExt = ".svg" Then
+				sHTML = "<img src=""" & sFile & """" & sStyle & ">"
+			Else
+				sHTML = "<video src=""" & sFile & """" & IIf(AutoPlay, " autoplay", "") & " loop" & sStyle & "></video>"
+			End If
+			#ifdef __USE_WASM__
+				SetInnerHTML(Id, sHTML)
+			#else
+				LoadHTML(Id, "<html><body style=""margin: 0;"">" & sHTML & "</body></html>")
+			#endif
+		End Sub
+	#endif
+	
 	Private Function Animate.OpenFile(ByRef FileName As WString = "") As Integer
 		FErrorInfo = ""
 		FOpenMode = 0: FRate= 1
@@ -498,7 +532,12 @@ Namespace My.Sys.Forms
 				'					gtk_image_set_from_pixbuf(gtk_image(widget), gdk_pixbuf_animation_get_static_image(pixbuf_animation))
 				'				End If
 			End If
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If OnOpen Then OnOpen(*Designer, This)
+			FOpenMode = 1
+			If FHandle AndAlso FFile Then AnimateShow(FHandle, *FFile, FAutoPlay)
+			FPlay = FAutoPlay
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				If OnOpen Then OnOpen(*Designer, This)
 				If FPlay Then Stop
@@ -677,7 +716,9 @@ Namespace My.Sys.Forms
 	Private Function Animate.IsPlaying As Boolean
 		#ifdef __USE_GTK__
 			Return FPlay
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Return FPlay
+		#elseif defined(__USE_WINAPI__)
 			If FOpenMode= 3 Then
 				#ifdef MoviePlayOn
 					If PControl Then Return FPlay
@@ -700,7 +741,11 @@ Namespace My.Sys.Forms
 				FPlay = True
 				Timer_cb(@This)
 			End If
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle AndAlso FFile Then AnimateShow(FHandle, *FFile, True)
+			If OnStart Then OnStart(*Designer, This)
+			FPlay = True
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				If FPlayTimeStart = 0 Then
 					FPlayTimeStart = Timer
@@ -727,7 +772,11 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If OnStop Then OnStop(*Designer, This)
 			FPlay = False
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If OnStop Then OnStop(*Designer, This)
+			If FHandle AndAlso FFile Then AnimateShow(FHandle, *FFile, False)
+			FPlay = False
+		#elseif defined(__USE_WINAPI__)
 			If FOpenMode Then
 				FPlayTimeStart = 0
 				FPlayTimePause = 0
@@ -777,7 +826,11 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If OnPause Then OnPause(*Designer, This)
 			FPlay = False
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If OnPause Then OnPause(*Designer, This)
+			If FHandle AndAlso FFile Then AnimateShow(FHandle, *FFile, False)
+			FPlay = False
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				FPlayTimePauseStart = Timer
 				If OnPause Then OnPause(*Designer, This)
@@ -798,7 +851,12 @@ Namespace My.Sys.Forms
 			If OnClose Then OnClose(*Designer, This)
 			FOpenMode= 0
 			FPlay = False
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If OnClose Then OnClose(*Designer, This)
+			If FHandle Then AnimateShow(FHandle, "", False)
+			FOpenMode = 0
+			FPlay = False
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				FPlayTimeStart = 0
 				FPlayTimePause = 0
@@ -934,7 +992,7 @@ Namespace My.Sys.Forms
 			#endif
 			#endif
 		End Sub
-	#else
+	#elseif defined(__USE_WINAPI__)
 		#ifdef MoviePlayOn
 			Private Function Animate.Error_HR(ByVal hr As Integer, ByRef Inter_face As WString) As Integer
 				If (FAILED(hr)) Then
@@ -984,7 +1042,7 @@ Namespace My.Sys.Forms
 				#endif
 			#endif
 			This.RegisterClass "Animate", @This
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As INITCOMMONCONTROLSEX ICC
 			FFile = 0 'CAllocate_(0)
 			ICC.dwSize = SizeOf(ICC)
@@ -1013,7 +1071,7 @@ Namespace My.Sys.Forms
 		With This
 			WLet(FClassName, "Animate")
 			.Child             = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.RegisterClass "Animate", ANIMATE_CLASS
 				.ChildProc         = @WNDPROC
 				WLet(FClassAncestor, ANIMATE_CLASS)
@@ -1022,6 +1080,12 @@ Namespace My.Sys.Forms
 				.BackColor             = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.DoubleBuffered = True
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "div")
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "mff:WebView")
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.Width             = 100
 			.Height            = 80
@@ -1030,7 +1094,7 @@ Namespace My.Sys.Forms
 	
 	Private Destructor Animate
 		If FFile Then _Deallocate( FFile)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			#ifdef MoviePlayOn
 				Stop
 			#endif

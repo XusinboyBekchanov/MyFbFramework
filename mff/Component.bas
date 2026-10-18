@@ -6,6 +6,10 @@
 
 #include once "Component.bi"
 
+#ifdef __USE_WASM__
+	Dim TimerComponentProc As Sub(Id As Integer)
+#endif
+
 Namespace My.Sys.ComponentModel
 	Private Function MarginsType.ToString ByRef As WString
 		WLet(FTemp, This.Left & "; " & This.Top & "; " & This.Right & "; " & This.Bottom)
@@ -291,6 +295,9 @@ Namespace My.Sys.ComponentModel
 							If CtrlWidget <> widget AndAlso (CtrlWidget = overlaywidget OrElse CtrlWidget = eventboxwidget) AndAlso GTK_IS_WIDGET(widget) Then
 								gtk_widget_set_size_request(widget, -1, -1)
 							End If
+							' A page of a GtkStack (PagePanel) gets the size of the stack: the size request would be its minimum
+							' size, the stack and the window could not become smaller (a ScrollControl page did not scroll)
+							If GTK_IS_STACK(gtk_widget_get_parent(CtrlWidget)) Then gtk_widget_set_size_request(CtrlWidget, -1, -1)
 						#endif
 						'gtk_widget_set_size_request(widget, Max(0, iWidth), Max(0, iHeight))
 						'gtk_widget_size_allocate(IIF(scrolledwidget, scrolledwidget, widget), @allocation)
@@ -496,7 +503,9 @@ Namespace My.Sys.ComponentModel
 					If ClassName = "Form" Then
 						Dim As jobject iWindow = CallObjectMethod(FHandle, "android/app/Activity", "getWindow", "()Landroid/view/Window;")
 						Dim As jobject decorView = CallObjectMethod(iWindow, "android/view/Window", "getDecorView", "()Landroid/view/View;")
-						FWidth = UnScaleX(CallIntMethod(decorView, "android/view/View", "getWidth", "()I"))
+						'Before the first layout the width is 0: the one of the design is kept
+						Dim As Integer iWidth = CallIntMethod(decorView, "android/view/View", "getWidth", "()I")
+						If iWidth > 0 Then FWidth = UnScaleX(iWidth)
 					Else
 						Dim As jobject LayoutParams = CallObjectMethod(FHandle, "android/view/View", "getLayoutParams", "()Landroid/view/ViewGroup$LayoutParams;")
 						FWidth = UnScaleX(GetIntField(LayoutParams, "android/widget/AbsoluteLayout$LayoutParams", "width", "I"))
@@ -551,7 +560,9 @@ Namespace My.Sys.ComponentModel
 					If ClassName = "Form" Then
 						Dim As jobject iWindow = CallObjectMethod(FHandle, "android/app/Activity", "getWindow", "()Landroid/view/Window;")
 						Dim As jobject decorView = CallObjectMethod(iWindow, "android/view/Window", "getDecorView", "()Landroid/view/View;")
-						FHeight = UnScaleY(CallIntMethod(decorView, "android/view/View", "getHeight", "()I"))
+						'Before the first layout the height is 0: the one of the design is kept
+						Dim As Integer iHeight = CallIntMethod(decorView, "android/view/View", "getHeight", "()I")
+						If iHeight > 0 Then FHeight = UnScaleY(iHeight)
 					Else
 						Dim As jobject LayoutParams = CallObjectMethod(FHandle, "android/view/View", "getLayoutParams", "()Landroid/view/ViewGroup$LayoutParams;")
 						FHeight = UnScaleY(GetIntField(LayoutParams, "android/widget/AbsoluteLayout$LayoutParams", "height", "I"))

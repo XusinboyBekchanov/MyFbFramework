@@ -39,7 +39,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#elseif defined(__USE_GTK__)
 			Declare Static Sub SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
-		#elseif defined(__USE_WASM__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
 	Protected:

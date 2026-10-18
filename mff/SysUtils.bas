@@ -184,6 +184,397 @@ End Namespace
 	Function CallIntMethod(obj As jobject, className As String, methodName As String, typeName As String) As Integer
 		Return (*env)->CallIntMethod(env, obj, GetMethodID(className, methodName, typeName))
 	End Function
+	
+	Function ActivityMethodID(methodName As String, typeName As String) As jmethodID
+		Return (*env)->GetMethodID(env, (*env)->GetObjectClass(env, Activity), methodName, typeName)
+	End Function
+	
+	'List helpers with the same names as on the Web side; Id is a Spinner (ComboBoxEdit) or a ListView (ListControl)
+	Sub ListInit(Id As Any Ptr)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("listInit", "(Landroid/view/View;)V"), Id)
+	End Sub
+	
+	Sub InsertSelectItem(Id As Any Ptr, ByVal Index As Integer, Text As String)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jstring jText = (*env)->NewStringUTF(env, Text)
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("listInsert", "(Landroid/view/View;ILjava/lang/String;)V"), Id, Index, jText)
+		(*env)->DeleteLocalRef(env, jText)
+	End Sub
+	
+	Sub AddSelectItem(Id As Any Ptr, Text As String)
+		InsertSelectItem(Id, -1, Text)
+	End Sub
+	
+	Sub RemoveSelectItem(Id As Any Ptr, ByVal Index As Integer)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("listRemove", "(Landroid/view/View;I)V"), Id, Index)
+	End Sub
+	
+	Sub ClearSelectItems(Id As Any Ptr)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("listClear", "(Landroid/view/View;)V"), Id)
+	End Sub
+	
+	Function GetSelectedIndex(Id As Any Ptr) As Integer
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Return -1
+		Return (*env)->CallIntMethod(env, Activity, ActivityMethodID("listGetIndex", "(Landroid/view/View;)I"), Id)
+	End Function
+	
+	Sub SetSelectedIndex(Id As Any Ptr, Value As Integer)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("listSetIndex", "(Landroid/view/View;I)V"), Id, Value)
+	End Sub
+
+	Sub ListInitMode(Id As Any Ptr, ByVal Mode As Integer)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("listInitMode", "(Landroid/view/View;I)V"), Id, Mode)
+	End Sub
+
+	Sub SetItemChecked(Id As Any Ptr, ByVal Index As Integer, Value As Boolean)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("listSetChecked", "(Landroid/view/View;IZ)V"), Id, Index, CUByte(IIf(Value <> 0, 1, 0)))
+	End Sub
+
+	Function GetItemChecked(Id As Any Ptr, ByVal Index As Integer) As Boolean
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Return False
+		Return (*env)->CallBooleanMethod(env, Activity, ActivityMethodID("listGetChecked", "(Landroid/view/View;I)Z"), Id, Index) <> 0
+	End Function
+
+	'Text helpers with the same names as on the Web side; Id is any android.view.View
+	Sub SetInnerText(Id As Any Ptr, Value As String)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jstring jText = (*env)->NewStringUTF(env, Value)
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("viewSetText", "(Landroid/view/View;Ljava/lang/String;)V"), Id, jText)
+		(*env)->DeleteLocalRef(env, jText)
+	End Sub
+
+	Sub SetStringValue(Id As Any Ptr, Value As String)
+		SetInnerText(Id, Value)
+	End Sub
+
+	Sub SetInnerHTML(Id As Any Ptr, Value As String)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jstring jText = (*env)->NewStringUTF(env, Value)
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("viewSetHtml", "(Landroid/view/View;Ljava/lang/String;)V"), Id, jText)
+		(*env)->DeleteLocalRef(env, jText)
+	End Sub
+
+	Sub OpenURL(URL As String)
+		If env = 0 OrElse Activity = 0 Then Exit Sub
+		Dim As jstring jText = (*env)->NewStringUTF(env, URL)
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("openUrl", "(Ljava/lang/String;)V"), jText)
+		(*env)->DeleteLocalRef(env, jText)
+	End Sub
+
+	'Reads the text of a View (TextView, EditText, ...) and stores it decoded in Value.
+	Sub ReadElementValue(Id As Any Ptr, ByRef Value As WString Ptr)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jstring jText = (*env)->CallObjectMethod(env, Activity, ActivityMethodID("viewGetText", "(Landroid/view/View;)Ljava/lang/String;"), Id)
+		If jText = 0 Then
+			WLet(Value, "")
+			Exit Sub
+		End If
+		Dim As ZString Ptr pUtf8 = Cast(ZString Ptr, (*env)->GetStringUTFChars(env, jText, 0))
+		Dim As WString Ptr pWide = FromUtf8(pUtf8)
+		(*env)->ReleaseStringUTFChars(env, jText, pUtf8)
+		(*env)->DeleteLocalRef(env, jText)
+		If pWide = 0 Then
+			WLet(Value, "")
+		Else
+			WLet(Value, *pWide)
+			WDeAllocate(pWide)
+		End If
+	End Sub
+
+	'Range helpers (ProgressBar, SeekBar, NumberPicker)
+	Sub SetRange(Id As Any Ptr, ByVal MinValue As Integer, ByVal MaxValue As Integer)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("rangeSet", "(Landroid/view/View;II)V"), Id, MinValue, MaxValue)
+	End Sub
+
+	Sub SetPosition(Id As Any Ptr, ByVal Value As Integer)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("rangeSetValue", "(Landroid/view/View;I)V"), Id, Value)
+	End Sub
+
+	Function GetPosition(Id As Any Ptr) As Integer
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Return 0
+		Return (*env)->CallIntMethod(env, Activity, ActivityMethodID("rangeGetValue", "(Landroid/view/View;)I"), Id)
+	End Function
+
+	'Titles are separated by Chr(10); clicking a tab raises CM_CHANGE with the tab index in wParam
+	Sub SetTabs(Id As Any Ptr, Titles As String)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jstring jText = (*env)->NewStringUTF(env, Titles)
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("tabsSet", "(Landroid/view/View;Ljava/lang/String;)V"), Id, jText)
+		(*env)->DeleteLocalRef(env, jText)
+	End Sub
+
+	'WebView helpers
+	Sub LoadURL(Id As Any Ptr, URL As String)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jstring jText = (*env)->NewStringUTF(env, URL)
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("webLoad", "(Landroid/view/View;Ljava/lang/String;Z)V"), Id, jText, CUByte(0))
+		(*env)->DeleteLocalRef(env, jText)
+	End Sub
+
+	Sub LoadHTML(Id As Any Ptr, HTML As String)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jstring jText = (*env)->NewStringUTF(env, HTML)
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("webLoad", "(Landroid/view/View;Ljava/lang/String;Z)V"), Id, jText, CUByte(1))
+		(*env)->DeleteLocalRef(env, jText)
+	End Sub
+
+	Sub WebAction(Id As Any Ptr, ByVal Action As Integer)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("webAction", "(Landroid/view/View;I)V"), Id, Action)
+	End Sub
+
+	'Timers (TimerComponent); Id is the address of the TimerComponent
+	Sub StartTimer(Id As Any Ptr, ByVal Interval As Integer)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("timerStart", "(JI)V"), CLngInt(CInt(Id)), Interval)
+	End Sub
+
+	Sub StopTimer(Id As Any Ptr)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("timerStop", "(J)V"), CLngInt(CInt(Id)))
+	End Sub
+	
+	'Table view: one text row per item (the cells are joined), single choice
+	Sub TableInit(Id As Any Ptr)
+		ListInitMode(Id, 0)
+	End Sub
+	
+	Sub TableSetColumns(Id As Any Ptr, Captions As String, Widths As String)
+	End Sub
+	
+	Sub TableInsertRow(Id As Any Ptr, ByVal Index As Integer, Cells As String)
+		InsertSelectItem(Id, Index, Replace(Cells, Chr(9), "    "))
+	End Sub
+	
+	Sub TableSetRow(Id As Any Ptr, ByVal Index As Integer, Cells As String)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jstring jText = (*env)->NewStringUTF(env, Replace(Cells, Chr(9), "    "))
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("listSet", "(Landroid/view/View;ILjava/lang/String;)V"), Id, Index, jText)
+		(*env)->DeleteLocalRef(env, jText)
+	End Sub
+	
+	Sub TableRemoveRow(Id As Any Ptr, ByVal Index As Integer)
+		RemoveSelectItem(Id, Index)
+	End Sub
+	
+	Sub TableClear(Id As Any Ptr)
+		ClearSelectItems(Id)
+	End Sub
+	
+	Sub TableSetIndex(Id As Any Ptr, ByVal Index As Integer)
+		SetSelectedIndex(Id, Index)
+	End Sub
+	
+	Function TableGetIndex(Id As Any Ptr) As Integer
+		Return GetSelectedIndex(Id)
+	End Function
+	
+	Function TableDblClick(Id As Any Ptr) As Boolean
+		Return False
+	End Function
+	
+	'Canvas: drawing into the bitmap of an MffLayout (mffActivity.java)
+	Sub CanvasRepaint(Id As Any Ptr)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasRepaint", "(Landroid/view/View;)V"), Id)
+	End Sub
+
+	Sub SetTouchEvent(Id As Any Ptr)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("setTouchEvent", "(Landroid/view/View;)V"), Id)
+	End Sub
+	
+	Sub CanvasBegin(Id As Any Ptr)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasBegin", "(Landroid/view/View;)V"), Id)
+	End Sub
+	
+	Sub CanvasEnd(Id As Any Ptr)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasEnd", "(Landroid/view/View;)V"), Id)
+	End Sub
+	
+	Sub CanvasNewPath(Id As Any Ptr)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasNewPath", "(Landroid/view/View;)V"), Id)
+	End Sub
+	
+	Sub CanvasMoveTo(Id As Any Ptr, ByVal x As Double, ByVal y As Double)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasMoveTo", "(Landroid/view/View;DD)V"), Id, x, y)
+	End Sub
+	
+	Sub CanvasLineTo(Id As Any Ptr, ByVal x As Double, ByVal y As Double)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasLineTo", "(Landroid/view/View;DD)V"), Id, x, y)
+	End Sub
+	
+	Sub CanvasCurveTo(Id As Any Ptr, ByVal x1 As Double, ByVal y1 As Double, ByVal x2 As Double, ByVal y2 As Double, ByVal x3 As Double, ByVal y3 As Double)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasCurveTo", "(Landroid/view/View;DDDDDD)V"), Id, x1, y1, x2, y2, x3, y3)
+	End Sub
+	
+	Sub CanvasArc(Id As Any Ptr, ByVal cx As Double, ByVal cy As Double, ByVal r As Double, ByVal a1 As Double, ByVal a2 As Double, ByVal Negative As Integer = 0)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasArc", "(Landroid/view/View;DDDDDZ)V"), Id, cx, cy, r, a1, a2, CUByte(IIf(Negative <> 0, 1, 0)))
+	End Sub
+	
+	Sub CanvasRectPath(Id As Any Ptr, ByVal x As Double, ByVal y As Double, ByVal w As Double, ByVal h As Double)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasRectPath", "(Landroid/view/View;DDDD)V"), Id, x, y, w, h)
+	End Sub
+	
+	Sub CanvasClosePath(Id As Any Ptr)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasClosePath", "(Landroid/view/View;)V"), Id)
+	End Sub
+	
+	Sub CanvasFill(Id As Any Ptr, ByVal iColor As Integer, ByVal Alpha As Integer)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasFill", "(Landroid/view/View;II)V"), Id, CLng(iColor), CLng(Alpha))
+	End Sub
+	
+	Sub CanvasStroke(Id As Any Ptr, ByVal iColor As Integer, ByVal Alpha As Integer, ByVal LineWidth As Double, Dash As String)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jstring jDash = (*env)->NewStringUTF(env, Dash)
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasStroke", "(Landroid/view/View;IIDLjava/lang/String;)V"), Id, CLng(iColor), CLng(Alpha), LineWidth, jDash)
+		(*env)->DeleteLocalRef(env, jDash)
+	End Sub
+	
+	Sub CanvasFillRect(Id As Any Ptr, ByVal x As Double, ByVal y As Double, ByVal w As Double, ByVal h As Double, ByVal iColor As Integer, ByVal Alpha As Integer)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasFillRect", "(Landroid/view/View;DDDDII)V"), Id, x, y, w, h, CLng(iColor), CLng(Alpha))
+	End Sub
+	
+	Sub CanvasSave(Id As Any Ptr)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasSave", "(Landroid/view/View;)V"), Id)
+	End Sub
+	
+	Sub CanvasRestore(Id As Any Ptr)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasRestore", "(Landroid/view/View;)V"), Id)
+	End Sub
+	
+	Sub CanvasText(Id As Any Ptr, ByVal x As Double, ByVal y As Double, Text As String, ByVal iColor As Integer, ByVal iBkColor As Integer, FontName As String, ByVal FontSize As Double, ByVal Bold As Integer, ByVal Italic As Integer)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jstring jText = (*env)->NewStringUTF(env, Text), jFont = (*env)->NewStringUTF(env, FontName)
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasText", "(Landroid/view/View;DDLjava/lang/String;IILjava/lang/String;DII)V"), Id, x, y, jText, CLng(iColor), CLng(iBkColor), jFont, FontSize, CLng(Bold), CLng(Italic))
+		(*env)->DeleteLocalRef(env, jText)
+		(*env)->DeleteLocalRef(env, jFont)
+	End Sub
+	
+	Function CanvasTextWidth(Id As Any Ptr, Text As String, FontName As String, ByVal FontSize As Double, ByVal Bold As Integer, ByVal Italic As Integer) As Integer
+		If env = 0 OrElse Activity = 0 Then Return 0
+		Dim As jstring jText = (*env)->NewStringUTF(env, Text), jFont = (*env)->NewStringUTF(env, FontName)
+		Function = (*env)->CallIntMethod(env, Activity, ActivityMethodID("canvasTextWidth", "(Landroid/view/View;Ljava/lang/String;Ljava/lang/String;DII)I"), Id, jText, jFont, FontSize, CLng(Bold), CLng(Italic))
+		(*env)->DeleteLocalRef(env, jText)
+		(*env)->DeleteLocalRef(env, jFont)
+	End Function
+
+	Function CanvasTextHeight(Id As Any Ptr, FontName As String, ByVal FontSize As Double, ByVal Bold As Integer, ByVal Italic As Integer) As Integer
+		If env = 0 OrElse Activity = 0 Then Return 0
+		Dim As jstring jFont = (*env)->NewStringUTF(env, FontName)
+		Function = (*env)->CallIntMethod(env, Activity, ActivityMethodID("canvasTextHeight", "(Landroid/view/View;Ljava/lang/String;DII)I"), Id, jFont, FontSize, CLng(Bold), CLng(Italic))
+		(*env)->DeleteLocalRef(env, jFont)
+	End Function
+
+	Function CanvasGetPixel(Id As Any Ptr, ByVal x As Double, ByVal y As Double) As Integer
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Return -1
+		Return (*env)->CallIntMethod(env, Activity, ActivityMethodID("canvasGetPixel", "(Landroid/view/View;DD)I"), Id, x, y)
+	End Function
+	
+	Sub CanvasImage(Id As Any Ptr, Path As String, ByVal x As Double, ByVal y As Double, ByVal w As Double, ByVal h As Double, ByVal Alpha As Integer)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jstring jPath = (*env)->NewStringUTF(env, Path)
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasImage", "(Landroid/view/View;Ljava/lang/String;DDDDI)V"), Id, jPath, x, y, w, h, CLng(Alpha))
+		(*env)->DeleteLocalRef(env, jPath)
+	End Sub
+	
+	Sub SetButtons(Id As Any Ptr, Items As String)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jstring jText = (*env)->NewStringUTF(env, Items)
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("buttonsSet", "(Landroid/view/View;Ljava/lang/String;)V"), Id, jText)
+		(*env)->DeleteLocalRef(env, jText)
+	End Sub
+
+	Sub LoadImage(Id As Any Ptr, Path As String, Center As Boolean)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jstring jText = (*env)->NewStringUTF(env, Path)
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("imageLoad", "(Landroid/view/View;Ljava/lang/String;Z)V"), Id, jText, CUByte(IIf(Center <> 0, 1, 0)))
+		(*env)->DeleteLocalRef(env, jText)
+	End Sub
+#elseif defined(__USE_WASM__)
+	Sub LoadURL(Id As Any Ptr, URL As String)
+		If Id Then SetAttribute(Id, "src", URL)
+	End Sub
+
+	Sub LoadHTML(Id As Any Ptr, HTML As String)
+		If Id Then SetAttribute(Id, "srcdoc", HTML)
+	End Sub
+	
+	Function TableGetIndex(Id As Any Ptr) As Integer
+		Return GetPosition(Id)
+	End Function
+	
+	Function TableDblClick(Id As Any Ptr) As Boolean
+		Dim As ZString Ptr pValue = GetAttribute(Id, "data-event")
+		Function = (*pValue = "dblclick")
+		FreePtr(pValue)
+	End Function
+
+	Sub LoadImage(Id As Any Ptr, Path As String, Center As Boolean)
+		If Id = 0 Then Exit Sub
+		If Path = "" Then
+			SetStyle(Id, "background-image", "none")
+		Else
+			SetStyle(Id, "background-image", "url('" & Path & "')")
+		End If
+		SetStyle(Id, "background-repeat", "no-repeat")
+		SetStyle(Id, "background-position", "center")
+		SetStyle(Id, "background-size", IIf(Center, "auto", "100% 100%"))
+	End Sub
+
+	'Escapes text to be inserted into HTML content.
+	Function HtmlEscape(ByVal Value As WString Ptr) As UString
+		If Value = 0 Then Return ""
+		Dim As UString Result
+		For i As Integer = 0 To Len(*Value) - 1
+			Select Case (*Value)[i]
+			Case Asc("&"): Result &= "&amp;"
+			Case Asc("<"): Result &= "&lt;"
+			Case Asc(">"): Result &= "&gt;"
+			Case Asc(""""): Result &= "&quot;"
+			Case Else: Result &= WChr((*Value)[i])
+			End Select
+		Next
+		Return Result
+	End Function
+	
+	'Reads the value of a DOM element (input, textarea, select) as UTF-8 and stores it decoded in Value.
+	Sub ReadElementValue(Id As Any Ptr, ByRef Value As WString Ptr)
+		Dim As ZString Ptr pUtf8 = GetStringValue(Id)
+		If pUtf8 = 0 Then
+			WLet(Value, "")
+			Return
+		End If
+		Dim As WString Ptr pWide = FromUtf8(pUtf8)
+		FreePtr(pUtf8)
+		If pWide = 0 Then
+			WLet(Value, "")
+		Else
+			WLet(Value, *pWide)
+			WDeAllocate(pWide)
+		End If
+	End Sub
 #endif
 
 '#ifdef GetMN

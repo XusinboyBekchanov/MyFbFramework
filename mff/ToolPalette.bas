@@ -90,7 +90,7 @@ Namespace My.Sys.Forms
 			FCommandID = Value
 			If Ctrl Then
 				With QControl(Ctrl)
-					#ifndef __USE_GTK__
+					#ifdef __USE_WINAPI__
 						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
 						SendMessage(.Handle, TB_SETCMDID,i,FCommandID)
 					#endif
@@ -115,6 +115,13 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			gtk_tool_item_group_set_label(GTK_TOOL_ITEM_GROUP(Widget), ToUtf8(Value))
 		#endif
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Ctrl Then
+				Dim As Message msg
+				msg.Msg = CM_ITEMSCHANGED
+				Ctrl->ProcessMessage(msg)
+			End If
+		#endif
 	End Property
 	
 	Private Property ToolGroup.Name ByRef As WString
@@ -133,7 +140,7 @@ Namespace My.Sys.Forms
 		FExpanded = Value
 		#ifdef __USE_GTK__
 			gtk_tool_item_group_set_collapsed(GTK_TOOL_ITEM_GROUP(Widget), Not Value)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Ctrl Then
 				With QControl(Ctrl)
 					.UpdateLock
@@ -145,6 +152,13 @@ Namespace My.Sys.Forms
 					Next
 					.UpdateUnLock
 				End With
+			End If
+		#endif
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Ctrl Then
+				Dim As Message msg
+				msg.Msg = CM_ITEMSCHANGED
+				Ctrl->ProcessMessage(msg)
 			End If
 		#endif
 	End Property
@@ -252,7 +266,7 @@ Namespace My.Sys.Forms
 			If Parent Then
 				gtk_tool_item_group_insert(GTK_TOOL_ITEM_GROUP(Cast(ToolGroup Ptr, Parent)->Widget), GTK_TOOL_ITEM(PButton->Widget), Index)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As TBBUTTON TB
 			TB.fsState   = FState
 			TB.fsStyle   = FStyle
@@ -274,6 +288,13 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		#endif
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent AndAlso Cast(ToolGroup Ptr, Parent)->Ctrl Then
+				Dim As Message msg
+				msg.Msg = CM_ITEMSCHANGED
+				Cast(ToolGroup Ptr, Parent)->Ctrl->ProcessMessage(msg)
+			End If
+		#endif
 		Return PButton
 	End Function
 	
@@ -282,7 +303,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			PButton = Add(FStyle, -1, Index, FClick, FKey, FCaption, FHint, FShowHint, FState)
 			If PButton Then PButton->ImageKey         = ImageKey
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Cast(ToolGroup Ptr, Parent)->Ctrl AndAlso Cast(ToolPalette Ptr, Cast(ToolGroup Ptr, Parent)->Ctrl)->ImagesList Then
 				With *Cast(ToolPalette Ptr, Cast(ToolGroup Ptr, Parent)->Ctrl)->ImagesList
 					PButton = Add(FStyle, .IndexOf(ImageKey), Index, FClick, FKey, FCaption, FHint, FShowHint, FState)
@@ -297,12 +318,19 @@ Namespace My.Sys.Forms
 	Private Sub ToolGroupButtons.Remove(Index As Integer)
 		FButtons.Remove Index
 		If Parent AndAlso Cast(ToolGroup Ptr, Parent)->Ctrl Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				With *Cast(ToolGroup Ptr, Parent)
 					SendMessage(.Ctrl->Handle, TB_DELETEBUTTON, SendMessage(.Ctrl->Handle, TB_COMMANDTOINDEX, .CommandID, 0) + Index + 2, 0)
 				End With
 			#endif
 		End If
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent AndAlso Cast(ToolGroup Ptr, Parent)->Ctrl Then
+				Dim As Message msg
+				msg.Msg = CM_ITEMSCHANGED
+				Cast(ToolGroup Ptr, Parent)->Ctrl->ProcessMessage(msg)
+			End If
+		#endif
 	End Sub
 	
 	Private Function ToolGroupButtons.IndexOf(ByRef FButton As ToolButton Ptr) As Integer
@@ -321,6 +349,13 @@ Namespace My.Sys.Forms
 			_Delete( @QToolButton(FButtons.Items[i]))
 		Next i
 		FButtons.Clear
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent AndAlso Cast(ToolGroup Ptr, Parent)->Ctrl Then
+				Dim As Message msg
+				msg.Msg = CM_ITEMSCHANGED
+				Cast(ToolGroup Ptr, Parent)->Ctrl->ProcessMessage(msg)
+			End If
+		#endif
 	End Sub
 	
 	Private Operator ToolGroupButtons.Cast As Any Ptr
@@ -369,7 +404,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then
 				gtk_container_add(GTK_CONTAINER (Parent->Handle), PGroup->Widget)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent Then
 				Dim As TBBUTTON TB
 				If FGroups.Count > 1 Then
@@ -405,16 +440,30 @@ Namespace My.Sys.Forms
 				SendMessage(Parent->Handle, TB_ADDBUTTONS, 1, CInt(@TB))
 			End If
 		#endif
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then
+				Dim As Message msg
+				msg.Msg = CM_ITEMSCHANGED
+				Parent->ProcessMessage(msg)
+			End If
+		#endif
 		Return PGroup
 	End Function
 	
 	Private Sub ToolGroups.Remove(Index As Integer)
 		FGroups.Remove Index
 		If Parent Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				SendMessage(Parent->Parent->Handle, TB_DELETEBUTTON, Index, 0)
 			#endif
 		End If
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then
+				Dim As Message msg
+				msg.Msg = CM_ITEMSCHANGED
+				Parent->ProcessMessage(msg)
+			End If
+		#endif
 	End Sub
 	
 	Private Function ToolGroups.IndexOf(ByRef FGroup As ToolGroup Ptr) As Integer
@@ -433,6 +482,13 @@ Namespace My.Sys.Forms
 			_Delete( @QToolGroup(FGroups.Items[i]))
 		Next i
 		FGroups.Clear
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then
+				Dim As Message msg
+				msg.Msg = CM_ITEMSCHANGED
+				Parent->ProcessMessage(msg)
+			End If
+		#endif
 	End Sub
 	
 	Private Operator ToolGroups.Cast As Any Ptr
@@ -453,7 +509,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolPalette.ImagesList(Value As ImageList Ptr)
 		FImagesList = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FImagesList Then FImagesList->ParentWindow = @This: If FImagesList->Handle Then Perform(TB_SETIMAGELIST, 0, CInt(FImagesList->Handle))
 		#endif
 	End Property
@@ -464,7 +520,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolPalette.HotImagesList(Value As ImageList Ptr)
 		FHotImagesList = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHotImagesList Then FHotImagesList->ParentWindow = @This: If FHotImagesList->Handle Then Perform(TB_SETHOTIMAGELIST, 0, CInt(FHotImagesList->Handle))
 		#endif
 	End Property
@@ -475,7 +531,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolPalette.DisabledImagesList(Value As ImageList Ptr)
 		FDisabledImagesList = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FDisabledImagesList Then FDisabledImagesList->ParentWindow = @This: If FDisabledImagesList->Handle Then Perform(TB_SETDISABLEDIMAGELIST, 0, CInt(FDisabledImagesList->Handle))
 		#endif
 	End Property
@@ -490,7 +546,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Property ToolPalette.AutoSize As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FAutosize = StyleExists(TBSTYLE_AUTOSIZE)
 		#endif
 		Return FAutosize
@@ -498,7 +554,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolPalette.AutoSize(Value As Boolean)
 		FAutosize = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle TBSTYLE_AUTOSIZE, Value
 			If FHandle Then If FAutosize Then Perform(TB_AUTOSIZE, 0, 0)
 		#endif
@@ -528,7 +584,7 @@ Namespace My.Sys.Forms
 			'Next i
 			If GTK_IS_CONTAINER(widget) Then gtk_widget_queue_resize(widget)
 			If GTK_IS_WIDGET(widget) Then gtk_widget_queue_draw(widget)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			For j As Integer = 0 To Groups.Count - 1
 				For i As Integer = 0 To Groups.Item(j)->Buttons.Count - 1
 					With *Cast(ToolButton Ptr, Groups.Item(j)->Buttons.Item(i))
@@ -554,7 +610,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ToolPalette.Flat As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FFlat = StyleExists(TBSTYLE_FLAT)
 		#endif
 		Return FFlat
@@ -562,13 +618,13 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolPalette.Flat(Value As Boolean)
 		FFlat = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle TBSTYLE_FLAT, Value
 		#endif
 	End Property
 	
 	Private Property ToolPalette.List As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FList = StyleExists(TBSTYLE_LIST)
 		#endif
 		Return FList
@@ -576,14 +632,14 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolPalette.List(Value As Boolean)
 		FList = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle TBSTYLE_LIST, Value
 		#endif
 	End Property
 	
 	
 	Private Property ToolPalette.Divider As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FDivider = Not StyleExists(CCS_NODIVIDER)
 		#endif
 		Return FDivider
@@ -591,13 +647,13 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolPalette.Divider(Value As Boolean)
 		FDivider = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle CCS_NODIVIDER, Not Value
 		#endif
 	End Property
 	
 	Private Property ToolPalette.Transparency As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FTransparent = StyleExists(TBSTYLE_TRANSPARENT)
 		#endif
 		Return FTransparent
@@ -605,7 +661,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolPalette.Transparency(Value As Boolean)
 		FTransparent = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle TBSTYLE_TRANSPARENT, Value
 		#endif
 	End Property
@@ -616,7 +672,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolPalette.BitmapWidth(Value As Integer)
 		FBitmapWidth = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then Perform(TB_SETBITMAPSIZE, 0, MAKELONG(FBitmapWidth, FBitmapHeight))
 		#endif
 	End Property
@@ -627,7 +683,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolPalette.BitmapHeight(Value As Integer)
 		FBitmapHeight = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then Perform(TB_SETBITMAPSIZE, 0, MAKELONG(FBitmapWidth, FBitmapHeight))
 		#endif
 	End Property
@@ -638,7 +694,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolPalette.ButtonWidth(Value As Integer)
 		FButtonWidth = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then Perform(TB_SETBUTTONSIZE,0,MAKELONG(ScaleX(FButtonWidth),ScaleY(FButtonHeight)))
 		#endif
 	End Property
@@ -649,13 +705,13 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolPalette.ButtonHeight(Value As Integer)
 		FButtonHeight = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then Perform(TB_SETBUTTONSIZE,0,MAKELONG(ScaleX(FButtonWidth),ScaleY(FButtonHeight)))
 		#endif
 	End Property
 	
 	Private Property ToolPalette.Wrapable As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FWrapable = StyleExists(TBSTYLE_WRAPABLE)
 		#endif
 		Return FWrapable
@@ -663,7 +719,7 @@ Namespace My.Sys.Forms
 	
 	Private Property ToolPalette.Wrapable(Value As Boolean)
 		FWrapable = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle TBSTYLE_WRAPABLE, Value
 		#endif
 	End Property
@@ -683,8 +739,61 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Sub ToolPalette.UpdateItems()
+			If FHandle = 0 Then Exit Sub
+			Dim As UString Items
+			Dim As Integer Count
+			Erase FItemGroups, FItemButtons
+			For i As Integer = 0 To Groups.Count - 1
+				Dim As ToolGroup Ptr PGroup = Groups.Item(i)
+				ReDim Preserve FItemGroups(Count): ReDim Preserve FItemButtons(Count)
+				FItemGroups(Count) = PGroup
+				If Count > 0 Then Items &= Chr(10)
+				Items &= "0" & IIf(PGroup->Expanded, WChr(&H25BC), WChr(&H25BA)) & " " & PGroup->Caption
+				Count += 1
+				If Not PGroup->Expanded Then Continue For
+				For j As Integer = 0 To PGroup->Buttons.Count - 1
+					With *PGroup->Buttons.Item(j)
+						ReDim Preserve FItemGroups(Count): ReDim Preserve FItemButtons(Count)
+						FItemButtons(Count) = PGroup->Buttons.Item(j)
+						Items &= Chr(10) & IIf(.Style And tbsSeparator, "3", IIf(Not .Visible, "4", IIf(Not .Enabled, "1", IIf(.Checked, "2", "0")))) & IIf(.Caption <> "", .Caption, IIf(.Hint <> "", .Hint, .Name))
+						Count += 1
+					End With
+				Next
+			Next
+			SetButtons(FHandle, ToUtf8(Items))
+		End Sub
+	#endif
+
 	Private Sub ToolPalette.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Select Case Message.Msg
+			Case CM_ITEMSCHANGED
+				UpdateItems
+				Message.Handled = True
+			Case CM_CHANGE
+				Dim As Integer Index
+				#ifdef __USE_JNI__
+					Index = Message.wParam
+				#else
+					Index = GetPosition(FHandle)
+				#endif
+				If Index >= 0 AndAlso Index <= UBound(FItemGroups) Then
+					If FItemButtons(Index) Then
+						With *FItemButtons(Index)
+							If .Style And tbsCheck Then .Checked = Not .Checked
+							If .OnClick Then .OnClick(*.Designer, *FItemButtons(Index))
+						End With
+						If OnButtonClick Then OnButtonClick(*Designer, This, *FItemButtons(Index))
+					ElseIf FItemGroups(Index) Then
+						FItemGroups(Index)->Expanded = Not FItemGroups(Index)->Expanded
+					End If
+				End If
+				Message.Handled = True
+			End Select
+		#endif
+		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
@@ -841,7 +950,10 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Sub ToolPalette.HandleIsAllocated(ByRef Sender As Control)
-		#ifndef __USE_GTK__
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Sender.Child Then QToolPalette(Sender.Child).UpdateItems
+		#endif
+		#ifdef __USE_WINAPI__
 			If Sender.Child Then
 				With QToolPalette(Sender.Child)
 					If .ImagesList Then .ImagesList->ParentWindow = @Sender: If .ImagesList->Handle Then .Perform(TB_SETIMAGELIST,0,CInt(.ImagesList->Handle))
@@ -927,7 +1039,7 @@ Namespace My.Sys.Forms
 				gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 				gtk_container_add(GTK_CONTAINER(scrolledwidget), widget)
 				.RegisterClass "ToolPalette", @This
-			#else
+			#elseif defined(__USE_WINAPI__)
 				AFlat(0)        = 0
 				AFlat(1)        = TBSTYLE_FLAT
 				ADivider(0)     = CCS_NODIVIDER
@@ -955,7 +1067,10 @@ Namespace My.Sys.Forms
 			FButtonHeight   = 16
 			Groups.Parent  = @This
 			FEnabled = True
-			#ifndef __USE_GTK__
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#endif
+			#ifdef __USE_WINAPI__
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.OnHandleIsDestroyed = @HandleIsDestroyed
 				.ChildProc         = @WndProc
@@ -975,7 +1090,7 @@ Namespace My.Sys.Forms
 	
 	Private Destructor ToolPalette
 		Groups.Clear
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			'UnregisterClass "ToolPalette", GetmoduleHandle(NULL)
 		#endif
 	End Destructor

@@ -154,6 +154,11 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle AndAlso GridGetModel(Parent->Handle) Then
 				gtk_list_store_set(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @TreeIter, ColumnIndex + 3, ToUtf8(Value), -1)
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent->Handle Then
+				Dim As Integer RowIndex = Cast(Grid Ptr, Parent)->Rows.IndexOf(@This)
+				If RowIndex >= 0 Then TableSetRow(Parent->Handle, RowIndex, Cast(Grid Ptr, Parent)->RowCells(@This))
+			End If
 		#endif
 	End Property
 	
@@ -958,12 +963,8 @@ Namespace My.Sys.Forms
 				End If
 			#elseif defined(__USE_WINAPI__)
 				If Parent->Handle> 0 AndAlso IsLastItem Then SendMessage(Parent->Handle, LVM_SETITEMCOUNT, FItems.Count, LVSICF_NOINVALIDATEALL)
-			#elseif defined(__USE_WASM__)
-				Dim As UString strRow = ""
-				For i As Integer = 0 To Cast(Grid Ptr, Parent)->Columns.Count - 1
-					strRow &= "<td>" & ToUtf8(PItem->Text(i)) & !"</td>\r"
-				Next
-				AddRow(Parent->Handle, strRow)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				If Parent->Handle Then TableInsertRow(Parent->Handle, Index, Cast(Grid Ptr, Parent)->RowCells(PItem))
 			#endif
 			Return PItem
 		End Function
@@ -1044,6 +1045,8 @@ Namespace My.Sys.Forms
 				ListView_DeleteItem(Parent->Handle, Index)
 			End If
 			Cast(Grid Ptr, Parent)->Repaint
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent AndAlso Parent->Handle Then TableRemoveRow(Parent->Handle, Index)
 		#endif
 		FItems.Remove Index
 	End Sub
@@ -1057,6 +1060,8 @@ Namespace My.Sys.Forms
 			If Parent AndAlso GTK_LIST_STORE(GridGetModel(Parent->Handle)) Then gtk_list_store_clear(GTK_LIST_STORE(GridGetModel(Parent->Handle)))
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent AndAlso Parent->Handle Then TableClear(Parent->Handle)
 		#endif
 		For i As Integer = Count -1 To 0 Step -1
 			_Delete( @QGridRow(FItems.Items[i]))
@@ -1214,8 +1219,8 @@ Namespace My.Sys.Forms
 					
 				#elseif defined(__USE_WINAPI__)
 					ListView_InsertColumn(Parent->Handle, PColumn->Index, @lvc)
-				#elseif defined(__USE_WASM__)
-					AddColumn(Parent->Handle, ToUtf8(FCaption))
+				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+					Cast(Grid Ptr, Parent)->UpdateColumns
 				#endif
 			End If
 		End If
@@ -1631,6 +1636,8 @@ Namespace My.Sys.Forms
 			If Handle Then
 				Return ListView_GetNextItem(Handle, -1, LVNI_SELECTED)
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Handle Then Return TableGetIndex(Handle)
 		#endif
 		Return -1
 	End Property
@@ -1654,6 +1661,10 @@ Namespace My.Sys.Forms
 				FRow = Value
 				FCol = 0
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Handle Then TableSetIndex(Handle, Value)
+			FRow = Value
+			FCol = 0
 		#endif
 	End Property
 	
@@ -1746,7 +1757,49 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Function Grid.RowCells(Row As GridRow Ptr) As String
+			Dim As String sRow
+			For i As Integer = 0 To Columns.Count - 1
+				If i > 0 Then sRow &= Chr(9)
+				sRow &= ToUtf8(Row->Text(i))
+			Next
+			Return sRow
+		End Function
+
+		Private Sub Grid.UpdateColumns()
+			If FHandle = 0 Then Exit Sub
+			Dim As String Captions, Widths
+			For i As Integer = 0 To Columns.Count - 1
+				If i > 0 Then Captions &= Chr(10): Widths &= Chr(10)
+				Captions &= ToUtf8(Columns.Column(i)->Text)
+				Widths &= Str(Columns.Column(i)->Width)
+			Next
+			TableSetColumns(FHandle, Captions, Widths)
+		End Sub
+	#endif
+
 	Private Sub Grid.ProcessMessage(ByRef Message As Message)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Message.Msg = CM_CHANGE Then
+				Dim As Integer RowIndex
+				#ifdef __USE_JNI__
+					RowIndex = Message.wParam
+				#else
+					RowIndex = TableGetIndex(FHandle)
+				#endif
+				If TableDblClick(FHandle) Then
+					If OnRowDblClick Then OnRowDblClick(*Designer, This, RowIndex)
+					If OnRowActivate Then OnRowActivate(*Designer, This, RowIndex)
+				Else
+					Dim As Boolean bChanged = (RowIndex <> FRow)
+					FRow = RowIndex
+					If OnRowClick Then OnRowClick(*Designer, This, RowIndex)
+					If bChanged AndAlso OnSelectedRowChanged Then OnSelectedRowChanged(*Designer, This, RowIndex)
+				End If
+				Message.Handled = True
+			End If
+		#endif
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.Event
 			#ifdef __USE_GTK4__
@@ -2291,6 +2344,14 @@ Namespace My.Sys.Forms
 		Private Sub Grid.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QGrid(Sender.Child)
+					#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+						TableInit(.FHandle)
+						.UpdateColumns
+						For i As Integer = 0 To .Rows.Count - 1
+							TableInsertRow(.FHandle, -1, .RowCells(.Rows.Item(i)))
+						Next
+						Exit Sub
+					#endif
 					If .Images Then
 						.Images->ParentWindow = @Sender
 						#ifdef __USE_WINAPI__
@@ -2703,6 +2764,9 @@ Namespace My.Sys.Forms
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "table")
 				FElementStyle = "border-collapse: collapse;"
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "android/widget/ListView")
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.Child             = @This

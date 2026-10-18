@@ -62,6 +62,9 @@ Namespace My.Sys.Forms
 		FIsDisposed         As Boolean
 		FChecked            As Boolean
 		FBold               As Boolean
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			FExpanded       As Boolean
+		#endif
 	Protected:
 		Declare Static Sub AddItems(Node As TreeNode Ptr)
 	Public:
@@ -142,12 +145,23 @@ Namespace My.Sys.Forms
 			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 			Declare Sub SendToAllChildItems(ByVal hNode As HTREEITEM, tvMessage As Long)
 			Declare Sub CreateNodes(PNode As TreeNode Ptr)
-		#elseif defined(__USE_WASM__)
-			Declare Virtual Function GetContent() As UString
-			Declare Function CreateNodes(PNodes As TreeNode Ptr) As UString
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#ifdef __USE_WASM__
+				Declare Virtual Function GetContent() As UString
+				Declare Function CreateNodes(PNodes As TreeNode Ptr) As UString
+			#endif
+			'The tree is shown as a table view with a row per visible node
+			FSelectedNode As TreeNode Ptr
+			FRowNodes(Any) As TreeNode Ptr
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+			Declare Sub AddRows(PNodes As TreeNodeCollection Ptr, Level As Integer)
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'Shows the visible nodes again (after a change of the nodes)
+			Declare Sub UpdateRows()
+		#endif
 		#ifndef ReadProperty_Off
 			'Loads persisted tree structure
 			Declare Function ReadProperty(ByRef PropertyName As String) As Any Ptr

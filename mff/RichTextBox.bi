@@ -16,10 +16,12 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+			#ifdef __USE_WINAPI__
 			Declare Static Function StreamInProc(hFile As ..HANDLE, pBuffer As PVOID, NumBytes As Integer, pBytesRead As Integer Ptr) As BOOL
 			Declare Static Function StreamOutProc (hFile As ..HANDLE, pBuffer As PVOID, NumBytes As Integer, pBytesWritten As Integer Ptr) As BOOL
 			Declare Static Function GetTextCallback(dwCookie As DWORD_PTR, pbBuff As Byte Ptr, cb As Long, pcb As Long Ptr) As DWORD
 			Declare Virtual Sub SetDark(Value As Boolean)
+			#endif
 		#else
 			Declare Function GetStrProperty(sProperty As String) ByRef As WString
 			Declare Sub SetStrProperty(sProperty As String, ByRef Value As WString, WithoutPrevValue As Boolean = False)
@@ -37,7 +39,7 @@ Namespace My.Sys.Forms
 		FSelBoolVal         As Integer
 		m_bMenuOpen         As Boolean
 	Protected:
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			hRichTextBox    As HINSTANCE
 			Pf              As PARAFORMAT
 			Pf2             As PARAFORMAT2

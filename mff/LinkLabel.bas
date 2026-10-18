@@ -53,10 +53,12 @@ Namespace My.Sys.Forms
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			gtk_label_set_markup_with_mnemonic(GTK_LABEL(widget), ToUtf8(Replace(Value, "&", "_")))
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then SetInnerHTML(FHandle, ToUtf8(Value))
 		#endif
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub LinkLabel.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QLinkLabel(Sender.Child)
@@ -67,10 +69,46 @@ Namespace My.Sys.Forms
 		
 		Private Sub LinkLabel.WndProc(ByRef Message As Message)
 		End Sub
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Sub LinkLabel.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			If Sender.Child Then
+				With QLinkLabel(Sender.Child)
+					#ifdef __USE_WASM__
+						SetLinkEvent(.FHandle)
+					#else
+						If .FText Then SetInnerHTML(.FHandle, ToUtf8(*.FText))
+					#endif
+				End With
+			End If
+		End Sub
+		
+		Private Sub LinkLabel.WndProc(ByRef Message As Message)
+		End Sub
+		
+		#ifdef __USE_WASM__
+			'The text is SysLink markup: <a href="...">...</a>
+			Private Function LinkLabel.GetContent() As UString
+				If FText = 0 Then Return ""
+				Return *FText
+			End Function
+		#endif
 	#endif
 	
 	Private Sub LinkLabel.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WASM__
+			If Message.Msg = CM_CHANGE Then
+				Dim As Integer Action = 1, ItemIndex = GetPosition(FHandle)
+				Dim As ZString Ptr pLink = GetAttribute(FHandle, "data-link")
+				Dim As WString Ptr pWide = FromUtf8(pLink)
+				FreePtr(pLink)
+				Dim As UString sLink = IIf(pWide, *pWide, "")
+				If pWide Then WDeAllocate(pWide)
+				If OnLinkClicked Then OnLinkClicked(*Designer, This, ItemIndex, sLink, Action)
+				If Action = 1 AndAlso sLink <> "" Then OpenURL(ToUtf8(sLink))
+				Message.Handled = True
+			End If
+		#endif
+		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case WM_ERASEBKGND 'WM_PAINT, WM_ERASEBKGND
 				If Not FCreated Then
@@ -131,12 +169,18 @@ Namespace My.Sys.Forms
 				#endif
 				g_signal_connect(widget, "activate-link", G_CALLBACK(@ActivateLink), @This)
 				.RegisterClass "LinkLabel", @This
-			#else
+			#elseif defined(__USE_WINAPI__)
 				.RegisterClass "LinkLabel", WC_LINK
 				WLet(FClassAncestor, WC_LINK)
 				.ExStyle      = 0
 				.Style        = WS_CHILD
 				.ChildProc    = @WndProc
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "div")
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "mff:Link")
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			FTabIndex          = -1
@@ -147,7 +191,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor LinkLabel
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			UnregisterClass "LinkLabel", GetModuleHandle(NULL)
 		#endif
 	End Destructor

@@ -121,9 +121,9 @@ Namespace My.Sys.Forms
 		'If FDecimalPlaces > 1 Then UpDownControl.Increment = FScaleFactor / Val(Mid("1000000", 1, FDecimalPlaces))
 	End Property
 	Private Property NumericUpDown.Text ByRef As WString
-		#ifdef __USE_GTK__
-			FText = UpDownControl.Text
-		#else
+		#if defined(__USE_GTK__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			FText = IIf(FDecimalPlaces > 0, WStr(UpDownControl.Position / FScaleFactor), UpDownControl.Text)
+		#elseif defined(__USE_WINAPI__)
 			FText = IIf(FDecimalPlaces > 0,  WStr(Val(Base.Text) / FScaleFactor), Base.Text)
 		#endif
 		Return FText
@@ -205,7 +205,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Function NumericUpDown.HookChildProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Dim As NumericUpDown Ptr nud = GetProp(hDlg, "MFFControl")
 			If nud Then
@@ -245,6 +245,12 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Private Sub NumericUpDown.WndProc(ByRef Message As Message)
+		End Sub
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		'The edit part and the arrows are one element (input type="number" / NumberPicker): the inner UpDown fills the control
+		Private Sub NumericUpDown.UpDownControl_Changing(ByRef Designer As My.Sys.Object, ByRef Sender As UpDown, Value As Integer, Direction As Integer)
+			Dim As NumericUpDown Ptr nud = Cast(NumericUpDown Ptr, @Designer)
+			If nud->OnChange Then nud->OnChange(*nud->Designer, *nud)
 		End Sub
 	#elseif defined(__USE_GTK__)
 		Private Sub NumericUpDown.SpinButton_ValueChanged(self As GtkSpinButton Ptr, user_data As Any Ptr)
@@ -326,7 +332,7 @@ Namespace My.Sys.Forms
 			.Add @UpDownControl
 			FTabIndex          = -1
 			FTabStop         = True
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.RegisterClass "NumericUpDown", "Edit"
 				.ChildProc         = @WndProc
 				.OnHandleIsAllocated = @HandleIsAllocated
@@ -337,6 +343,18 @@ Namespace My.Sys.Forms
 			#endif
 			WLet(FClassName, "NumericUpDown")
 			WLet(FClassAncestor, "Edit")
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				#ifdef __USE_WASM__
+					WLet(FClassAncestor, "div")
+				#else
+					WLet(FClassAncestor, "mff:Layout")
+				#endif
+				UpDownControl.Align = DockStyle.alClient
+				UpDownControl.Designer = @This
+				UpDownControl.OnChanging = @UpDownControl_Changing
+				.Width       = 121
+				.Height      = 24
+			#endif
 		End With
 	End Constructor
 	

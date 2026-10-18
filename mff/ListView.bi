@@ -304,6 +304,12 @@ Namespace My.Sys.Forms
 			'Saves properties to storage.
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'The cells of the item separated by Chr(9) (table view of Web and Android)
+			Declare Function RowCells(Item As ListViewItem Ptr) As String
+			'Shows the captions of the columns
+			Declare Sub UpdateColumns()
+		#endif
 		'Initializes control components.
 		Declare Sub Init()
 		'Scrolls to make item visible.

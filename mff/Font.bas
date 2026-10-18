@@ -67,6 +67,16 @@ Namespace My.Sys.Drawing
 			If QComponent(FParent).Handle Then
 				SetFont(QComponent(FParent).Handle, *FName & IIf(FBold, " Bold", "") & IIf(FItalic, " Italic", "") & " " & Str(FSize) & "px")
 			End If
+		#elseif defined(__USE_JNI__)
+			'The font which is not set keeps the one of Android (DefaultFont is empty)
+			If FParent AndAlso *FParent Is My.Sys.ComponentModel.Component AndAlso QComponent(FParent).Handle AndAlso env AndAlso Activity Then
+				If FBold OrElse FItalic OrElse FUnderline OrElse FStrikeOut OrElse *FName <> DefaultFont.Name OrElse FSize <> DefaultFont.Size Then
+					Dim As jstring jName = (*env)->NewStringUTF(env, ToUtf8(*FName))
+					(*env)->CallVoidMethod(env, Activity, ActivityMethodID("textSetFont", "(Landroid/view/View;Ljava/lang/String;DIIII)V"), QComponent(FParent).Handle, jName, _
+						CDbl(IIf(FSize > 0, FParent->ScaleY(FSize * 96 / 72), 0)), CInt(FBold), CInt(FItalic), CInt(FUnderline), CInt(FStrikeOut))
+					(*env)->DeleteLocalRef(env, jName)
+				End If
+			End If
 		#else
 			#ifdef __USE_GTK__
 				If Handle Then pango_font_description_free (Handle)
@@ -151,6 +161,29 @@ Namespace My.Sys.Drawing
 		Private Property Font.Color(Value As Integer)
 			FColor = Value
 			'Create
+			#ifdef __USE_GTK__
+				' GTK has no WM_CTLCOLOR: the text color is set to the widget
+				If FParent AndAlso *FParent Is My.Sys.ComponentModel.Component AndAlso QComponent(FParent).Handle Then
+					Dim As GtkWidget Ptr widget = QComponent(FParent).Handle
+					#ifdef __USE_GTK2__
+						Dim As GdkColor gColor
+						gColor.red = (Value And &hFF) * 257
+						gColor.green = ((Value Shr 8) And &hFF) * 257
+						gColor.blue = ((Value Shr 16) And &hFF) * 257
+						gtk_widget_modify_fg(widget, GTK_STATE_NORMAL, @gColor)
+						gtk_widget_modify_text(widget, GTK_STATE_NORMAL, @gColor)
+					#elseif defined(__USE_GTK4__)
+						gtk4compat_widget_set_color(widget, Value)
+					#else
+						Dim As GdkRGBA gColor
+						gColor.red = (Value And &hFF) / 255.0
+						gColor.green = ((Value Shr 8) And &hFF) / 255.0
+						gColor.blue = ((Value Shr 16) And &hFF) / 255.0
+						gColor.alpha = 1.0
+						gtk_widget_override_color(widget, GTK_STATE_FLAG_NORMAL, @gColor)
+					#endif
+				End If
+			#endif
 		End Property
 	#endif
 	
@@ -257,7 +290,7 @@ Namespace My.Sys.Drawing
 		#ifdef __FB_WIN32__
 			If *FName = "" Then WLet(FName, "Tahoma")
 			If FSize = 0 Then FSize = 8
-		#elseif defined(__USE_WASM__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 		#else
 			If *FName = "" Then WLet(FName, "Ubuntu")
 			If FSize = 0 Then FSize = 11
@@ -290,9 +323,9 @@ Namespace My.Sys.Drawing
 	#ifdef __FB_WIN32__
 		DefaultFont.Name = "Tahoma"
 		DefaultFont.Size = 8
-	#elseif defined(__USE_WASM__)
-		DefaultFont.Name = ""
-		DefaultFont.Size = 0
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		DefaultFont.Name = "Tahoma"
+		DefaultFont.Size = 8
 	#else
 		DefaultFont.Name = "Ubuntu"
 		DefaultFont.Size = 11

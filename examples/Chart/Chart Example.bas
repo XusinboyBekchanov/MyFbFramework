@@ -1,8 +1,19 @@
 ﻿#ifdef __FB_WIN32__
-	'#Compile -exx "Form1.rc"
+	'#Compile -exx Form1.rc
 #else
 	'#Compile -exx
 #endif
+
+#define package mff_example_application
+
+#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
+	#define __MAIN_FILE__
+	#ifdef __FB_WIN32__
+		#cmdline "Form1.rc"
+	#endif
+	Const _MAIN_FILE_ = __FILE__
+#endif
+
 '#Region "Form"
 	#include once "mff/Form.bi"
 	#include once "mff/Chart.bi"
@@ -29,13 +40,14 @@
 			.Name = "Chart1"
 			.Text = "Chart1"
 			.Title = "Chart1"
+			.BorderColor = 12369084
 			.SetBounds 10, 10, 204, 161
 			.Designer = @This
 			.OnCreate = @Chart1_Create_
 			.Align = DockStyle.alNone
 			.ChartOrientation = ChartOrientations.CO_Vertical
 			.ChartStyle = ChartStyles.CS_Area
-			.Border = False
+			.Border = True
 			.FillOpacity = 0
 			.LabelsFormats = "{V}"
 			.Anchor.Top = AnchorStyle.asAnchorProportional
@@ -48,6 +60,7 @@
 		With Chart2
 			.Name = "Chart2"
 			.Text = "Chart1"
+			.BorderColor = 12369084
 			.SetBounds 220, 10, 204, 161
 			.Title = "Chart2"
 			.Anchor.Top = AnchorStyle.asAnchorProportional
@@ -55,7 +68,7 @@
 			.Anchor.Left = AnchorStyle.asAnchorProportional
 			.Anchor.Bottom = AnchorStyle.asAnchorProportional
 			.ChartStyle = ChartStyles.CS_GroupedColumn
-			.Border = False
+			.Border = true
 			.FillOpacity = 50
 			.LabelsFormats = "{V}"
 			.Parent = @This
@@ -64,19 +77,23 @@
 		With Chart3
 			.Name = "Chart3"
 			.Text = "Chart1"
+			.ChartStyle = ChartStyles.CS_Pie
+			.LabelsPosition = LabelsPositions.LP_Inside
+			.BorderColor = 12369084
 			.SetBounds 430, 10, 204, 161
 			.Title = "Chart3"
 			.Anchor.Top = AnchorStyle.asAnchorProportional
 			.Anchor.Right = AnchorStyle.asAnchorProportional
 			.Anchor.Left = AnchorStyle.asAnchorProportional
 			.Anchor.Bottom = AnchorStyle.asAnchorProportional
-			.Border = False
+			.Border = true
 			.Parent = @This
 		End With
 		' Chart4
 		With Chart4
 			.Name = "Chart4"
 			.Text = "Chart1"
+			.BorderColor = 12369084
 			.SetBounds 10, 180, 204, 161
 			.Title = "Chart4"
 			.Anchor.Top = AnchorStyle.asAnchorProportional
@@ -84,7 +101,7 @@
 			.Anchor.Left = AnchorStyle.asAnchorProportional
 			.Anchor.Bottom = AnchorStyle.asAnchorProportional
 			.ChartStyle = ChartStyles.CS_StackedBars
-			.Border = False
+			.Border = true
 			.FillOpacity = 50
 			.LabelsFormats = "{V}"
 			.ChartOrientation = ChartOrientations.CO_Horizontal
@@ -94,6 +111,7 @@
 		With Chart5
 			.Name = "Chart5"
 			.Text = "Chart1"
+			.BorderColor = 12369084
 			.SetBounds 220, 180, 204, 161
 			.Title = "Chart5"
 			.Anchor.Top = AnchorStyle.asAnchorProportional
@@ -101,7 +119,7 @@
 			.Anchor.Left = AnchorStyle.asAnchorProportional
 			.Anchor.Bottom = AnchorStyle.asAnchorProportional
 			.ChartStyle = ChartStyles.CS_Area
-			.Border = False
+			.Border = true
 			.FillOpacity = 50
 			.LabelsFormats = "{V}"
 			.LegendAlign = LegendAligns.LA_TOP
@@ -112,6 +130,7 @@
 		With Chart6
 			.Name = "Chart6"
 			.Text = "Chart1"
+			.BorderColor = 12369084
 			.SetBounds 430, 180, 204, 161
 			.Title = "Chart6"
 			.Anchor.Top = AnchorStyle.asAnchorProportional
@@ -120,7 +139,7 @@
 			.Anchor.Bottom = AnchorStyle.asAnchorProportional
 			.ChartStyle = ChartStyles.CS_Donut
 			.LabelsPosition = LabelsPositions.LP_TwoColumns
-			.Border = False
+			.Border = true
 			.Parent = @This
 		End With
 	End Constructor
@@ -187,6 +206,35 @@ Private Sub Form1.Chart1_Create(ByRef Sender As Control)
 	End With
 	Chart2.AddSerie "Pedro", clBlue, Value
 	
+	'StringValue = New WStringList
+	'
+	'StringValue->Add "2018"
+	'StringValue->Add "2019"
+	'StringValue->Add "2020"
+	'Chart3.AddAxisItems StringValue
+	'
+	'Value = New DoubleList
+	'With *Value
+	'	.Add 10
+	'	.Add 15
+	'	.Add 5
+	'End With
+	'Chart3.AddSerie "Juan", clRed, Value
+	'Value = New DoubleList
+	'With *Value
+	'	.Add 10
+	'	.Add 15
+	'	.Add 5
+	'End With
+	'Chart3.AddSerie "Adan", clGreen, Value
+	'Value = New DoubleList
+	'With *Value
+	'	.Add 8
+	'	.Add 4
+	'	.Add 12
+	'End With
+	'Chart3.AddSerie "Pedro", clBlue, Value
+	
 	Chart3.AddItem "Juan", 70, clRed
 	Chart3.AddItem "Adan", 20, clGreen
 	Chart3.AddItem "Pedro", 10, clBlue
@@ -235,10 +283,37 @@ Private Sub Form1.Chart1_Create(ByRef Sender As Control)
 	End With
 	Chart5.AddSerie "Pedro", clBlue, Value
 	
+	'StringValue = New WStringList
+	'
+	'StringValue->Add "2018"
+	'StringValue->Add "2019"
+	'StringValue->Add "2020"
+	'Chart6.AddAxisItems StringValue
+	'
+	'Value = New DoubleList
+	'With *Value
+	'	.Add 10
+	'	.Add 15
+	'	.Add 5
+	'End With
+	'Chart6.AddSerie "Juan", clRed, Value
+	'Value = New DoubleList
+	'With *Value
+	'	.Add 10
+	'	.Add 15
+	'	.Add 5
+	'End With
+	'Chart6.AddSerie "Adan", clRed, Value
+	'Value = New DoubleList
+	'With *Value
+	'	.Add 8
+	'	.Add 4
+	'	.Add 12
+	'End With
+	'Chart6.AddSerie "Pedro", clBlue, Value
+	
 	Chart6.AddItem "Juan", 70, clRed
 	Chart6.AddItem "Adan", 20, clGreen
 	Chart6.AddItem "Pedro", 10, clBlue
 	
 End Sub
-
-

@@ -25,7 +25,7 @@
 	'Dim Shared pD2D1Factory As ID2D1Factory Ptr
 	'Dim Shared pDWriteFactory As IDWriteFactory Ptr
 #endif
-#ifdef __USE_JNI__
+#ifndef G_PI
 	#define G_PI 3.1415926
 #endif
 

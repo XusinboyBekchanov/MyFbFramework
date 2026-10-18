@@ -39,7 +39,7 @@ Namespace My.Sys.Forms
 		FObject     As Any Ptr
 		FImageIndex As Integer
 		FImageKey   As WString Ptr
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FTheme		As HTHEME
 		#endif
 	Public:
@@ -133,6 +133,9 @@ Namespace My.Sys.Forms
 			'Checks if the window handle has been created
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Function GetChildTabControl(ParentHwnd As HWND, X As Integer, Y As Integer) As TabControl Ptr
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#elseif defined(__USE_GTK__)
 			Declare Static Sub TabControl_SwitchPage(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
 			Declare Static Sub TabControl_PageAdded(notebook As GtkNotebook Ptr, page As GtkWidget Ptr, page_num As UInteger, user_data As Any Ptr)
@@ -200,6 +203,10 @@ Namespace My.Sys.Forms
 		Declare Function InsertTab(Index As Integer, ByRef Caption As WString, AObject As Any Ptr = 0) As TabPage Ptr
 		Declare Sub InsertTab(Index As Integer, ByRef tTab As TabPage Ptr)
 		Declare Sub ReorderTab(ByVal tp As TabPage Ptr, Index As Integer, bNoActivate As Boolean = False)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'Rebuilds the tab strip (the captions of the pages) and shows the selected page
+			Declare Sub UpdateTabs()
+		#endif
 		Declare Sub Clear
 		Declare Constructor
 		Declare Destructor

@@ -8,7 +8,12 @@
 #include once "vbcompat.bi"
 
 Namespace My.Sys.Forms
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
+		Private Sub GridDataUpdateHeaderLayout(hListView As HWND)
+			'Makes the ListView lay out its header again (HDM_LAYOUT), so the header height follows the column titles
+			SetWindowPos(hListView, 0, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_NOZORDER Or SWP_NOACTIVATE Or SWP_FRAMECHANGED)
+		End Sub
+
 		Private Function GridDataItem.GetItemIndex() As Integer
 			'        Return Index '
 			Var nItem = ListView_GetItemCount(Parent->Handle)
@@ -32,7 +37,7 @@ Namespace My.Sys.Forms
 				gtk_tree_view_collapse_row(GTK_TREE_VIEW(Parent->Handle), TreePath)
 				gtk_tree_path_free(TreePath)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Var ItemIndex = This.GetItemIndex()
 			If ItemIndex <> -1 Then
 				State = 1
@@ -53,6 +58,9 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 		FExpanded = False
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(GridData Ptr, Parent)->UpdateRows
+		#endif
 	End Sub
 	
 	Private Sub GridDataItem.Expand
@@ -62,7 +70,7 @@ Namespace My.Sys.Forms
 				gtk_tree_view_expand_row(GTK_TREE_VIEW(Parent->Handle), TreePath, False)
 				gtk_tree_path_free(TreePath)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				State = 2
 				Var ItemIndex = This.GetItemIndex
@@ -97,6 +105,9 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 		FExpanded = True
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(GridData Ptr, Parent)->UpdateRows
+		#endif
 	End Sub
 	
 	Private Function GridDataItem.IsExpanded As Boolean
@@ -106,9 +117,11 @@ Namespace My.Sys.Forms
 				FExpanded = gtk_tree_view_row_expanded(GTK_TREE_VIEW(Parent->Handle), TreePath)
 			End If
 			Return FExpanded
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Return FExpanded
 			'If Parent AndAlso Parent->Handle Then Return TreeView_GetItemState(Parent->Handle, Handle, TVIS_EXPANDED)
+		#else
+			Return FExpanded
 		#endif
 	End Function
 	
@@ -127,7 +140,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Cast(GridData Ptr, Parent)->TreeSelection Then
 				gtk_tree_selection_select_iter(Cast(GridData Ptr, Parent)->TreeSelection, @TreeIter)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				Var ItemIndex = This.GetItemIndex
 				If ItemIndex = -1 Then Exit Sub
@@ -190,7 +203,7 @@ Namespace My.Sys.Forms
 				If Cast(GridData Ptr, Parent)->TreeStore Then
 					gtk_tree_store_set (Cast(GridData Ptr, Parent)->TreeStore, @TreeIter, iSubItem + 1, ToUtf8(Value), -1)
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				'				If Parent AndAlso Parent->Handle Then
 				'					Var ItemIndex = This.GetItemIndex
 				'					If ItemIndex = -1 Then Exit Property
@@ -203,6 +216,11 @@ Namespace My.Sys.Forms
 				'				End If
 			#endif
 		End If
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent AndAlso Parent->Handle Then
+				Cast(GridData Ptr, Parent)->UpdateRow(@This)
+			End If
+		#endif
 	End Property
 	
 	Private Property GridDataItem.State As Integer
@@ -211,7 +229,7 @@ Namespace My.Sys.Forms
 	
 	Private Property GridDataItem.State(Value As Integer)
 		FState = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				Var ItemIndex = GetItemIndex
 				If ItemIndex = -1 Then Exit Property
@@ -238,7 +256,7 @@ Namespace My.Sys.Forms
 	
 	Private Property GridDataItem.Indent(Value As Integer)
 		FIndent = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				Var ItemIndex = GetItemIndex
 				If ItemIndex = -1 Then Exit Property
@@ -312,7 +330,7 @@ Namespace My.Sys.Forms
 				If Parent AndAlso Parent->Handle Then
 					gtk_tree_store_set (Cast(GridData Ptr, Parent)->TreeStore, @TreeIter, 0, ToUtf8(Value), -1)
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Parent Then
 					With QControl(Parent)
 						'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
@@ -340,7 +358,7 @@ Namespace My.Sys.Forms
 	Private Property GridDataItem.Visible(Value As Boolean)
 		If Value <> FVisible Then
 			FVisible = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Parent AndAlso Parent->Handle Then
 					Var ItemIndex = GetItemIndex
 					If ItemIndex = -1 Then Exit Property
@@ -384,7 +402,7 @@ Namespace My.Sys.Forms
 	End Destructor
 	
 	Private Sub GridDataColumn.SelectItem
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then ListView_SetSelectedColumn(Parent->Handle, Index)
 		#endif
 	End Sub
@@ -395,14 +413,15 @@ Namespace My.Sys.Forms
 	
 	Private Property GridDataColumn.Text(ByRef Value As WString)
 		WLet(FText, Value)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
-				lvc.mask = TVIF_TEXT
+				lvc.mask = LVCF_TEXT
 				lvc.iSubItem = Index
 				lvc.pszText = FText
 				lvc.cchTextMax = Len(*FText)
 				ListView_SetColumn(Parent->Handle, Index, @lvc)
+				GridDataUpdateHeaderLayout(Parent->Handle)
 			End If
 		#endif
 	End Property
@@ -419,7 +438,7 @@ Namespace My.Sys.Forms
 			#else
 				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(1, Value))
 			#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
 				lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
@@ -479,7 +498,7 @@ Namespace My.Sys.Forms
 	
 	Private Property GridDataColumn.Format(Value As ColumnFormat)
 		FFormat = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
 				lvc.mask = LVCF_FMT Or LVCF_SUBITEM
@@ -592,7 +611,7 @@ Namespace My.Sys.Forms
 			Next i
 			Return 0
 		End Function
-	#else
+	#elseif defined(__USE_WINAPI__)
 		Private Function GridDataItems.FindByHandle(Value As LPARAM) As GridDataItem Ptr
 			If ParentItem AndAlso ParentItem->HANDLE = Value Then Return ParentItem
 			For i As Integer = 0 To FItems.Count - 1
@@ -625,7 +644,7 @@ Namespace My.Sys.Forms
 				.Indent        = 0
 			End If
 			.Parent         = Parent
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.HANDLE = Cast(LPARAM, PItem)
 			#endif
 			.Items.Parent         = Parent
@@ -644,7 +663,7 @@ Namespace My.Sys.Forms
 					gtk_tree_store_set (Cast(GridData Ptr, Parent)->TreeStore, @PItem->TreeIter, 1, ToUtf8(FCaption), -1)
 				End If
 				PItem->Text(0) = FCaption
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Parent AndAlso Parent->Handle AndAlso (ParentItem = 0 OrElse ParentItem->IsExpanded) Then
 					lviItems.Mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 					lviItems.pszText  = @FCaption
@@ -660,6 +679,9 @@ Namespace My.Sys.Forms
 				End If
 			#endif
 		End With
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(GridData Ptr, Parent)->UpdateRows
+		#endif
 		Return PItem
 	End Function
 	
@@ -675,7 +697,7 @@ Namespace My.Sys.Forms
 	
 	Private Function GridDataItems.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, tLocked As Boolean=False, Indent As Integer = 0) As GridDataItem Ptr
 		Dim As GridDataItem Ptr PItem
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As LVITEM lvi
 		#endif
 		PItem = _New(GridDataItem)
@@ -690,7 +712,7 @@ Namespace My.Sys.Forms
 			Else
 				.Indent        = 0
 			End If
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.HANDLE 		= Cast(LPARAM, PItem)
 			#endif
 			.Parent         = Parent
@@ -700,7 +722,7 @@ Namespace My.Sys.Forms
 				ParentItem->State = IIf(ParentItem->IsExpanded, 2, 1)
 			End If
 			#ifdef __USE_GTK__
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Parent AndAlso Parent->Handle Then
 					lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 					lvi.pszText  = @FCaption
@@ -724,13 +746,16 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then
 				gtk_tree_store_remove(Cast(GridData Ptr, Parent)->TreeStore, @This.Item(Index)->TreeIter)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				Item(Index)->Visible = False
 				ListView_DeleteItem(Parent->Handle, Index)'David Change
 			End If
 		#endif
 		FItems.Remove Index
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(GridData Ptr, Parent)->UpdateRows
+		#endif
 	End Sub
 	
 	'	#IfNDef __USE_GTK__
@@ -779,7 +804,7 @@ Namespace My.Sys.Forms
 		If FItems.Count<1 Then Exit Sub
 		#ifdef __USE_GTK__
 			If Parent AndAlso Cast(GridData Ptr, Parent)->TreeStore Then gtk_tree_store_clear(Cast(GridData Ptr, Parent)->TreeStore)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			For i As Integer = FItems.Count - 1  To 1 Step -1 'if to 0 will be hanging
 				_Delete(Cast(GridDataItem Ptr, FItems.Items[i]))
 				FItems.Remove i
@@ -789,6 +814,9 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0
 		#endif
 		
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(GridData Ptr, Parent)->UpdateRows
+		#endif
 	End Sub
 	
 	Private Operator GridDataItems.Cast As Any Ptr
@@ -851,7 +879,7 @@ Namespace My.Sys.Forms
 	Private Function GridDataColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, tFormat As ColumnFormat = cfLeft, tDataType As GridDataTypeEnum = DT_String, tLocked As Boolean = False, tControlType As GridControlTypeEnum = CT_TextBox, ByRef tComboItem As WString = "", tSortOrder As SortStyle = SortStyle.ssSortAscending) As GridDataColumn Ptr
 		Dim As GridDataColumn Ptr PColumn
 		Dim As Integer Index
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As LVCOLUMN lvc
 		#endif
 		PColumn = _New(GridDataColumn)
@@ -910,7 +938,7 @@ Namespace My.Sys.Forms
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(1, iWidth))
 				#endif
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			lvc.mask      =LVCF_FMT Or LVCF_IMAGE Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM Or LVCFMT_IMAGE 'LVCF_TEXT |LVCF_WIDTH| LVCF_FMT |LVCF_SUBITEM
 			lvc.fmt       =  LVCFMT_LEFT Or LVCFMT_IMAGE Or LVCFMT_COL_HAS_IMAGES Or HDF_OWNERDRAW  'tFormat
 			lvc.cx		  = IIf(iWidth < 0, 100, iWidth)
@@ -923,10 +951,13 @@ Namespace My.Sys.Forms
 			PColumn->Parent = Parent
 			#ifdef __USE_GTK__
 				
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Parent->Handle Then
 					ListView_InsertColumn(Parent->Handle, PColumn->Index, @lvc)
+					GridDataUpdateHeaderLayout(Parent->Handle)
 				End If
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				Cast(GridData Ptr, Parent)->UpdateColumns
 			#endif
 		End If
 		Return PColumn
@@ -934,7 +965,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub GridDataColumns.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, tFormat As ColumnFormat = cfLeft, tDataType As GridDataTypeEnum = DT_String, tLocked As Boolean = False, tControlType As GridControlTypeEnum = CT_TextBox, ByRef tComboItem As WString = "", tSortOrder As SortStyle= SortStyle.ssSortAscending)
 		Dim As GridDataColumn Ptr PColumn
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As LVCOLUMN lvc
 		#endif
 		PColumn = _New(GridDataColumn)
@@ -951,7 +982,7 @@ Namespace My.Sys.Forms
 			.SortOrder = tSortOrder
 			.GridEditComboItem= tComboItem
 		End With
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			lvc.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
 			lvc.fmt       =  tFormat
 			lvc.cx = IIf(iWidth < 0, 100, iWidth)
@@ -963,6 +994,7 @@ Namespace My.Sys.Forms
 				PColumn->Parent = Parent
 				If Parent->Handle Then
 					ListView_InsertColumn(Parent->Handle, Index, @lvc)
+					GridDataUpdateHeaderLayout(Parent->Handle)
 					ListView_SetColumnWidth(Parent->Handle, Index, iWidth)
 				End If
 			End If
@@ -971,7 +1003,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub GridDataColumns.Remove(Index As Integer)
 		FColumns.Remove Index
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				SendMessage Parent->Handle, LVM_DELETECOLUMN, Cast(WPARAM, Index), 0
 			End If
@@ -986,7 +1018,7 @@ Namespace My.Sys.Forms
 		On Error Goto ErrorHandler
 		If FColumns.Count>0 Then
 			For i As Integer = FColumns.Count -1 To 0 Step -1
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETECOLUMN, Cast(WPARAM, i), 0
 				#endif
 				_Delete(Cast(GridDataColumn Ptr, FColumns.Items[i]))
@@ -1021,7 +1053,7 @@ Namespace My.Sys.Forms
 				gtk_tree_view_set_model(GTK_TREE_VIEW(widget), GTK_TREE_MODEL(TreeStore))
 				gtk_tree_view_set_enable_tree_lines(GTK_TREE_VIEW(widget), True)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			FLvi.iSubItem=0
 			FLvi.iItem=0
 			mCol=0: mRow=0
@@ -1060,7 +1092,7 @@ Namespace My.Sys.Forms
 		FColumnHeaderHidden = Value
 		#ifdef __USE_GTK__
 			gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(widget), Not Value)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeStyle LVS_NOCOLUMNHEADER, Value
 		#endif
 	End Property
@@ -1077,13 +1109,13 @@ Namespace My.Sys.Forms
 			#else
 				
 			#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			
 		#Endif
 	End Property
 	
 	Private Property GridData.View As ViewStyle
-		#IfnDef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then
 				FView = ListView_GetView(Handle)
 			End If
@@ -1093,7 +1125,7 @@ Namespace My.Sys.Forms
 	
 	Private Property GridData.View(Value As ViewStyle)
 		FView = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then Perform LVM_SETVIEW, Cast(wparam, Cast(DWord, Value)), 0
 		#endif
 	End Property
@@ -1104,7 +1136,7 @@ Namespace My.Sys.Forms
 			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
 				Return ListItems.FindByIterUser_Data(iter.User_Data)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				Dim As Integer Item = ListView_GetNextItem(HANDLE, -1, LVNI_SELECTED)
 				If Item <> -1 Then Return GetGridDataItem(Item)
@@ -1120,10 +1152,14 @@ Namespace My.Sys.Forms
 				Dim As GridDataItem Ptr lvi = ListItems.FindByIterUser_Data(iter.user_data)
 				If lvi <> 0 Then Return lvi->Index
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				Return ListView_GetNextItem(Handle, -1, LVNI_SELECTED)
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			For i As Integer = 0 To UBound(FRowItems)
+				If FRowItems(i) = FSelItem Then Return i
+			Next
 		#endif
 		Return -1
 	End Property
@@ -1138,9 +1174,12 @@ Namespace My.Sys.Forms
 					gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(widget), gtk_tree_model_get_path(GTK_TREE_MODEL(TreeStore), @ListItems.Item(Value)->TreeIter), NULL, False, 0, 0)
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ListView_SetItemState(Handle, Value, LVIS_FOCUSED Or LVIS_SELECTED, LVNI_SELECTED Or LVNI_FOCUSED)
 			ListView_EnsureVisible(Handle, Value, True)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Value >= 0 AndAlso Value <= UBound(FRowItems) Then FSelItem = FRowItems(Value) Else FSelItem = 0
+			If Handle Then TableSetIndex(Handle, IIf(FSelItem, Value, -1))
 		#endif
 	End Property
 	
@@ -1165,6 +1204,9 @@ Namespace My.Sys.Forms
 		If PenMode<>-1 Then mGridLinePenMode = PenMode
 		If tColorSelected<>-1 Then mGridColorSelected=tColorSelected
 		If tColorHover<>-1 Then mGridColorHover=tColorHover
+		#ifdef __USE_WINAPI__
+			If mHandleHeader Then InvalidateRect(mHandleHeader, NULL, False)
+		#endif
 	End Sub
 	
 	Private Property GridData.RowHeightHeader As Integer
@@ -1212,6 +1254,10 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			If mFontHandleHeader Then DeleteObject(mFontHandleHeader)
 			mFontHandleHeader = CreateFontW(-MulDiv(mFSizeHeader, mFCyPixelsHeader, 72), 0, mFOrientationHeader*mFSizeHeader, mFOrientationHeader*mFSizeHeader, mFBoldsHeader(Abs_(mFBoldHeader)), mFItalicHeader, mFUnderlineHeader, mFStrikeOutHeader, mFCharSetHeader, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, *mFNameHeader)
+			If FHandle AndAlso mHandleHeader Then
+				GridDataUpdateHeaderLayout(FHandle) 'the header height depends on the font
+				InvalidateRect(mHandleHeader, NULL, False)
+			End If
 		#endif
 	End Sub
 	
@@ -1262,7 +1308,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property GridData.SelectedColumn As GridDataColumn Ptr
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then
 				Return Columns.Column(ListView_GetSelectedColumn(Handle))
 			End If
@@ -1270,7 +1316,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Function GridData.GetGridDataItem(iItem As Integer) As GridDataItem Ptr
 			Dim lvi As LVITEM
 			lvi.mask = LVIF_PARAM
@@ -1288,7 +1334,7 @@ Namespace My.Sys.Forms
 	
 	Private Property GridData.Sort(Value As SortStyle)
 		FSortStyle = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case FSortStyle
 			Case SortStyle.ssNone
 				ChangeStyle LVS_SORTASCENDING, False
@@ -1394,7 +1440,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property GridData.SelectedColumn(Value As GridDataColumn Ptr)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then ListView_SetSelectedColumn(Handle, Value->Index)
 		#endif
 	End Property
@@ -1435,7 +1481,7 @@ Namespace My.Sys.Forms
 			
 		End Sub
 		Private Sub GridData.DrawRect(tDc As hDC,R As Rect,FillColor As Integer = -1,tSelctionRow As Integer = -1,tSelctionCol As Integer = -1)
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Static As HBRUSH BSelction
 				Static As HBRUSH BCellBack
 				Static As Integer FillColorSave
@@ -1512,21 +1558,142 @@ Namespace My.Sys.Forms
 			End If
 			'     ReleaseDC(mHandleHeader, GridDCHeader)
 		End Sub
-		
-		Private Sub GridData.GridReDraw(RowShowStart As Integer, RowShowEnd As Integer, RowHover As Integer = -1, ColHover As Integer = -1, DrawHeaderOnly As Boolean = False)
+
+		Private Sub GridData.DrawHeaderItem(tDC As HDC, iCol As Integer, ByVal R As Rect)
+			'Draws one column title. R is the full cell rect of the column in tDC coordinates.
+			If iCol < 0 OrElse iCol > Columns.Count - 1 Then Exit Sub
+			Dim As Short uFormatHeader
+			Dim As Integer tLeft = R.Left
+			DrawRect(tDC, R, mHeaderBackColor, -1, -1)
+			R.Left += 4
+			R.Right -= 3
+			uFormatHeader = IIf(Columns.Column(iCol)->FormatHeader = cfLeft, DT_VCENTER Or DT_LEFT, IIf(Columns.Column(iCol)->FormatHeader = cfRight, DT_VCENTER Or DT_RIGHT, DT_VCENTER Or DT_CENTER))
+			If InStr(Columns.Column(iCol)->Text, WChr(10)) Then
+				'DT_VCENTER works only with DT_SINGLELINE, so center multi-line titles by hand
+				uFormatHeader = uFormatHeader Or DT_WORDBREAK Or DT_EDITCONTROL
+				Dim As Rect RText = R
+				DrawText(tDC, Columns.Column(iCol)->Text, -1, @RText, uFormatHeader Or DT_CALCRECT)
+				Dim As Integer iTextHeight = RText.Bottom - RText.Top
+				If iTextHeight < R.Bottom - R.Top Then R.Top += (R.Bottom - R.Top - iTextHeight) \ 2
+			Else
+				uFormatHeader = uFormatHeader Or DT_SINGLELINE
+			End If
+			DrawText(tDC, Columns.Column(iCol)->Text, -1, @R, uFormatHeader)
+			If mSortColumn > 0 AndAlso iCol = mSortColumn Then
+				If Columns.Column(mSortColumn)->Format = cfRight Then
+					DrawSortArrow(tDC, R.Left, R.Bottom - 6, 6, 3, Columns.Column(iCol)->SortOrder)
+				Else
+					DrawSortArrow(tDC, R.Right - 12, R.Bottom - 6, 6, 3, Columns.Column(iCol)->SortOrder)
+				End If
+			End If
+			'Draw vertical Line
+			DrawLine(tDC, tLeft - 1, 0, tLeft - 1, R.Bottom - 1, mGridColorLineHeader, mGridLineWidth, mGridLinePenMode)
+		End Sub
+
+		Private Function GridData.HeaderHeightNeeded() As Integer
+			'Height that fits the column title with the most lines
+			If mHandleHeader = 0 OrElse mFontHandleHeader = 0 Then Return 0
+			Dim As Integer iLines = 1, n, iPos
+			For i As Integer = 0 To Columns.Count - 1
+				n = 1
+				iPos = InStr(Columns.Column(i)->Text, WChr(10))
+				While iPos > 0
+					n += 1
+					iPos = InStr(iPos + 1, Columns.Column(i)->Text, WChr(10))
+				Wend
+				If n > iLines Then iLines = n
+			Next
+			Dim As HDC PaintDC = GetDC(mHandleHeader)
+			Dim As HGDIOBJ hFontOld = SelectObject(PaintDC, mFontHandleHeader)
+			Dim As TEXTMETRIC tm
+			GetTextMetrics(PaintDC, @tm)
+			SelectObject(PaintDC, hFontOld)
+			ReleaseDC(mHandleHeader, PaintDC)
+			Return iLines * (tm.tmHeight + tm.tmExternalLeading) + 6
+		End Function
+
+		Private Sub GridData.PaintHeader()
+			'The only place where the column titles are drawn
+			Dim As PAINTSTRUCT ps
+			Dim As HDC PaintDC = BeginPaint(mHandleHeader, @ps)
+			Dim As Rect rcClient, rcItem
+			GetClientRect(mHandleHeader, @rcClient)
+			Dim As HDC memDC = CreateCompatibleDC(PaintDC)
+			Dim As HBITMAP Bmp = CreateCompatibleBitmap(PaintDC, rcClient.Right, rcClient.Bottom)
+			Dim As HGDIOBJ BmpOld = SelectObject(memDC, Bmp)
+			Dim As HGDIOBJ FontOld = SelectObject(memDC, mFontHandleHeader)
+			SetBkMode(memDC, TRANSPARENT)
+			SetTextColor(memDC, mHeaderForeColor)
+			DrawRect(memDC, rcClient, mHeaderBackColor, -1, -1)
+			Dim As Integer iCount = Header_GetItemCount(mHandleHeader), iRight = 0
+			For i As Integer = 0 To iCount - 1
+				Header_GetItemRect(mHandleHeader, i, @rcItem)
+				If rcItem.Right > rcItem.Left Then DrawHeaderItem(memDC, i, rcItem)
+				If rcItem.Right > iRight Then iRight = rcItem.Right
+			Next
+			'Draw the last vertical Line
+			If iCount > 0 Then DrawLine(memDC, iRight - 1, 0, iRight - 1, rcClient.Bottom - 1, mGridColorLineHeader, mGridLineWidth, mGridLinePenMode)
+			BitBlt(PaintDC, 0, 0, rcClient.Right, rcClient.Bottom, memDC, 0, 0, SRCCOPY)
+			SelectObject(memDC, FontOld)
+			SelectObject(memDC, BmpOld)
+			DeleteObject(Bmp)
+			DeleteDC(memDC)
+			EndPaint(mHandleHeader, @ps)
+		End Sub
+
+		Private Function GridData.HeaderSubclassProc(ByVal hWnd As HWND, ByVal uMsg As UINT, ByVal wParam As WPARAM, ByVal lParam As LPARAM, ByVal uIdSubclass As UINT_PTR, ByVal dwRefData As DWORD_PTR) As LRESULT
+			Select Case uMsg
+			Case HDM_LAYOUT
+				'The ListView asks the header for its height here; make it tall enough for multi-line titles
+				Dim As LRESULT lResult = DefSubclassProc(hWnd, uMsg, wParam, lParam)
+				Dim As HDLAYOUT Ptr pLayout = Cast(HDLAYOUT Ptr, lParam)
+				Dim As GridData Ptr pGrid = Cast(GridData Ptr, dwRefData)
+				If pGrid AndAlso pLayout AndAlso pLayout->pwpos AndAlso pLayout->prc AndAlso (pLayout->pwpos->flags And SWP_HIDEWINDOW) = 0 Then
+					Dim As Integer iHeight = pGrid->HeaderHeightNeeded()
+					If iHeight > pLayout->pwpos->cy Then
+						pLayout->prc->top += iHeight - pLayout->pwpos->cy
+						pLayout->pwpos->cy = iHeight
+					End If
+				End If
+				Return lResult
+			Case WM_ERASEBKGND
+				Return 1
+			Case WM_SIZE
+				'When the height changes, Windows invalidates only the new strip; the titles are centered, so repaint all
+				InvalidateRect(hWnd, NULL, False)
+			Case WM_PAINT
+				Dim As GridData Ptr pGrid = Cast(GridData Ptr, dwRefData)
+				If pGrid Then
+					pGrid->PaintHeader()
+					Return 0
+				End If
+			Case WM_NCDESTROY
+				RemoveWindowSubclass(hWnd, @GridData.HeaderSubclassProc, uIdSubclass)
+			End Select
+			Return DefSubclassProc(hWnd, uMsg, wParam, lParam)
+		End Function
+
+		Private Sub GridData.GridReDraw(RowShowStart As Integer, RowShowEnd As Integer, RowHover As Integer = -1, ColHover As Integer = -1, DrawHeaderOnly As Boolean = False, tDC As HDC = 0)
 			'https://blog.csdn.net/hurryboylqs/article/details/5858997
+			'The cells are drawn only into the ListView's paint DC (tDC, from NM_CUSTOMDRAW CDDS_POSTPAINT).
+			'Without tDC, ask the ListView to repaint now; then it calls back here with its DC.
+			If tDC = 0 Then
+				If DrawHeaderOnly Then
+					If mHandleHeader Then InvalidateRect(mHandleHeader, NULL, False)
+				ElseIf FHandle Then
+					InvalidateRect(FHandle, NULL, False)
+					UpdateWindow(FHandle)
+				End If
+				Exit Sub
+			End If
 			If ListItems.Count <1 Then Exit Sub 'NO ANY DATA
 			Dim As Integer iColCount=Columns.Count-1
 			If iColCount<0 OrElse ColHover>iColCount Then Exit Sub 'NO ANY DATA
 			Dim As Integer iRow=0, iCol=0,iColEnd=-1,iColStart=-1,iCT=0,GridWidth=0,GridHeight=0
 			Dim As Integer iColorBK=0,iForeColor=0
 			Dim As SCROLLINFO Si
-			Dim As HDC GridDCHeader = GetDC(mHandleHeader)
-			Dim As HDC memDCHeader =CreateCompatibleDC(GridDCHeader)
-			Dim As HBITMAP BmpHeader
-			If GridDCHeader<=0 OrElse memDCHeader <= 0  Then Exit Sub
-			Dim As Short uFormatHeader,uFormat
-			Dim As Rect REC(iColCount),RectHeader,RectCell
+			Dim As Short uFormat
+			Dim As Rect REC(iColCount),RectCell
 			Dim As WString Ptr sText
 			'ShowScrollBar(Handle, SB_HORZ,True)'  .SB_HORZ, @Si) 'SB_VERT HORZ
 			
@@ -1564,68 +1731,13 @@ Namespace My.Sys.Forms
 			If iColStart<0 Then iColStart=0
 			If iColEnd>iColCount OrElse iColEnd<=iColStart Then iColEnd=iColCount
 			If si.nPos<0 OrElse mCountPerPage<1 OrElse mDrawRowStart<0 Then Exit Sub
-			SelectObject(GridDCHeader,mFontHandleHeader)
-			
-			BmpHeader = CreateCompatibleBitmap(GridDCHeader,mClientRectHeader.Right,mClientRectHeader.Bottom)
-			SelectObject(MemDcHeader,BmpHeader)
-			'PostMessage(mHandleHeader, WM_SETREDRAW, False, 0) 'DO NOT UPDATING THE TITLE BAR
-			'PostMessage(mHandleHeader,WM_ERASEBKGND, CInt(MemDCHeader), CInt(MemDCHeader))
-			FillRect memDcHeader, @mClientRectHeader,This.Brush.Handle
-			SetBkMode(memDCHeader, TRANSPARENT)
-			DrawRect(memDcHeader, mClientRectHeader, mHeaderBackColor,-1,-1)
-			SetTextColor(memDcHeader, mHeaderForeColor)
-			
-			'Draw Header
-			For iCol = iColStart To iColEnd
-				RectCell= REC(iCol)
-				RectCell.Top=REC(0).Top: RectCell.Bottom=REC(0).Bottom
-				If RectCell.Right-RectCell.Left <= 5 Then Continue For
-				'Print "CType ",iCT," DataType ",Columns.Column(iCol)->DataType
-				'SendMessage(mHandleHeader, WM_SETREDRAW, False, 0) 'DO NOT UPDATING THE TITLE BAR
-				RectHeader=REC(iCol)
-				WLet(sText, Columns.Column(iCol)->Text)
-				RectHeader.Top=0
-				RectHeader.Bottom =mRowHeightHeader'REC(0).Top
-				RectHeader.Left=Si.nPos+REC(iCol).Left
-				RectHeader.Right=Si.nPos+REC(iCol).Right
-				DrawRect(MemDCHeader, RectHeader,mHeaderBackColor,-1,-1)
-				RectHeader.Left=Si.nPos+REC(iCol).Left+4
-				RectHeader.Right=Si.nPos+REC(iCol).Right-3
-				uFormatHeader=IIf(Columns.Column(iCol)->FormatHeader =cfLeft,DT_VCENTER Or DT_LEFT,IIf(Columns.Column(iCol)->FormatHeader =cfRight,DT_VCENTER Or DT_RIGHT,DT_VCENTER Or DT_CENTER))
-				uFOrmatHeader=uFOrmatHeader Or IIf(InStr(*sText,WChr(10)),DT_WORDBREAK Or DT_EDITCONTROL,DT_SINGLELINE)
-				DrawText(MemDCHeader, *sText, -1, @RectHeader, uFormatHeader)'Or DT_SINGLELINE
-				
-				'https://docs.microsoft.com/zh-cn/windows/win32/api/winuser/nf-winuser-drawframecontrol
-				'if icol mod 2 then
-				'   DrawFrameControl(MemDCHeader, @RectHeader,DFC_SCROLL,DFCS_SCROLLDOWN or DFCS_FLAT or DFCS_INACTIVE) 'DFC_BUTTON,DFCS_BUTTONRADIO)
-				'else
-				'   DrawFrameControl(MemDCHeader, @RectHeader,DFC_SCROLL,DFCS_SCROLLUP or DFCS_FLAT or DFCS_INACTIVE) 'DFC_BUTTON,DFCS_BUTTONRADIO)
-				'end if
-				If mSortColumn>0 AndAlso icol=mSortColumn Then
-					If Columns.Column(mSortColumn)->Format=cfRight Then
-						DrawSortArrow(MemDCHeader,RectHeader.Left,mRowHeightHeader- 6, 6, 3, Columns.Column(iCol)->SortOrder)
-					Else
-						DrawSortArrow(MemDCHeader,RectHeader.Right-12,mRowHeightHeader- 6, 6, 3, Columns.Column(iCol)->SortOrder)
-					End If
-				End If
-				'Draw vertical Line
-				DrawLine(MemDCHeader,si.nPos+REC(iCol).Left-1,0,si.nPos+ REC(iCol).Left-1,mRowHeightHeader-1,mGridColorLineHeader,mGridLineWidth,mGridLinePenMode)
-			Next
-			'Draw the last vertical Line
-			DrawLine(MemDCHeader,si.nPos+REC(iColEnd).Right-1,0,si.nPos+ REC(iColEnd).Right-1,mRowHeightHeader-1,mGridColorLineHeader,mGridLineWidth,mGridLinePenMode)
-			'Draw the right Blank area
-			RectCell.Bottom=mRowHeightHeader+1
-			DrawRect(MemDCHeader,RectCell, mGridColorBack,-1,-1)
-			BitBlt(GridDCHeader, 0, 0,mClientRectHeader.Right, mClientRectHeader.Bottom, MemDCHeader, 0, 0, SRCCOPY)
-			DeleteObject(BmpHeader)
-			DeleteDC(MemDCHeader)
-			ReleaseDC(mHandleHeader, GridDCHeader)
-			If DrawHeaderOnly Then Exit Sub
-			
+			'The header paints itself in its own WM_PAINT (HeaderSubclassProc -> PaintHeader), only there
+
 			Dim As HBITMAP Bmp
-			Dim As HDC GridDC = GetDC(HANDLE)
+			Dim As HDC GridDC = tDC
 			Dim As HDC memDC = CreateCompatibleDC(GridDC)
-			If GridDC <= 0 OrElse memDCHeader <= 0  Then Exit Sub
+			'Handles can have the high bit set (they look negative), so compare with 0 only; "<= 0" skipped the drawing at random
+			If GridDC = 0 OrElse memDC = 0 Then Exit Sub
 			SelectObject(GridDC,mFontHandleBody)
 			Bmp = CreateCompatibleBitmap(GridDC, mClientRect.Right, mClientRect.Bottom)
 			SelectObject(MemDc,Bmp)
@@ -1825,10 +1937,95 @@ Namespace My.Sys.Forms
 			BitBlt(GridDC, 0, 0,mClientRect.Right, mClientRect.Bottom, memDC, 0, 0, SRCCOPY)
 			DeleteObject(Bmp)
 			DeleteDC(memDC)
-			ReleaseDC(Handle, GridDC)
 		End Sub
 	#endif
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Function GridData.RowCells(Item As GridDataItem Ptr) As String
+			Dim As WString * 3 Sign = IIf(Item->Items.Count = 0, "", IIf(Item->IsExpanded, WChr(&H25BC) & " ", WChr(&H25BA) & " "))
+			Dim As String sRow = Space(Item->Indent * 4) & ToUtf8(Sign & Item->Text(0))
+			For i As Integer = 1 To Columns.Count - 1
+				sRow &= Chr(9) & ToUtf8(Item->Text(i))
+			Next
+			Return sRow
+		End Function
+
+		Private Sub GridData.UpdateRow(Item As GridDataItem Ptr)
+			For i As Integer = 0 To UBound(FRowItems)
+				If FRowItems(i) = Item Then TableSetRow(FHandle, i, RowCells(Item)): Exit For
+			Next
+		End Sub
+		
+		Private Sub GridData.AddRows(PItems As GridDataItems Ptr)
+			For i As Integer = 0 To PItems->Count - 1
+				Dim As GridDataItem Ptr PItem = PItems->Item(i)
+				If PItem = 0 Then Continue For
+				TableInsertRow(FHandle, -1, RowCells(PItem))
+				ReDim Preserve FRowItems(UBound(FRowItems) + 1)
+				FRowItems(UBound(FRowItems)) = PItem
+				If PItem->IsExpanded Then AddRows(@PItem->Items)
+			Next
+		End Sub
+
+		Private Sub GridData.UpdateRows()
+			If FHandle = 0 Then Exit Sub
+			TableClear(FHandle)
+			Erase FRowItems
+			AddRows(@ListItems)
+			For i As Integer = 0 To UBound(FRowItems)
+				If FRowItems(i) = FSelItem Then TableSetIndex(FHandle, i): Exit For
+			Next
+		End Sub
+
+		Private Sub GridData.UpdateColumns()
+			If FHandle = 0 Then Exit Sub
+			Dim As String Captions, Widths
+			For i As Integer = 0 To Columns.Count - 1
+				If i > 0 Then Captions &= Chr(10): Widths &= Chr(10)
+				Captions &= ToUtf8(Columns.Column(i)->Text)
+				Widths &= Str(Columns.Column(i)->ColWidth)
+			Next
+			TableSetColumns(FHandle, Captions, Widths)
+		End Sub
+
+		Private Sub GridData.HandleIsAllocated(ByRef Sender As Control)
+			If Sender.Child Then
+				With QGridData(Sender.Child)
+					TableInit(.FHandle)
+					.UpdateColumns
+					.UpdateRows
+				End With
+			End If
+		End Sub
+	#endif
+
 	Private Sub GridData.ProcessMessage(ByRef Message As Message)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Message.Msg = CM_CHANGE Then
+				Dim As Integer RowIndex
+				#ifdef __USE_JNI__
+					RowIndex = Message.wParam
+				#else
+					RowIndex = TableGetIndex(FHandle)
+				#endif
+				If RowIndex >= 0 AndAlso RowIndex <= UBound(FRowItems) Then
+					Dim As GridDataItem Ptr PItem = FRowItems(RowIndex)
+					FSelItem = PItem
+					'Web: a double click, Android: a tap opens or closes the item or activates it
+					#ifdef __USE_WASM__
+						If TableDblClick(FHandle) Then
+					#endif
+						If PItem->Items.Count > 0 Then
+							If PItem->IsExpanded Then PItem->Collapse Else PItem->Expand
+						ElseIf OnItemActivate Then
+							OnItemActivate(*Designer, This, PItem)
+						End If
+					#ifdef __USE_WASM__
+						End If
+					#endif
+				End If
+				Message.Handled = True
+			End If
+		#endif
 		'?message.msg, GetMessageName(message.msg)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.Event
@@ -1840,7 +2037,7 @@ Namespace My.Sys.Forms
 			Case GDK_MAP
 				Init
 			End Select
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Static As HDC nmcdhDC '=-1
 			Static As Boolean tSCROLL_HorV,tRefresh
 			Static As Integer  ComboColOld
@@ -1852,15 +2049,12 @@ Namespace My.Sys.Forms
 			'if WM_PAINT<>Message.Msg and Message.Msg<>WM_DRAWITEM then print *FClassName +": " +GetMessageName(message.msg)
 			'Print *FClassName +": " +GetMessageName(message.msg)
 			Select Case Message.Msg
-				
+
 			Case CM_CREATE
 				GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol)
-			Case WM_PAINT
-				GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol)
-				'message.Result = -1' CDRF_SKIPDEFAULT 'CDRF_SKIPDEFAULT=4  This is very important for custmor draw Will infect the other window showing if have Value
-				' case WM_ICONERASEBKGND
-			Case WM_ERASEBKGND
-				Message.Result = -1'CDRF_SKIPDEFAULT  ' This is very important for custmor draw
+				'WM_PAINT and WM_ERASEBKGND are left to the ListView: the cells are drawn inside its own paint,
+				'in NM_CUSTOMDRAW CDDS_POSTPAINT (see CM_NOTIFY), the same way as Grid.bas does it.
+				'Drawing with GetDC from WM_PAINT was lost or painted over (black or empty grid after maximize, rows shown late).
 				'      case WM_NCHITTEST
 				'      CASE WM_WINDOWPOSCHANGING
 				'         message.Result =    CDRF_SKIPDEFAULT
@@ -1930,9 +2124,17 @@ Namespace My.Sys.Forms
 				Message.Result = CDRF_DODEFAULT
 				Select Case lplvcd->nmcd.hdr.code
 				Case NM_CUSTOMDRAW
-					'Drawing too many times. Showing slowly.
-					'GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol,True)
-					Message.Result =0' CDRF_SKIPDEFAULT
+					'Like Grid.bas: let the ListView paint its background, then draw all cells into its paint DC
+					Message.Result = CDRF_DODEFAULT
+					If lplvcd->nmcd.hdr.hwndFrom = FHandle Then
+						Select Case lplvcd->nmcd.dwDrawStage
+						Case CDDS_PREPAINT
+							Message.Result = CDRF_NOTIFYPOSTPAINT
+						Case CDDS_POSTPAINT
+							GetClientRect FHandle, @mClientRect
+							GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol, False, lplvcd->nmcd.hdc)
+						End Select
+					End If
 				Case NM_CLICK
 					'Print "NM_CLICK ", lvp->iItem, lvp->iSubItem    'Nothing   when in NM_CUSTOMDRAW mode
 					'Updating the input result
@@ -2012,6 +2214,7 @@ Namespace My.Sys.Forms
 						'ssNone ssSortAscending ssSortDescending
 						Columns.Column(mSortColumn)->SortOrder = IIf(Columns.Column(mSortColumn)->SortOrder = SortStyle.ssNone, SortStyle.ssSortAscending, IIf(Columns.Column(mSortColumn)->SortOrder = SortStyle.ssSortAscending, SortStyle.ssSortDescending, SortStyle.ssNone))
 						SortData(mSortColumn,Columns.Column(mSortColumn)->SortOrder)
+						If mHandleHeader Then InvalidateRect(mHandleHeader, NULL, False) 'sort arrow
 						GridReDraw(mDrawRowStart, mDrawRowStart + mCountPerPage,mRow, mCol)
 						GridEditText.Visible=False'Force GRID to Refresh
 					End If
@@ -2348,7 +2551,7 @@ Namespace My.Sys.Forms
 			WDeallocate sText
 		End Sub
 	#endif
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub GridData.HandleIsDestroyed(ByRef Sender As Control)
 		End Sub
 		
@@ -2378,10 +2581,12 @@ Namespace My.Sys.Forms
 					'SendMessage(.Handle, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, lvStyle)
 					GridDC =GetDC(.Handle)
 					.mHandleHeader = ListView_GetHeader(.Handle)
+					If .mHandleHeader Then SetWindowSubclass(.mHandleHeader, @GridData.HeaderSubclassProc, 1, Cast(DWORD_PTR, @QGridData(Sender.Child)))
 					GridDCHeader = GetDC(.mHandleHeader)
 					SetBkMode GridDCHeader, TRANSPARENT
 					SetBkMode GridDC, TRANSPARENT
-					PostMessage(.HandleHeader, WM_SETREDRAW, False, 0) 'DO NOT UPDATING THE TITLE BAR
+					'The header must be able to repaint itself, otherwise the column titles are missing on the first show (issue #55)
+					'PostMessage(.HandleHeader, WM_SETREDRAW, False, 0) 'DO NOT UPDATING THE TITLE BAR
 					.GridEditText.ParentHandle=.Handle
 					.GridEditComboBox.ParentHandle=.Handle
 					.GridEditDateTimePicker.ParentHandle=.Handle
@@ -2436,6 +2641,7 @@ Namespace My.Sys.Forms
 						ListView_InsertColumn(.Handle, i, @lvc)
 						ListView_SetColumnWidth(.Handle, i, .Columns.Column(i)->ColWidth)
 					Next i
+					GridDataUpdateHeaderLayout(.Handle)
 					For i As Integer = 0 To .ListItems.Count -1
 						Dim lvi As LVITEM
 						lvi.Mask = LVIF_TEXT Or LVIF_IMAGE
@@ -2519,7 +2725,7 @@ Namespace My.Sys.Forms
 			End If
 			Return False
 		End Function
-	#else
+	#elseif defined(__USE_WINAPI__)
 		
 	#endif
 	
@@ -2592,7 +2798,7 @@ Namespace My.Sys.Forms
 		GridEditText.Visible = False
 		With This
 			.Child             = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.OnHandleIsDestroyed = @HandleIsDestroyed
 				.RegisterClass "GridData", WC_LISTVIEW
@@ -2601,6 +2807,13 @@ Namespace My.Sys.Forms
 				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_SINGLESEL Or LVS_OWNERDRAWFIXED 'Or LVS_SHOWSELALWAYS OR LVS_EDITLABELS OR LVS_EX_DOUBLEBUFFER
 				.DoubleBuffered = True
 				WLet(FClassAncestor, WC_LISTVIEW)
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "table")
+				FElementStyle = "border: 1px solid #aaa; background: white;"
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "android/widget/ListView")
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			WLet(FClassName, "GridData")
 			.Width             = 121
@@ -2617,12 +2830,12 @@ Namespace My.Sys.Forms
 	Private Destructor GridData
 		ListItems.Clear
 		Columns.Clear
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			UnregisterClass "GridData",GetModuleHandle(NULL)
 			If mFontHandleBody Then DeleteObject(mFontHandleBody)
 			If mFontHandleHeader Then DeleteObject(mFontHandleHeader)
 			If mFontHandleBodyUnderline Then DeleteObject(mFontHandleBodyUnderline)
-		#else
+		#elseif defined(__USE_GTK__)
 			If ColumnTypes Then _DeleteSquareBrackets(ColumnTypes)
 		#endif
 		WDeAllocate FClassName

@@ -8,7 +8,7 @@
 '#Include Once "Canvas.bi"
 
 Namespace My.Sys.Forms
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub UserControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QUserControl(Sender.Child)
@@ -20,7 +20,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	Private Sub UserControl.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case WM_PAINT
 				Dim As HDC Dc
@@ -50,7 +50,7 @@ Namespace My.Sys.Forms
 			#endif
 			Canvas.Ctrl    = @This
 			.Child       = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.RegisterClass "UserControl"
 				.ChildProc   = @WndProc
 				.ExStyle     = 0
@@ -65,7 +65,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor UserControl
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			UnregisterClass "UserControl", GetModuleHandle(NULL)
 		#endif
 	End Destructor

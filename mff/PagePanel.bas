@@ -298,7 +298,7 @@ Namespace My.Sys.Forms
 						If bVisible Then
 							SetWindowPos FHandle, IIf(FDesignMode, NumericUpDownControl.Handle, HWND_TOP), 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
 						End If
-					#else
+					#elseif defined(__USE_GTK__)
 						If FDesignMode Then 
 							If scrolledwidget Then
 								If bVisible Then
@@ -336,6 +336,16 @@ Namespace My.Sys.Forms
 	
 	Private Sub PagePanel.Add(Ctrl As Control Ptr, Index As Integer = -1)
 		Base.Add(Ctrl, Index)
+		#ifdef __USE_GTK4__
+			' The page was sized before it was added (SetBounds before Parent): the stack gives it its size
+			If Ctrl AndAlso Ctrl->widget AndAlso widget Then
+				Dim As GtkWidget Ptr PageWidget = Ctrl->widget
+				While PageWidget AndAlso gtk_widget_get_parent(PageWidget) <> 0 AndAlso gtk_widget_get_parent(PageWidget) <> widget
+					PageWidget = gtk_widget_get_parent(PageWidget)
+				Wend
+				If PageWidget AndAlso gtk_widget_get_parent(PageWidget) = widget Then gtk_widget_set_size_request(PageWidget, -1, -1)
+			End If
+		#endif
 		If FDesignMode Then
 			#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK2__)
 				NumericUpDownControl.MaxValue = Max(-1, ControlCount - 1)
@@ -361,7 +371,7 @@ Namespace My.Sys.Forms
 		With Sender
 			If .Ctrl->Child Then
 				#ifdef __USE_GTK__
-				#else
+				#elseif defined(__USE_WINAPI__)
 					.Ctrl->Repaint
 				#endif
 			End If
@@ -413,7 +423,7 @@ Namespace My.Sys.Forms
 			'NumericUpDownControl.Align = DockStyle.alBottom
 			#ifdef __USE_GTK__
 				NumericUpDownControl.Width = 100
-			#else
+			#elseif defined(__USE_WINAPI__)
 				NumericUpDownControl.Width = 70
 			#endif
 			NumericUpDownControl.Style = udHorizontal

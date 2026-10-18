@@ -32,7 +32,9 @@ Namespace My.Sys.Forms
 		#else
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
-			Declare Static Function IPAddressWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			#ifdef __USE_WINAPI__
+				Declare Static Function IPAddressWndProc(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
+			#endif
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:

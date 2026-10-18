@@ -143,8 +143,10 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			' GTK has no SetDark: the dark theme of the application
 			Dim As Boolean bDark = g_darkModeEnabled
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As Boolean bDark = FDarkMode
+		#else
+			Dim As Boolean bDark = False
 		#endif
 		If bDark Then
 			clrBack    = BGR(45, 45, 48)
@@ -233,7 +235,7 @@ Namespace My.Sys.Forms
 			'independent of the public OnPaint field the same way the Win32 branch does.
 			Base.ProcessMessage(Message)
 		End Sub
-	#else
+	#elseif defined(__USE_WINAPI__)
 		Private Sub Ruler.ProcessMessage(ByRef Message As Message)
 			Select Case Message.Msg
 			Case WM_PAINT
@@ -277,6 +279,14 @@ Namespace My.Sys.Forms
 				Message.Result = 0
 				Return
 			End Select
+			Base.ProcessMessage(Message)
+		End Sub
+	#else
+		Private Sub Ruler.ProcessMessage(ByRef Message As Message)
+			'Web, Android: the ruler is drawn on the canvas of the control before OnPaint
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				If Message.Msg = CM_PAINT Then DrawRuler(Canvas)
+			#endif
 			Base.ProcessMessage(Message)
 		End Sub
 	#endif

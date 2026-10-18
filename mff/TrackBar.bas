@@ -88,19 +88,25 @@ Namespace My.Sys.Forms
 		If APosition > AMax Then APosition = AMax
 		If FMinValue <> AMin Then
 			FMinValue = AMin
-			#ifndef __USE_GTK__
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				If FHandle Then ..SetRange(FHandle, FMinValue, FMaxValue)
+			#elseif defined(__USE_WINAPI__)
 				If Handle Then Perform(TBM_SETRANGEMIN, 1, AMin)
 			#endif
 		End If
 		If FMaxValue <> AMax Then
 			FMaxValue = AMax
-			#ifndef __USE_GTK__
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				If FHandle Then ..SetRange(FHandle, FMinValue, FMaxValue)
+			#elseif defined(__USE_WINAPI__)
 				If Handle Then Perform(TBM_SETRANGEMAX, 1, AMax)
 			#endif
 		End If
 		If FPosition <> APosition Then
 			FPosition = APosition
-			#ifndef __USE_GTK__
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				If FHandle Then SetPosition(FHandle, APosition)
+			#elseif defined(__USE_WINAPI__)
 				If Handle Then Perform(TBM_SETPOS, 1, APosition)
 			#endif
 			If OnChange Then OnChange(*Designer, This, Position)
@@ -119,7 +125,9 @@ Namespace My.Sys.Forms
 				gtk_range_set_range(gtk_range(widget), Value, FMaxValue)
 			End If
 			TickStyle = FTickStyle
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then ..SetRange(FHandle, FMinValue, FMaxValue)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(TBM_SETRANGEMIN, 1, Value)
 		#endif
 		'SetRanges(FPosition, Value, FMaxValue)
@@ -134,7 +142,9 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If FMinValue < Value Then gtk_range_set_range(GTK_RANGE(widget), FMinValue, Value)
 			TickStyle = FTickStyle
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then ..SetRange(FHandle, FMinValue, FMaxValue)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(TBM_SETRANGEMAX, 1, Value)
 		#endif
 		'SetRanges(FPosition, FMinValue, Value)
@@ -143,7 +153,9 @@ Namespace My.Sys.Forms
 	Private Property TrackBar.Position As Integer
 		#ifdef __USE_GTK__
 			FPosition = gtk_range_get_value(GTK_RANGE(widget))
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then FPosition = GetPosition(FHandle)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then FPosition = Perform(TBM_GETPOS, 0, 0)
 		#endif
 		Return FPosition
@@ -153,7 +165,9 @@ Namespace My.Sys.Forms
 		FPosition = Value
 		#ifdef __USE_GTK__
 			gtk_range_set_value(GTK_RANGE(widget), CDbl(Value))
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then SetPosition(FHandle, FPosition)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(TBM_SETPOS, True, FPosition)
 		#endif
 		If OnChange Then OnChange(*Designer, This, FPosition)
@@ -169,7 +183,7 @@ Namespace My.Sys.Forms
 			FLineSize = Value
 			#ifdef __USE_GTK__
 				gtk_range_set_increments(gtk_range(widget), FLineSize, FPageSize)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Handle Then Perform(TBM_SETLINESIZE, 0, FLineSize)
 			#endif
 		End If
@@ -184,7 +198,7 @@ Namespace My.Sys.Forms
 			FPageSize = Value
 			#ifdef __USE_GTK__
 				gtk_range_set_increments(gtk_range(widget), FLineSize, FPageSize)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Handle Then Perform(TBM_SETPAGESIZE, 0, FPageSize)
 			#endif
 		End If
@@ -199,7 +213,7 @@ Namespace My.Sys.Forms
 			FThumbLength = Value
 			#ifdef __USE_GTK__
 				gtk_range_set_min_slider_size(gtk_range(widget), Value)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Handle Then Perform(TBM_SETTHUMBLENGTH, Value, 0)
 			#endif
 		End If
@@ -214,7 +228,7 @@ Namespace My.Sys.Forms
 			FFrequency = Value
 			#ifdef __USE_GTK__
 				TickStyle = FTickStyle
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Handle Then Perform(TBM_SETTICFREQ, FFrequency, 1)
 			#endif
 		End If
@@ -227,7 +241,7 @@ Namespace My.Sys.Forms
 	Private Property TrackBar.SliderVisible(Value As Boolean)
 		If Value <> FSliderVisible Then
 			FSliderVisible = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMark)) Or ASliderVisible(Abs_(FSliderVisible))
 			#endif
 		End If
@@ -240,7 +254,7 @@ Namespace My.Sys.Forms
 	Private Property TrackBar.SelStart(Value As Integer)
 		If Value <> FSelStart Then
 			FSelStart = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Handle Then
 					If (FSelStart = 0) And (FSelEnd = 0) Then
 						Perform(TBM_CLEARSEL, 1, 0)
@@ -259,7 +273,7 @@ Namespace My.Sys.Forms
 	Private Property TrackBar.SelEnd(Value As Integer)
 		If Value <> SelEnd Then
 			FSelEnd = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Handle Then
 					If (FSelStart = 0) And (FSelEnd = 0) Then
 						Perform(TBM_CLEARSEL, 1, 0)
@@ -281,7 +295,7 @@ Namespace My.Sys.Forms
 				gtk_scale_add_mark(gtk_scale(widget), Value, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
 				gtk_scale_add_mark(gtk_scale(widget), Value, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(TBM_SETTIC, 0, Value)
 		#endif
 	End Sub
@@ -302,7 +316,7 @@ Namespace My.Sys.Forms
 				gtk_scale_add_mark(gtk_scale(widget), FMaxValue, IIf(FStyle = tbHorizontal, GTK_POS_TOP, GTK_POS_LEFT), 0)
 				gtk_scale_add_mark(gtk_scale(widget), FMaxValue, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(TBM_CLEARTICS, True, 0)
 		#endif
 	End Sub
@@ -315,7 +329,7 @@ Namespace My.Sys.Forms
 		FTickMark = Value
 		#ifdef __USE_GTK__
 			TickStyle = FTickStyle 
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(Abs_(FStyle)) Or ATickStyles(Abs_(FTickStyle)) Or ATickMarks(Abs_(FTickMark)) Or ASliderVisible(Abs_(FSliderVisible))
 			RecreateWnd
 		#endif
@@ -355,7 +369,7 @@ Namespace My.Sys.Forms
 					gtk_scale_add_mark(GTK_SCALE(widget), FMaxValue, IIf(FStyle = tbHorizontal, GTK_POS_BOTTOM, GTK_POS_RIGHT), 0)
 				End If
 			End Select
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(abs_(FStyle)) Or ATickStyles(abs_(FTickStyle)) Or ATickMarks(abs_(FTickMark)) Or ASliderVisible(abs_(FSliderVisible))
 			RecreateWnd
 		#endif
@@ -388,14 +402,14 @@ Namespace My.Sys.Forms
 				This.Width = iHeight
 				Height  = iWidth
 			End If
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or TBS_FIXEDLENGTH Or TBS_ENABLESELRANGE Or AStyle(abs_(FStyle)) Or ATickStyles(abs_(FTickStyle)) Or ATickMarks(abs_(FTickMark)) Or ASliderVisible(abs_(FSliderVisible))
 				RecreateWnd
 			#endif
 		End If
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub TrackBar.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTrackBar(Sender.Child)
@@ -428,10 +442,38 @@ Namespace My.Sys.Forms
 		
 		Private Sub TrackBar.WndProc(ByRef Message As Message)
 		End Sub
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Sub TrackBar.HandleIsAllocated(ByRef Sender As Control)
+			If Sender.Child Then
+				With QTrackBar(Sender.Child)
+					..SetRange(.FHandle, .FMinValue, .FMaxValue)
+					SetPosition(.FHandle, .FPosition)
+					#ifdef __USE_WASM__
+						SetAttribute(.FHandle, "step", Str(.FLineSize))
+						If .FStyle = tbVertical Then SetAttribute(.FHandle, "orient", "vertical")
+					#endif
+				End With
+			End If
+		End Sub
+
+		Private Sub TrackBar.WndProc(ByRef Message As Message)
+		End Sub
 	#endif
-	
+
 	Private Sub TrackBar.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Message.Msg = CM_CHANGE Then
+				#ifdef __USE_JNI__
+					FPosition = Message.wParam
+				#else
+					FPosition = GetPosition(FHandle)
+				#endif
+				If OnScroll Then OnScroll(*Designer, This)
+				If OnChange Then OnChange(*Designer, This, FPosition)
+				Message.Handled = True
+			End If
+		#endif
+		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case CM_HSCROLL
 				FPosition = Perform(TBM_GETPOS, 0, 0)
@@ -469,7 +511,7 @@ Namespace My.Sys.Forms
 			gtk_scale_set_draw_value(gtk_scale(widget), False)
 			g_signal_connect(widget, "value-changed", G_CALLBACK(@Range_ValueChanged), @This)
 			This.RegisterClass "TrackBar", @This
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As INITCOMMONCONTROLSEX ICC
 			ICC.dwSize = SizeOf(ICC)
 			ICC.dwICC  = ICC_BAR_CLASSES
@@ -500,7 +542,7 @@ Namespace My.Sys.Forms
 		FTabStop         = True
 		With This
 			.Child       = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.RegisterClass "TrackBar", TRACKBAR_CLASS
 				.ChildProc         = @WndProc
 				.ExStyle           = 0
@@ -508,6 +550,13 @@ Namespace My.Sys.Forms
 				.BackColor         = GetSysColor(COLOR_BTNFACE)
 				FDefaultBackColor  = .BackColor
 				WLet(FClassAncestor, TRACKBAR_CLASS)
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "input")
+				FType = "range"
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "mff:SeekBar")
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			WLet(FClassName, "TrackBar")

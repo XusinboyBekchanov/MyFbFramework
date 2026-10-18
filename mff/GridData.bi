@@ -66,13 +66,13 @@ Namespace My.Sys.Forms
 		FItems As List
 		PItem As PGridDataItem
 		FParentItem As PGridDataItem
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			lviItems As LVITEM
 		#endif
 	Public:
 		#ifdef __USE_GTK__
 			Declare Function FindByIterUser_Data(User_Data As Any Ptr) As PGridDataItem
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Declare Function FindByHandle(Value As LPARAM) As PGridDataItem
 		#endif
 		Parent   As Control Ptr
@@ -117,19 +117,19 @@ Namespace My.Sys.Forms
 		mCellBackColor(Any)     As Integer
 		mCellForeColor(Any)     As Integer
 
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim lviItem             As LVITEM
 
 		#endif
 	Protected:
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 
 		#endif
 	Public:
 		#ifdef __USE_GTK__
 			'Native tree iterator handle (GTK+ integration)
 			TreeIter As GtkTreeIter
-		#else
+		#elseif defined(__USE_WINAPI__)
 			'Native OS handle for the item element
 			HANDLE As LPARAM
 			'Returns position in parent collection
@@ -322,7 +322,7 @@ Namespace My.Sys.Forms
 		mFEscapement           As Integer = 0
 		mFOrientation          As Integer = 0
 
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			mFontHandleBody        As HFONT
 			mFontHandleBodyUnderline As HFONT 'For Link Text
 			mFontHandleHeader     As HFONT
@@ -408,10 +408,20 @@ Namespace My.Sys.Forms
 			Declare Sub DrawRect(tDc As HDC, R As Rect, FillColor As Integer = -1, tSelctionRow As Integer = -1, tSelctionCol As Integer = -1)
 			Declare Sub DrawLine(HDC As HDC, x1 As Integer, y1 As Integer, x2 As Integer, y2 As Integer, lColor As Integer, lWidth As Integer = 1, lLineType As Integer = PS_SOLID)
 			Declare Sub DrawSortArrow(DC As HDC, lX As Integer, lY As Integer, lWidth As Integer, lStep As Integer, nOrientation As SortStyle)
-			Declare Sub GridReDraw(RowShowStart As Integer, RowShowEnd As Integer, RowHover As Integer = -1, ColHover As Integer = -1, DrawHeadOnly As Boolean = False)
+			Declare Sub DrawHeaderItem(tDC As HDC, iCol As Integer, ByVal R As Rect)
+			Declare Function HeaderHeightNeeded() As Integer
+			Declare Sub PaintHeader()
+			Declare Static Function HeaderSubclassProc(ByVal hWnd As HWND, ByVal uMsg As UINT, ByVal wParam As WPARAM, ByVal lParam As LPARAM, ByVal uIdSubclass As UINT_PTR, ByVal dwRefData As DWORD_PTR) As LRESULT
+			Declare Sub GridReDraw(RowShowStart As Integer, RowShowEnd As Integer, RowHover As Integer = -1, ColHover As Integer = -1, DrawHeadOnly As Boolean = False, tDC As HDC = 0)
 			Declare Static Sub WNDPROC(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'The items are shown as a table view with a row per visible item (Web, Android)
+			FSelItem As GridDataItem Ptr
+			FRowItems(Any) As GridDataItem Ptr
+			Declare Sub AddRows(PItems As GridDataItems Ptr)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
 		Declare Sub ProcessMessage(ByRef Message As Message)
 		Declare Sub SortData(iCol As Integer,tSortStyle As SortStyle)
@@ -422,7 +432,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub GridData_Map(widget As GtkWidget Ptr, user_data As Any Ptr)
 			Declare Static Sub GridData_RowActivated(tree_view As GtkTreeView Ptr, path As GtkTreePath Ptr, column As GtkTreeViewColumn Ptr, user_data As Any Ptr)
 			Declare Static Sub GridData_SelectionChanged(selection As GtkTreeSelection Ptr, user_data As Any Ptr)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Declare Function GetGridDataItem(Item As Integer) As GridDataItem Ptr
 		#endif
 	Public:
@@ -448,6 +458,13 @@ Namespace My.Sys.Forms
 		GroupHeaderImages As ImageList Ptr
 
 		'Initializes grid structure.
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'Shows the visible items and the columns again (Web, Android)
+			Declare Sub UpdateRows()
+			Declare Sub UpdateColumns()
+			Declare Function RowCells(Item As GridDataItem Ptr) As String
+			Declare Sub UpdateRow(Item As GridDataItem Ptr)
+		#endif
 		Declare Sub Init()
 		'Scrolls to make row visible.
 		Declare Sub EnsureVisible(Index As Integer)

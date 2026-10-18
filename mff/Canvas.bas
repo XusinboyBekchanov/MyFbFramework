@@ -20,6 +20,296 @@
 	#endmacro
 #endif
 
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	'Web and Android: the cairo calls of the drawing code go to the Canvas* functions (SysUtils.bi).
+	'Like in cairo, the color and the line width are the current state; fill/stroke clear the path, *_preserve keeps it.
+	'The path is also kept here as a list of operations for cairo_copy_path/cairo_append_path (Chart).
+	Type MffPathOp
+		Kind As Integer ' 1 - move, 2 - line, 3 - curve, 4 - arc, 5 - negative arc, 6 - rectangle, 7 - close
+		V(5) As Double
+	End Type
+	Type MffPath
+		Count As Integer
+		Ops As MffPathOp Ptr
+	End Type
+	Dim Shared As Integer mcairo_color, mcairo_alpha = 255
+	Dim Shared As Double mcairo_width = 1
+	Dim Shared As String mcairo_dash
+	Dim Shared As MffPathOp mcairo_ops()
+	Dim Shared As Integer mcairo_count
+
+	Private Sub mcairo_record(Kind As Integer, v0 As Double = 0, v1 As Double = 0, v2 As Double = 0, v3 As Double = 0, v4 As Double = 0, v5 As Double = 0)
+		If mcairo_count > UBound(mcairo_ops) Then ReDim Preserve mcairo_ops(mcairo_count * 2 + 15)
+		With mcairo_ops(mcairo_count)
+			.Kind = Kind
+			.V(0) = v0: .V(1) = v1: .V(2) = v2: .V(3) = v3: .V(4) = v4: .V(5) = v5
+		End With
+		mcairo_count += 1
+	End Sub
+
+	Private Sub mcairo_play(h As Any Ptr, ByRef Op As MffPathOp)
+		With Op
+			Select Case .Kind
+			Case 1: CanvasMoveTo(h, .V(0), .V(1))
+			Case 2: CanvasLineTo(h, .V(0), .V(1))
+			Case 3: CanvasCurveTo(h, .V(0), .V(1), .V(2), .V(3), .V(4), .V(5))
+			Case 4: CanvasArc(h, .V(0), .V(1), .V(2), .V(3), .V(4), 0)
+			Case 5: CanvasArc(h, .V(0), .V(1), .V(2), .V(3), .V(4), 1)
+			Case 6: CanvasRectPath(h, .V(0), .V(1), .V(2), .V(3))
+			Case 7: CanvasClosePath(h)
+			End Select
+		End With
+	End Sub
+
+	Private Sub mcairo_set_source_rgb(h As Any Ptr, r As Double, g As Double, b As Double)
+		mcairo_color = CInt(r * 255) Or (CInt(g * 255) Shl 8) Or (CInt(b * 255) Shl 16)
+		mcairo_alpha = 255
+	End Sub
+
+	Private Sub mcairo_set_source_rgba(h As Any Ptr, r As Double, g As Double, b As Double, a As Double)
+		mcairo_color = CInt(r * 255) Or (CInt(g * 255) Shl 8) Or (CInt(b * 255) Shl 16)
+		mcairo_alpha = IIf(a < 0, 0, IIf(a > 1, 255, CInt(a * 255)))
+	End Sub
+
+	Private Sub mcairo_set_line_width(h As Any Ptr, w As Double)
+		mcairo_width = w
+	End Sub
+
+	Private Sub mcairo_set_dash(h As Any Ptr, dashes As Double Ptr, n As Integer, offset As Double)
+		mcairo_dash = ""
+		For i As Integer = 0 To n - 1
+			mcairo_dash &= IIf(i = 0, "", ",") & Str(dashes[i])
+		Next
+	End Sub
+
+	Private Sub mcairo_new_path(h As Any Ptr)
+		mcairo_count = 0
+		CanvasNewPath(h)
+	End Sub
+
+	Private Sub mcairo_move_to(h As Any Ptr, x As Double, y As Double)
+		mcairo_record 1, x, y
+		CanvasMoveTo(h, x, y)
+	End Sub
+
+	Private Sub mcairo_line_to(h As Any Ptr, x As Double, y As Double)
+		mcairo_record 2, x, y
+		CanvasLineTo(h, x, y)
+	End Sub
+
+	Private Sub mcairo_curve_to(h As Any Ptr, x1 As Double, y1 As Double, x2 As Double, y2 As Double, x3 As Double, y3 As Double)
+		mcairo_record 3, x1, y1, x2, y2, x3, y3
+		CanvasCurveTo(h, x1, y1, x2, y2, x3, y3)
+	End Sub
+
+	Private Sub mcairo_arc(h As Any Ptr, xc As Double, yc As Double, r As Double, a1 As Double, a2 As Double)
+		mcairo_record 4, xc, yc, r, a1, a2
+		CanvasArc(h, xc, yc, r, a1, a2, 0)
+	End Sub
+
+	Private Sub mcairo_arc_negative(h As Any Ptr, xc As Double, yc As Double, r As Double, a1 As Double, a2 As Double)
+		mcairo_record 5, xc, yc, r, a1, a2
+		CanvasArc(h, xc, yc, r, a1, a2, 1)
+	End Sub
+
+	Private Sub mcairo_rectangle(h As Any Ptr, x As Double, y As Double, w As Double, hh As Double)
+		mcairo_record 6, x, y, w, hh
+		CanvasRectPath(h, x, y, w, hh)
+	End Sub
+
+	Private Sub mcairo_close_path(h As Any Ptr)
+		mcairo_record 7
+		CanvasClosePath(h)
+	End Sub
+
+	Private Sub mcairo_fill_preserve(h As Any Ptr)
+		CanvasFill(h, mcairo_color, mcairo_alpha)
+	End Sub
+
+	Private Sub mcairo_fill(h As Any Ptr)
+		CanvasFill(h, mcairo_color, mcairo_alpha)
+		mcairo_new_path h
+	End Sub
+
+	Private Sub mcairo_stroke(h As Any Ptr)
+		CanvasStroke(h, mcairo_color, mcairo_alpha, mcairo_width, mcairo_dash)
+		mcairo_new_path h
+	End Sub
+
+	Private Sub mcairo_save(h As Any Ptr)
+		CanvasSave(h)
+	End Sub
+
+	Private Sub mcairo_restore(h As Any Ptr)
+		CanvasRestore(h)
+	End Sub
+
+	'A copy of the current path (cairo_path_destroy frees it)
+	Private Function mcairo_copy_path(h As Any Ptr) As Any Ptr
+		Dim As MffPath Ptr p = _CAllocate(SizeOf(MffPath))
+		p->Count = mcairo_count
+		If mcairo_count > 0 Then
+			p->Ops = _CAllocate(mcairo_count * SizeOf(MffPathOp))
+			For i As Integer = 0 To mcairo_count - 1
+				p->Ops[i] = mcairo_ops(i)
+			Next
+		End If
+		Return p
+	End Function
+
+	Private Sub mcairo_append_path(h As Any Ptr, Path As Any Ptr)
+		Dim As MffPath Ptr p = Path
+		If p = 0 Then Exit Sub
+		For i As Integer = 0 To p->Count - 1
+			mcairo_record p->Ops[i].Kind, p->Ops[i].V(0), p->Ops[i].V(1), p->Ops[i].V(2), p->Ops[i].V(3), p->Ops[i].V(4), p->Ops[i].V(5)
+			mcairo_play h, p->Ops[i]
+		Next
+	End Sub
+
+	Private Sub mcairo_path_destroy(Path As Any Ptr)
+		Dim As MffPath Ptr p = Path
+		If p = 0 Then Exit Sub
+		If p->Ops Then _Deallocate(p->Ops)
+		_Deallocate(p)
+	End Sub
+
+	'An edge of a figure for the winding number of the point (px, py)
+	Private Sub mcairo_edge(ByRef wn As Integer, px As Double, py As Double, x0 As Double, y0 As Double, x1 As Double, y1 As Double)
+		Dim As Double s = (x1 - x0) * (py - y0) - (px - x0) * (y1 - y0)
+		If y0 <= py Then
+			If y1 > py AndAlso s > 0 Then wn += 1
+		ElseIf y1 <= py AndAlso s < 0 Then
+			wn -= 1
+		End If
+	End Sub
+
+	'Goes along a path (curves and arcs as lines): the winding number of the point (px, py)
+	'and the last point of the path (LastX, LastY). The figures are closed like for a fill.
+	Private Function mcairo_path_walk(Path As Any Ptr, px As Double, py As Double, ByRef LastX As Double, ByRef LastY As Double) As Integer
+		Const MffPi = 3.141592653589793
+		Dim As MffPath Ptr p = Path
+		Dim As Integer wn, n
+		Dim As Double cx, cy, sx, sy, nx, ny, bx, by, a1, a2, t, u
+		Dim As Boolean HasPoint
+		LastX = 0: LastY = 0
+		If p = 0 Then Return 0
+		For i As Integer = 0 To p->Count - 1
+			With p->Ops[i]
+				Select Case .Kind
+				Case 1
+					If HasPoint Then mcairo_edge wn, px, py, cx, cy, sx, sy
+					cx = .V(0): cy = .V(1): sx = cx: sy = cy
+					HasPoint = True
+				Case 2
+					If HasPoint Then
+						mcairo_edge wn, px, py, cx, cy, .V(0), .V(1)
+					Else
+						sx = .V(0): sy = .V(1)
+						HasPoint = True
+					End If
+					cx = .V(0): cy = .V(1)
+				Case 3
+					If Not HasPoint Then
+						cx = .V(0): cy = .V(1): sx = cx: sy = cy
+						HasPoint = True
+					End If
+					bx = cx: by = cy
+					For s As Integer = 1 To 16
+						t = s / 16: u = 1 - t
+						nx = u * u * u * bx + 3 * u * u * t * .V(0) + 3 * u * t * t * .V(2) + t * t * t * .V(4)
+						ny = u * u * u * by + 3 * u * u * t * .V(1) + 3 * u * t * t * .V(3) + t * t * t * .V(5)
+						mcairo_edge wn, px, py, cx, cy, nx, ny
+						cx = nx: cy = ny
+					Next
+				Case 4, 5
+					a1 = .V(3): a2 = .V(4)
+					If .Kind = 4 Then
+						While a2 < a1
+							a2 += 2 * MffPi
+						Wend
+					Else
+						While a2 > a1
+							a2 -= 2 * MffPi
+						Wend
+					End If
+					n = CInt(Abs(a2 - a1) * 16)
+					If n < 4 Then n = 4
+					For s As Integer = 0 To n
+						nx = .V(0) + .V(2) * Cos(a1 + (a2 - a1) * s / n)
+						ny = .V(1) + .V(2) * Sin(a1 + (a2 - a1) * s / n)
+						If HasPoint Then
+							mcairo_edge wn, px, py, cx, cy, nx, ny
+						Else
+							sx = nx: sy = ny
+							HasPoint = True
+						End If
+						cx = nx: cy = ny
+					Next
+				Case 6
+					If HasPoint Then mcairo_edge wn, px, py, cx, cy, sx, sy
+					mcairo_edge wn, px, py, .V(0), .V(1), .V(0) + .V(2), .V(1)
+					mcairo_edge wn, px, py, .V(0) + .V(2), .V(1), .V(0) + .V(2), .V(1) + .V(3)
+					mcairo_edge wn, px, py, .V(0) + .V(2), .V(1) + .V(3), .V(0), .V(1) + .V(3)
+					mcairo_edge wn, px, py, .V(0), .V(1) + .V(3), .V(0), .V(1)
+					cx = .V(0): cy = .V(1): sx = cx: sy = cy
+					HasPoint = True
+				Case 7
+					If HasPoint Then mcairo_edge wn, px, py, cx, cy, sx, sy
+					LastX = cx: LastY = cy
+					cx = sx: cy = sy
+					Continue For
+				End Select
+				LastX = cx: LastY = cy
+			End With
+		Next
+		If HasPoint Then mcairo_edge wn, px, py, cx, cy, sx, sy
+		Return wn
+	End Function
+
+	'Is the point in the filled path (the nonzero rule of cairo; Chart: the item under the mouse)
+	Private Function mcairo_in_fill(Path As Any Ptr, x As Double, y As Double) As Boolean
+		Dim As Double LastX, LastY
+		Return mcairo_path_walk(Path, x, y, LastX, LastY) <> 0
+	End Function
+
+	'The last point of the path before it is closed (Chart: the place of the tooltip)
+	Private Sub mcairo_path_last_point(Path As Any Ptr, ByRef x As Double, ByRef y As Double)
+		mcairo_path_walk Path, 0, 0, x, y
+	End Sub
+
+	'The point of the canvas (scale and offset of Canvas.Scale)
+	#define MffX(v) (ScaleX(v) * imgScaleX + imgOffsetX)
+	#define MffY(v) (ScaleY(v) * imgScaleY + imgOffsetY)
+	'The view in which a control is drawn: Android - its layout (a Form is an Activity), Web - its element
+	#ifdef __USE_JNI__
+		#define MffView(Ctrl) IIf((Ctrl)->LayoutHandle, Cast(Any Ptr, (Ctrl)->LayoutHandle), Cast(Any Ptr, (Ctrl)->Handle))
+	#else
+		#define MffView(Ctrl) Cast(Any Ptr, (Ctrl)->Handle)
+	#endif
+	'The picture file of a BitmapType: Web - its URL, Android - the file it was loaded from
+	#ifdef __USE_WASM__
+		#define MffImagePath(Img) ToUtf8((Img).Handle)
+	#else
+		#define MffImagePath(Img) ToUtf8((Img).ToString)
+	#endif
+	'The picture file of an image handle (Canvas.Draw with Any Ptr): Web - a WString Ptr of the URL
+	'(BitmapType.Handle, GraphicType.Image), Android - a Java String of the file (BitmapType.Handle)
+	Private Function MffHandlePath(Image As Any Ptr) As String
+		If Image = 0 Then Return ""
+		#ifdef __USE_WASM__
+			Return ToUtf8(*Cast(WString Ptr, Image))
+		#else
+			If env = 0 OrElse (*env)->IsInstanceOf(env, Image, (*env)->FindClass(env, "java/lang/String")) = 0 Then Return ""
+			Dim As ZString Ptr pPath = (*env)->GetStringUTFChars(env, Image, 0)
+			If pPath = 0 Then Return ""
+			Function = *pPath
+			(*env)->ReleaseStringUTFChars(env, Image, pPath)
+		#endif
+	End Function
+	'The pixel size of the font of the canvas (the default font of the Web has no size: 9 pt)
+	#define MffFontSize ScaleY(IIf(Font.Size > 0, Font.Size, 9) * 96 / 72)
+#endif
+
 Namespace My.Sys.Drawing
 	#ifndef ReadProperty_Off
 		Private Function Canvas.ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -380,11 +670,38 @@ Namespace My.Sys.Drawing
 						cairo_set_dash(Handle, 0, 0, 0)
 					End Select
 				End If
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				Select Case Value
+				Case PenStyle.psDash: mcairo_dash = "10,5"
+				Case PenStyle.psDot: mcairo_dash = "2,4"
+				Case PenStyle.psDashDot: mcairo_dash = "10,5,2,5"
+				Case PenStyle.psDashDotDot: mcairo_dash = "10,5,2,5,2,5"
+				Case Else: mcairo_dash = ""
+				End Select
 			#endif
 		End If
 	End Property
 	
 	Private Sub Canvas.Cls(x As Double = 0, y As Double = 0, x1 As Double = 0, y1 As Double = 0)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Dim As Any Ptr hCanvas = IIf(HandleSetted, Cast(Any Ptr, Handle), IIf(ParentControl, MffView(ParentControl), 0))
+			If hCanvas = 0 Then Exit Sub
+			If x = x1 AndAlso y = y1 AndAlso x = y Then
+				imgScaleX = 1
+				imgScaleY = 1
+				imgOffsetX = 0
+				imgOffsetY = 0
+				FDrawWidth = 1
+				FScaleWidth = ScaleX(This.Width)
+				FScaleHeight = ScaleY(This.Height)
+				CanvasBegin(hCanvas)
+				If FBackColor <> -1 Then CanvasFillRect(hCanvas, 0, 0, 100000, 100000, FBackColor, 255)
+			Else
+				CanvasFillRect(hCanvas, MffX(x), MffY(y), MffX(x1) - MffX(x), MffY(y1) - MffY(y), IIf(FBackColor = -1, &hFFFFFF, FBackColor), 255)
+			End If
+			If Not HandleSetted Then CanvasEnd(hCanvas)
+			Exit Sub
+		#endif
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		If ParentControl > 0 Then
@@ -487,6 +804,10 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRed(Value) / 255.0, GetGreen(Value) / 255.0, GetBlue(Value) / 255.0)
 			cairo_rectangle(Handle, ScaleX(xy.X) * imgScaleX + imgOffsetX - 0.5, ScaleY(xy.Y) * imgScaleY + imgOffsetY - 0.5, 1, 1)
 			cairo_fill(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			mcairo_set_source_rgb(Handle, GetRed(Value) / 255.0, GetGreen(Value) / 255.0, GetBlue(Value) / 255.0)
+			mcairo_rectangle(Handle, ScaleX(xy.X) * imgScaleX + imgOffsetX - 0.5, ScaleY(xy.Y) * imgScaleY + imgOffsetY - 0.5, 1, 1)
+			mcairo_fill(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				' 使用 DrawLine 绘制 1px 点
@@ -519,6 +840,8 @@ Namespace My.Sys.Drawing
 							End If
 						End If
 					End If
+				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+					Handle_ = MffView(ParentControl)
 				#elseif defined(__USE_CAIRO__)
 					If ParentControl->Handle Then
 						If Clip Then
@@ -592,6 +915,10 @@ Namespace My.Sys.Drawing
 				This.Handle = 0
 				HandleSetted = False
 			#endif
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Handle_ Then CanvasEnd(Handle_)
+			This.Handle = 0
+			HandleSetted = False
 		#elseif defined(__USE_CAIRO__)
 			If Not HandleSetted Then Exit Sub
 			cairo_destroy(Handle_)
@@ -644,6 +971,8 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_CAIRO__
 			cairo_move_to(Handle, ScaleX(x) * imgScaleX + imgOffsetX - 0.5, ScaleY(y) * imgScaleY + imgOffsetY - 0.5)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			mcairo_move_to(Handle, ScaleX(x) * imgScaleX + imgOffsetX - 0.5, ScaleY(y) * imgScaleY + imgOffsetY - 0.5)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				FMoveToX = ScaleX(x) * imgScaleX + imgOffsetX : FMoveToY = ScaleY(y) * imgScaleY + imgOffsetY
@@ -666,6 +995,11 @@ Namespace My.Sys.Drawing
 			cairo_line_to(Handle, FMoveToXNew, FMoveToYNew)
 			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			mcairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			mcairo_line_to(Handle, FMoveToXNew, FMoveToYNew)
+			mcairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
+			mcairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				If pBrushBorder <> 0 Then pRenderTarget->lpVtbl->DrawLine(pRenderTarget, Type<D2D1_POINT_2F>(FMoveToX, FMoveToY), Type<D2D1_POINT_2F>(FMoveToXNew, FMoveToYNew), pBrushBorder, DrawWidth)
@@ -729,6 +1063,12 @@ Namespace My.Sys.Drawing
 				cairo_line_to(Handle, ScaleX(x1) * imgScaleX + imgOffsetX - 0.5, ScaleY(y1) * imgScaleY + imgOffsetY - 0.5)
 				cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 				cairo_stroke(Handle)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				mcairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+				mcairo_move_to(Handle, ScaleX(x) * imgScaleX + imgOffsetX - 0.5, ScaleY(y) * imgScaleY + imgOffsetY - 0.5)
+				mcairo_line_to(Handle, ScaleX(x1) * imgScaleX + imgOffsetX - 0.5, ScaleY(y1) * imgScaleY + imgOffsetY - 0.5)
+				mcairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
+				mcairo_stroke(Handle)
 			#elseif defined(__USE_WINAPI__)
 				If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 					If pBrushBorder <> 0 Then pRenderTarget->lpVtbl->DrawLine(pRenderTarget, Type<D2D1_POINT_2F>(ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY), Type<D2D1_POINT_2F>(ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY), pBrushBorder, DrawWidth)
@@ -759,6 +1099,17 @@ Namespace My.Sys.Drawing
 				cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 				cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 				cairo_stroke(Handle)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				mcairo_move_to (Handle, ScaleX(x) * imgScaleX + imgOffsetX - 0.5, ScaleY(y) * imgScaleY + imgOffsetY - 0.5)
+				mcairo_line_to (Handle, ScaleX(x1) * imgScaleX + imgOffsetX - 0.5, ScaleY(y) * imgScaleY + imgOffsetY - 0.5)
+				mcairo_line_to (Handle, ScaleX(x1) * imgScaleX + imgOffsetX - 0.5, ScaleY(y1) * imgScaleY + imgOffsetY - 0.5)
+				mcairo_line_to (Handle, ScaleX(x) * imgScaleX + imgOffsetX - 0.5, ScaleY(y1) * imgScaleY + imgOffsetY - 0.5)
+				mcairo_line_to (Handle, ScaleX(x) * imgScaleX + imgOffsetX - 0.5, ScaleY(y) * imgScaleY + imgOffsetY - 0.5)
+				mcairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+				mcairo_fill_preserve(Handle)
+				mcairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+				mcairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
+				mcairo_stroke(Handle)
 			#elseif defined(__USE_WINAPI__)
 				If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 					If pBrushFill <> 0 Then pRenderTarget->lpVtbl->FillRectangle(pRenderTarget, @Type<D2D1_RECT_F>(ScaleX(x) * imgScaleX + imgOffsetX , ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX , ScaleY(y1) * imgScaleY + imgOffsetY), Cast(ID2D1Brush Ptr, pBrushFill))
@@ -784,6 +1135,13 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			.mcairo_rectangle(Handle, ScaleX(R.Left) * imgScaleX + imgOffsetX - 0.5, ScaleY(R.Top) * imgScaleY + imgOffsetY - 0.5, ScaleX(R.Right - R.Left) * imgScaleY - 0.5, ScaleY(R.Bottom - R.Top) * imgScaleY - 0.5)
+			mcairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+			mcairo_fill_preserve(Handle)
+			mcairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			mcairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
+			mcairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				' 先填充再描边（与其他后端行为一致）
@@ -804,13 +1162,21 @@ Namespace My.Sys.Drawing
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_CAIRO__
-			cairo_move_to Handle, ScaleX(x) * imgScaleX + imgOffsetX - 0.5, ScaleY(y) * imgScaleY + imgOffsetY - 0.5
+			cairo_new_path Handle ' a current point would add a line from it to the start of the arc
 			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
 			cairo_arc(Handle, ScaleX(x + (x1 - x) / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + (y1 - y) / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX((x1 - x) / 2) * imgScaleX, 0, 2 * G_PI)
 			cairo_fill_preserve(Handle)
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			mcairo_new_path Handle ' a current point would add a line from it to the start of the arc
+			mcairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+			mcairo_arc(Handle, ScaleX(x + (x1 - x) / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + (y1 - y) / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX((x1 - x) / 2) * imgScaleX, 0, 2 * G_PI)
+			mcairo_fill_preserve(Handle)
+			mcairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			mcairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
+			mcairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				If pBrushFill <> 0 Then pRenderTarget->lpVtbl->FillEllipse(pRenderTarget, @Type<D2D1_ELLIPSE>(Type<D2D1_POINT_2F>(ScaleX(x + (x1 - x) / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + (y1 - y) / 2) * imgScaleY + imgOffsetY - 0.5), ScaleX((x1 - x) / 2) * imgScaleX, ScaleY((y1 - y) / 2) * imgScaleY), Cast(ID2D1Brush Ptr, pBrushFill))
@@ -836,6 +1202,14 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			mcairo_move_to Handle, ScaleX(R.Left) * imgScaleX + imgOffsetX - 0.5, ScaleY(R.Top) * imgScaleY + imgOffsetY - 0.5
+			mcairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+			mcairo_arc(Handle, ScaleX(R.Left + (R.Right - R.Left) / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(R.Top + (R.Bottom - R.Top) / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX((R.Right - R.Left) / 2) * imgScaleX, 0, 2 * G_PI)
+			mcairo_fill_preserve(Handle)
+			mcairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			mcairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
+			mcairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				If pBrushFill <> 0 Then pRenderTarget->lpVtbl->FillEllipse(pRenderTarget, @Type<D2D1_ELLIPSE>(Type<D2D1_POINT_2F>(ScaleX(R.Left + (R.Right - R.Left) / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(R.Top + (R.Bottom - R.Top) / 2) * imgScaleY + imgOffsetY - 0.5), ScaleX((R.Right - R.Left) / 2) * imgScaleX, ScaleY((R.Bottom - R.Top) / 2) * imgScaleY), Cast(ID2D1Brush Ptr, pBrushFill))
@@ -865,6 +1239,14 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			mcairo_move_to Handle, ScaleX(x + Radial / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y) * imgScaleY + imgOffsetY - 0.5
+			mcairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+			mcairo_arc(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(Radial) / 2 * imgScaleX, 0, 2 * G_PI)
+			mcairo_fill_preserve(Handle)
+			mcairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			mcairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
+			mcairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				If pBrushFill <> 0 Then pRenderTarget->lpVtbl->FillEllipse(pRenderTarget, @Type<D2D1_ELLIPSE>(Type<D2D1_POINT_2F>(ScaleX(x) * imgScaleX + imgOffsetX - 0.5, ScaleY(y) * imgScaleY + imgOffsetY - 0.5), ScaleX(Radial) * imgScaleX, ScaleY(Radial) * imgScaleY), Cast(ID2D1Brush Ptr, pBrushFill))
@@ -899,6 +1281,22 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)   '添加描边
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Var radius = x1 - x
+			mcairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+			mcairo_move_to Handle, ScaleX(x) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nWidth / 2) * imgScaleY + imgOffsetY - 0.5
+			mcairo_arc (Handle, ScaleX(x + radius) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nWidth / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX(nWidth / 2) * imgScaleX, G_PI, -G_PI / 2)
+			mcairo_line_to (Handle, ScaleX(x + nWidth - nWidth / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y) * imgScaleY + imgOffsetY - 0.5)
+			mcairo_arc (Handle, ScaleX(x + nWidth - nWidth / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nWidth / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX(nWidth / 2) * imgScaleX, -G_PI / 2, 0)
+			mcairo_line_to (Handle, ScaleX(x + nWidth) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nHeight - nWidth / 2) * imgScaleY + imgOffsetY - 0.5)
+			mcairo_arc (Handle, ScaleX(x + (nWidth - nWidth / 2)) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nHeight - nWidth / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX(nWidth / 2) * imgScaleX, 0, G_PI / 2)
+			mcairo_line_to (Handle, ScaleX(x + nWidth / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nHeight) * imgScaleY + imgOffsetY - 0.5)
+			mcairo_arc (Handle, ScaleX(x + nWidth / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nHeight - nWidth / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX(nWidth / 2) * imgScaleX, G_PI / 2, G_PI)
+			mcairo_close_path Handle
+			mcairo_fill_preserve(Handle)
+			mcairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			mcairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
+			mcairo_stroke(Handle)   '添加描边
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				If pBrushFill <> 0 Then pRenderTarget->lpVtbl->FillRoundedRectangle(pRenderTarget, @Type<D2D1_ROUNDED_RECT>(Type<D2D1_RECT_F>(ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY, ScaleX(x1) * imgScaleX + imgOffsetX, ScaleY(y1) * imgScaleY + imgOffsetY), ScaleX(nWidth) * imgScaleX / 2, ScaleY(nHeight) * imgScaleY / 2), Cast(ID2D1Brush Ptr, pBrushFill))
@@ -943,6 +1341,17 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			mcairo_move_to(Handle, ScaleX(Points(0).X) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(0).Y) * imgScaleY + imgOffsetY - 0.5)
+			For i As Integer = 1 To Count - 1
+				mcairo_line_to(Handle, ScaleX(Points(i).X) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i).Y) * imgScaleY + imgOffsetY - 0.5)
+			Next
+			mcairo_close_path(Handle) ' 闭合
+			mcairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+			mcairo_fill_preserve(Handle)
+			mcairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			mcairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
+			mcairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				Dim pGeometry As ID2D1PathGeometry Ptr
@@ -1019,6 +1428,17 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			mcairo_move_to(Handle, sX_, sY_)
+			Dim As Double r = Min(sw, sh) / 2
+			' 如果是椭圆需要 Save/Scale/Restore，此处简化采用半径较小的圆
+			mcairo_arc(Handle, cx, cy, r, startAngle, endAngle)
+			mcairo_close_path(Handle) ' 闭合弦
+			mcairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+			mcairo_fill_preserve(Handle)
+			mcairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			mcairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
+			mcairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				Dim pGeometry As ID2D1PathGeometry Ptr
@@ -1094,6 +1514,17 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Dim As Double r = Min(sw, sh) / 2
+			mcairo_move_to(Handle, cx, cy) ' 移动到圆心
+			mcairo_line_to(Handle, sX_, sY_) ' 连线到弧起点
+			mcairo_arc(Handle, cx, cy, r, startAngle, endAngle)
+			mcairo_close_path(Handle) ' 闭合回圆心
+			mcairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+			mcairo_fill_preserve(Handle)
+			mcairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			mcairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
+			mcairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				Dim pGeometry As ID2D1PathGeometry Ptr
@@ -1158,6 +1589,12 @@ Namespace My.Sys.Drawing
 			cairo_arc(Handle, cx, cy, Min(sw, sh) / 2, startAngle, endAngle)
 			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			' Cairo 的逻辑已在之前提供，此处省略或保留原有
+			mcairo_move_to Handle, ScaleX(x) * imgScaleX + imgOffsetX - 0.5, ScaleY(y) * imgScaleY + imgOffsetY - 0.5
+			mcairo_arc(Handle, cx, cy, Min(sw, sh) / 2, startAngle, endAngle)
+			mcairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
+			mcairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				Dim pGeometry As ID2D1PathGeometry Ptr
@@ -1221,6 +1658,16 @@ Namespace My.Sys.Drawing
 			cairo_stroke(Handle)
 			' 更新当前点
 			FMoveToX = eX_: FMoveToY = eY_
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Dim As Double r = Min(sw, sh) / 2
+			mcairo_move_to(Handle, FMoveToX, FMoveToY)
+			mcairo_line_to(Handle, sX_, sY_) ' 连线到弧起点
+			mcairo_arc(Handle, cx, cy, r, startAngle, endAngle)
+			mcairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			mcairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
+			mcairo_stroke(Handle)
+			' 更新当前点
+			FMoveToX = eX_: FMoveToY = eY_
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				Dim pGeometry As ID2D1PathGeometry Ptr
@@ -1273,6 +1720,12 @@ Namespace My.Sys.Drawing
 			cairo_arc(Handle, cx, cy, r, -startAngle * G_PI / 180.0, -(startAngle + sweepAngle) * G_PI / 180.0)
 			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			mcairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			' Cairo的角度是弧度，且Y轴向下为正，因此负的sweepAngle对应GDI的正sweepAngle
+			mcairo_arc(Handle, cx, cy, r, -startAngle * G_PI / 180.0, -(startAngle + sweepAngle) * G_PI / 180.0)
+			mcairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
+			mcairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				Dim pGeometry As ID2D1PathGeometry Ptr
@@ -1328,6 +1781,14 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle) ' 折线不闭合不填充
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			mcairo_move_to(Handle, ScaleX(Points(0).X) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(0).Y) * imgScaleY + imgOffsetY - 0.5)
+			For i As Integer = 1 To Count - 1
+				mcairo_line_to(Handle, ScaleX(Points(i).X) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i).Y) * imgScaleY + imgOffsetY - 0.5)
+			Next
+			mcairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			mcairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
+			mcairo_stroke(Handle) ' 折线不闭合不填充
 		#elseif defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				Dim pGeometry As ID2D1PathGeometry Ptr
@@ -1380,6 +1841,18 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
+			FMoveToX = ScaleX(Points(Count-1).X) * imgScaleX + imgOffsetX - 0.5
+			FMoveToY = ScaleY(Points(Count - 1).Y) * imgScaleY + imgOffsetY - 0.5
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			mcairo_move_to(Handle, FMoveToX, FMoveToY)
+			For i As Integer = 0 To Count - 1
+				Dim As Double px = ScaleX(Points(i).X) * imgScaleX + imgOffsetX - 0.5
+				Dim As Double py = ScaleY(Points(i).Y) * imgScaleY + imgOffsetY - 0.5
+				mcairo_line_to(Handle, px, py)
+			Next
+			mcairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			mcairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
+			mcairo_stroke(Handle)
 			FMoveToX = ScaleX(Points(Count-1).X) * imgScaleX + imgOffsetX - 0.5
 			FMoveToY = ScaleY(Points(Count - 1).Y) * imgScaleY + imgOffsetY - 0.5
 		#elseif defined(__USE_WINAPI__)
@@ -1443,6 +1916,20 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
 			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
 			cairo_stroke(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Count < 4 Then Return
+			mcairo_move_to(Handle, ScaleX(Points(0).X) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(0).Y) * imgScaleY + imgOffsetY - 0.5)
+			Dim i As Integer = 1
+			While i + 2 <= Count - 1
+				mcairo_curve_to(Handle, _
+				ScaleX(Points(i).X) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i).Y) * imgScaleY + imgOffsetY - 0.5, _
+				ScaleX(Points(i + 1).X) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i + 1).Y) * imgScaleY + imgOffsetY - 0.5, _
+				ScaleX(Points(i + 2).X) * imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i + 2).Y) * imgScaleY + imgOffsetY - 0.5)
+				i += 3
+			Wend
+			mcairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			mcairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
+			mcairo_stroke(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				Dim pGeometry As ID2D1PathGeometry Ptr
@@ -1507,6 +1994,22 @@ Namespace My.Sys.Drawing
 			cairo_stroke(Handle)
 			FMoveToX = ScaleX(Points(Count - 1).X)*imgScaleX + imgOffsetX - 0.5
 			FMoveToY = ScaleY(Points(Count - 1).Y)*imgScaleY + imgOffsetY - 0.5
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Count < 3 Then Return
+			mcairo_move_to(Handle, FMoveToX, FMoveToY)
+			Dim i As Integer = 0
+			While i + 2 <= Count - 1
+				mcairo_curve_to(Handle, _
+				ScaleX(Points(i).X)*imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i).Y)*imgScaleY + imgOffsetY - 0.5, _
+				ScaleX(Points(i + 1).X)*imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i + 1).Y)*imgScaleY + imgOffsetY - 0.5, _
+				ScaleX(Points(i + 2).X)*imgScaleX + imgOffsetX - 0.5, ScaleY(Points(i + 2).Y)*imgScaleY + imgOffsetY - 0.5)
+				i += 3
+			Wend
+			mcairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+			mcairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
+			mcairo_stroke(Handle)
+			FMoveToX = ScaleX(Points(Count - 1).X)*imgScaleX + imgOffsetX - 0.5
+			FMoveToY = ScaleY(Points(Count - 1).Y)*imgScaleY + imgOffsetY - 0.5
 		#elseif defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				Dim pGeometry As ID2D1PathGeometry Ptr
@@ -1564,6 +2067,11 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRed(PixelColor) / 255.0, GetGreen(PixelColor) / 255.0, GetBlue(PixelColor) / 255.0)
 			cairo_rectangle(Handle, px, py, 1, 1)
 			cairo_fill(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			' 修复：RGB顺序和数值(0-1)
+			mcairo_set_source_rgb(Handle, GetRed(PixelColor) / 255.0, GetGreen(PixelColor) / 255.0, GetBlue(PixelColor) / 255.0)
+			mcairo_rectangle(Handle, px, py, 1, 1)
+			mcairo_fill(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 				' D2D使用1x1矩形填充模拟
@@ -1614,6 +2122,8 @@ Namespace My.Sys.Drawing
 				End If
 			End If
 			Function = 0
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Function = CanvasGetPixel(Handle, MffX(x), MffY(y))
 		#elseif defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			Function = .GetPixel(Handle, ScaleX(x) * imgScaleX + imgOffsetX, ScaleY(y) * imgScaleY + imgOffsetY)
 		#else
@@ -1795,6 +2305,8 @@ Namespace My.Sys.Drawing
 			End If
 			cairo_set_source_rgb(Handle, iRed, iGreen, iBlue)
 			pango_cairo_show_layout_line(Handle, pl)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			CanvasText(Handle, StartX, StartY, ToUtf8(s), IIf(FG = -1, Font.Color, FG), BK, ToUtf8(Font.Name), MffFontSize, Font.Bold, Font.Italic)
 		#elseif defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			If FUseDirect2D AndAlso pRenderTarget <> 0 Then
 					Dim As ..Size Sz = Type<..Size>(TextWidth(s), TextHeight(s))
@@ -1888,7 +2400,12 @@ Namespace My.Sys.Drawing
 			Else
 				If Image.pImage <> NULL Then DrawAlpha(x, y, nWidth, nHeight, Image.pImage, iSourceAlpha)
 			End If
-		#elseif Not defined(__USE_WASM__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Dim As Any Ptr Handle_
+			If Not HandleSetted Then Handle_ = GetDevice
+			CanvasImage(Handle, MffImagePath(Image), x, y, IIf(nWidth > 0, nWidth, -1), IIf(nHeight > 0, nHeight, -1), iSourceAlpha)
+			If Not HandleSetted Then ReleaseDevice Handle_
+		#else
 			DrawAlpha(x, y, nWidth, nHeight, Image.Handle, iSourceAlpha)
 		#endif
 	End Sub
@@ -2111,6 +2628,8 @@ Namespace My.Sys.Drawing
 			cairo_restore(Handle)
 			
 			cairo_surface_destroy(image_surface)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			CanvasImage(Handle, MffHandlePath(Image), x, y, IIf(nWidth > 0, nWidth, -1), IIf(nHeight > 0, nHeight, -1), iSourceAlpha)
 		#else
 			Print "The function is not ready in this OS."  & " DrawAlpha(x As Double, y As Double, nWidth As Double = -1, nHeight As Double = -1, ByVal Image As Any Ptr, iSourceAlpha As Integer = 255)"
 		#endif
@@ -2167,6 +2686,8 @@ Namespace My.Sys.Drawing
 			cairo_set_source_surface(Handle, image_surface, x, y)
 			cairo_paint(Handle)
 			cairo_surface_destroy(image_surface)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			CanvasImage(Handle, MffHandlePath(Image), x, y, -1, -1, 255)
 		#else
 			Print "The function is not ready in this OS."  & " Canvas.Draw(x As Double, y As Double, Image As Any Ptr)"
 		#endif
@@ -2174,7 +2695,12 @@ Namespace My.Sys.Drawing
 	End Sub
 	
 	Private Sub Canvas.Draw(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType)
-		#ifndef __USE_WASM__
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Dim As Any Ptr Handle_
+			If Not HandleSetted Then Handle_ = GetDevice
+			CanvasImage(Handle, MffImagePath(Image), x, y, -1, -1, 255)
+			If Not HandleSetted Then ReleaseDevice Handle_
+		#else
 			This.Draw(x, y, Image.Handle)
 		#endif
 	End Sub
@@ -2313,6 +2839,8 @@ Namespace My.Sys.Drawing
 			#elseif defined(__USE_GTK__)
 				' Cairo 基于 Alpha 通道绘制，不支持动态高性能颜色键剔除，降级为 Draw
 				This.Draw(x, y, Image)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				CanvasImage(Handle, MffHandlePath(Image), x, y, -1, -1, 255)
 			#else
 				Print "The function is not ready in this OS."  & " DrawTransparent(x As Double, y As Double, Image As Any Ptr, cTransparentColor As UInteger = 0)"
 			#endif
@@ -2320,7 +2848,12 @@ Namespace My.Sys.Drawing
 		End Sub
 		
 		Private Sub Canvas.DrawTransparent(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType, cTransparentColor As UInteger = 0)
-			#ifndef __USE_WASM__
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				Dim As Any Ptr Handle_
+				If Not HandleSetted Then Handle_ = GetDevice
+				CanvasImage(Handle, MffImagePath(Image), ScaleX(x), ScaleY(y), -1, -1, 255)
+				If Not HandleSetted Then ReleaseDevice Handle_
+			#else
 				DrawTransparent ScaleX(x), ScaleY(y), Image.Handle, cTransparentColor
 			#endif
 		End Sub
@@ -2398,6 +2931,8 @@ Namespace My.Sys.Drawing
 				cairo_restore(Handle)
 			End If
 			cairo_surface_destroy(image_surface)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			CanvasImage(Handle, MffHandlePath(Image), x, y, nWidth, nHeight, 255)
 		#else
 			Print "The function is not ready in this OS."  & " Canvas.DrawStretch(x As Double, y As Double, nWidth As Integer, nHeight As Integer, Image As Any Ptr)"
 		#endif
@@ -2474,6 +3009,11 @@ Namespace My.Sys.Drawing
 			cairo_set_source_rgb(Handle, GetRed(FillColorBK) / 255.0, GetGreen(FillColorBK) / 255.0, GetBlue(FillColorBK) / 255.0)
 			cairo_rectangle(Handle, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right - R.Left) * imgScaleX, ScaleY(R.Bottom - R.Top) * imgScaleY)
 			cairo_fill(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			' The color components of cairo are 0..1; the path is not kept (the next lines would draw it too)
+			mcairo_set_source_rgb(Handle, GetRed(FillColorBK) / 255.0, GetGreen(FillColorBK) / 255.0, GetBlue(FillColorBK) / 255.0)
+			mcairo_rectangle(Handle, ScaleX(R.Left) * imgScaleX + imgOffsetX, ScaleY(R.Top) * imgScaleY + imgOffsetY, ScaleX(R.Right - R.Left) * imgScaleX, ScaleY(R.Bottom - R.Top) * imgScaleY)
+			mcairo_fill(Handle)
 		#elseif defined(__USE_WINAPI__)
 			Static As HBRUSH B
 			If B Then DeleteObject B
@@ -2527,6 +3067,18 @@ Namespace My.Sys.Drawing
 			cairo_rectangle(Handle, x1, y1, x2 - x1, y2 - y1)
 			cairo_stroke(Handle)
 			cairo_restore(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Dim As Double x1 = ScaleX(R.Left) * imgScaleX + imgOffsetX
+			Dim As Double y1 = ScaleY(R.Top) * imgScaleY + imgOffsetY
+			Dim As Double x2 = ScaleX(R.Right) * imgScaleX + imgOffsetX
+			Dim As Double y2 = ScaleY(R.Bottom) * imgScaleY + imgOffsetY
+			mcairo_save(Handle)
+			mcairo_set_line_width(Handle, 1)
+			mcairo_set_dash(Handle, @Type<Double>(1), 2, 0)
+			mcairo_set_source_rgb(Handle, 0, 0, 0)
+			mcairo_rectangle(Handle, x1, y1, x2 - x1, y2 - y1)
+			mcairo_stroke(Handle)
+			mcairo_restore(Handle)
 		#elseif defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			R.Left = ScaleX(R.Left) * imgScaleX + imgOffsetX
 			R.Top = ScaleY(R.Top) * imgScaleY + imgOffsetY
@@ -2555,7 +3107,7 @@ Namespace My.Sys.Drawing
 			pango_layout_line_get_pixel_extents(pl, NULL, @extend)
 			Function = UnScaleX(extend.width)
 		#elseif defined(__USE_JNI__) OrElse defined(__USE_WASM__)
-			Function = 0
+			Function = UnScaleX(CanvasTextWidth(IIf(ParentControl, MffView(ParentControl), 0), ToUtf8(sText), ToUtf8(Font.Name), MffFontSize, Font.Bold, Font.Italic))
 		#elseif defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			Dim Sz As ..Size
 			GetTextExtentPoint32(Handle, @sText, Len(sText), @Sz)
@@ -2585,7 +3137,7 @@ Namespace My.Sys.Drawing
 			pango_layout_line_get_pixel_extents(pl, NULL, @extend)
 			Function = UnScaleY(extend.height)
 		#elseif defined(__USE_JNI__) OrElse defined(__USE_WASM__)
-			Function = 0
+			Function = UnScaleY(CanvasTextHeight(IIf(ParentControl, MffView(ParentControl), 0), ToUtf8(Font.Name), MffFontSize, Font.Bold, Font.Italic))
 		#elseif defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 			Dim Sz As ..Size
 			GetTextExtentPoint32(Handle, @sText, Len(sText), @Sz)

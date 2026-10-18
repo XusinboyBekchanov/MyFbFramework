@@ -283,6 +283,14 @@ Namespace My.Sys.Forms
 				Base.Style = Base.Style And Not ES_MULTILINE And Not ES_WANTRETURN
 			End If
 			RecreateWnd
+		#elseif defined(__USE_WASM__)
+			'A multiline text box is a <textarea>; the element type is chosen when it is created
+			If FHandle = 0 Then
+				WLet(FClassAncestor, IIf(FMultiline, "textarea", "input"))
+				FType = IIf(FMultiline, "", "text")
+			End If
+		#elseif defined(__USE_JNI__)
+			If FHandle Then (*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/TextView", "setSingleLine", "(Z)V"), CUByte(IIf(FMultiline, 0, 1)))
 		#endif
 	End Property
 	
@@ -375,11 +383,8 @@ Namespace My.Sys.Forms
 			End If
 			If FText = 0 Then Return "" Else Return *FText
 		#elseif defined(__USE_WASM__)
-			Dim ptr_ As ZString Ptr = GetStringValue(@This)
-			FText = _Reallocate(FText, (Len(*ptr_) + 1) * SizeOf(WString))
-			If FText = 0 OrElse ptr_ = 0 Then Return ""
-			*FText = *ptr_
-			FreePtr(ptr_)
+			ReadElementValue(@This, FText)
+			If FText = 0 Then Return ""
 			Return *FText
 		#else
 			Return Base.Text
@@ -417,7 +422,7 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WASM__)
 			If FHandle Then
-				SetStringValue(@This, Value)
+				SetStringValue(@This, ToUtf8(Value))
 			End If
 		#endif
 	End Property
@@ -465,11 +470,7 @@ Namespace My.Sys.Forms
 			*FText_.m_Data = *FText
 			Return FText_
 		#elseif defined(__USE_WASM__)
-			Dim ptr_ As ZString Ptr = GetStringValue(@This)
-			FText = _Reallocate(FText, (Len(*ptr_) + 1) * SizeOf(WString))
-			'If FText = 0 Then Return ""
-			*FText = *ptr_
-			FreePtr(ptr_)
+			ReadElementValue(@This, FText)
 			FText_.Resize Len(*FText)
 			*FText_.m_Data = *FText
 			Return FText_
@@ -513,7 +514,7 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WASM__)
 			If Owner->FHandle Then
-				SetStringValue(Owner, Sender)
+				SetStringValue(Owner, ToUtf8(Sender))
 			End If
 		#endif
 	End Sub
@@ -942,7 +943,7 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
-				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "selSelection", "(II)V"), iSelStart, iSelEnd)
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setSelection", "(II)V"), iSelStart, iSelEnd)
 			Else
 				FSelStart = iSelStart
 				FSelEnd = iSelEnd
@@ -1338,9 +1339,7 @@ Namespace My.Sys.Forms
 		Private Sub TextBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTextBox(Sender.Child)
-					#ifdef __USE_WASM__
-						If .OnChange Then SetChangeEvent(.FHandle)
-					#elseif defined(__USE_WINAPI__)
+					#ifdef __USE_WINAPI__
 						If .FMaxLength = 0 Then
 							.Perform(EM_LIMITTEXT, -1, 0)
 						Else
@@ -1357,6 +1356,8 @@ Namespace My.Sys.Forms
 						End If
 						'.MaxLength = .MaxLength
 						'End If
+					#elseif defined(__USE_JNI__)
+						If .FMultiline Then .Multiline = True
 					#endif
 				End With
 			End If
@@ -1364,6 +1365,12 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub TextBox.ProcessMessage(ByRef message As Message)
+		#ifdef __USE_WASM__
+			If message.Msg = CM_CHANGE Then
+				If OnChange Then OnChange(*Designer, This)
+				message.Handled = True
+			End If
+		#endif
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = message.Event
 			#ifdef __USE_GTK4__
@@ -1806,6 +1813,7 @@ Namespace My.Sys.Forms
 				WLet(FClassAncestor, "Edit")
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, Replace(__FB_QUOTE__(Package), "_", "/") & "/mffEditText")
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "input")
 				FType = "text"

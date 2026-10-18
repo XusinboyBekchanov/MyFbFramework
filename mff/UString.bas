@@ -767,8 +767,8 @@ End Function
 		End If
 		If original = 0 OrElse find = 0 Then CountReplaced = 0: Return Expression
 		Dim As Integer i, j, ln, lnp, countof, num
-		ln = Len(*original) * GrowLength: 'If ln = 0 Then Return 0
-		lnp = Len(*find) * GrowLength: 'If lnp = 0 Then Return 0
+		ln = Len(*original): 'If ln = 0 Then Return 0
+		lnp = Len(*find): 'If lnp = 0 Then Return 0
 		countof = 0
 		If ln <> 0 AndAlso lnp <> 0 Then
 			i = -1
@@ -793,8 +793,9 @@ End Function
 			CountReplaced = 0: Return Expression
 		End If
 		Dim As Long found, n, staid, m, c
-		Var Lf = Len(FindingText) * GrowLength, Lr = Len(ReplacingText) * GrowLength, Lo = Len(Expression) * GrowLength
-		t = Len(Expression) * GrowLength - t * Lf + t * Lr               'length of output string
+		'The lengths are characters: GrowLength (Web) is only for the size of the buffer (Resize)
+		Var Lf = Len(FindingText), Lr = Len(ReplacingText), Lo = Len(Expression)
+		t = Len(Expression) - t * Lf + t * Lr               'length of output string
 		Dim As UString res
 		res.Resize t                                        'output string
 		Dim As WString Ptr wres = res.vptr

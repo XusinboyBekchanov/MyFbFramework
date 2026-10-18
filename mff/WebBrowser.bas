@@ -52,7 +52,10 @@ Namespace My.Sys.Forms
 	Private Sub WebBrowser.Navigate(ByVal URL As WString Ptr)
 		#ifdef __USE_GTK__
 			webkit_web_view_load_uri(Cast(Any Ptr, widget), ToUtf8(*URL))
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			WLet(FText, *URL)
+			If FHandle Then LoadURL(FHandle, ToUtf8(*URL))
+		#elseif defined(__USE_WINAPI__)
 			#ifdef __USE_WEBVIEW2__
 				If webviewWindow Then
 					webviewWindow->lpVtbl->Navigate(webviewWindow, URL)
@@ -72,7 +75,9 @@ Namespace My.Sys.Forms
 			If webkit_web_view_can_go_forward(widget) Then
 				webkit_web_view_go_forward(widget)
 			End If
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then WebAction(FHandle, 1)
+		#elseif defined(__USE_WINAPI__)
 			#ifdef __USE_WEBVIEW2__
 				If webviewWindow Then
 					webviewWindow->lpVtbl->GoForward(webviewWindow)
@@ -90,7 +95,9 @@ Namespace My.Sys.Forms
 			If webkit_web_view_can_go_forward(widget) Then
 				webkit_web_view_go_forward(widget)
 			End If
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then WebAction(FHandle, 0)
+		#elseif defined(__USE_WINAPI__)
 			#ifdef __USE_WEBVIEW2__
 				If webviewWindow Then
 					webviewWindow->lpVtbl->GoBack(webviewWindow)
@@ -106,7 +113,9 @@ Namespace My.Sys.Forms
 	Private Sub WebBrowser.Refresh()
 		#ifdef __USE_GTK__
 			webkit_web_view_reload_bypass_cache(widget)
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then WebAction(FHandle, 2)
+		#elseif defined(__USE_WINAPI__)
 			#ifdef __USE_WEBVIEW2__
 				If webviewWindow Then
 					webviewWindow->lpVtbl->Reload(webviewWindow)
@@ -125,7 +134,10 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			sRet = *webkit_web_view_get_uri(widget)
 			Return *buf
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FText Then sRet = *FText
+			Return *buf
+		#elseif defined(__USE_WINAPI__)
 			#ifdef __USE_WEBVIEW2__
 				If webviewWindow Then
 					Dim tText As WString Ptr
@@ -155,7 +167,7 @@ Namespace My.Sys.Forms
 				Return True
 			End If
 			'#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			#ifdef __USE_WEBVIEW2__
 				'webviewWindow->lpVtbl->Reload(webviewWindow)
 			#else
@@ -168,7 +180,9 @@ Namespace My.Sys.Forms
 	Private Sub WebBrowser.Stop()
 		#ifdef __USE_GTK__
 			webkit_web_view_stop_loading(widget)
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then WebAction(FHandle, 3)
+		#elseif defined(__USE_WINAPI__)
 			#ifdef __USE_WEBVIEW2__
 				If webviewWindow Then
 					webviewWindow->lpVtbl->Stop(webviewWindow)
@@ -193,7 +207,9 @@ Namespace My.Sys.Forms
 			#else
 				Return ""
 			#endif
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Return FBody
+		#elseif defined(__USE_WINAPI__)
 			#ifdef __USE_WEBVIEW2__
 				If webviewWindow Then
 					Dim pJavaScript As WString Ptr
@@ -276,7 +292,10 @@ Namespace My.Sys.Forms
 			'#else
 			webkit_web_view_load_html_string(Cast(Any Ptr, widget), ToUtf8(tText))
 			'#endif
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			FBody = tText
+			If FHandle Then LoadHTML(FHandle, ToUtf8(tText))
+		#elseif defined(__USE_WINAPI__)
 			#ifdef __USE_WEBVIEW2__
 				If webviewWindow Then
 					webviewWindow->lpVtbl->NavigateToString(webviewWindow, @tText)
@@ -312,7 +331,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		#ifdef __USE_WEBVIEW2__
 			Function WebBrowser.EnvironmentHandlerAddRef stdcall (This_ As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr) As culong
 				Dim As WebBrowser Ptr WebB = Handles.Get(This_)
@@ -726,6 +745,21 @@ Namespace My.Sys.Forms
 		
 		Private Sub WebBrowser.WndProc(ByRef Message As Message)
 		End Sub
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Sub WebBrowser.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			If Sender.Child Then
+				With QWebBrowser(Sender.Child)
+					If Len(.FBody) Then
+						LoadHTML(.FHandle, ToUtf8(.FBody))
+					ElseIf .FText AndAlso *.FText <> "" AndAlso *.FText <> "about:blank" Then
+						LoadURL(.FHandle, ToUtf8(*.FText))
+					End If
+				End With
+			End If
+		End Sub
+		
+		Private Sub WebBrowser.WndProc(ByRef Message As Message)
+		End Sub
 	#endif
 	
 	Private Sub WebBrowser.ProcessMessage(ByRef Message As Message)
@@ -777,7 +811,7 @@ Namespace My.Sys.Forms
 					gtk_container_add(GTK_CONTAINER(scrolledwidget), widget)
 				#endif
 				webkit_web_view_load_uri(Cast(Any Ptr, widget), Cast(gchar Ptr, @"about:blank"))
-			#else
+			#elseif defined(__USE_WINAPI__)
 				#ifdef __USE_WEBVIEW2__
 					.RegisterClass "WebBrowser"
 					.Style        = WS_CHILD
@@ -797,6 +831,13 @@ Namespace My.Sys.Forms
 				.ExStyle      = WS_EX_CLIENTEDGE
 				.ChildProc    = @WndProc
 				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "iframe")
+				FElementStyle = "border: 1px solid #aaa;"
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "mff:WebView")
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.Width        = 175
 			.Height       = 21
@@ -805,7 +846,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor WebBrowser
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			'This.Stop()
 			#ifndef __USE_WEBVIEW2__
 				If g_IWebBrowser Then g_IWebBrowser->Quit(Cast(IWebBrowser2 Ptr, pIWebBrowser))

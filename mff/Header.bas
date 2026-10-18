@@ -147,7 +147,7 @@ Namespace My.Sys.Forms
 	End Operator
 	
 	Private Constructor HeaderSection
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			AFmt(0)         = HDF_LEFT
 			AFmt(1)         = HDF_CENTER
 			AFmt(2)         = HDF_RIGHT
@@ -201,7 +201,7 @@ Namespace My.Sys.Forms
 				For i As Integer = 0 To FSections.Count - 1
 					gtk_tree_view_column_set_clickable(Section(i)->Handle, Value = HeaderStyle.hsNormal)
 				Next
-			#else
+			#elseif defined(__USE_WINAPI__)
 				ChangeStyle HDS_BUTTONS, Not Value
 				'Base.Style = WS_CHILD Or AStyle(Abs_(FStyle)) Or AFullDrag(Abs_(FFullDrag)) Or AHotTrack(Abs_(FHotTrack)) Or ADragReorder(Abs_(FDragReorder))
 			#endif
@@ -215,7 +215,7 @@ Namespace My.Sys.Forms
 	Private Property Header.HotTrack(Value As Boolean)
 		If FHotTrack <> Value Then
 			FHotTrack = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				ChangeStyle HDS_HOTTRACK, Value
 				'Base.Style = WS_CHILD Or AStyle(Abs_(FStyle)) Or AFullDrag(Abs_(FFullDrag)) Or AHotTrack(Abs_(FHotTrack)) Or ADragReorder(Abs_(FDragReorder))
 			#endif
@@ -229,7 +229,7 @@ Namespace My.Sys.Forms
 	Private Property Header.FullDrag(Value As Boolean)
 		If FFullDrag <> Value Then
 			FFullDrag = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				ChangeStyle HDS_FULLDRAG, Value
 				'Base.Style = WS_CHILD Or AStyle(Abs_(FStyle)) Or AFullDrag(Abs_(FFullDrag)) Or AHotTrack(Abs_(FHotTrack)) Or ADragReorder(Abs_(FDragReorder))
 			#endif
@@ -247,7 +247,7 @@ Namespace My.Sys.Forms
 				For i As Integer = 0 To FSections.Count - 1
 					gtk_tree_view_column_set_reorderable(gtk_tree_view_column(Section(i)->Handle), Value)
 				Next
-			#else
+			#elseif defined(__USE_WINAPI__)
 				ChangeStyle HDS_DRAGDROP, Value
 				'Base.Style = WS_CHILD Or AStyle(Abs_(FStyle)) Or AFullDrag(Abs_(FFullDrag)) Or AHotTrack(Abs_(FHotTrack)) Or ADragReorder(Abs_(FDragReorder))
 			#endif
@@ -265,7 +265,7 @@ Namespace My.Sys.Forms
 				For i As Integer = 0 To FSections.Count - 1
 					gtk_tree_view_column_set_resizable(gtk_tree_view_column(Section(i)->Handle), Value)
 				Next
-			#else
+			#elseif defined(__USE_WINAPI__)
 				'Const HDS_NOSIZING = &h800
 				#if _WIN32_WINNT >= &h0600
 					ChangeStyle HDS_NOSIZING, Not Value
@@ -353,7 +353,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Sub Header.UpdateItems
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As HDITEM HI
 			For i As Integer = SectionCount -1 To 0 Step -1
 				Perform(HDM_DELETEITEM, i, 0)
@@ -383,10 +383,19 @@ Namespace My.Sys.Forms
 				HI.lParam     = Cast(LParam, FSections.Items[I])
 				Perform(HDM_INSERTITEM, i, CInt(@HI))
 			Next i
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'The sections are a row of buttons
+			If FHandle = 0 Then Exit Sub
+			Dim As UString Items
+			For i As Integer = 0 To SectionCount - 1
+				If i > 0 Then Items &= Chr(10)
+				Items &= "0" & QHeaderSection(FSections.Items[i]).Caption
+			Next i
+			SetButtons(FHandle, ToUtf8(Items))
 		#endif
 	End Sub
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub Header.HandleIsAllocated(ByRef Sender As Control)
 			Dim As HDITEM HI
 			If Sender.Child Then
@@ -423,6 +432,13 @@ Namespace My.Sys.Forms
 			If Message.Sender Then
 			End If
 		End Sub
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Sub Header.HandleIsAllocated(ByRef Sender As Control)
+			If Sender.Child Then QHeader(Sender.Child).UpdateItems
+		End Sub
+
+		Private Sub Header.WndProc(ByRef Message As Message)
+		End Sub
 	#endif
 	
 	Private Function Header.EnumMenuItems(Item As MenuItem, ByRef List As List) As Boolean
@@ -448,6 +464,18 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Sub Header.ProcessMessage(ByRef Message As Message)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Message.Msg = CM_CHANGE Then
+				Dim As Integer Index
+				#ifdef __USE_JNI__
+					Index = Message.wParam
+				#else
+					Index = GetPosition(FHandle)
+				#endif
+				If Index >= 0 AndAlso Index < SectionCount AndAlso OnSectionClick Then OnSectionClick(*Designer, This, *Section(Index), Index, 0)
+				Message.Handled = True
+			End If
+		#endif
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.Event
 			#ifdef __USE_GTK4__
@@ -458,7 +486,7 @@ Namespace My.Sys.Forms
 			Case GDK_MAP
 				Init
 			End Select
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Static As Boolean IsMenuItem
 			Select Case Message.Msg
 			Case WM_RBUTTONDOWN
@@ -655,7 +683,7 @@ Namespace My.Sys.Forms
 				g_signal_connect(PSection->ButtonHandle, "button-press-event", G_CALLBACK(@Column_ButtonPressEvent), PSection)
 			#endif
 			g_signal_connect(gtk_tree_view_column(PSection->Handle), "clicked", G_CALLBACK(@Column_Clicked), PSection)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As HDITEM HI
 			With HI
 				.mask       = HDI_FORMAT Or HDI_WIDTH Or HDI_LPARAM Or HDI_TEXT
@@ -682,6 +710,9 @@ Namespace My.Sys.Forms
 				.lParam     = Cast(LParam, PSection)
 			End With
 			If Handle Then Perform(HDM_INSERTITEM, SectionCount - 1, CInt(@HI))
+		#endif
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			UpdateItems
 		#endif
 		Return PSection
 	End Function
@@ -722,7 +753,7 @@ Namespace My.Sys.Forms
 				gtk_tree_view_convert_bin_window_to_widget_coords(gtk_tree_view(FHandle), 0, 0, @wx, @wy)
 				gtk_widget_set_size_request(FHandle, FWidth, wy)
 				g_signal_connect(gtk_tree_view_column(PSection->Handle), "clicked", G_CALLBACK(@Column_Clicked), PSection)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim As HDITEM HI
 				With HI
 					.mask       = HDI_FORMAT Or HDI_LPARAM Or HDI_TEXT Or HDI_WIDTH
@@ -754,10 +785,13 @@ Namespace My.Sys.Forms
 		If Index >= 0 And Index <= SectionCount - 1 Then
 			#ifdef __USE_GTK__
 				If FHandle Then gtk_tree_view_remove_column(gtk_tree_view(FHandle), gtk_tree_view_column(Section(Index)->Handle))
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If FHandle Then Perform(HDM_DELETEITEM, Index, 0)
 			#endif
 			FSections.Remove Index
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				UpdateItems
+			#endif
 		End If
 	End Sub
 	
@@ -804,7 +838,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Constructor Header
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 '			AStyle(0)       = HDS_BUTTONS
 '			AStyle(1)       = 0
 '			AFullDrag(0)    = 0
@@ -841,7 +875,7 @@ Namespace My.Sys.Forms
 					g_signal_connect(widget, "expose-event", G_CALLBACK(@Header_ExposeEvent), @This)
 				#endif
 				This.RegisterClass "Header", @This
-			#else
+			#elseif defined(__USE_WINAPI__)
 				.RegisterClass "Header", WC_HEADER
 				.ChildProc         = @WndProc
 				.ExStyle           = 0
@@ -851,6 +885,8 @@ Namespace My.Sys.Forms
 				.BackColor             = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
 				WLet(FClassAncestor, WC_HEADER)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			WLet(FClassName, "Header")
 			.Width             = 150

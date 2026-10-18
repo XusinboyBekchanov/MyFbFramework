@@ -19,14 +19,14 @@ Namespace My.Sys.Forms
 		FItems As List
 		PItem As PTreeListViewItem
 		FParentItem As PTreeListViewItem
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			lvi As LVITEM
 		#endif
 	Public:
 		#ifdef __USE_GTK__
 			'Finds item via GTK+ iterator data
 			Declare Function FindByIterUser_Data(User_Data As Any Ptr) As PTreeListViewItem
-		#else
+		#elseif defined(__USE_WINAPI__)
 			'Locates item via native OS handle
 			Declare Function FindByHandle(Value As LPARAM) As PTreeListViewItem
 		#endif
@@ -85,11 +85,11 @@ Namespace My.Sys.Forms
 		FState              As Integer
 		FIndent             As Integer
 		FExpanded			As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim lvi             As LVITEM
 		#endif
 	Protected:
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Declare Static Sub DeleteItems(Node As TreeListViewItem Ptr)
 			Declare Static Function GetVisibleItemsCount(Node As TreeListViewItem Ptr) As Integer
 			Declare Static Function GetTreeListViewItemIndex(Node As TreeListViewItem Ptr, iItem As TreeListViewItem Ptr, ByRef iCount As Integer) As Integer
@@ -99,7 +99,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			'GTK+ tree model iterator reference
 			TreeIter As GtkTreeIter
-		#else
+		#elseif defined(__USE_WINAPI__)
 			'Native OS handle (WinAPI/GTK+)
 			Handle As LPARAM
 			'Returns position in parent collection
@@ -286,6 +286,11 @@ Namespace My.Sys.Forms
 			Declare Virtual Sub SetDark(Value As Boolean)
 			hHeader As HWND
 			headerTextColor As COLORREF
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'The items are shown as a table view with a row per visible item
+			FSelItem As TreeListViewItem Ptr
+			FRowItems(Any) As TreeListViewItem Ptr
+			Declare Sub AddRows(PNodes As TreeListViewItems Ptr)
 		#endif
 	Public:
 		#ifndef ReadProperty_Off
@@ -303,6 +308,12 @@ Namespace My.Sys.Forms
 			TreeSelection As GtkTreeSelection Ptr
 			'Specifies column data types (Text/Image/Checkbox).
 			ColumnTypes As GType Ptr
+		#endif
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'Shows the visible items and the columns again
+			Declare Sub UpdateRows()
+			Declare Sub UpdateColumns()
+			Declare Function RowCells(Item As TreeListViewItem Ptr) As String
 		#endif
 		'Initializes control components.
 		Declare Sub Init()

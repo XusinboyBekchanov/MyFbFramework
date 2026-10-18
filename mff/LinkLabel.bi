@@ -20,6 +20,9 @@ Namespace My.Sys.Forms
 			Declare Static Function ActivateLink(label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+		#ifdef __USE_WASM__
+			Declare Virtual Function GetContent() As UString
+		#endif
 	Public:
 		#ifndef ReadProperty_Off
 			'Loads hyperlink settings from stream

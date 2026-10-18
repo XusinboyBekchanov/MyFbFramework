@@ -205,6 +205,10 @@ Type Gtk4CompatLoops
 	CurrentEventWidget As Any Ptr
 	' GDK_FOCUS_CHANGE sent by the focus controller: focus in or out
 	FocusIn As Boolean
+	' The lock of gdk_threads_enter, the main thread holds it except while waiting for events
+	ThreadsMutex As GRecMutex
+	' The poll function of GLib (zero until gdk_threads_init)
+	ThreadsPollFunc As GPollFunc
 End Type
 
 Private Function gtk4compat_loops() As Gtk4CompatLoops Ptr
@@ -320,13 +324,35 @@ Private Function gtk_main_iteration_do(ByVal blocking As gboolean) As gboolean
 	Return False
 End Function
 
+' GTK4 has no gdk_threads_enter. Like GDK3 the main thread holds the lock all the time
+' and releases it only while the main loop waits for events, so the other threads can
+' use the widgets between gdk_threads_enter and gdk_threads_leave
+Private Function gtk4compat_threads_poll CDecl(ByVal ufds As GPollFD Ptr, ByVal nfds As guint, ByVal timeout_ As gint) As gint
+	Dim As Gtk4CompatLoops Ptr p = gtk4compat_loops()
+	g_rec_mutex_unlock(@p->ThreadsMutex)
+	Dim As gint Result = p->ThreadsPollFunc(ufds, nfds, timeout_)
+	g_rec_mutex_lock(@p->ThreadsMutex)
+	Return Result
+End Function
+
+' Must be called from the main thread
 Private Sub gdk_threads_init()
+	Dim As Gtk4CompatLoops Ptr p = gtk4compat_loops()
+	If p->ThreadsPollFunc Then Exit Sub
+	g_rec_mutex_init(@p->ThreadsMutex)
+	g_rec_mutex_lock(@p->ThreadsMutex)
+	p->ThreadsPollFunc = g_main_context_get_poll_func(NULL)
+	g_main_context_set_poll_func(NULL, @gtk4compat_threads_poll)
 End Sub
 
 Private Sub gdk_threads_enter()
+	Dim As Gtk4CompatLoops Ptr p = gtk4compat_loops()
+	If p->ThreadsPollFunc Then g_rec_mutex_lock(@p->ThreadsMutex)
 End Sub
 
 Private Sub gdk_threads_leave()
+	Dim As Gtk4CompatLoops Ptr p = gtk4compat_loops()
+	If p->ThreadsPollFunc Then g_rec_mutex_unlock(@p->ThreadsMutex)
 End Sub
 
 ' -----------------------------------------------------------------------------
@@ -492,8 +518,18 @@ Private Sub gtk4compat_box_pack(ByVal box As GtkBox Ptr, ByVal child As GtkWidge
 	End If
 	If AtEnd Then
 		g_object_set_data(G_OBJECT(child), "mff-pack-end", Cast(gpointer, 1))
-		If FirstEnd = 0 AndAlso expand = 0 Then
-			' Pushes the end children to the end of the box
+		' Pushes the end children to the end of the box: the first end child (the new one, it is put before
+		' the others like in GTK3) gets the free space, else it would stay between the end children
+		If expand = 0 AndAlso (FirstEnd = 0 OrElse g_object_get_data(G_OBJECT(FirstEnd), "mff-pack-end-push") <> 0) Then
+			If FirstEnd Then
+				g_object_set_data(G_OBJECT(FirstEnd), "mff-pack-end-push", NULL)
+				If Horizontal Then
+					gtk_widget_set_hexpand(FirstEnd, False): gtk_widget_set_halign(FirstEnd, GTK_ALIGN_FILL)
+				Else
+					gtk_widget_set_vexpand(FirstEnd, False): gtk_widget_set_valign(FirstEnd, GTK_ALIGN_FILL)
+				End If
+			End If
+			g_object_set_data(G_OBJECT(child), "mff-pack-end-push", Cast(gpointer, 1))
 			If Horizontal Then
 				gtk_widget_set_hexpand(child, True): gtk_widget_set_halign(child, GTK_ALIGN_END)
 			Else
@@ -1088,6 +1124,19 @@ Private Sub gtk4compat_widget_set_font(ByVal widget As GtkWidget Ptr, ByVal pfd 
 	If iSize > 0 Then css &= " font-size: " & Str(iSize / PANGO_SCALE) & IIf(pango_font_description_get_size_is_absolute(pfd), "px", "pt") & ";"
 	css &= " font-weight: " & Str(CInt(pango_font_description_get_weight(pfd))) & ";"
 	css &= " font-style: " & IIf(pango_font_description_get_style(pfd) = PANGO_STYLE_ITALIC, "italic", IIf(pango_font_description_get_style(pfd) = PANGO_STYLE_OBLIQUE, "oblique", "normal")) & "; }"
+	gtk4compat_css_provider_load_from_string(provider, StrPtr(css))
+End Sub
+
+' Text color (Windows COLORREF: &hBBGGRR) with its own CSS provider like the font
+Private Sub gtk4compat_widget_set_color(ByVal widget As GtkWidget Ptr, ByVal iColor As Integer)
+	If widget = 0 Then Exit Sub
+	Dim As GtkCssProvider Ptr provider = g_object_get_data(G_OBJECT(widget), "mff-color-provider")
+	If provider = 0 Then
+		provider = gtk_css_provider_new()
+		gtk_style_context_add_provider(gtk_widget_get_style_context(widget), GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION)
+		g_object_set_data_full(G_OBJECT(widget), "mff-color-provider", provider, Cast(GDestroyNotify, @g_object_unref))
+	End If
+	Dim As String css = "* { color: rgb(" & Str(iColor And &hFF) & ", " & Str((iColor Shr 8) And &hFF) & ", " & Str((iColor Shr 16) And &hFF) & "); }"
 	gtk4compat_css_provider_load_from_string(provider, StrPtr(css))
 End Sub
 

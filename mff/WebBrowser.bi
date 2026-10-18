@@ -5,13 +5,13 @@
 '################################################################################
 
 #include once "Control.bi"
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	#include once "win/exdisp.bi"
 	#include once "win/unknwnbase.bi"
 	#ifdef __USE_WEBVIEW2__
 		#include once "WebView/WebView2.bi"
 	#endif
-#else
+#elseif defined(__USE_GTK__)
 	#include once "WebView/WebKitWebView.bi"
 #endif
 
@@ -41,7 +41,10 @@ Namespace My.Sys.Forms
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		#endif
 	Protected:
-		#ifndef __USE_GTK__
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			FBody As UString
+		#endif
+		#ifdef __USE_WINAPI__
 			#ifdef __USE_WEBVIEW2__
 				Dim As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr envHandler
 				Dim As ICoreWebView2CreateCoreWebView2ControllerCompletedHandler Ptr completedHandler

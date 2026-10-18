@@ -20,7 +20,7 @@
 		Using Gdiplus
 	#endif
 #endif
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	#include once "win/dshow.bi"
 #endif
 
@@ -100,8 +100,8 @@ Namespace My.Sys.Forms
 		#else
 			Declare Static Sub WNDPROC(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-			Declare Function Error_HR(ByVal hr As Integer, ByRef Inter_face As WString) As Integer
 			#ifdef __USE_WINAPI__
+				Declare Function Error_HR(ByVal hr As Integer, ByRef Inter_face As WString) As Integer
 				As IGraphBuilder   Ptr pGraph
 				As IMediaControl   Ptr PControl
 				As IMediaEvent     Ptr pEvent

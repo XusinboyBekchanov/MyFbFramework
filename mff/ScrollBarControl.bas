@@ -89,7 +89,7 @@ Namespace My.Sys.Forms
 				Height  = iWidth
 			End If
 			FStyle = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or AStyle(abs_(FStyle))
 			#endif
 			If This.Parent Then This.Parent->RequestAlign
@@ -108,7 +108,9 @@ Namespace My.Sys.Forms
 			#else
 				gtk_range_set_range(GTK_RANGE(widget), FMin, FMax)
 			#endif
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then ..SetRange(FHandle, FMin, FMax)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(SBM_SETRANGE, FMin, FMax)
 		#endif
 	End Property
@@ -125,7 +127,9 @@ Namespace My.Sys.Forms
 			#else
 				gtk_range_set_range(GTK_RANGE(widget), FMin, FMax)
 			#endif
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then ..SetRange(FHandle, FMin, FMax)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(SBM_SETRANGE, FMin, FMax)
 		#endif
 	End Property
@@ -137,7 +141,9 @@ Namespace My.Sys.Forms
 			#else
 				FPosition = gtk_range_get_value(GTK_RANGE(widget))
 			#endif
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then FPosition = GetPosition(FHandle)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then FPosition = Perform(SBM_GETPOS, 0, 0)
 		#endif
 		Return FPosition
@@ -151,7 +157,9 @@ Namespace My.Sys.Forms
 			#else
 				gtk_range_set_value(GTK_RANGE(widget), CDbl(Value))
 			#endif
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then SetPosition(FHandle, FPosition)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(SBM_SETPOS, FPosition, True)
 		#endif
 		If OnScroll Then OnScroll(*Designer, This, FPosition)
@@ -185,14 +193,14 @@ Namespace My.Sys.Forms
 			#else
 				gtk_range_set_increments(GTK_RANGE(widget), FArrowChangeSize, FPageSize)
 			#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			SIF.fMask = SIF_PAGE
 			SIF.nPage = FPageSize
 			If Handle Then Perform(SBM_SETSCROLLINFO, True, CInt(@SIF))
 		#endif
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub ScrollBarControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QScrollBarControl(Sender.Child)
@@ -206,10 +214,37 @@ Namespace My.Sys.Forms
 		
 		Private Sub ScrollBarControl.WndProc(ByRef Message As Message)
 		End Sub
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Sub ScrollBarControl.HandleIsAllocated(ByRef Sender As Control)
+			If Sender.Child Then
+				With QScrollBarControl(Sender.Child)
+					..SetRange(.FHandle, .FMin, .FMax)
+					SetPosition(.FHandle, .FPosition)
+					#ifdef __USE_WASM__
+						SetAttribute(.FHandle, "step", Str(.FArrowChangeSize))
+						If .FStyle = sbVertical Then SetAttribute(.FHandle, "orient", "vertical")
+					#endif
+				End With
+			End If
+		End Sub
+		
+		Private Sub ScrollBarControl.WndProc(ByRef Message As Message)
+		End Sub
 	#endif
 	
 	Private Sub ScrollBarControl.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Message.Msg = CM_CHANGE Then
+				#ifdef __USE_JNI__
+					FPosition = Message.wParam
+				#else
+					FPosition = GetPosition(FHandle)
+				#endif
+				If OnScroll Then OnScroll(*Designer, This, FPosition)
+				Message.Handled = True
+			End If
+		#endif
+		#ifdef __USE_WINAPI__
 			Static As Integer OldPos
 			Select Case Message.Msg
 			Case WM_PAINT
@@ -289,7 +324,7 @@ Namespace My.Sys.Forms
 				g_signal_connect(widget, "value-changed", G_CALLBACK(@Range_ValueChanged), @This)
 			#endif
 			This.RegisterClass "ScrollBarControl", @This
-		#else
+		#elseif defined(__USE_WINAPI__)
 			SIF.cbSize = SizeOf(SCROLLINFO)
 		#endif
 		MaxValue        = 100
@@ -297,14 +332,14 @@ Namespace My.Sys.Forms
 		Position        = 0
 		ArrowChangeSize = 1
 		PageSize        = 3
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			AStyle(0)   = SB_HORZ
 			AStyle(1)   = SB_VERT
 		#endif
 		FTabIndex       = -1
 		With This
 			.Child      = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.RegisterClass "ScrollBarControl", "ScrollBar"
 				.ChildProc   = @WndProc
 				.ExStyle     = 0
@@ -314,6 +349,14 @@ Namespace My.Sys.Forms
 			#endif
 			WLet(FClassName, "ScrollBarControl")
 			WLet(FClassAncestor, "ScrollBar")
+			#ifdef __USE_WASM__
+				WLet(FClassAncestor, "input")
+				FType = "range"
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "mff:SeekBar")
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#endif
 			.Width      = 121
 			.Height     = 17
 		End With

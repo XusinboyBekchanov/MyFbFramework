@@ -16,6 +16,8 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(Parent->Handle)), @TreeIter)
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then TreeView_Select(Parent->Handle, Handle, TVGN_CARET)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(TreeView Ptr, Parent)->SelectedNode = @This
 		#endif
 	End Sub
 	
@@ -28,6 +30,9 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then TreeView_Expand(Parent->Handle, Handle, TVE_COLLAPSE)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			FExpanded = False
+			If Parent Then Cast(TreeView Ptr, Parent)->UpdateRows
 		#endif
 	End Sub
 	
@@ -40,6 +45,9 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then TreeView_Expand(Parent->Handle, Handle, TVE_EXPAND)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			FExpanded = True
+			If Parent Then Cast(TreeView Ptr, Parent)->UpdateRows
 		#endif
 	End Sub
 	
@@ -53,6 +61,8 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then Return TreeView_GetItemState(Parent->Handle, Handle, TVIS_EXPANDED)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Return FExpanded
 		#endif
 		Return False
 	End Function
@@ -114,6 +124,8 @@ Namespace My.Sys.Forms
 				tvi.cchTextMax = Len(*FText) + 1
 				TreeView_SetItem(Parent->Handle, @tvi)
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(TreeView Ptr, Parent)->UpdateRows
 		#endif
 	End Property
 	
@@ -461,6 +473,8 @@ Namespace My.Sys.Forms
 					If .ParentNode Then tvis.hParent               = .ParentNode->Handle
 					.Handle        = TreeView_InsertItem(Parent->Handle, @tvis)
 				End If
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				If Parent Then Cast(TreeView Ptr, Parent)->UpdateRows
 			#endif
 		End With
 		Return PNode
@@ -544,6 +558,9 @@ Namespace My.Sys.Forms
 		'		#endif
 		_Delete(Item(Index))
 		FNodes.Remove Index
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(TreeView Ptr, Parent)->UpdateRows
+		#endif
 	End Sub
 	Private Sub TreeNode.EditLabel
 		#ifdef __USE_GTK__
@@ -608,6 +625,9 @@ Namespace My.Sys.Forms
 		'			Next i
 		'		End If
 		FNodes.Clear
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(TreeView Ptr, Parent)->UpdateRows
+		#endif
 	End Sub
 	
 	#ifndef ReadProperty_Off
@@ -738,6 +758,8 @@ Namespace My.Sys.Forms
 				Dim As HTREEITEM hti = TreeView_GetNextItem(Handle, NULL, TVGN_CARET)
 				Return Nodes.FindByHandle(hti)
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Return FSelectedNode
 		#endif
 		Return 0
 	End Property
@@ -747,6 +769,15 @@ Namespace My.Sys.Forms
 			If TreeSelection Then gtk_tree_selection_select_iter(TreeSelection, @Value->TreeIter)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then TreeView_Select(Handle, Value->Handle, TVGN_CARET)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			FSelectedNode = Value
+			'The parents of the node are expanded to show it
+			Dim As TreeNode Ptr PNode = IIf(Value, Value->ParentNode, 0)
+			While PNode
+				If Not PNode->IsExpanded Then PNode->Expand
+				PNode = PNode->ParentNode
+			Wend
+			UpdateRows
 		#endif
 	End Property
 	
@@ -823,7 +854,70 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Sub TreeView.AddRows(PNodes As TreeNodeCollection Ptr, Level As Integer)
+			For i As Integer = 0 To PNodes->Count - 1
+				Dim As TreeNode Ptr PNode = PNodes->Item(i)
+				If PNode = 0 OrElse Not PNode->Visible Then Continue For
+				Dim As WString * 3 Sign = IIf(PNode->Nodes.Count = 0, "  ", IIf(PNode->IsExpanded, WChr(&H25BC) & " ", WChr(&H25BA) & " "))
+				TableInsertRow(FHandle, -1, Space(Level * 4) & ToUtf8(Sign & PNode->Text))
+				ReDim Preserve FRowNodes(UBound(FRowNodes) + 1)
+				FRowNodes(UBound(FRowNodes)) = PNode
+				If PNode->IsExpanded Then AddRows(@PNode->Nodes, Level + 1)
+			Next
+		End Sub
+		
+		Private Sub TreeView.UpdateRows()
+			If FHandle = 0 Then Exit Sub
+			TableClear(FHandle)
+			Erase FRowNodes
+			AddRows(@Nodes, 0)
+			For i As Integer = 0 To UBound(FRowNodes)
+				If FRowNodes(i) = FSelectedNode Then TableSetIndex(FHandle, i): Exit For
+			Next
+		End Sub
+		
+		Private Sub TreeView.HandleIsAllocated(ByRef Sender As Control)
+			If Sender.Child Then
+				With QTreeView(Sender.Child)
+					TableInit(.FHandle)
+					.UpdateRows
+				End With
+			End If
+		End Sub
+	#endif
+	
 	Private Sub TreeView.ProcessMessage(ByRef Message As Message)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Message.Msg = CM_CHANGE Then
+				Dim As Integer RowIndex
+				#ifdef __USE_JNI__
+					RowIndex = Message.wParam
+				#else
+					RowIndex = TableGetIndex(FHandle)
+				#endif
+				If RowIndex >= 0 AndAlso RowIndex <= UBound(FRowNodes) Then
+					Dim As TreeNode Ptr PNode = FRowNodes(RowIndex)
+					Dim As Boolean bChanged = (PNode <> FSelectedNode)
+					FSelectedNode = PNode
+					If OnNodeClick Then OnNodeClick(*Designer, This, *PNode)
+					If bChanged AndAlso OnSelChanged <> 0 Then OnSelChanged(*Designer, This, *PNode)
+					'Web: a double click, Android: a tap opens or closes the node
+					#ifdef __USE_WASM__
+						If TableDblClick(FHandle) Then
+					#endif
+						If PNode->Nodes.Count > 0 Then
+							If PNode->IsExpanded Then PNode->Collapse Else PNode->Expand
+						ElseIf OnNodeActivate Then
+							OnNodeActivate(*Designer, This, *PNode)
+						End If
+					#ifdef __USE_WASM__
+						End If
+					#endif
+				End If
+				Message.Handled = True
+			End If
+		#endif
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.Event
 			#ifdef __USE_GTK4__
@@ -1288,7 +1382,11 @@ Namespace My.Sys.Forms
 				.DoubleBuffered = True
 			#elseif defined(__USE_WASM__)
 				FElementStyle = "overflow: auto; border: 1px solid rgb(192, 192, 192); padding: 10px;"
-				WLet(FClassAncestor, "ul")
+				WLet(FClassAncestor, "table")
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "android/widget/ListView")
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			BorderStyle = BorderStyles.bsClient
 			WLet(FClassName, "TreeView")

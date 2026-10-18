@@ -1060,7 +1060,7 @@ Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As
 		Case btYesNoCancel: ButtonsTypeIn = 0
 		Case btOkCancel: ButtonsTypeIn = 2
 		End Select
-		MessageBox(MsgStr, *FCaption, 0, 0)
+		MessageBox(ToUtf8(MsgStr), ToUtf8(*FCaption), 0, 0)
 	#endif
 	'Do
 	'    App.DoEvents

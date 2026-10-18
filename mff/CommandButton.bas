@@ -82,6 +82,8 @@ Namespace My.Sys.Forms
 			If FHandle Then
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(*FText)))
 			End If
+		#elseif defined(__USE_WASM__)
+			If FHandle Then SetInnerText(FHandle, ToUtf8(*FText))
 		#endif
 	End Property
 	

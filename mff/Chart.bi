@@ -68,7 +68,7 @@ Namespace My.Sys.Forms
 		LP_BOTTOM
 	End Enum
 	
-	#ifdef __USE_GTK__
+	#ifndef __USE_WINAPI__
 		Private Type RectL
 			Left As Long
 			Top As Long
@@ -210,27 +210,32 @@ Namespace My.Sys.Forms
 		Dim m_SeparatorLineWidth2 As Long
 		Dim m_DonutWidth2 As Long
 		
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim c_lhWnd As HWND
 			Dim hGraphics As GpGraphics Ptr
 			Dim hd As HDC
-		#else
+		#elseif defined(__USE_GTK__)
 			Dim c_lhWnd As GtkWidget Ptr
 			Dim As GdkWindow Ptr win
 			Dim As cairo_t Ptr cr
 			Dim As PangoContext Ptr pcontext
 			Dim As PangoLayout Ptr layout
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'The canvas of the control while it paints (CM_PAINT)
+			Dim As Any Ptr cr
 		#endif
 		Dim tmrMOUSEOVER As TimerComponent
 		
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim gToken As ULONG_PTR                 'GDI+ instance token
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
-		#else
+		#elseif defined(__USE_GTK__)
 			Declare Static Function OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
 			Declare Static Function OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
 			Declare Static Sub OnSizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		
@@ -248,7 +253,7 @@ Namespace My.Sys.Forms
 		Declare Function FormatLabel(ByVal numerical_expression As Double, ByRef formatting_expression As WString = "") As UString
 		Declare Sub Show()
 		Declare Sub Paint()
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Declare Sub ManageGDIToken(ByVal projectHwnd As HWND)
 		#endif
 		Declare Function zFnAddr(ByVal sDLL As String, ByVal sProc As String) As Long

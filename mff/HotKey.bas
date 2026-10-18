@@ -45,11 +45,25 @@ Namespace My.Sys.Forms
 		ChangeTabStop Value
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub HotKey.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QHotKey(Sender.Child)
 					
+				End With
+			End If
+		End Sub
+		
+		Private Sub HotKey.WndProc(ByRef Message As Message)
+		End Sub
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Sub HotKey.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			If Sender.Child Then
+				With QHotKey(Sender.Child)
+					If .FText Then SetStringValue(.FHandle, ToUtf8(*.FText))
+					#ifdef __USE_WASM__
+						SetHotKeyEvent(.FHandle)
+					#endif
 				End With
 			End If
 		End Sub
@@ -198,7 +212,7 @@ Namespace My.Sys.Forms
 					End If
 				End Select
 			End Select
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Select Case Message.Msg
 			Case CM_COMMAND
 				Select Case Message.wParamHi
@@ -206,6 +220,11 @@ Namespace My.Sys.Forms
 					If OnChange Then OnChange(*Designer, This)
 				End Select
 			End Select
+		#elseif defined(__USE_WASM__)
+			If Message.Msg = CM_CHANGE Then
+				If OnChange Then OnChange(*Designer, This)
+				Message.Handled = True
+			End If
 		#endif
 		Base.ProcessMessage(Message)
 	End Sub
@@ -217,13 +236,15 @@ Namespace My.Sys.Forms
 			#else
 				FText = Replace(WStr(*gtk_entry_get_text(GTK_ENTRY(widget))), " ", "")
 			#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim wHotKey As WORD
 			wHotKey = SendMessage(Handle, HKM_GETHOTKEY, 0, 0)
 			WLet(FText, GetChrKeyCode(LoByte(LoWord(wHotKey))))
 			If (HiByte(LoWord(wHotKey)) And HOTKEYF_SHIFT) = HOTKEYF_SHIFT Then WLetEx(FText, "Shift+" & *FText)
 			If (HiByte(LoWord(wHotKey)) And HOTKEYF_ALT) = HOTKEYF_ALT Then WLetEx(FText, "Alt+" & *FText)
 			If (HiByte(LoWord(wHotKey)) And HOTKEYF_CONTROL) = HOTKEYF_CONTROL Then WLetEx(FText, "Ctrl+" & *FText)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then ReadElementValue(FHandle, FText)
 		#endif
 		If FText = 0 Then Return "" Else Return *FText
 	End Property
@@ -250,13 +271,15 @@ Namespace My.Sys.Forms
 					gtk_entry_set_text(GTK_ENTRY(widget), ToUtf8(wHotKey))
 				#endif
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim sKey As String = Value
 			Dim wHotKey As WORD
 			Var Pos1 = InStrRev(sKey, "+")
 			If Pos1 > 0 Then sKey = Mid(sKey, Pos1 + 1)
 			wHotKey = MAKEWORD(GetAscKeyCode(sKey), IIf(InStr(Value, "Ctrl") > 0, HOTKEYF_CONTROL, 0) Or IIf(InStr(Value, "Shift") > 0, HOTKEYF_SHIFT, 0) Or IIf(InStr(Value, "Alt") > 0, HOTKEYF_ALT, 0))
 			SendMessage(Handle, HKM_SETHOTKEY, wHotKey, 0)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then SetStringValue(FHandle, ToUtf8(Value))
 		#endif
 	End Property
 	
@@ -282,11 +305,18 @@ Namespace My.Sys.Forms
 				Widget = gtk_entry_new()
 				g_signal_connect(gtk_entry(Widget), "activate", G_CALLBACK(@Entry_Activate), @This)
 				This.RegisterClass "HotKey", @This
-			#else
+			#elseif defined(__USE_WINAPI__)
 				.RegisterClass "HotKey","msctls_hotkey32"
 				.Style        = WS_CHILD
 				.ExStyle      = 0
 				.ChildProc    = @WndProc
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "input")
+				FType = "text"
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "android/widget/EditText")
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.Width        = 175
@@ -296,7 +326,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor HotKey
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			UnregisterClass "HotKey", GetModuleHandle(NULL)
 		#endif
 	End Destructor

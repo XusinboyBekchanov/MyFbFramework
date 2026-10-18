@@ -57,7 +57,7 @@ Namespace My.Sys.Forms
 	
 	Private Property PageScroller.AutoScroll(Value As Boolean)
 		FAutoScroll = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle PGS_AUTOSCROLL, Value
 		#endif
 	End Property
@@ -68,13 +68,13 @@ Namespace My.Sys.Forms
 	
 	Private Property PageScroller.ChildDragDrop(Value As Boolean)
 		FChildDragDrop = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle PGS_DRAGNDROP, Value
 		#endif
 	End Property
 	
 	Private Property PageScroller.Position As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHandle Then
 				FPosition = SendMessage(FHandle, PGM_GETPOS, 0, 0)
 			End If
@@ -100,7 +100,7 @@ Namespace My.Sys.Forms
 				End Select
 				If OnScroll Then OnScroll(*Designer, This, FPosition)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				SendMessage(FHandle, PGM_SETPOS, 0, Cast(LPARAM, FPosition))
 			End If
@@ -116,17 +116,17 @@ Namespace My.Sys.Forms
 		Dim As Integer iWidth, iHeight
 		OldStyle = FStyle
 		If Value <> FStyle Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				ChangeStyle PGS_HORZ, False
 				ChangeStyle PGS_VERT, False
 			#endif
 			Select Case Value
 			Case psHorizontal
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					ChangeStyle PGS_HORZ, True
 				#endif
 			Case psVertical
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					ChangeStyle PGS_VERT, True
 				#endif
 			End Select
@@ -150,7 +150,7 @@ Namespace My.Sys.Forms
 		ChangeTabStop Value
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub PageScroller.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QPageScroller(Sender.Child)
@@ -174,7 +174,7 @@ Namespace My.Sys.Forms
 				gtk_container_remove(GTK_CONTAINER(widget), Layout2)
 				gtk_layout_put(GTK_LAYOUT(widget), Layout1, 0, 0)
 				gtk_layout_put(GTK_LAYOUT(widget), Layout2, 0, 0)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If FHandle AndAlso Ctrl->Handle Then
 					SendMessage(FHandle, PGM_SETCHILD, 0, Cast(LPARAM, Ctrl->Handle))
 				End If
@@ -185,7 +185,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Sub PageScroller.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case WM_PAINT
 				Dim As HDC Dc
@@ -537,6 +537,9 @@ Namespace My.Sys.Forms
 	Private Constructor PageScroller
 		With This
 			WLet(FClassName, "PageScroller")
+			#ifdef __USE_WASM__
+				FElementStyle &= "overflow: auto;"
+			#endif
 			WLet(FClassAncestor, "SysPager")
 			FArrowChangeSize = 40
 			#ifdef __USE_GTK__
@@ -616,7 +619,7 @@ Namespace My.Sys.Forms
 					g_signal_connect(Layout2, "event", G_CALLBACK(@Layout_EventProc), @This)
 				#endif
 				.RegisterClass "PageScroller", @This
-			#else
+			#elseif defined(__USE_WINAPI__)
 				.RegisterClass "PageScroller", "SysPager"
 				Base.Style        = WS_CHILD Or PGS_HORZ
 				.ExStyle      = 0
@@ -632,7 +635,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor PageScroller
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			UnregisterClass "PageScroller", GetModuleHandle(NULL)
 		#endif
 	End Destructor

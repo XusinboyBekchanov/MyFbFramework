@@ -88,6 +88,14 @@ Namespace My.Sys.Drawing
 			FHeight = gdk_pixbuf_get_height(Handle)
 		#elseif defined(__USE_WASM__)
 			Handle = File
+		#elseif defined(__USE_JNI__)
+			WLet(FResName, File)
+			'The handle is the file as a Java String (Canvas.Draw with Any Ptr, GraphicType.Image)
+			If env Then
+				Dim As jstring jPath = (*env)->NewStringUTF(env, ToUtf8(File))
+				Handle = (*env)->NewGlobalRef(env, jPath)
+				(*env)->DeleteLocalRef(env, jPath)
+			End If
 		#elseif defined(__USE_WINAPI__)
 			Dim As Integer Pos1 = InStrRev(File, ".")
 			Select Case LCase(Mid(File, Pos1 + 1))
@@ -512,6 +520,9 @@ Namespace My.Sys.Drawing
 			
 		#elseif defined(__USE_WASM__)
 			Handle = ""
+		#elseif defined(__USE_JNI__)
+			If Handle AndAlso env Then (*env)->DeleteGlobalRef(env, Handle)
+			Handle = 0
 		#endif
 		'If Changed Then Changed(This)
 	End Sub

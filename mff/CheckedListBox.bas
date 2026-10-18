@@ -49,8 +49,10 @@ Namespace My.Sys.Forms
 			Dim As GtkTreeIter iter
 			gtk_list_store_append (ListStore, @iter)
 			gtk_list_store_set(ListStore, @iter, 1, ToUtf8(FItem), -1)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(LB_ADDSTRING, 0, CInt(@FItem))
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then InsertSelectItem(FHandle, FNewIndex, ToUtf8(FItem))
 		#endif
 	End Sub
 	
@@ -65,8 +67,10 @@ Namespace My.Sys.Forms
 			Dim As GtkTreeIter iter
 			gtk_list_store_insert(ListStore, @iter, FIndex)
 			gtk_list_store_set (ListStore, @iter, 1, ToUtf8(FItem), -1)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(LB_INSERTSTRING, FIndex, CInt(@FItem))
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then InsertSelectItem(FHandle, FIndex, ToUtf8(FItem))
 		#endif
 	End Sub
 	
@@ -77,8 +81,10 @@ Namespace My.Sys.Forms
 			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
 			gtk_tree_model_get(GTK_TREE_MODEL(ListStore), @iter, 0, @bChecked, -1)
 			Return bChecked
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Return Perform(LB_GETITEMDATA, Index, 0) Else Return False
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then Return GetItemChecked(FHandle, Index) Else Return False
 		#endif
 	End Property
 	
@@ -87,13 +93,22 @@ Namespace My.Sys.Forms
 			Dim As GtkTreeIter iter
 			gtk_tree_model_get_iter_from_string(GTK_TREE_MODEL(ListStore), @iter, Trim(Str(Index)))
 			gtk_list_store_set(ListStore, @iter, 0, Value, -1)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then 
 				Perform(LB_SETITEMDATA, Index, abs_(Value))
 				If Value AndAlso FRadioCheck Then
 					For i As Integer = 0 To Items.Count - 1
 						If i = Index Then Continue For
 						Perform(LB_SETITEMDATA, i, 0)
+					Next
+				End If
+			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then
+				SetItemChecked(FHandle, Index, Value)
+				If Value AndAlso FRadioCheck Then
+					For i As Integer = 0 To Items.Count - 1
+						If i <> Index Then SetItemChecked(FHandle, i, False)
 					Next
 				End If
 			End If
@@ -108,10 +123,17 @@ Namespace My.Sys.Forms
 		FRadioCheck = Value
 		#ifdef __USE_GTK__
 			gtk_cell_renderer_toggle_set_radio(GTK_CELL_RENDERER_TOGGLE(rendertoggle), Value)
+		#elseif defined(__USE_WASM__)
+			If FHandle Then
+				SetAttribute(FHandle, "data-check", IIf(FRadioCheck, "radio", "checkbox"))
+				SetInnerHTML(FHandle, ToUtf8(GetContent))
+			End If
+		#elseif defined(__USE_JNI__)
+			If FHandle Then HandleIsAllocated(This)
 		#endif
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub CheckedListBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QCheckedListBox(Sender.Child)
@@ -135,7 +157,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub CheckedListBox.WNDPROC(ByRef Message As Message)
 		End Sub
 		
@@ -302,6 +324,40 @@ Namespace My.Sys.Forms
 			End Select
 			Base.ProcessMessage(Message)
 		End Sub
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Sub CheckedListBox.HandleIsAllocated(ByRef Sender As Control)
+			If Sender.Child Then
+				With QCheckedListBox(Sender.Child)
+					#ifdef __USE_JNI__
+						'Single choice shows radio buttons, multiple choice check boxes
+						ListInitMode(.FHandle, IIf(.FRadioCheck, 0, 1))
+						For i As Integer = 0 To .Items.Count - 1
+							AddSelectItem(.FHandle, ToUtf8(.Items.Item(i)))
+						Next
+					#else
+						SetAttribute(.FHandle, "data-check", IIf(.FRadioCheck, "radio", "checkbox"))
+					#endif
+				End With
+			End If
+		End Sub
+		
+		Private Sub CheckedListBox.WNDPROC(ByRef Message As Message)
+		End Sub
+		
+		Private Sub CheckedListBox.ProcessMessage(ByRef Message As Message)
+			'ListControl.ProcessMessage raises OnChange; the index is the changed item
+			Base.ProcessMessage(Message)
+		End Sub
+		
+		#ifdef __USE_WASM__
+			Private Function CheckedListBox.GetContent() As UString
+				Dim As UString FContent
+				For i As Integer = 0 To Items.Count - 1
+					FContent &= "<label class=""mffitem"" style=""display: block; white-space: nowrap;""><input type=""" & IIf(FRadioCheck, "radio"" name=""" & Str(@This), "checkbox") & """/>" & HtmlEscape(@Items.Item(i)) & "</label>"
+				Next
+				Return FContent
+			End Function
+		#endif
 	#endif
 	
 	
@@ -313,7 +369,7 @@ Namespace My.Sys.Forms
 		For i = 0 To ItemCount - 1
 			#ifdef __USE_GTK__
 				Print #F, Items.Item(i)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim TextLen As Integer = Perform(LB_GETTEXTLEN, i, 0)
 				s = _CAllocate((TextLen + 1) * SizeOf(WString))
 				*s = Space(TextLen)
@@ -335,7 +391,7 @@ Namespace My.Sys.Forms
 			Line Input #F, s
 			#ifdef __USE_GTK__
 				AddItem s
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Perform(LB_ADDSTRING, 0, CInt(@s))
 			#endif
 		Wend
@@ -402,7 +458,7 @@ Namespace My.Sys.Forms
 			WLet(FClassName, "CheckedListBox")
 			WLet(FClassAncestor, "ListBox")
 			.Child       = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.RegisterClass "CheckedListBox", "ListBox"
 				.ChildProc   = @WNDPROC
 				.ExStyle     = WS_EX_CLIENTEDGE
@@ -410,6 +466,12 @@ Namespace My.Sys.Forms
 				.BackColor       = GetSysColor(COLOR_WINDOW)
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.DoubleBuffered = True
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "div")
+				FElementStyle = "overflow: auto; border: 1px solid #aaa;"
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.Width       = 121
 			.Height      = 17

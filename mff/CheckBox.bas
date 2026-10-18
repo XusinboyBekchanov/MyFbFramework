@@ -119,6 +119,8 @@ Namespace My.Sys.Forms
 			If FHandle Then
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(*FText)))
 			End If
+		#elseif defined(__USE_WASM__)
+			If FHandle Then SetInnerTextByStringId(Trim(Str(FHandle)) & "label", ToUtf8(*FText))
 		#elseif defined(__USE_WINAPI__)
 			If FAutoSize Then AutoSize = True
 		#endif
@@ -188,11 +190,29 @@ Namespace My.Sys.Forms
 	
 	#ifdef __USE_WASM__
 		Private Function CheckBox.GetContent() As UString
-			Return "<input type=""checkbox"" id=""" & Trim(Str(@This)) & "checkbox""/>" & !"\r" & "<label for=""" & Trim(Str(@This)) & "checkbox"" id=""" & Trim(Str(@This)) & "label"">" & FText & "</label>"
+			Return "<input type=""checkbox"" id=""" & Trim(Str(@This)) & "checkbox""/>" & !"\r" & "<label for=""" & Trim(Str(@This)) & "checkbox"" id=""" & Trim(Str(@This)) & "label"">" & HtmlEscape(FText) & "</label>"
 		End Function
 	#endif
 	
 	Private Sub CheckBox.ProcessMessage(ByRef Message As Message)
+		#ifdef __USE_JNI__
+			If Message.Msg = CM_CLICK Then
+				FChecked = (*env)->CallBooleanMethod(env, FHandle, GetMethodID(*FClassAncestor, "isChecked", "()Z"))
+				If OnClick Then OnClick(*Designer, This)
+				Message.Handled = True
+			End If
+		#endif
+		#ifdef __USE_WASM__
+			Select Case Message.Msg
+			Case CM_CLICK
+				'The click on the label is followed by a change of the checkbox, which raises OnClick
+				Message.Handled = True
+			Case CM_CHANGE
+				FChecked = GetChecked(Trim(Str(FHandle)) & "checkbox")
+				If OnClick Then OnClick(*Designer, This)
+				Message.Handled = True
+			End Select
+		#endif
 		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case CM_CTLCOLOR

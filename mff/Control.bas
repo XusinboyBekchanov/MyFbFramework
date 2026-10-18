@@ -662,7 +662,7 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				#else
-					FClientWidth = This.Width
+					FClientHeight = This.Height
 				#endif
 				Return FClientHeight
 			End Function
@@ -1040,8 +1040,8 @@ Namespace My.Sys.Forms
 				'SendMessageW(FHandle, WM_THEMECHANGED, 0, 0)
 			End Sub
 		#elseif defined(__USE_WASM__)
-			Private Virtual Function Control.GetContent() As UString
-				Return FText
+			Private Function Control.GetContent() As UString
+				Return HtmlEscape(FText)
 			End Function
 		#endif
 		
@@ -1183,16 +1183,51 @@ Namespace My.Sys.Forms
 				#endif
 			#elseif defined(__USE_JNI__)
 				If env = 0 OrElse Instance = 0 Then Exit Sub
-				If FHandle = 0 AndAlso *FClassAncestor <> "" Then
-					Dim As jclass class_object = (*env)->FindClass(env, *FClassAncestor)
-					Dim As jmethodID ConstructorMethod = (*env)->GetMethodID(env, class_object, "<init>", "(Landroid/content/Context;)V")
-					FHandle = (*env)->NewObject(env, class_object, ConstructorMethod, Instance)
+				'A control without an Android class (no class or a Windows class name like "SysPager") becomes an
+				'AbsoluteLayout: it has its bounds, colors and events and hosts its child controls
+				Dim As String sClassAncestor = *FClassAncestor
+				If sClassAncestor = "" OrElse (InStr(sClassAncestor, "/") = 0 AndAlso Mid(sClassAncestor, 1, 4) <> "mff:") Then sClassAncestor = "mff:Layout"
+				If sClassAncestor = "android/widget/AbsoluteLayout" Then sClassAncestor = "mff:Layout"
+				If FHandle = 0 AndAlso Activity <> 0 AndAlso (sClassAncestor = "android/widget/Button" OrElse sClassAncestor = "android/widget/CheckBox" OrElse sClassAncestor = "android/widget/RadioButton") Then
+					'The Material (AppCompat) widget of the theme is made by mffActivity.createView; an older
+					'mffActivity.java returns another view and the Android class is used
+					Dim As jstring jKind = (*env)->NewStringUTF(env, Mid(sClassAncestor, 16))
+					FHandle = (*env)->CallObjectMethod(env, Activity, ActivityMethodID("createView", "(Ljava/lang/String;)Landroid/view/View;"), jKind)
+					(*env)->DeleteLocalRef(env, jKind)
+					If FHandle AndAlso (*env)->IsInstanceOf(env, FHandle, (*env)->FindClass(env, sClassAncestor)) = 0 Then
+						(*env)->DeleteLocalRef(env, FHandle)
+						FHandle = 0
+					End If
+				End If
+				If FHandle = 0 AndAlso Mid(sClassAncestor, 1, 4) <> "mff:" Then
+					Dim As jclass class_object = (*env)->FindClass(env, sClassAncestor)
+					If class_object = 0 OrElse (*env)->ExceptionCheck(env) Then
+						(*env)->ExceptionClear(env)
+						Print "MyFbFramework: Android class not found: " & sClassAncestor & " (" & *FClassName & "), AbsoluteLayout is used"
+						sClassAncestor = "mff:Layout"
+					Else
+						Dim As jmethodID ConstructorMethod = (*env)->GetMethodID(env, class_object, "<init>", "(Landroid/content/Context;)V")
+						FHandle = (*env)->NewObject(env, class_object, ConstructorMethod, IIf(Activity, Activity, Instance))
+						'Containers (Panel, GroupBox, ...) host their child controls
+						If layoutview = 0 AndAlso sClassAncestor = "android/widget/AbsoluteLayout" Then layoutview = FHandle
+					End If
+				End If
+				If FHandle = 0 AndAlso Mid(sClassAncestor, 1, 4) = "mff:" AndAlso Activity <> 0 Then
+					'Widgets which need more than the (Context) constructor are made by mffActivity.createView
+					Dim As jstring jKind = (*env)->NewStringUTF(env, Mid(sClassAncestor, 5))
+					FHandle = (*env)->CallObjectMethod(env, Activity, ActivityMethodID("createView", "(Ljava/lang/String;)Landroid/view/View;"), jKind)
+					(*env)->DeleteLocalRef(env, jKind)
+					If (*env)->IsInstanceOf(env, FHandle, (*env)->FindClass(env, "android/widget/AbsoluteLayout")) Then layoutview = FHandle
 				End If
 				Text = *FText
 			#elseif defined(__USE_WASM__)
+				'The parent element does not exist yet (Visible = True before the parent is shown): the parent creates
+				'this element with its own one, otherwise it would be put into the body over the whole page
+				If FParent AndAlso FParent->Handle = 0 Then Exit Sub
 				Dim As String HClassName = *FClassAncestor
 				Dim As Any Ptr HParent
-				If HClassName = "" Then HClassName = "div"
+				'A Windows class name ("Static", "SysTabControl32", "msctls_hotkey32", ...) is not an HTML tag: a div is used
+				If HClassName = "" OrElse HClassName <> LCase(HClassName) OrElse InStr(HClassName, "_") > 0 Then HClassName = "div"
 				If FParent Then HParent = FParent->Handle
 				FHandle = @This
 				Select Case FStartPosition
@@ -1214,8 +1249,9 @@ Namespace My.Sys.Forms
 				Dim As String sHeight = IIf(FAlign = alClient OrElse FAlign = alLeft OrElse FAlign = alRight, "100%", IIf(Anchor.Top = asAnchor AndAlso Anchor.Bottom = asAnchor, "", nHeight & "px"))
 				Dim As String sRight = IIf(FAlign = alRight, "0px", IIf(Anchor.Right = asAnchor AndAlso FParent <> 0, (FParent->Width - nLeft - nWidth) & "px", ""))
 				Dim As String sBottom = IIf(FAlign = alBottom, "0px", IIf(Anchor.Bottom = asAnchor AndAlso FParent <> 0, (FParent->Height - nTop - nHeight) & "px", ""))
-				CreateElement(IIf(FMainForm, "afterbegin", "beforeend"), HClassName, FClass, FType, FHandle, *FName, ToUtf8(GetContent), FElementStyle, IIf(FMainForm, "inline", "absolute"), sLeft, sTop, sWidth, sHeight, sRight, sBottom, HParent)
-				If OnClick Then SetClickEvent(FHandle)
+				CreateElement(IIf(FMainForm, "afterbegin", "beforeend"), HClassName, FClass, FType, FHandle, *FName, ToUtf8(GetContent), FElementStyle, IIf(FMainForm, "relative", "absolute"), sLeft, sTop, sWidth, sHeight, sRight, sBottom, HParent)
+				SetClickEvent(FHandle)
+				SetChangeEvent(FHandle)
 				If OnDblClick Then SetDblClickEvent(FHandle)
 				If OnGotFocus Then SetGotFocusEvent(FHandle)
 				If OnLostFocus Then SetLostFocusEvent(FHandle)
@@ -1223,10 +1259,10 @@ Namespace My.Sys.Forms
 				If OnKeyPress Then SetKeyPressEvent(FHandle)
 				If OnKeyUp Then SetKeyUpEvent(FHandle)
 				If OnMouseEnter Then SetMouseEnterEvent(FHandle)
-				If OnMouseDown Then SetMouseDownEvent(FHandle)
-				If OnMouseMove Then SetMouseMoveEvent(FHandle)
-				If OnMouseUp Then SetMouseUpEvent(FHandle)
-				If OnMouseLeave Then SetMouseLeaveEvent(FHandle)
+				If OnMouseDown <> 0 OrElse FMouseEvents Then SetMouseDownEvent(FHandle)
+				If OnMouseMove <> 0 OrElse FMouseEvents Then SetMouseMoveEvent(FHandle)
+				If OnMouseUp <> 0 OrElse FMouseEvents Then SetMouseUpEvent(FHandle)
+				If OnMouseLeave <> 0 OrElse FMouseEvents Then SetMouseLeaveEvent(FHandle)
 				If OnMouseWheel Then SetMouseWheelEvent(FHandle)
 				If OnDestroy Then SetUnloadEvent(FHandle)
 			#endif
@@ -1252,8 +1288,15 @@ Namespace My.Sys.Forms
 						If env Then
 							Handles.Add @This
 							FHandle = (*env)->NewGlobalRef(env, FHandle)
+							FID = Handles.Count - 1
 							If layoutview Then
 								layoutview = (*env)->NewGlobalRef(env, layoutview)
+								'A Form is an Activity: its touches are the ones of its layout
+								If CInt(FMouseEvents) OrElse OnMouseDown OrElse OnMouseMove OrElse OnMouseUp OrElse OnMouseLeave Then SetTouchEvent(layoutview)
+							ElseIf CInt(FMouseEvents) OrElse OnMouseDown OrElse OnMouseMove OrElse OnMouseUp OrElse OnMouseLeave Then
+								SetTouchEvent(FHandle)
+							End If
+							If layoutview Then
 								Dim As jclass class_view = (*env)->FindClass(env, "android/view/View")
 								(*env)->CallVoidMethod(env, layoutview, (*env)->GetMethodID(env, class_view, "setId", "(I)V"), FID)
 								Dim As jmethodID setOnClickListener = (*env)->GetMethodID(env, class_view, "setOnClickListener", "(Landroid/view/View$OnClickListener;)V")
@@ -1261,7 +1304,6 @@ Namespace My.Sys.Forms
 								Dim As jmethodID addOnLayoutChangeListener = (*env)->GetMethodID(env, class_view, "addOnLayoutChangeListener", "(Landroid/view/View$OnLayoutChangeListener;)V")
 								(*env)->CallVoidMethod(env, layoutview, addOnLayoutChangeListener, AppMainForm->Handle)
 							End If
-							FID = Handles.Count - 1
 							If This.Parent AndAlso This.Parent->layoutview Then
 								(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/view/View", "setId", "(I)V"), FID)
 								Dim As jclass class_viewgroup = (*env)->FindClass(env, "android/view/ViewGroup")
@@ -1275,7 +1317,8 @@ Namespace My.Sys.Forms
 								'								(*env)->SetIntField(env, MarginLayoutParams, TopField, FTop)
 								(*env)->CallVoidMethod(env, This.Parent->layoutview, addviewMethod, FHandle, MarginLayoutParams)
 								'Text = Str(1)
-								If OnClick Then
+								'AdapterView (Spinner, ListView) does not allow a click listener; it reports through onListChange
+								If (*env)->IsInstanceOf(env, FHandle, (*env)->FindClass(env, "android/widget/AdapterView")) = 0 Then
 									Dim As jclass class_view = (*env)->FindClass(env, "android/view/View")
 									Dim As jmethodID setOnClickListener = (*env)->GetMethodID(env, class_view, "setOnClickListener", "(Landroid/view/View$OnClickListener;)V")
 									(*env)->CallVoidMethod(env, FHandle, setOnClickListener, AppMainForm->Handle)
@@ -1304,6 +1347,7 @@ Namespace My.Sys.Forms
 						SendMessage FHandle, CM_CREATE, 0, 0
 						If ShowHint AndAlso Hint <> "" Then AllocateHint
 					#elseif defined(__USE_WASM__)
+						If Cursor.ToString <> "" Then SetStyle(FHandle, "cursor", ToUtf8(Cursor.ToString))
 						If This.Font.Name <> "" Then
 							SetFont(FHandle, Trim(IIf(Font.Bold, " bold", "") & IIf(Font.Italic, " italic", "") & " " & Str(Font.Size) & "px '" & Font.Name & "', serif"))
 						ElseIf This.Font.Size <> 0 Then
@@ -1313,6 +1357,13 @@ Namespace My.Sys.Forms
 					If FParent Then
 						FAnchoredParentWidth = Cast(Control Ptr, FParent)->Width
 						FAnchoredParentHeight = Cast(Control Ptr, FParent)->Height
+						#ifdef __USE_JNI__
+							'The controls are in the layout of the form (without the title bar), RequestAlign uses its size
+							If Cast(Control Ptr, FParent)->ClientWidth > 0 AndAlso Cast(Control Ptr, FParent)->ClientHeight > 0 Then
+								FAnchoredParentWidth = Cast(Control Ptr, FParent)->ClientWidth
+								FAnchoredParentHeight = Cast(Control Ptr, FParent)->ClientHeight
+							End If
+						#endif
 						FAnchoredLeft = FLeft
 						FAnchoredTop = FTop
 						FAnchoredRight = FAnchoredParentWidth - FWidth - FLeft
@@ -1349,6 +1400,7 @@ Namespace My.Sys.Forms
 						If FVisible Then This.Show
 					#elseif defined(__USE_WASM__)
 						If FVisible Then This.Show
+						PaintCanvas
 					#endif
 				Else
 					'Print ClassName, GetErrorString(GetLastError, , True)
@@ -2767,6 +2819,14 @@ Namespace My.Sys.Forms
 		
 		Private Sub Control.Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 			Base.Move IIf(FDesignMode AndAlso (Designer = @This), 0, IIf(Constraints.Left, Constraints.Left, cLeft)), IIf(FDesignMode AndAlso (Designer = @This), 0, IIf(Constraints.Top, Constraints.Top, cTop)), IIf(Constraints.Width, Constraints.Width, cWidth), IIf(Constraints.Height, Constraints.Height, cHeight)
+			#ifdef __USE_WASM__
+				'A docked control follows its parent with the CSS of CreateWnd (100%, right/bottom: 0) and
+				'the size of the main form is the one of the browser window (ONRESIZE): only the others are moved here
+				If CBool(FHandle <> 0) AndAlso CBool(FAlign = DockStyle.alNone) AndAlso Not FMainForm Then
+					ElementSetBounds(FHandle, ScaleX(IIf(Constraints.Left, Constraints.Left, cLeft)), ScaleY(IIf(Constraints.Top, Constraints.Top, cTop)), _
+						ScaleX(IIf(Constraints.Width, Constraints.Width, cWidth)), ScaleY(IIf(Constraints.Height, Constraints.Height, cHeight)))
+				End If
+			#endif
 			#ifdef __USE_GTK__
 				' A control which swapped its widgets (e.g. TextBox.ChangeWidget) is moved afterwards: watch the new ones
 				SetWeakWidgetPointers True
@@ -3120,6 +3180,9 @@ Namespace My.Sys.Forms
 						#ifndef __USE_GTK2__
 							g_signal_connect(eventboxwidget, "draw", G_CALLBACK(@Control_Draw), Obj)
 						#else
+							' GtkEventBox paints the theme background after Control_ExposeEvent: BackColor stays
+							' only on the app paintable event box (else a theme colored edge stays around the child)
+							gtk_widget_set_app_paintable(eventboxwidget, True)
 							g_signal_connect(eventboxwidget, "expose-event", G_CALLBACK(@Control_ExposeEvent), Obj)
 						#endif
 					End If
@@ -3197,7 +3260,14 @@ Namespace My.Sys.Forms
 				Dim As GtkWidgetClass Ptr WidgetClass = Cast(GtkWidgetClass Ptr, Cast(GTypeInstance Ptr, CtrlWidget)->g_class)
 				Dim As gint iMinWidth, iMinHeight
 				#ifdef __USE_GTK4__
-					Exit Sub
+					' The own minimum size of the widget like in GTK3 (the size request is the minimum size in GTK4,
+					' without it an AutoSize parent could not become smaller again)
+					Dim As gint iNatural, iRequestWidth, iRequestHeight
+					gtk_widget_get_size_request(CtrlWidget, @iRequestWidth, @iRequestHeight)
+					If iRequestWidth <> -1 OrElse iRequestHeight <> -1 Then gtk_widget_set_size_request(CtrlWidget, -1, -1)
+					gtk_widget_measure(CtrlWidget, GTK_ORIENTATION_HORIZONTAL, -1, @iMinWidth, @iNatural, NULL, NULL)
+					gtk_widget_measure(CtrlWidget, GTK_ORIENTATION_VERTICAL, -1, @iMinHeight, @iNatural, NULL, NULL)
+					If iRequestWidth <> -1 OrElse iRequestHeight <> -1 Then gtk_widget_set_size_request(CtrlWidget, iRequestWidth, iRequestHeight)
 				#elseif defined(__USE_GTK2__)
 					Dim As GtkRequisition Requisition
 					If WidgetClass->size_request Then
@@ -3372,6 +3442,10 @@ Namespace My.Sys.Forms
 							#endif
 								aLeft = .FLeft: aTop = .FTop: aWidth = .FWidth: aHeight = .FHeight
 								This.FWidth = This.Width: This.FHeight = This.Height
+								#ifdef __USE_JNI__
+									'The controls are in the layout of the form (without the title bar)
+									If layoutview Then This.FWidth = iClientWidth: This.FHeight = iClientHeight
+								#endif
 								If .Anchor.Left <> asNone Then
 									If .Anchor.Left = asAnchorProportional Then aLeft = This.FWidth / .FAnchoredParentWidth * .FAnchoredLeft
 									If .Anchor.Right <> asNone Then aWidth = This.FWidth - aLeft - IIf(.Anchor.Right = asAnchor, .FAnchoredRight, This.FWidth / .FAnchoredParentWidth * .FAnchoredRight)
@@ -3583,6 +3657,8 @@ Namespace My.Sys.Forms
 						InvalidateRect(FHandle, Cast(Rect Ptr, iRect), bErase)
 					End If
 				End If
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				Repaint
 			#endif
 		End Sub
 		
@@ -3594,8 +3670,40 @@ Namespace My.Sys.Forms
 					RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
 					Update
 				End If
+			#elseif defined(__USE_WASM__)
+				PaintCanvas
+			#elseif defined(__USE_JNI__)
+				If layoutview Then
+					CanvasRepaint(layoutview)
+				ElseIf FHandle Then
+					CanvasRepaint(FHandle)
+				End If
 			#endif
 		End Sub
+		
+
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Private Sub Control.PaintCanvas()
+				If FHandle = 0 OrElse FPainting Then Exit Sub
+				FPainting = True
+				'Android: a Form is drawn in its layout (its handle is the Activity)
+				#ifdef __USE_JNI__
+					Dim As Any Ptr PaintView = IIf(layoutview, Cast(Any Ptr, layoutview), Cast(Any Ptr, FHandle))
+				#else
+					Dim As Any Ptr PaintView = FHandle
+				#endif
+				CanvasBegin(PaintView)
+				Canvas.SetHandle PaintView
+				Dim As Message msg
+				msg.Sender = @This
+				msg.Msg = CM_PAINT
+				ProcessMessage(msg)
+				If (Not msg.Handled) AndAlso OnPaint <> 0 Then OnPaint(*Designer, This, Canvas)
+				Canvas.UnSetHandle
+				CanvasEnd(PaintView)
+				FPainting = False
+			End Sub
+		#endif
 		
 		Private Sub Control.Update
 			#ifdef __USE_GTK__
@@ -3983,7 +4091,24 @@ End Namespace
 		Dim As Integer ID = CallIntMethod(v, "android/view/View", "getId", "()I")
 		Dim As My.Sys.Forms.Control Ptr Ctrl = Handles.Item(ID)
 		If Ctrl Then
-			If Ctrl->OnClick Then Ctrl->OnClick(*Ctrl->Designer, *Ctrl)
+			Dim As Message msg
+			msg.Sender = Ctrl
+			msg.Msg = CM_CLICK
+			Ctrl->ProcessMessage(msg)
+			If (Not msg.Handled) AndAlso Ctrl->OnClick <> 0 Then Ctrl->OnClick(*Ctrl->Designer, *Ctrl)
+		End If
+	End Sub
+	
+	'The user changed the selection of a ComboBoxEdit (Spinner) or ListControl (ListView)
+	Sub onListChange Alias AddToPackage(Package, mffActivity_onListChange) (ByVal env As JNIEnv Ptr, This_ As jobject, v As jobject, position As jint) Export
+		Dim As Integer ID = CallIntMethod(v, "android/view/View", "getId", "()I")
+		Dim As My.Sys.Forms.Control Ptr Ctrl = Handles.Item(ID)
+		If Ctrl Then
+			Dim As Message msg
+			msg.Sender = Ctrl
+			msg.Msg = CM_CHANGE
+			msg.wParam = position
+			Ctrl->ProcessMessage(msg)
 		End If
 	End Sub
 	
@@ -3996,6 +4121,51 @@ End Namespace
 			End If
 			If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, rRight - lLeft, bBottom - tTop)
 		End If
+	End Sub
+
+	'The MffLayout of a control got a new size or was asked to repaint (mffActivity.canvasRepaint)
+	Sub mffActivity_onPaint Alias AddToPackage(Package, mffActivity_onPaint) (ByVal env1 As JNIEnv Ptr, This_ As jobject, v As jobject) Export
+		Dim As Integer ID = CallIntMethod(v, "android/view/View", "getId", "()I")
+		Dim As My.Sys.Forms.Control Ptr Ctrl = Handles.Item(ID)
+		If Ctrl Then Ctrl->PaintCanvas
+	End Sub
+
+	'A touch of the view (mffActivity.setTouchEvent) is the left mouse button; a touch which goes down or moves
+	'points like the mouse (CM_MOUSEMOVE with no button: Chart shows its hot item). action: 0 - down, 1 - up, 2 - move, 3 - cancel
+	Sub mffActivity_onViewTouch Alias AddToPackage(Package, mffActivity_onViewTouch) (ByVal env1 As JNIEnv Ptr, This_ As jobject, v As jobject, action As jint, x As jint, y As jint) Export
+		Dim As Integer ID = CallIntMethod(v, "android/view/View", "getId", "()I")
+		Dim As My.Sys.Forms.Control Ptr Ctrl = Handles.Item(ID)
+		If Ctrl = 0 Then Exit Sub
+		Dim As Message msg
+		msg.Sender = Ctrl
+		'CM_MOUSE* have the pixels of the view (the canvas), the OnMouse* events the units of the form like Windows
+		msg.lParam = MffPoint(x, y)
+		Dim As Integer ux = Ctrl->UnScaleX(x), uy = Ctrl->UnScaleY(y)
+		Select Case action
+		Case 0, 2, 4
+			msg.Msg = CM_MOUSEMOVE
+			msg.wParam = -1
+			Ctrl->ProcessMessage(msg)
+			If action = 0 Then
+				msg.Handled = False
+				msg.Msg = CM_MOUSEDOWN
+				msg.wParam = 0
+				Ctrl->ProcessMessage(msg)
+				If Ctrl->OnMouseDown Then Ctrl->OnMouseDown(*Ctrl->Designer, *Ctrl, 0, ux, uy, 0)
+			ElseIf Ctrl->OnMouseMove Then
+				'4: a mouse over the view without a pressed button (-1 like Windows)
+				Ctrl->OnMouseMove(*Ctrl->Designer, *Ctrl, IIf(action = 4, -1, 0), ux, uy, 0)
+			End If
+		Case 1
+			msg.Msg = CM_MOUSEUP
+			msg.wParam = 0
+			Ctrl->ProcessMessage(msg)
+			If Ctrl->OnMouseUp Then Ctrl->OnMouseUp(*Ctrl->Designer, *Ctrl, 0, ux, uy, 0)
+		Case 3, 5
+			msg.Msg = CM_MOUSELEAVE
+			Ctrl->ProcessMessage(msg)
+			If Ctrl->OnMouseLeave Then Ctrl->OnMouseLeave(*Ctrl->Designer, *Ctrl)
+		End Select
 	End Sub
 #endif
 

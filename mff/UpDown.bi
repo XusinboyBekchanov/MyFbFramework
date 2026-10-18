@@ -39,7 +39,7 @@ Namespace My.Sys.Forms
 		FAlignment    As Integer
 		FThousands    As Boolean
 		FWrap         As Boolean
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FUDAccel(1)   As UDACCEL
 		#endif
 		AStyle(2)     As Integer

@@ -122,7 +122,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property StatusPanel.RealWidth As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If StatusBarControl->Handle Then
 				Dim As ..Rect rct
 				Dim As Integer Index = Cast(StatusBar Ptr, StatusBarControl)->IndexOf(@This)
@@ -162,7 +162,7 @@ Namespace My.Sys.Forms
 	Private Sub StatusPanel.IconChanged(ByRef Designer As My.Sys.Object,  ByRef Sender As My.Sys.Drawing.Icon)
 		With *Cast(StatusPanel Ptr, Sender.Graphic)
 			#ifdef __USE_GTK__
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If .Parent AndAlso .Parent->Handle Then
 					SendMessage(.Parent->Handle, SB_SETICON, Cast(StatusBar Ptr, .Parent)->IndexOf(Sender.Graphic), CInt(.Icon.Handle))
 				End If
@@ -265,7 +265,7 @@ Namespace My.Sys.Forms
 		Count = 0
 		#ifdef __USE_GTK__
 			gtk_statusbar_remove_all(GTK_STATUSBAR(widget), context_id)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			SetWindowText Handle, ""
 		#endif
 	End Sub
@@ -291,7 +291,7 @@ Namespace My.Sys.Forms
 				End If
 			Next i
 			FWidth(Count - 1) = -1
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Perform(SB_SETPARTS, Count, Cast(LPARAM, CInt(@FWidth(0))))
 			#endif
 			For i = 0 To Count - 1
@@ -304,7 +304,7 @@ Namespace My.Sys.Forms
 				Else
 					WLet(s, Panels[i]->Caption)
 				End If
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					Perform(SB_SETTEXT, i Or Panels[i]->Bevel, Cast(LPARAM, CInt(s)))
 					Perform(SB_SETICON, i, Cast(LPARAM, CInt(Panels[i]->Icon.Handle)))
 				#endif
@@ -316,6 +316,30 @@ Namespace My.Sys.Forms
 				gtk_statusbar_push(GTK_STATUSBAR(widget), context_id, !"\0")
 			Else
 				gtk_statusbar_push(GTK_STATUSBAR(widget), context_id, ToUtf8(*ss))
+			End If
+		#endif
+		#ifdef __USE_WASM__
+			If FHandle Then
+				Dim As UString sHTML, sCaption
+				If FSimplePanel OrElse Count = 0 Then
+					sHTML = HtmlEscape(IIf(FSimplePanel, FSimpleText, FText))
+				Else
+					For i = 0 To Count - 1
+						sCaption = Panels[i]->Caption
+						sHTML &= "<span style=""display: inline-block; box-sizing: border-box; height: 100%; padding: 2px 4px; overflow: hidden; white-space: nowrap; vertical-align: top; " & _
+							IIf(i = Count - 1, "", "width: " & Panels[i]->Width & "px; ") & IIf(Panels[i]->Bevel = BevelStyle.pbNone, "", "border-right: 1px solid #aaa; ") & _
+							"text-align: " & IIf(Panels[i]->Alignment = 1, "center", IIf(Panels[i]->Alignment = 2, "right", "left")) & ";"">" & HtmlEscape(sCaption.vptr) & "</span>"
+					Next i
+				End If
+				SetInnerHTML(FHandle, ToUtf8(sHTML))
+			End If
+		#elseif defined(__USE_JNI__)
+			If FHandle Then
+				If FSimplePanel OrElse Count = 0 Then
+					SetInnerText(FHandle, ToUtf8(IIf(FSimplePanel, IIf(FSimpleText, *FSimpleText, ""), IIf(FText, *FText, ""))))
+				Else
+					SetInnerText(FHandle, ToUtf8(Replace(*ss, !"	", "  |  ")))
+				End If
 			End If
 		#endif
 		Invalidate
@@ -341,7 +365,7 @@ Namespace My.Sys.Forms
 	
 	Private Property StatusBar.BackColor(Value As Integer)
 		Base.BackColor = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then SendMessage(Handle, SB_SETBKCOLOR, 0, Base.BackColor)
 		#endif
 	End Property
@@ -353,7 +377,7 @@ Namespace My.Sys.Forms
 	Private Property StatusBar.SizeGrip(Value As Boolean)
 		If Value <> FSizeGrip Then
 			FSizeGrip = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Style  = WS_CHILD Or CCS_NOPARENTALIGN Or AStyle(abs_(FSizeGrip))
 			#endif
 			RecreateWnd
@@ -367,11 +391,13 @@ Namespace My.Sys.Forms
 	Private Property StatusBar.SimplePanel(Value As Boolean)
 		If Value <> FSimplePanel Then
 			FSimplePanel = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If Handle Then
 					SendMessage(Handle, SB_SIMPLE, FSimplePanel, 0)
 					SimpleText = *FSimpleText
 				End If
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				UpdatePanels
 			#endif
 		End If
 	End Property
@@ -385,13 +411,15 @@ Namespace My.Sys.Forms
 			FSimpleText = _Reallocate(FSimpleText, (Len(Value) + 1) * SizeOf(WString))
 			*FSimpleText = Value
 			Text = *FSimpleText
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If FHandle Then SendMessage(Handle, SB_SETTEXT, 255, CInt(@Value))
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				UpdatePanels
 			#endif
 		End If
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub StatusBar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QStatusBar(Sender.Child)
@@ -482,6 +510,17 @@ Namespace My.Sys.Forms
 			End Select
 			Base.ProcessMessage(Message)
 		End Sub
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Sub StatusBar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+			If Sender.Child Then QStatusBar(Sender.Child).UpdatePanels
+		End Sub
+		
+		Private Sub StatusBar.WndProc(ByRef Message As Message)
+		End Sub
+		
+		Private Sub StatusBar.ProcessMessage(ByRef Message As Message)
+			Base.ProcessMessage(Message)
+		End Sub
 	#endif
 	
 	Private Operator StatusBar.Cast As My.Sys.Forms.Control Ptr
@@ -500,14 +539,22 @@ Namespace My.Sys.Forms
 				'Var cont2 = gtk_statusbar_get_context_id(gtk_statusbar(widget), "statusbar 2")
 				'gtk_statusbar_push(gtk_statusbar(widget), cont2, *FSimpleText)
 				
-			#else
+			#elseif defined(__USE_WINAPI__)
 				AStyle(0) = 0
 				AStyle(1) = SBARS_SIZEGRIP
 			#endif
 			FSizeGrip = True
 			WLet(FClassName, "StatusBar")
 			WLet(FClassAncestor, "msctls_StatusBar32")
-			#ifndef __USE_GTK__
+			#ifdef __USE_WASM__
+				WLet(FClassAncestor, "div")
+				FElementStyle = "border-top: 1px solid #aaa; overflow: hidden; white-space: nowrap;"
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "android/widget/TextView")
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#endif
+			#ifdef __USE_WINAPI__
 				.RegisterClass "StatusBar","msctls_StatusBar32"
 				'David Change
 				.Style        = WS_CHILD Or CCS_NOPARENTALIGN Or AStyle(abs_(FSizeGrip)) Or WS_CLIPCHILDREN Or WS_CLIPSIBLINGS Or CCS_BOTTOM Or SBARS_TOOLTIPS
@@ -523,7 +570,12 @@ Namespace My.Sys.Forms
 			'#else
 			'	.Height       = 21
 			'#endif
-			.Height = ScaleY(Font.Size / 72 * 96 + 6)
+			#ifdef __USE_WASM__
+				'The default font of the browser has no size here (Font.Size = 0)
+				.Height = ScaleY(IIf(Font.Size > 0, Font.Size, 9) / 72 * 96 + 10)
+			#else
+				.Height = ScaleY(Font.Size / 72 * 96 + 6)
+			#endif
 			.Width        = 175
 			.Child        = @This
 		End With
@@ -534,7 +586,7 @@ Namespace My.Sys.Forms
 			If Panels[i]->FDynamic Then _Delete(Panels[i])
 		Next
 		_Deallocate(Panels) 'CAllocate_(0)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			UnregisterClass "StatusBar",GetModuleHandle(NULL)
 		#endif
 		If FSimpleText <> 0 Then _Deallocate( FSimpleText)

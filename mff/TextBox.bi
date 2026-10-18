@@ -87,7 +87,9 @@ Namespace My.Sys.Forms
 			Declare Sub ChangeWidget()
 		#else
 			Declare Static Sub WndProc(ByRef message As Message)
-			Declare Virtual Sub SetDark(Value As Boolean)
+			#ifdef __USE_WINAPI__
+				Declare Virtual Sub SetDark(Value As Boolean)
+			#endif
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef message As Message)
 	Public:

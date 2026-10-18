@@ -53,6 +53,30 @@ Namespace Cursors
 	#define crHSplit      "col-resize"
 	#define crVSplit      "row-resize"
 	#define crNoDrop      "no-drop"
+#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	'CSS cursor names (Web); Android has no mouse cursor
+	#define crDefault     "default"
+	#define crArrow       "default"
+	#define crAppStarting "progress"
+	#define crCross       "crosshair"
+	#define crIBeam       "text"
+	#define crIcon        "default"
+	#define crNo          "not-allowed"
+	#define crSize        "move"
+	#define crSizeAll     "all-scroll"
+	#define crSizeNESW    "nesw-resize"
+	#define crSizeNS      "ns-resize"
+	#define crSizeNWSE    "nwse-resize"
+	#define crSizeWE      "ew-resize"
+	#define crUpArrow     "default"
+	#define crWait        "wait"
+	#define crDrag        "grabbing"
+	#define crMultiDrag   "grabbing"
+	#define crHandPoint   "pointer"
+	#define crSQLWait     "wait"
+	#define crHSplit      "col-resize"
+	#define crVSplit      "row-resize"
+	#define crNoDrop      "no-drop"
 #else
 	#define crDefault     0
 	#define crArrow       LoadCursor(0,IDC_ARROW)

@@ -87,7 +87,9 @@ Namespace My.Sys.Forms
 		FMinValue = Value
 		#ifdef __USE_GTK__
 			gtk_spin_button_set_range(GTK_SPIN_BUTTON(widget), FMinValue, FMaxValue)
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then ..SetRange(FHandle, FMinValue, FMaxValue)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				If FMinValue < 0 OrElse FMaxValue < 0 Then
 					SendMessage(Handle, UDM_SETRANGE32, FMinValue, FMaxValue)
@@ -106,7 +108,9 @@ Namespace My.Sys.Forms
 		FMaxValue = Value
 		#ifdef __USE_GTK__
 			gtk_spin_button_set_range(GTK_SPIN_BUTTON(widget), FMinValue, FMaxValue)
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then ..SetRange(FHandle, FMinValue, FMaxValue)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then 
 				If FMinValue < 0 OrElse FMaxValue < 0 Then
 					SendMessage(Handle, UDM_SETRANGE32, FMinValue, FMaxValue)
@@ -120,7 +124,9 @@ Namespace My.Sys.Forms
 	Private Property UpDown.Position As Integer
 		#ifdef __USE_GTK__
 			FPosition = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget))
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then FPosition = GetPosition(FHandle)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				'FPosition = LoWord(SendMessage(Handle, UDM_GETPOS, 0, 0))
 				FPosition = SendMessage(Handle, UDM_GETPOS32, 0, 0)
@@ -133,7 +139,10 @@ Namespace My.Sys.Forms
 		FPosition = Value
 		#ifdef __USE_GTK__
 			gtk_spin_button_set_value(GTK_SPIN_BUTTON(widget), FPosition)
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then SetPosition(FHandle, FPosition)
+			If FAssociate Then FAssociate->Text = Str(FPosition)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				If FPosition < 0 Then
 					SendMessage(Handle, UDM_SETPOS32, 0, FPosition)
@@ -156,7 +165,9 @@ Namespace My.Sys.Forms
 			FIncrement = Value
 			#ifdef __USE_GTK__
 				gtk_spin_button_set_increments(GTK_SPIN_BUTTON(widget), FIncrement, FIncrement)
-			#else
+			#elseif defined(__USE_WASM__)
+				If FHandle Then SetAttribute(FHandle, "step", Str(FIncrement))
+			#elseif defined(__USE_WINAPI__)
 				If Handle Then
 					SendMessage(Handle, UDM_GETACCEL, 1, CInt(@FUDAccel(0)))
 					FUDAccel(0).nInc = Value
@@ -182,7 +193,7 @@ Namespace My.Sys.Forms
 	Private Property UpDown.Thousands(Value As Boolean)
 		If FThousands <> Value Then
 			FThousands = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(abs_(FStyle)) Or AAlignment(abs_(FAlignment)) Or AWrap(abs_(FWrap)) Or AArrowKeys(abs_(FArrowKeys)) Or AAThousand(abs_(FThousands))
 			#endif
 		End If
@@ -197,7 +208,7 @@ Namespace My.Sys.Forms
 			FWrap = Value
 			#ifdef __USE_GTK__
 				gtk_spin_button_set_wrap(GTK_SPIN_BUTTON(widget), FWrap)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Base.Style = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(abs_(FStyle)) Or AAlignment(abs_(FAlignment)) Or AWrap(abs_(FWrap)) Or AArrowKeys(abs_(FArrowKeys)) Or AAThousand(abs_(FThousands))
 			#endif
 		End If
@@ -221,7 +232,7 @@ Namespace My.Sys.Forms
 				This.Height = Width
 				Width = Temp
 			End If
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(abs_(FStyle)) Or AAlignment(abs_(FAlignment)) Or AWrap(abs_(FWrap)) Or AArrowKeys(abs_(FArrowKeys)) Or AAThousand(abs_(FThousands))
 				RecreateWnd
 			#endif
@@ -235,7 +246,7 @@ Namespace My.Sys.Forms
 	Private Property UpDown.Alignment(Value As UpDownAlignment)
 		If FAlignment <> Value Then
 			FAlignment = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or UDS_SETBUDDYINT Or AStyle(abs_(FStyle)) Or AAlignment(abs_(FAlignment)) Or AWrap(abs_(FWrap)) Or AArrowKeys(abs_(FArrowKeys)) Or AAThousand(abs_(FThousands))
 				RecreateWnd
 			#endif
@@ -250,7 +261,7 @@ Namespace My.Sys.Forms
 		FAssociate = Value
 		If FAssociate Then
 			If UCase(FAssociate->ClassName) = "TEXTBOX" Then
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					SendMessage(Handle, UDM_SETBUDDY, CInt(FAssociate->Handle), 0)
 				#endif
 				FAssociate->Text = WStr(Position)
@@ -270,7 +281,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub UpDown.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QUpDown(Sender.Child)
@@ -300,9 +311,38 @@ Namespace My.Sys.Forms
 		
 		Private Sub UpDown.WndProc(ByRef Message As Message)
 		End Sub
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Sub UpDown.HandleIsAllocated(ByRef Sender As Control)
+			If Sender.Child Then
+				With QUpDown(Sender.Child)
+					..SetRange(.FHandle, .FMinValue, .FMaxValue)
+					SetPosition(.FHandle, .FPosition)
+					#ifdef __USE_WASM__
+						SetAttribute(.FHandle, "step", Str(.FIncrement))
+					#endif
+					If .FAssociate Then .FAssociate->Text = WStr(.FPosition)
+				End With
+			End If
+		End Sub
+
+		Private Sub UpDown.WndProc(ByRef Message As Message)
+		End Sub
 	#endif
-	
+
 	Private Sub UpDown.ProcessMessage(ByRef Message As Message)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Message.Msg = CM_CHANGE Then
+				Dim As Integer OldPosition = FPosition
+				#ifdef __USE_JNI__
+					FPosition = Message.wParam
+				#else
+					FPosition = GetPosition(FHandle)
+				#endif
+				If OnChanging Then OnChanging(*Designer, This, FPosition, FPosition - OldPosition)
+				If FAssociate Then FAssociate->Text = WStr(FPosition)
+				Message.Handled = True
+			End If
+		#endif
 		#ifdef __USE_WINAPI__
 			Static As Integer DownButton, X, Y
 			Static As Boolean MouseIn
@@ -440,7 +480,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			widget = gtk_spin_button_new_with_range(0, 100, 1)
 			
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As INITCOMMONCONTROLSEX ICC
 			ICC.dwSize = SizeOf(ICC)
 			ICC.dwICC  = ICC_UPDOWN_CLASS
@@ -466,12 +506,12 @@ Namespace My.Sys.Forms
 		FThousands       = True
 		FTabIndex          = -1
 		FTabStop         = True
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			FUDAccel(0).nInc = FIncrement
 		#endif
 		With This
 			.Child             = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.RegisterClass "UpDown", UPDOWN_CLASS
 				.ChildProc         = @WndProc
 				WLet(FClassAncestor, UPDOWN_CLASS)
@@ -482,6 +522,18 @@ Namespace My.Sys.Forms
 				.Width             = UnScaleX(GetSystemMetrics(SM_CXVSCROLL))
 				.Height            = UnScaleY(GetSystemMetrics(SM_CYVSCROLL))
 				.Height            = .Height + (.Height \ 2)
+			#endif
+			#ifdef __USE_WASM__
+				WLet(FClassAncestor, "input")
+				FType = "number"
+				.OnHandleIsAllocated = @HandleIsAllocated
+				.Width             = 40
+				.Height            = 24
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "mff:NumberPicker")
+				.OnHandleIsAllocated = @HandleIsAllocated
+				.Width             = 40
+				.Height            = 60
 			#endif
 			WLet(FClassName, "UpDown")
 		End With

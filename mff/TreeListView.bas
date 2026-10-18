@@ -11,7 +11,7 @@
 #endif
 
 Namespace My.Sys.Forms
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Function TreeListViewItem.GetTreeListViewItemIndex(Node As TreeListViewItem Ptr, iItem As TreeListViewItem Ptr, ByRef iCount As Integer) As Integer
 			Dim As Integer Result
 			If Not Node->IsExpanded Then Return -1
@@ -64,7 +64,7 @@ Namespace My.Sys.Forms
 					gtk_tree_path_free(TreePath)
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				Var ItemIndex = This.GetItemIndex()
 				If ItemIndex <> -1 Then
@@ -108,6 +108,9 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 		FExpanded = False
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(TreeListView Ptr, Parent)->UpdateRows
+		#endif
 	End Sub
 	
 	Private Sub TreeListViewItem.Expand
@@ -119,7 +122,7 @@ Namespace My.Sys.Forms
 					gtk_tree_path_free(TreePath)
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				If Not FExpanded Then
 					If QTreeListView(Parent).OnItemExpanding Then QTreeListView(Parent).OnItemExpanding(* (QTreeListView(Parent).Designer), QTreeListView(Parent), @This)
@@ -155,8 +158,13 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent AndAlso Not FExpanded AndAlso QTreeListView(Parent).OnItemExpanding Then QTreeListView(Parent).OnItemExpanding(*(QTreeListView(Parent).Designer), QTreeListView(Parent), @This)
 		#endif
 		FExpanded = True
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(TreeListView Ptr, Parent)->UpdateRows
+		#endif
 	End Sub
 	
 	Private Function TreeListViewItem.IsExpanded As Boolean
@@ -188,12 +196,14 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Cast(TreeListView Ptr, Parent)->TreeSelection Then
 				gtk_tree_selection_select_iter(Cast(TreeListView Ptr, Parent)->TreeSelection, @TreeIter)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				Var ItemIndex = This.GetItemIndex
 				If ItemIndex = -1 Then Exit Sub
 				ListView_SetItemState(Parent->Handle, ItemIndex, LVIS_FOCUSED Or LVIS_SELECTED, LVNI_SELECTED Or LVNI_FOCUSED)
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(TreeListView Ptr, Parent)->SelectedItem = @This
 		#endif
 	End Sub
 	
@@ -216,7 +226,7 @@ Namespace My.Sys.Forms
 				If Cast(TreeListView Ptr, Parent)->TreeStore Then
 					gtk_tree_store_set (Cast(TreeListView Ptr, Parent)->TreeStore, @TreeIter, iSubItem + 1, ToUtf8(Value), -1)
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Parent AndAlso Parent->Handle Then
 					Var ItemIndex = This.GetItemIndex
 					If ItemIndex = -1 Then Exit Property
@@ -227,6 +237,8 @@ Namespace My.Sys.Forms
 					lvi.cchTextMax = Len(*FText)
 					ListView_SetItem(Parent->Handle, @lvi)
 				End If
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				Cast(TreeListView Ptr, Parent)->UpdateRows
 			#endif
 		End If
 	End Property
@@ -237,7 +249,7 @@ Namespace My.Sys.Forms
 	
 	Private Property TreeListViewItem.State(Value As Integer)
 		FState = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				Var ItemIndex = GetItemIndex
 				If ItemIndex = -1 Then Exit Property
@@ -257,7 +269,7 @@ Namespace My.Sys.Forms
 	
 	Private Property TreeListViewItem.Indent(Value As Integer)
 		FIndent = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				Var ItemIndex = GetItemIndex
 				If ItemIndex = -1 Then Exit Property
@@ -332,7 +344,7 @@ Namespace My.Sys.Forms
 				If Parent AndAlso Parent->Handle Then
 					gtk_tree_store_set (Cast(TreeListView Ptr, Parent)->TreeStore, @TreeIter, 0, ToUtf8(Value), -1)
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Parent Then
 					With QControl(Parent)
 						'.Perform(TB_CHANGEBITMAP, FCommandID, MakeLong(FImageIndex, 0))
@@ -357,7 +369,7 @@ Namespace My.Sys.Forms
 		End If
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub TreeListViewItem.DeleteItems(Node As TreeListViewItem Ptr)
 			For i As Integer = Node->Nodes.Count - 1 To 0 Step -1
 				Var ItemIndex = Node->Nodes.Item(i)->GetItemIndex
@@ -409,7 +421,7 @@ Namespace My.Sys.Forms
 					Next
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As Integer iIndex
 			Dim As TreeListViewItems Ptr pNodes
 			If Node->ParentItem <> 0 Then
@@ -470,7 +482,7 @@ Namespace My.Sys.Forms
 					If Parent AndAlso Parent->Handle Then
 						gtk_tree_store_remove(Cast(TreeListView Ptr, Parent)->TreeStore, @This.TreeIter)
 					End If
-				#else
+				#elseif defined(__USE_WINAPI__)
 					If Parent AndAlso Parent->Handle Then
 						DeleteItems(@This)
 						Var ItemIndex = GetItemIndex
@@ -504,7 +516,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then
 				gtk_tree_store_remove(Cast(TreeListView Ptr, Parent)->TreeStore, @This.TreeIter)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				Var ItemIndex = GetItemIndex
 				If ItemIndex <> -1 Then ListView_DeleteItem(Parent->Handle, ItemIndex)
@@ -518,7 +530,7 @@ Namespace My.Sys.Forms
 	End Destructor
 	
 	Private Sub TreeListViewColumn.SelectItem
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then ListView_SetSelectedColumn(Parent->Handle, Index)
 		#endif
 	End Sub
@@ -529,7 +541,7 @@ Namespace My.Sys.Forms
 	
 	Private Property TreeListViewColumn.Text(ByRef Value As WString)
 		WLet(FText, Value)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
 				lvc.mask = TVIF_TEXT
@@ -544,7 +556,7 @@ Namespace My.Sys.Forms
 	Private Property TreeListViewColumn.Width As Integer
 		#ifdef __USE_GTK__
 			If This.Column Then FWidth = gtk_tree_view_column_get_width(This.Column)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim lvc As LVCOLUMN
 			lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
 			lvc.iSubItem = Index
@@ -567,7 +579,7 @@ Namespace My.Sys.Forms
 			#else
 				If This.Column Then gtk_tree_view_column_set_fixed_width(This.Column, Max(1, FWidth))
 			#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
 				lvc.mask = LVCF_WIDTH Or LVCF_SUBITEM
@@ -584,7 +596,7 @@ Namespace My.Sys.Forms
 	
 	Private Property TreeListViewColumn.Format(Value As ColumnFormat)
 		FFormat = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				Dim lvc As LVCOLUMN
 				lvc.mask = LVCF_FMT Or LVCF_SUBITEM
@@ -723,7 +735,7 @@ Namespace My.Sys.Forms
 			Next i
 			Return 0
 		End Function
-	#else
+	#elseif defined(__USE_WINAPI__)
 		Private Function TreeListViewItems.FindByHandle(Value As LPARAM) As TreeListViewItem Ptr
 			If ParentItem AndAlso ParentItem->Handle = Value Then Return ParentItem
 			For i As Integer = 0 To Count - 1
@@ -785,7 +797,7 @@ Namespace My.Sys.Forms
 					Next j
 				End If
 				PItem->Text(0) = .Text(0)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If CInt(Parent) AndAlso CInt(Parent->Handle) Then
 					If Cast(TreeListView Ptr, Parent)->OwnerData Then
 						'SendMessage(Parent->Handle, LVM_SETITEMCOUNT, FItems.Count, LVSICF_NOINVALIDATEALL)
@@ -818,6 +830,9 @@ Namespace My.Sys.Forms
 				.Handle = Cast(LPARAM, PItem)
 			#endif
 		End With
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(TreeListView Ptr, Parent)->UpdateRows
+		#endif
 		Return PItem
 	End Function
 	
@@ -833,7 +848,7 @@ Namespace My.Sys.Forms
 	
 	Private Function TreeListViewItems.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, State As Integer = 0, Indent As Integer = 0) As TreeListViewItem Ptr
 		Dim As TreeListViewItem Ptr PItem
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As LVITEM lvi
 		#endif
 		PItem = _New( TreeListViewItem)
@@ -848,7 +863,7 @@ Namespace My.Sys.Forms
 			Else
 				.Indent        = 0
 			End If
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.Handle 		= Cast(LPARAM, PItem)
 			#endif
 			.Parent         = Parent
@@ -868,7 +883,7 @@ Namespace My.Sys.Forms
 					gtk_tree_store_set(Cast(TreeListView Ptr, Parent)->TreeStore, @PItem->TreeIter, 1, ToUtf8(FCaption), -1)
 				End If
 				PItem->Text(0) = FCaption
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Parent AndAlso Parent->Handle Then
 					lvi.mask = LVIF_TEXT Or LVIF_IMAGE Or LVIF_STATE Or LVIF_INDENT Or LVIF_PARAM
 					lvi.pszText  = @FCaption
@@ -901,6 +916,9 @@ Namespace My.Sys.Forms
 		If Count < 1 OrElse Index < 0 OrElse Index > Count - 1 Then Exit Sub
 		If Cast(TreeListViewItem Ptr, FItems.Items[Index])->FDynamic Then _Delete( Cast(TreeListViewItem Ptr, FItems.Items[Index]))
 		FItems.Remove Index
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(TreeListView Ptr, Parent)->UpdateRows
+		#endif
 	End Sub
 	
 	#ifdef __USE_WINAPI__
@@ -938,7 +956,7 @@ Namespace My.Sys.Forms
 		If FParentItem = 0 Then
 			#ifdef __USE_GTK__
 				'If Parent AndAlso Cast(TreeListView Ptr, Parent)->TreeStore Then gtk_tree_store_clear(Cast(TreeListView Ptr, Parent)->TreeStore)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0
 			#endif
 		End If
@@ -947,6 +965,9 @@ Namespace My.Sys.Forms
 		Next i
 		FItems.Clear
 		If ParentItem Then ParentItem->State = 0
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(TreeListView Ptr, Parent)->UpdateRows
+		#endif
 	End Sub
 	
 	Private Operator TreeListViewItems.Cast As Any Ptr
@@ -1018,7 +1039,7 @@ Namespace My.Sys.Forms
 	Private Function TreeListViewColumns.Add(ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer = -1, Format As ColumnFormat = cfLeft, ColEditable As Boolean = False) As TreeListViewColumn Ptr
 		Dim As TreeListViewColumn Ptr PColumn
 		Dim As Integer Index
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As LVCOLUMN lvc
 		#endif
 		PColumn = _New( TreeListViewColumn)
@@ -1076,7 +1097,7 @@ Namespace My.Sys.Forms
 					gtk_tree_view_column_set_fixed_width(PColumn->Column, Max(1, iWidth))
 				#endif
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			lvc.mask      =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
 			lvc.fmt       =  Format
 			lvc.cx		  = ScaleX(IIf(iWidth = -1, 50, iWidth))
@@ -1089,10 +1110,12 @@ Namespace My.Sys.Forms
 			PColumn->Parent = Parent
 			#ifdef __USE_GTK__
 				
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Parent->Handle Then
 					ListView_InsertColumn(Parent->Handle, PColumn->Index, @lvc)
 				End If
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				Cast(TreeListView Ptr, Parent)->UpdateColumns
 			#endif
 		End If
 		Return PColumn
@@ -1100,7 +1123,7 @@ Namespace My.Sys.Forms
 	
 	Private Sub TreeListViewColumns.Insert(Index As Integer, ByRef FCaption As WString = "", FImageIndex As Integer = -1, iWidth As Integer, Format As ColumnFormat = cfLeft)
 		Dim As TreeListViewColumn Ptr PColumn
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As LVCOLUMN lvc
 		#endif
 		PColumn = _New( TreeListViewColumn)
@@ -1112,7 +1135,7 @@ Namespace My.Sys.Forms
 			.Width      = iWidth
 			.Format     = Format
 		End With
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			lvc.mask        =  LVCF_FMT Or LVCF_WIDTH Or LVCF_TEXT Or LVCF_SUBITEM
 			lvc.fmt         =  Format
 			lvc.cx          = 0
@@ -1132,10 +1155,12 @@ Namespace My.Sys.Forms
 	
 	Private Sub TreeListViewColumns.Remove(Index As Integer)
 		FColumns.Remove Index
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Parent AndAlso Parent->Handle Then
 				SendMessage Parent->Handle, LVM_DELETECOLUMN, Cast(WPARAM, Index), 0
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Parent Then Cast(TreeListView Ptr, Parent)->UpdateColumns
 		#endif
 	End Sub
 	
@@ -1253,7 +1278,7 @@ Namespace My.Sys.Forms
 	
 	Private Property TreeListView.OwnerData(Value As Boolean)
 		FOwnerData = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle LVS_OWNERDATA, Value
 		#endif
 	End Property
@@ -1264,7 +1289,7 @@ Namespace My.Sys.Forms
 	
 	Private Property TreeListView.OwnerDraw(Value As Boolean)
 		FOwnerDraw = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ChangeStyle LVS_OWNERDRAWFIXED, Value
 		#endif
 	End Property
@@ -1277,7 +1302,7 @@ Namespace My.Sys.Forms
 		FColumnHeaderHidden = Value
 		#ifdef __USE_GTK__
 			gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(widget), Not Value)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeStyle LVS_NOCOLUMNHEADER, Value
 		#endif
 	End Property
@@ -1305,7 +1330,7 @@ Namespace My.Sys.Forms
 			'			If Columns.Count > 0 Then
 			'				Columns.Column(0)->Editable = Value
 			'			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			ChangeStyle LVS_EDITLABELS, Value
 		#endif
 	End Property
@@ -1345,7 +1370,7 @@ Namespace My.Sys.Forms
 			#else
 				
 			#endif
-		#else
+		#elseif defined(__USE_WINAPI__)
 			
 		#endif
 	End Property
@@ -1356,11 +1381,13 @@ Namespace My.Sys.Forms
 			If gtk_tree_selection_get_selected(TreeSelection, NULL, @iter) Then
 				Return Nodes.FindByIterUser_Data(iter.user_data)
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				Dim As Integer item = ListView_GetNextItem(Handle, -1, LVNI_SELECTED)
 				If item <> -1 Then Return GetTreeListViewItem(item)
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Return FSelItem
 		#endif
 		Return 0
 	End Property
@@ -1372,10 +1399,14 @@ Namespace My.Sys.Forms
 				Dim As TreeListViewItem Ptr lvi = Nodes.FindByIterUser_Data(iter.user_data)
 				If lvi <> 0 Then Return lvi->Index
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				Return ListView_GetNextItem(Handle, -1, LVNI_SELECTED)
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			For i As Integer = 0 To UBound(FRowItems)
+				If FRowItems(i) = FSelItem Then Return i
+			Next
 		#endif
 		Return -1
 	End Property
@@ -1390,20 +1421,33 @@ Namespace My.Sys.Forms
 					gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(widget), gtk_tree_model_get_path(GTK_TREE_MODEL(TreeStore), @Nodes.Item(Value)->TreeIter), NULL, False, 0, 0)
 				End If
 			End If
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				ListView_SetItemState(Handle, Value, LVIS_FOCUSED Or LVIS_SELECTED, LVNI_SELECTED Or LVNI_FOCUSED)
 				ListView_EnsureVisible(Handle, Value, True)
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Value >= 0 AndAlso Value <= UBound(FRowItems) Then FSelItem = FRowItems(Value) Else FSelItem = 0
+			If Handle Then TableSetIndex(Handle, IIf(FSelItem, Value, -1))
 		#endif
 	End Property
 	
 	Private Property TreeListView.SelectedItem(Value As TreeListViewItem Ptr)
-		Value->SelectItem
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			FSelItem = Value
+			Dim As TreeListViewItem Ptr PItem = IIf(Value, Value->ParentItem, 0)
+			While PItem
+				If Not PItem->IsExpanded Then PItem->Expand
+				PItem = PItem->ParentItem
+			Wend
+			UpdateRows
+		#else
+			Value->SelectItem
+		#endif
 	End Property
 	
 	Private Property TreeListView.SelectedColumn As TreeListViewColumn Ptr
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then
 				Return Columns.Column(ListView_GetSelectedColumn(Handle))
 			End If
@@ -1411,7 +1455,7 @@ Namespace My.Sys.Forms
 		Return 0
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Function TreeListView.GetTreeListViewItem(iItem As Integer) As TreeListViewItem Ptr
 			If FOwnerData Then Return GetItemByVisibleIndex(iItem)
 			Dim lvi As LVITEM
@@ -1464,7 +1508,7 @@ Namespace My.Sys.Forms
 	
 	Private Property TreeListView.SortOrder(Value As SortStyle)
 		FSortStyle = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Select Case FSortStyle
 			Case SortStyle.ssNone
 				ChangeStyle LVS_SORTASCENDING, False
@@ -1484,7 +1528,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Property TreeListView.SelectedColumn(Value As TreeListViewColumn Ptr)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle Then ListView_SetSelectedColumn(Handle, Value->Index)
 		#endif
 	End Property
@@ -1529,6 +1573,37 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub TreeListView.ProcessMessage(ByRef Message As Message)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Message.Msg = CM_CHANGE Then
+				Dim As Integer RowIndex
+				#ifdef __USE_JNI__
+					RowIndex = Message.wParam
+				#else
+					RowIndex = TableGetIndex(FHandle)
+				#endif
+				If RowIndex >= 0 AndAlso RowIndex <= UBound(FRowItems) Then
+					Dim As TreeListViewItem Ptr PItem = FRowItems(RowIndex)
+					Dim As Boolean bChanged = (PItem <> FSelItem)
+					FSelItem = PItem
+					If OnItemClick Then OnItemClick(*Designer, This, PItem)
+					If bChanged AndAlso OnSelectedItemChanged Then OnSelectedItemChanged(*Designer, This, PItem)
+					'Web: a double click, Android: a tap opens or closes the item
+					#ifdef __USE_WASM__
+						If TableDblClick(FHandle) Then
+							If OnItemDblClick Then OnItemDblClick(*Designer, This, PItem)
+					#endif
+						If PItem->Nodes.Count > 0 Then
+							If PItem->IsExpanded Then PItem->Collapse Else PItem->Expand
+						ElseIf OnItemActivate Then
+							OnItemActivate(*Designer, This, PItem)
+						End If
+					#ifdef __USE_WASM__
+						End If
+					#endif
+				End If
+				Message.Handled = True
+			End If
+		#endif
 		'?message.msg, GetMessageName(message.msg)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.Event
@@ -1540,7 +1615,7 @@ Namespace My.Sys.Forms
 			Case GDK_MAP
 				Init
 			End Select
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Select Case Message.Msg
 			Case WM_PAINT
 				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
@@ -1935,7 +2010,67 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	#ifndef __USE_GTK__
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Function TreeListView.RowCells(Item As TreeListViewItem Ptr) As String
+			Dim As WString * 3 Sign = IIf(Item->Nodes.Count = 0, "  ", IIf(Item->IsExpanded, WChr(&H25BC) & " ", WChr(&H25BA) & " "))
+			Dim As String Cells = Space(Item->Indent * 4) & ToUtf8(Sign & Item->Text(0))
+			For i As Integer = 1 To Columns.Count - 1
+				Cells &= Chr(9) & ToUtf8(Item->Text(i))
+			Next
+			Return Cells
+		End Function
+
+		Private Sub TreeListView.AddRows(PNodes As TreeListViewItems Ptr)
+			For i As Integer = 0 To PNodes->Count - 1
+				Dim As TreeListViewItem Ptr PItem = PNodes->Item(i)
+				If PItem = 0 Then Continue For
+				TableInsertRow(FHandle, -1, RowCells(PItem))
+				ReDim Preserve FRowItems(UBound(FRowItems) + 1)
+				FRowItems(UBound(FRowItems)) = PItem
+				If PItem->IsExpanded Then AddRows(@PItem->Nodes)
+			Next
+		End Sub
+
+		Private Sub TreeListView.UpdateRows()
+			If FHandle = 0 Then Exit Sub
+			TableClear(FHandle)
+			Erase FRowItems
+			AddRows(@Nodes)
+			For i As Integer = 0 To UBound(FRowItems)
+				If FRowItems(i) = FSelItem Then TableSetIndex(FHandle, i): Exit For
+			Next
+		End Sub
+
+		Private Sub TreeListView.UpdateColumns()
+			If FHandle = 0 Then Exit Sub
+			Dim As String Captions, Widths
+			For i As Integer = 0 To Columns.Count - 1
+				If i > 0 Then Captions &= Chr(10): Widths &= Chr(10)
+				Captions &= ToUtf8(Columns.Column(i)->Text)
+				Widths &= Str(Columns.Column(i)->Width)
+			Next
+			If FColumnHeaderHidden Then
+				TableSetColumns(FHandle, "", "")
+			Else
+				TableSetColumns(FHandle, Captions, Widths)
+			End If
+		End Sub
+
+		Private Sub TreeListView.HandleIsAllocated(ByRef Sender As Control)
+			If Sender.Child Then
+				With QTreeListView(Sender.Child)
+					TableInit(.FHandle)
+					.UpdateColumns
+					.UpdateRows
+				End With
+			End If
+		End Sub
+
+		Private Sub TreeListView.HandleIsDestroyed(ByRef Sender As Control)
+		End Sub
+	#endif
+
+	#ifdef __USE_WINAPI__
 		Private Sub TreeListView.HandleIsDestroyed(ByRef Sender As Control)
 		End Sub
 		
@@ -2044,7 +2179,7 @@ Namespace My.Sys.Forms
 	Private Sub TreeListView.CollapseAll
 		#ifdef __USE_GTK__
 			gtk_tree_view_collapse_all(GTK_TREE_VIEW(widget))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			For i As Integer = 0 To Nodes.Count - 1
 				Nodes.Item(i)->Collapse
 			Next
@@ -2054,7 +2189,7 @@ Namespace My.Sys.Forms
 	Private Sub TreeListView.ExpandAll
 		#ifdef __USE_GTK__
 			gtk_tree_view_expand_all(GTK_TREE_VIEW(widget))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			For i As Integer = 0 To Nodes.Count - 1
 				Nodes.Item(i)->Expand
 			Next
@@ -2109,7 +2244,7 @@ Namespace My.Sys.Forms
 		FTabStop = True
 		With This
 			.Child             = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.OnHandleIsDestroyed = @HandleIsDestroyed
 				.RegisterClass "TreeListView", WC_LISTVIEW
@@ -2118,6 +2253,13 @@ Namespace My.Sys.Forms
 				.FLVExStyle        = LVS_EX_FULLROWSELECT Or LVS_EX_GRIDLINES Or LVS_EX_DOUBLEBUFFER
 				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_ICON Or LVS_SINGLESEL Or LVS_SHOWSELALWAYS
 				WLet(FClassAncestor, WC_LISTVIEW)
+			#elseif defined(__USE_WASM__)
+				WLet(FClassAncestor, "table")
+				FElementStyle = "border: 1px solid #aaa; background: white;"
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "android/widget/ListView")
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			WLet(FClassName, "TreeListView")
 			.Width             = 121
@@ -2128,9 +2270,9 @@ Namespace My.Sys.Forms
 	Private Destructor TreeListView
 		'Nodes.Clear
 		'Columns.Clear
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			UnregisterClass "TreeListView",GetModuleHandle(NULL)
-		#else
+		#elseif defined(__USE_GTK__)
 			If ColumnTypes Then _DeleteSquareBrackets( ColumnTypes)
 		#endif
 	End Destructor

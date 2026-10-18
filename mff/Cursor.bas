@@ -163,11 +163,13 @@ Namespace My.Sys.Drawing
 	
 	Private Operator Cursor.Let(ByRef Value As WString)
 		WLet(FResName, Value)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WASM__
+			If Ctrl AndAlso Ctrl->Handle Then SetStyle(Ctrl->Handle, "cursor", ToUtf8(Value))
+		#elseif defined(__USE_WINAPI__)
 			If (Not LoadFromResourceName(Value)) AndAlso (Not LoadFromResourceID(Val(Value))) Then
 				LoadFromFile(Value)
 			End If
-		#else
+		#elseif defined(__USE_GTK__)
 			If Ctrl AndAlso Ctrl->Handle Then
 				Dim As GdkDisplay Ptr pdisplay = gtk_widget_get_display(Ctrl->Handle)
 				Handle = NewFromName(pdisplay, Value)

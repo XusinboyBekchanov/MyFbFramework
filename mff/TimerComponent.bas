@@ -6,6 +6,10 @@
 
 #include once "TimerComponent.bi"
 
+#if defined(__USE_WASM__)
+	Declare Sub TimerComponent_OnTimer(Id As Integer)
+#endif
+
 Namespace My.Sys.Forms
 	#ifndef ReadProperty_Off
 		Private Function TimerComponent.ReadProperty(PropertyName As String) As Any Ptr
@@ -41,7 +45,7 @@ Namespace My.Sys.Forms
 				Return tmr->Enabled
 			End With
 		End Function
-	#else
+	#elseif defined(__USE_WINAPI__)
 		Private Sub TimerComponent.TimerProc(hwnd As HWND, uMsg As UINT, idEvent As Integer, dwTime As DWORD)
 			With TimersList
 				If .Contains(idEvent) Then
@@ -66,7 +70,13 @@ Namespace My.Sys.Forms
 				Else
 					TimersList.Remove TimersList.IndexOf(ID)
 				End If
-			#else
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				If FEnabled Then
+					StartTimer(@This, FInterval)
+				Else
+					StopTimer(@This)
+				End If
+			#elseif defined(__USE_WINAPI__)
 				If FEnabled Then
 					ID = SetTimer(NULL, 0, Interval, @TimerProc)
 					TimersList.Add ID, @This
@@ -86,14 +96,18 @@ Namespace My.Sys.Forms
 		FInterval = Value
 		If FEnabled AndAlso Not FDesignMode Then
 			TimersList.Remove TimersList.IndexOf(ID)
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If ID Then KillTimer NULL, ID
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				StopTimer(@This)
 			#endif
 			ID = 0
 			If FInterval > 0 Then
 				#ifdef __USE_GTK__
 					ID = g_timeout_add(Interval, Cast(GSourceFunc, @TimerProc), Cast(gpointer, @This))
-				#else
+				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+					StartTimer(@This, FInterval)
+				#elseif defined(__USE_WINAPI__)
 					ID = SetTimer(NULL, 0, Interval, @TimerProc)
 				#endif
 				TimersList.Add ID, @This
@@ -109,9 +123,33 @@ Namespace My.Sys.Forms
 		Interval = 10
 		WLet(FClassName, "TimerComponent")
 		FEnabled = False
+		#if defined(__USE_WASM__)
+			TimerComponentProc = @TimerComponent_OnTimer
+		#endif
 	End Constructor
 	
 	Private Destructor TimerComponent
 		Enabled = False
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			StopTimer(@This)
+		#endif
 	End Destructor
 End Namespace
+
+#if defined(__USE_WASM__)
+	'Called by the ONTIMER export of Form.bas (setInterval of StartTimer, mff_lib.js)
+	Sub TimerComponent_OnTimer(Id As Integer)
+		If Id > 0 Then
+			Dim As My.Sys.Forms.TimerComponent Ptr tmr = Cast(Any Ptr, Id)
+			If tmr->OnTimer Then tmr->OnTimer(*tmr->Designer, *tmr)
+		End If
+	End Sub
+#elseif defined(__USE_JNI__)
+	'Called by the Handler of mffActivity.timerStart
+	Sub mffActivity_onTimer Alias AddToPackage(Package, mffActivity_onTimer) (ByVal env1 As JNIEnv Ptr, This_ As jobject, Id As jlong) Export
+		If Id <> 0 Then
+			Dim As My.Sys.Forms.TimerComponent Ptr tmr = Cast(Any Ptr, CInt(Id))
+			If tmr->OnTimer Then tmr->OnTimer(*tmr->Designer, *tmr)
+		End If
+	End Sub
+#endif

@@ -176,7 +176,7 @@ Namespace My.Sys.Forms
 				Return "<div id=""" & Trim(Str(@This)) & "Client""></div>"
 			ElseIf Not FMainForm Then
 				Return "<div class=""flexpanel backgroundmenu unselectable basecolorblue"" id=""" & Trim(Str(@This)) & "Header"" style=""padding: 8px;>" & _
-				"<div class="""">" & FText & _
+				"<div class="""">" & HtmlEscape(FText) & _
 				"<div class=""vetdialogbutton fa fa-remove"" id=""" & Trim(Str(@This)) & "CloseButton"" style=""width: 20px; position: absolute; right: 8px; opacity: 0.7;"">X</div>" & "</div>" & _
 				"</div>"
 			Else
@@ -805,7 +805,7 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WASM__)
 			If FMainForm Then
-				SetTitle(Value)
+				SetTitle(ToUtf8(Value))
 			End If
 		#endif
 	End Property
@@ -2260,14 +2260,23 @@ End Namespace
 				Dim As jmethodID getApplication = (*env)->GetMethodID(env, activityThread, "getApplication", "()Landroid/app/Application;")
 				pApp->Instance = (*env)->CallObjectMethod(env, at, getApplication)
 				Instance = pApp->Instance
+				Activity = (*env)->NewGlobalRef(env, This_)
 				Dim As jobject res = CallObjectMethod(pApp->Instance, "android/content/Context", "getResources", "()Landroid/content/res/Resources;")
 				Dim As jobject displaymetrics = CallObjectMethod(res, "android/content/res/Resources", "getDisplayMetrics", "()Landroid/util/DisplayMetrics;")
 				Dim As jclass displaymetricsClass = (*env)->FindClass(env, "android/util/DisplayMetrics")
 				Dim As jfieldID xdpiField = (*env)->GetFieldID(env, displaymetricsClass, "xdpi", "F")
 				Dim As jfieldID ydpiField = (*env)->GetFieldID(env, displaymetricsClass, "ydpi", "F")
+				Dim As jfieldID densityDpiField = (*env)->GetFieldID(env, displaymetricsClass, "densityDpi", "I")
 				If pApp->MainForm Then
-					pApp->MainForm->xdpi = (*env)->GetFloatField(env, displaymetrics, xdpiField) / 100
-					pApp->MainForm->ydpi = (*env)->GetFloatField(env, displaymetrics, ydpiField) / 100
+					' The designer is 96 dpi: the form keeps its physical size (xdpi / ydpi are the physical pixels per inch);
+					' some devices and emulators give no xdpi / ydpi, then the generalized densityDpi
+					Dim As Single DensityDpi = (*env)->GetIntField(env, displaymetrics, densityDpiField)
+					Dim As Single PhysicalXDpi = (*env)->GetFloatField(env, displaymetrics, xdpiField)
+					Dim As Single PhysicalYDpi = (*env)->GetFloatField(env, displaymetrics, ydpiField)
+					If PhysicalXDpi <= 0 Then PhysicalXDpi = DensityDpi
+					If PhysicalYDpi <= 0 Then PhysicalYDpi = DensityDpi
+					pApp->MainForm->xdpi = IIf(PhysicalXDpi > 0, PhysicalXDpi / 96, 1)
+					pApp->MainForm->ydpi = IIf(PhysicalYDpi > 0, PhysicalYDpi / 96, 1)
 					pApp->MainForm->Handle = This_
 					'				Dim As jmethodID getWindow = (*env)->GetMethodID(env, activityClass, "getWindow", "()Landroid/view/Window;")
 					'				Dim As jobject iWindow = (*env)->CallObjectMethod(env, This_, getWindow)
@@ -2296,6 +2305,7 @@ End Namespace
 						Ctrl->Handle = 0
 					End If
 				Next
+				If Activity Then (*env)->DeleteGlobalRef(env, Activity): Activity = 0
 				env = 0
 			End If
 		End If
@@ -2325,6 +2335,9 @@ End Namespace
 	End Sub
 #elseif defined(__USE_WASM__)
 	Sub OnStart() Export
+		#if __FB_GUI__ = 0
+			SetVisibleByStringId("termContainer", True)
+		#endif
 		If pApp Then
 			If pApp->MainForm AndAlso pApp->MainForm->Handle = 0 Then
 				pApp->MainForm->CreateWnd
@@ -2333,6 +2346,30 @@ End Namespace
 		End If
 	End Sub
 	
+	'The main form got the size of the browser window (mff_lib.js): the anchored controls follow it
+	Sub OnResize(Id As Integer, NewWidth As Integer, NewHeight As Integer) Export
+		If Id > 0 Then
+			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			Ctrl->Width = Ctrl->UnScaleX(NewWidth)
+			Ctrl->Height = Ctrl->UnScaleY(NewHeight)
+			Ctrl->RequestAlign
+			If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, Ctrl->Width, Ctrl->Height)
+		End If
+	End Sub
+
+	'Called by the setInterval of StartTimer (mff_lib.js)
+	Sub OnTimer(Id As Integer) Export
+		If TimerComponentProc Then TimerComponentProc(Id)
+	End Sub
+
+	'The canvas of the control got a new size or a picture of it was loaded (mff_lib.js)
+	Sub OnPaint(Id As Integer) Export
+		If Id > 0 Then
+			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl Then Ctrl->PaintCanvas
+		End If
+	End Sub
+
 	Sub OnLoad(Id As Integer) Export
 		If Id > 0 Then
 			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
@@ -2342,15 +2379,26 @@ End Namespace
 	
 	Sub OnChange(Id As Integer) Export
 		If Id > 0 Then
-			'Dim As My.Sys.Forms.TextBox Ptr txt = Cast(Any Ptr, Id)
-			'If txt AndAlso txt->OnChange Then txt->OnClick(*txt->Designer, *txt)
+			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl Then
+				Dim As Message msg
+				msg.Sender = Ctrl
+				msg.Msg = CM_CHANGE
+				Ctrl->ProcessMessage(msg)
+			End If
 		End If
 	End Sub
 	
 	Sub OnClick(Id As Integer) Export
 		If Id > 0 Then
 			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
-			If Ctrl AndAlso Ctrl->OnClick Then Ctrl->OnClick(*Ctrl->Designer, *Ctrl)
+			If Ctrl Then
+				Dim As Message msg
+				msg.Sender = Ctrl
+				msg.Msg = CM_CLICK
+				Ctrl->ProcessMessage(msg)
+				If (Not msg.Handled) AndAlso Ctrl->OnClick <> 0 Then Ctrl->OnClick(*Ctrl->Designer, *Ctrl)
+			End If
 		End If
 	End Sub
 	
@@ -2421,9 +2469,20 @@ End Namespace
 		End If
 	End Sub
 	
+	'The CM_MOUSE* message of the control (Chart), before its OnMouse* event
+	Private Sub SendMouseMessage(Ctrl As My.Sys.Forms.Control Ptr, MsgId As Integer, MouseButton As Integer, x As Integer, y As Integer)
+		Dim As Message msg
+		msg.Sender = Ctrl
+		msg.Msg = MsgId
+		msg.wParam = MouseButton
+		msg.lParam = MffPoint(x, y)
+		Ctrl->ProcessMessage(msg)
+	End Sub
+
 	Sub OnMouseDown(Id As Integer, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer) Export
 		If Id > 0 Then
 			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl Then SendMouseMessage Ctrl, CM_MOUSEDOWN, MouseButton, x, y
 			If Ctrl AndAlso Ctrl->OnMouseDown Then Ctrl->OnMouseDown(*Ctrl->Designer, *Ctrl, MouseButton, x, y, Shift)
 		End If
 	End Sub
@@ -2431,6 +2490,8 @@ End Namespace
 	Sub OnMouseMove(Id As Integer, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer) Export
 		If Id > 0 Then
 			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			'MouseButton is e.buttons: 1 - left, 2 - right, 4 - middle
+			If Ctrl Then SendMouseMessage Ctrl, CM_MOUSEMOVE, IIf(MouseButton And 1, 0, IIf(MouseButton And 2, 1, IIf(MouseButton And 4, 2, -1))), x, y
 			If Ctrl AndAlso Ctrl->OnMouseMove Then Ctrl->OnMouseMove(*Ctrl->Designer, *Ctrl, MouseButton, x, y, Shift)
 		End If
 	End Sub
@@ -2438,6 +2499,7 @@ End Namespace
 	Sub OnMouseUp(Id As Integer, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer) Export
 		If Id > 0 Then
 			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl Then SendMouseMessage Ctrl, CM_MOUSEUP, MouseButton, x, y
 			If Ctrl AndAlso Ctrl->OnMouseUp Then Ctrl->OnMouseUp(*Ctrl->Designer, *Ctrl, MouseButton, x, y, Shift)
 		End If
 	End Sub
@@ -2452,6 +2514,7 @@ End Namespace
 	Sub OnMouseLeave(Id As Integer) Export
 		If Id > 0 Then
 			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl Then SendMouseMessage Ctrl, CM_MOUSELEAVE, -1, 0, 0
 			If Ctrl AndAlso Ctrl->OnMouseLeave Then Ctrl->OnMouseLeave(*Ctrl->Designer, *Ctrl)
 		End If
 	End Sub

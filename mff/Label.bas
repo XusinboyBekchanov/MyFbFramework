@@ -110,6 +110,8 @@ Namespace My.Sys.Forms
 			If FHandle Then
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/TextView", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(*FText)))
 			End If
+		#elseif defined(__USE_WASM__)
+			If FHandle Then SetInnerText(FHandle, ToUtf8(*FText))
 		#endif
 		SetAutoSize
 	End Property
@@ -369,6 +371,10 @@ Namespace My.Sys.Forms
 				gtk_misc_set_alignment(GTK_MISC(widget), 0, 0)
 			#endif
 			gtk_label_set_line_wrap(GTK_LABEL(widget), True)
+			#ifdef __USE_GTK2__
+				' GTK2 does not align the text of a wrapped label inside its size request (Alignment stays left)
+				gtk_label_set_width_chars(GTK_LABEL(widget), 1)
+			#endif
 			#ifndef __USE_GTK2__
 				eventboxwidget = gtk_event_box_new()
 				gtk_container_add(GTK_CONTAINER(eventboxwidget), widget)

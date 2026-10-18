@@ -29,6 +29,9 @@ Namespace My.Sys.Forms
 	Private Type Splitter Extends Control
 	Private:
 		FOldParentProc  As Any Ptr
+		#ifdef __USE_WASM__
+			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
+		#endif
 		#ifndef __USE_GTK__
 			Declare Static Sub ParentWndProc(ByRef Message As Message)
 			Declare Static Sub WndProc(ByRef Message As Message)

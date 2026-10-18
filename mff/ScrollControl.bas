@@ -44,7 +44,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Sub ScrollControl.RecalculateScrollBars
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If InRecalculate Then Exit Sub
 			InRecalculate = True
 			
@@ -104,7 +104,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub ScrollControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QScrollControl(Sender.Child)
@@ -118,7 +118,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub ScrollControl.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Static bShifted As Boolean
 			Static scrStyle As Integer, scrDirection As Integer
 			Dim Si As SCROLLINFO
@@ -309,7 +309,7 @@ Namespace My.Sys.Forms
 		FTabIndex       = -1
 		With This
 			.Child      = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.RegisterClass "ScrollControl"
 				.ChildProc   = @WNDPROC
 				.ExStyle     = 0
@@ -320,6 +320,9 @@ Namespace My.Sys.Forms
 				.DoubleBuffered = True
 			#endif
 			WLet(FClassName, "ScrollControl")
+			#ifdef __USE_WASM__
+				FElementStyle &= "overflow: auto;"
+			#endif
 			FHorizontalArrowChangeSize = 10
 			FVerticalArrowChangeSize = 10
 			.Width      = 121

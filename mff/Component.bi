@@ -144,6 +144,11 @@ Private Type Message
 		lParamLo As Integer
 		lParamHi As Integer
 		Captured As Any Ptr
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Msg      As Integer
+		wParam   As Integer
+		lParam   As Integer
+		Result   As Integer
 	#endif
 	Handled As Boolean
 End Type
@@ -400,6 +405,12 @@ Declare Function ThreadCreate_(ByVal ProcPtr_ As Sub ( ByVal userdata As Any Ptr
 Declare Sub ComponentGetBounds Alias "ComponentGetBounds" (Ctrl As My.Sys.ComponentModel.Component Ptr, ByRef ALeft As Integer, ByRef ATop As Integer, ByRef AWidth As Integer, ByRef AHeight As Integer)
 
 Declare Sub ComponentSetBounds Alias "ComponentSetBounds"(Ctrl As My.Sys.ComponentModel.Component Ptr, ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
+
+#ifdef __USE_WASM__
+	'Set by TimerComponent, called by the ONTIMER export of Form.bas (always exported, even without TimerComponent)
+	'(Not Common Shared: WebAssembly does not support common symbols, clang crashes)
+	Extern TimerComponentProc As Sub(Id As Integer)
+#endif
 
 #ifndef __USE_MAKE__
 	#include once "Component.bas"

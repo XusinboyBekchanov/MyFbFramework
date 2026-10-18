@@ -31,8 +31,10 @@ Namespace My.Sys.Forms
 		FArrowChangeSize 	As Integer
 		FPageSize   	As Integer
 		AStyle(2)   	As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			SIF         	As SCROLLINFO
+		#endif
+		#ifndef __USE_GTK__
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#else

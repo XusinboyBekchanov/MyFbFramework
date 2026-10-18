@@ -121,8 +121,10 @@ Namespace My.Sys.Forms
 			#endif
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
-				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(FText)))
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(*FText)))
 			End If
+		#elseif defined(__USE_WASM__)
+			If FHandle Then SetInnerTextByStringId(Trim(Str(FHandle)) & "label", ToUtf8(*FText))
 		#endif
 	End Property
 	
@@ -169,6 +171,13 @@ Namespace My.Sys.Forms
 				End If
 			#elseif defined(__USE_JNI__)
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setChecked", "(Z)V"), _Abs(Value))
+				If FChecked AndAlso FParent <> 0 Then
+					For i As Integer = 0 To This.Parent->ControlCount - 1
+						If This.Parent->Controls[i] <> @This AndAlso *This.Parent->Controls[i] Is RadioButton Then
+							Cast(RadioButton Ptr, This.Parent->Controls[i])->Checked = False
+						End If
+					Next
+				End If
 			#elseif defined(__USE_WASM__)
 				SetChecked(Trim(Str(FHandle)) & "radio", Value)
 			#endif
@@ -199,11 +208,29 @@ Namespace My.Sys.Forms
 	
 	#ifdef __USE_WASM__
 		Private Function RadioButton.GetContent() As UString
-			Return "<input type=""radio"" id=""" & Trim(Str(@This)) & "radio"" name=""" & IIf(FParent, FParent->Name, "") & """ value=""" & *FName & """/>" & !"\r" & "<label for=""" & Trim(Str(@This)) & "radio"" id=""" & Trim(Str(@This)) & "label"">" & FText & "</label>"
+			Return "<input type=""radio"" id=""" & Trim(Str(@This)) & "radio"" name=""" & IIf(FParent, FParent->Name, "") & """ value=""" & *FName & """/>" & !"\r" & "<label for=""" & Trim(Str(@This)) & "radio"" id=""" & Trim(Str(@This)) & "label"">" & HtmlEscape(FText) & "</label>"
 		End Function
 	#endif
 	
 	Private Sub RadioButton.ProcessMessage(ByRef Message As Message)
+		#ifdef __USE_JNI__
+			If Message.Msg = CM_CLICK Then
+				Checked = True
+				If OnClick Then OnClick(*Designer, This)
+				Message.Handled = True
+			End If
+		#endif
+		#ifdef __USE_WASM__
+			Select Case Message.Msg
+			Case CM_CLICK
+				'The click on the label is followed by a change of the radio button, which raises OnClick
+				Message.Handled = True
+			Case CM_CHANGE
+				FChecked = GetChecked(Trim(Str(FHandle)) & "radio")
+				If OnClick Then OnClick(*Designer, This)
+				Message.Handled = True
+			End Select
+		#endif
 		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
 			Case CM_CTLCOLOR

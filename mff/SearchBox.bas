@@ -138,9 +138,7 @@ Namespace My.Sys.Forms
 		Private Sub SearchBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QSearchBox(Sender.Child)
-					#ifdef __USE_WASM__
-						If .OnChange Then SetChangeEvent(.FHandle)
-					#elseif defined(__USE_WINAPI__)
+					#ifdef __USE_WINAPI__
 						If .FMaxLength = 0 Then
 							.Perform(EM_LIMITTEXT, -1, 0)
 						Else
@@ -257,7 +255,7 @@ Namespace My.Sys.Forms
 				scrolledwidget = 0
 				widget = WidgetEntry
 				This.RegisterClass "SearchBox", @This
-			#else
+			#elseif defined(__USE_WINAPI__)
 				RegisterClass "SearchBox", "Edit"
 				OnHandleIsAllocated = @HandleIsAllocated
 				ChildProc = @WndProc
@@ -274,6 +272,9 @@ Namespace My.Sys.Forms
 				imgClear.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @imgClear_Click)
 				imgClear.Visible = False
 				imgClear.Parent = @This
+			#elseif defined(__USE_WASM__)
+				'The input of TextBox with the search look and the clear button of the browser
+				FType = "search"
 			#endif
 			FHideSelection    = False
 			FTabIndex          = -1

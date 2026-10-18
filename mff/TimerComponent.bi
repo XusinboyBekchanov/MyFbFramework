@@ -20,7 +20,7 @@ Namespace My.Sys.Forms
 		FInterval As Integer
 		#ifdef __USE_GTK__
 			Declare Static Function TimerProc(ByVal user_data As gpointer) As gboolean
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Declare Static Sub TimerProc(hwnd As HWND, uMsg As UINT, idEvent As Integer, dwTime As DWORD)
 		#endif
 	Public:

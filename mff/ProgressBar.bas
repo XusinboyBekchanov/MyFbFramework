@@ -56,7 +56,9 @@ Namespace My.Sys.Forms
 		If AMax < AMin Then Exit Sub
 		If Not CInt(FMode32) And ((AMin < 0) Or (AMin > 85535) Or (AMax < 0) Or (AMax > 85535)) Then Exit Sub
 		If (FMinValue <> AMin) Or (FMaxValue <> AMax) Then
-			#ifndef __USE_GTK__
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				If FHandle Then ..SetRange(FHandle, AMin, AMax)
+			#elseif defined(__USE_WINAPI__)
 				If Handle Then
 					If FMode32 Then
 						Perform(PBM_SETRANGE32, AMin, AMax)
@@ -93,11 +95,14 @@ Namespace My.Sys.Forms
 			Else
 				progress_bar_timer_id = 0
 			End If
-		#else
+		#elseif defined(__USE_WASM__)
+			'A <progress> without a value is indeterminate
+			If FHandle Then SetAttribute(FHandle, "value", IIf(FMarqueeOn, "", "" & (FPosition - FMinValue)))
+		#elseif defined(__USE_WINAPI__)
 			SendMessage(Handle, PBM_SETMARQUEE, Cast(WPARAM, FMarqueeOn), Cast(LPARAM, FMarqueeInterval))
 		#endif
 	End Sub
-	
+
 	Private Sub ProgressBar.StopMarquee()
 		FMarqueeOn = False
 		#ifdef __USE_GTK__
@@ -105,11 +110,13 @@ Namespace My.Sys.Forms
 				'g_source_remove_ progress_bar_timer_id
 				progress_bar_timer_id = 0
 			End If
-		#else
+		#elseif defined(__USE_WASM__)
+			If FHandle Then SetAttribute(FHandle, "value", Str(FPosition - FMinValue))
+		#elseif defined(__USE_WINAPI__)
 			SendMessage(Handle, PBM_SETMARQUEE, Cast(WPARAM, FMarqueeOn), Cast(LPARAM, FMarqueeInterval))
 		#endif
 	End Sub
-	
+
 	Private Property ProgressBar.MinValue As Integer
 		Return FMinValue
 	End Property
@@ -131,7 +138,9 @@ Namespace My.Sys.Forms
 	Private Property ProgressBar.Position As Integer
 		#ifdef __USE_GTK__
 			FPosition = FMinValue + (FMaxValue - FMinValue) * gtk_progress_bar_get_fraction(gtk_progress_bar(widget))
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then FPosition = GetPosition(FHandle)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				If FMode32 Then
 					Return Perform(PBM_GETPOS, 0, 0)
@@ -150,7 +159,9 @@ Namespace My.Sys.Forms
 			If FMaxValue <> FMinValue Then
 				gtk_progress_bar_set_fraction(gtk_progress_bar(widget), FPosition / (FMaxValue - FMinValue))
 			End If
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If FHandle Then SetPosition(FHandle, Value)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(PBM_SETPOS, Value, 0)
 		#endif
 	End Property
@@ -166,7 +177,7 @@ Namespace My.Sys.Forms
 				If FMaxValue <> FMinValue Then
 					gtk_progress_bar_set_pulse_step(gtk_progress_bar(widget), FStep / (FMaxValue - FMinValue))
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				If Handle Then Perform(PBM_SETSTEP, FStep, 0)
 			#endif
 		End If
@@ -179,7 +190,7 @@ Namespace My.Sys.Forms
 	Private Property ProgressBar.Smooth(Value As Boolean)
 		If FSmooth <> Value Then
 			FSmooth = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Style = WS_CHILD Or AOrientation(Abs_(FOrientation)) Or ASmooth(Abs_(FSmooth)) Or AMarquee(Abs_(FMarquee))
 			#endif
 		End If
@@ -192,8 +203,10 @@ Namespace My.Sys.Forms
 	Private Property ProgressBar.Marquee(Value As Boolean)
 		If FMarquee <> Value Then
 			FMarquee = Value
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Style = WS_CHILD Or AOrientation(Abs_(FOrientation)) Or ASmooth(Abs_(FSmooth)) Or AMarquee(Abs_(FMarquee))
+			#elseif defined(__USE_WASM__)
+				If FHandle Then SetAttribute(FHandle, "value", IIf(FMarquee, "", "" & (FPosition - FMinValue)))
 			#endif
 		End If
 	End Property
@@ -232,7 +245,7 @@ Namespace My.Sys.Forms
 				This.Width = iHeight
 				This.Height = iWidth
 			End If
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or AOrientation(Abs_(FOrientation)) Or ASmooth(Abs_(FSmooth)) Or AMarquee(Abs_(FMarquee))
 			#endif
 		End If
@@ -242,14 +255,22 @@ Namespace My.Sys.Forms
 		Private Sub ProgressBar.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With  QProgressBar(Sender.Child)
-					If .FMode32 Then
-						.Perform(PBM_SETRANGE32, .FMinValue, .FMaxValue)
-					Else
-						.Perform(PBM_SETRANGE, 0, MakeLong(.FMinValue, .FMaxValue))
-					End If
-					.Perform(PBM_SETSTEP, .FStep, 0)
-					.Position = .FPosition
-					If .FMarqueeInterval <> 0 Then .Perform(PBM_SETMARQUEE, Cast(WPARAM, .FMarqueeOn), Cast(LPARAM, .FMarqueeInterval))
+					#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+						..SetRange(.FHandle, .FMinValue, .FMaxValue)
+						SetPosition(.FHandle, .FPosition)
+						#ifdef __USE_WASM__
+							If .FMarquee OrElse .FMarqueeOn Then SetAttribute(.FHandle, "value", "")
+						#endif
+					#else
+						If .FMode32 Then
+							.Perform(PBM_SETRANGE32, .FMinValue, .FMaxValue)
+						Else
+							.Perform(PBM_SETRANGE, 0, MakeLong(.FMinValue, .FMaxValue))
+						End If
+						.Perform(PBM_SETSTEP, .FStep, 0)
+						.Position = .FPosition
+						If .FMarqueeInterval <> 0 Then .Perform(PBM_SETMARQUEE, Cast(WPARAM, .FMarqueeOn), Cast(LPARAM, .FMarqueeInterval))
+					#endif
 				End With
 			End If
 		End Sub
@@ -332,7 +353,9 @@ Namespace My.Sys.Forms
 			Else
 				Position = Position + FStep
 			End If
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Position = Min(Position + FStep, FMaxValue)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(PBM_STEPIT, 0, 0)
 		#endif
 	End Sub
@@ -344,7 +367,9 @@ Namespace My.Sys.Forms
 			Else
 				Position = Position + Delta
 			End If
-		#else
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Position = Max(Min(Position + Delta, FMaxValue), FMinValue)
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then  Perform(PBM_DELTAPOS, Delta, 0)
 		#endif
 	End Sub
@@ -356,6 +381,8 @@ Namespace My.Sys.Forms
 	Private Constructor ProgressBar
 		#ifdef __USE_GTK__
 			widget = gtk_progress_bar_new()
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			FMode32 = True
 		#else
 			Dim As INITCOMMONCONTROLSEX ICC
 			ICC.dwSize = SizeOf(ICC)
@@ -374,7 +401,15 @@ Namespace My.Sys.Forms
 		FMarquee = False
 		With This
 			.Child             = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WASM__
+				WLet(FClassAncestor, "progress")
+				.OnHandleIsAllocated = @HandleIsAllocated
+				.Height            = 17
+			#elseif defined(__USE_JNI__)
+				WLet(FClassAncestor, "mff:ProgressBar")
+				.OnHandleIsAllocated = @HandleIsAllocated
+				.Height            = 17
+			#elseif Not defined(__USE_GTK__)
 				.RegisterClass "ProgressBar", PROGRESS_CLASS
 				.ChildProc         = @WndProc
 				.ExStyle           = 0

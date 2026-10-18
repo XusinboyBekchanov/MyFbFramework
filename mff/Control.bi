@@ -447,7 +447,14 @@ Namespace My.Sys.Forms
 			FAnchoredBottom As Integer
 			FAnchoredParentWidth As Integer
 			FAnchoredParentHeight As Integer
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				FPainting As Boolean
+			#endif
 		Protected:
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				'The control gets the CM_MOUSE* messages also without OnMouse* events (Chart)
+				FMouseEvents As Boolean
+			#endif
 			FAutoSize As Boolean
 			FMainForm      As Boolean
 			FMouseInClient As Boolean
@@ -749,6 +756,10 @@ Namespace My.Sys.Forms
 			Declare Sub Invalidate(ByVal iRect As Any Ptr = 0, ByVal bErase As Boolean = True)
 			'Forces the control to invalidate its client area and immediately redraw itself and any child controls (Windows, Linux).
 			Declare Sub Repaint
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				'Paints the canvas of the control now (Web, Android): sends CM_PAINT and raises OnPaint
+				Declare Sub PaintCanvas()
+			#endif
 			'Causes the control to redraw the invalidated regions within its client area (Windows, Linux).
 			Declare Sub Update
 			'Disables drawing in the specified window (Windows only).
