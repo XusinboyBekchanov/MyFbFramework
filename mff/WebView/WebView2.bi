@@ -1046,9 +1046,9 @@ Type ICoreWebView2AcceleratorKeyPressedEventArgsVtbl
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *get_VirtualKey )( ICoreWebView2AcceleratorKeyPressedEventArgs * This, UINT *virtualKey);
 	get_VirtualKey As Function stdcall (This As ICoreWebView2AcceleratorKeyPressedEventArgs Ptr, virtualKey As UINT Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *get_KeyEventLParam )( ICoreWebView2AcceleratorKeyPressedEventArgs * This, INT *lParam);
-	get_KeyEventLParam As Function stdcall (This As ICoreWebView2AcceleratorKeyPressedEventArgs Ptr, lParam As Integer) As HRESULT
+	get_KeyEventLParam As Function stdcall (This As ICoreWebView2AcceleratorKeyPressedEventArgs Ptr, lParam As LPARAM Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *get_PhysicalKeyStatus )( ICoreWebView2AcceleratorKeyPressedEventArgs * This, COREWEBVIEW2_PHYSICAL_KEY_STATUS *physicalKeyStatus);
-	get_PhysicalKeyStatus As Function stdcall (This As ICoreWebView2AcceleratorKeyPressedEventArgs Ptr, physicalKeyStatus As COREWEBVIEW2_PHYSICAL_KEY_STATUS) As HRESULT
+	get_PhysicalKeyStatus As Function stdcall (This As ICoreWebView2AcceleratorKeyPressedEventArgs Ptr, physicalKeyStatus As COREWEBVIEW2_PHYSICAL_KEY_STATUS Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *get_Handled )( ICoreWebView2AcceleratorKeyPressedEventArgs * This, BOOL *handled);
 	get_Handled As Function stdcall (This As ICoreWebView2AcceleratorKeyPressedEventArgs Ptr, handled As BOOL Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *put_Handled )( ICoreWebView2AcceleratorKeyPressedEventArgs * This, BOOL handled);
@@ -1073,7 +1073,7 @@ Type ICoreWebView2AcceleratorKeyPressedEventHandlerVtbl
 	'' TODO: ULONG ( STDMETHODCALLTYPE *Release )( ICoreWebView2AcceleratorKeyPressedEventHandler * This);
 	Release As Function stdcall (This As ICoreWebView2AcceleratorKeyPressedEventHandler Ptr) As CULONG
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *Invoke )( ICoreWebView2AcceleratorKeyPressedEventHandler * This, ICoreWebView2Controller *sender, ICoreWebView2AcceleratorKeyPressedEventArgs *args);
-	Invoke As Function stdcall (This As ICoreWebView2AcceleratorKeyPressedEventHandler Ptr, sender As ICoreWebView2Controller Ptr, args As ICoreWebView2AcceleratorKeyPressedEventArgs Ptr) As CULONG
+	Invoke As Function stdcall (This As ICoreWebView2AcceleratorKeyPressedEventHandler Ptr, sender As ICoreWebView2Controller Ptr, args As ICoreWebView2AcceleratorKeyPressedEventArgs Ptr) As HRESULT
 	'' TODO: END_INTERFACE
 End Type
 
@@ -1189,11 +1189,11 @@ Type ICoreWebView2Vtbl
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *remove_ContentLoading )( ICoreWebView2 * This, EventRegistrationToken token);
 	remove_ContentLoading As Function stdcall (This As ICoreWebView2 Ptr, token As EventRegistrationToken) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *add_SourceChanged )( ICoreWebView2 * This, ICoreWebView2SourceChangedEventHandler *eventHandler, EventRegistrationToken *token);
-	add_SourceChanged As Function stdcall (This As ICoreWebView2 Ptr, eventHandler As ICoreWebView2SourceChangedEventHandler, token As EventRegistrationToken Ptr) As HRESULT
+	add_SourceChanged As Function stdcall (This As ICoreWebView2 Ptr, eventHandler As ICoreWebView2SourceChangedEventHandler Ptr, token As EventRegistrationToken Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *remove_SourceChanged )( ICoreWebView2 * This, EventRegistrationToken token);
 	remove_SourceChanged As Function stdcall (This As ICoreWebView2 Ptr, token As EventRegistrationToken) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *add_HistoryChanged )( ICoreWebView2 * This, ICoreWebView2HistoryChangedEventHandler *eventHandler, EventRegistrationToken *token);
-	add_HistoryChanged As Function stdcall (This As ICoreWebView2 Ptr, eventHandler As ICoreWebView2HistoryChangedEventHandler Ptr, token As EventRegistrationToken) As HRESULT
+	add_HistoryChanged As Function stdcall (This As ICoreWebView2 Ptr, eventHandler As ICoreWebView2HistoryChangedEventHandler Ptr, token As EventRegistrationToken Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *remove_HistoryChanged )( ICoreWebView2 * This, EventRegistrationToken token);
 	remove_HistoryChanged As Function stdcall (This As ICoreWebView2 Ptr, token As EventRegistrationToken) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *add_NavigationCompleted )( ICoreWebView2 * This, ICoreWebView2NavigationCompletedEventHandler *eventHandler, EventRegistrationToken *token);
@@ -1205,7 +1205,7 @@ Type ICoreWebView2Vtbl
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *remove_FrameNavigationStarting )( ICoreWebView2 * This, EventRegistrationToken token);
 	remove_FrameNavigationStarting As Function stdcall (This As ICoreWebView2 Ptr, token As EventRegistrationToken) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *add_FrameNavigationCompleted )( ICoreWebView2 * This, ICoreWebView2NavigationCompletedEventHandler *eventHandler, EventRegistrationToken *token);
-	add_FrameNavigationCompleted As Function stdcall (This As ICoreWebView2 Ptr, eventHandler As ICoreWebView2NavigationCompletedEventHandler, token As EventRegistrationToken Ptr) As HRESULT
+	add_FrameNavigationCompleted As Function stdcall (This As ICoreWebView2 Ptr, eventHandler As ICoreWebView2NavigationCompletedEventHandler Ptr, token As EventRegistrationToken Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *remove_FrameNavigationCompleted )( ICoreWebView2 * This, EventRegistrationToken token);
 	remove_FrameNavigationCompleted As Function stdcall (This As ICoreWebView2 Ptr, token As EventRegistrationToken) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *add_ScriptDialogOpening )( ICoreWebView2 * This, ICoreWebView2ScriptDialogOpeningEventHandler *eventHandler, EventRegistrationToken *token);
@@ -1217,17 +1217,17 @@ Type ICoreWebView2Vtbl
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *remove_PermissionRequested )( ICoreWebView2 * This, EventRegistrationToken token);
 	remove_PermissionRequested As Function stdcall (This As ICoreWebView2 Ptr, token As EventRegistrationToken) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *add_ProcessFailed )( ICoreWebView2 * This, ICoreWebView2ProcessFailedEventHandler *eventHandler, EventRegistrationToken *token);
-	add_ProcessFailed As Function(ByVal This As ICoreWebView2 Ptr, eventHandler As ICoreWebView2ProcessFailedEventHandler, token As EventRegistrationToken Ptr) As HRESULT
+	add_ProcessFailed As Function stdcall (This As ICoreWebView2 Ptr, eventHandler As ICoreWebView2ProcessFailedEventHandler Ptr, token As EventRegistrationToken Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *remove_ProcessFailed )( ICoreWebView2 * This, EventRegistrationToken token);
 	remove_ProcessFailed As Function stdcall (This As ICoreWebView2 Ptr, token As EventRegistrationToken) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *AddScriptToExecuteOnDocumentCreated )( ICoreWebView2 * This, LPCWSTR javaScript, ICoreWebView2AddScriptToExecuteOnDocumentCreatedCompletedHandler *handler);
-	AddScriptToExecuteOnDocumentCreated As Function stdcall (This As ICoreWebView2 Ptr, javaScript As LPCWSTR, handler As ICoreWebView2AddScriptToExecuteOnDocumentCreatedCompletedHandler) As HRESULT
+	AddScriptToExecuteOnDocumentCreated As Function stdcall (This As ICoreWebView2 Ptr, javaScript As LPCWSTR, handler As ICoreWebView2AddScriptToExecuteOnDocumentCreatedCompletedHandler Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *RemoveScriptToExecuteOnDocumentCreated )( ICoreWebView2 * This, LPCWSTR id);
 	RemoveScriptToExecuteOnDocumentCreated As Function stdcall (This As ICoreWebView2 Ptr, id As LPCWSTR) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *ExecuteScript )( ICoreWebView2 * This, LPCWSTR javaScript, ICoreWebView2ExecuteScriptCompletedHandler *handler);
 	ExecuteScript As Function stdcall (This As ICoreWebView2 Ptr, javaScript As LPCWSTR, handler As ICoreWebView2ExecuteScriptCompletedHandler Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *CapturePreview )( ICoreWebView2 * This, COREWEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT imageFormat, IStream *imageStream, ICoreWebView2CapturePreviewCompletedHandler *handler);
-	CapturePreview As Function stdcall (This As ICoreWebView2 Ptr, imageFormat As COREWEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT, imageStream As IStream Ptr, handler As ICoreWebView2CapturePreviewCompletedHandler) As HRESULT
+	CapturePreview As Function stdcall (This As ICoreWebView2 Ptr, imageFormat As COREWEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT, imageStream As IStream Ptr, handler As ICoreWebView2CapturePreviewCompletedHandler Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *Reload )( ICoreWebView2 * This);
 	Reload As Function stdcall (This As ICoreWebView2 Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *PostWebMessageAsJson )( ICoreWebView2 * This, LPCWSTR webMessageAsJson);
@@ -1235,7 +1235,7 @@ Type ICoreWebView2Vtbl
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *PostWebMessageAsString )( ICoreWebView2 * This, LPCWSTR webMessageAsString);
 	PostWebMessageAsString As Function stdcall (This As ICoreWebView2 Ptr, webMessageAsString As LPCWSTR) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *add_WebMessageReceived )( ICoreWebView2 * This, ICoreWebView2WebMessageReceivedEventHandler *handler, EventRegistrationToken *token);
-	add_WebMessageReceived As Function stdcall (This As ICoreWebView2 Ptr, handler As LPCWSTR, handler As ICoreWebView2WebMessageReceivedEventHandler Ptr, token As EventRegistrationToken Ptr) As HRESULT
+	add_WebMessageReceived As Function stdcall (This As ICoreWebView2 Ptr, handler As ICoreWebView2WebMessageReceivedEventHandler Ptr, token As EventRegistrationToken Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *remove_WebMessageReceived )( ICoreWebView2 * This, EventRegistrationToken token);
 	remove_WebMessageReceived As Function stdcall (This As ICoreWebView2 Ptr, token As EventRegistrationToken) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *CallDevToolsProtocolMethod )( ICoreWebView2 * This, LPCWSTR methodName, LPCWSTR parametersAsJson, ICoreWebView2CallDevToolsProtocolMethodCompletedHandler *handler);
@@ -1259,11 +1259,11 @@ Type ICoreWebView2Vtbl
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *remove_NewWindowRequested )( ICoreWebView2 * This, EventRegistrationToken token);
 	remove_NewWindowRequested As Function stdcall (This As ICoreWebView2 Ptr, token As EventRegistrationToken) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *add_DocumentTitleChanged )( ICoreWebView2 * This, ICoreWebView2DocumentTitleChangedEventHandler *eventHandler, EventRegistrationToken *token);
-	add_DocumentTitleChanged As Function stdcall (This As ICoreWebView2 Ptr, eventHandler As ICoreWebView2DocumentTitleChangedEventHandler, token As EventRegistrationToken Ptr) As HRESULT
+	add_DocumentTitleChanged As Function stdcall (This As ICoreWebView2 Ptr, eventHandler As ICoreWebView2DocumentTitleChangedEventHandler Ptr, token As EventRegistrationToken Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *remove_DocumentTitleChanged )( ICoreWebView2 * This, EventRegistrationToken token);
 	remove_DocumentTitleChanged As Function stdcall (This As ICoreWebView2 Ptr, token As EventRegistrationToken) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *get_DocumentTitle )( ICoreWebView2 * This, LPWSTR *title);
-	get_DocumentTitle As Function stdcall (This As ICoreWebView2 Ptr, title As LPWSTR) As HRESULT
+	get_DocumentTitle As Function stdcall (This As ICoreWebView2 Ptr, title As LPWSTR Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *AddHostObjectToScript )( ICoreWebView2 * This, LPCWSTR name, VARIANT *object);
 	AddHostObjectToScript As Function stdcall (This As ICoreWebView2 Ptr, name As LPWSTR, Object As VARIANT Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *RemoveHostObjectFromScript )( ICoreWebView2 * This, LPCWSTR name);
@@ -1277,7 +1277,7 @@ Type ICoreWebView2Vtbl
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *get_ContainsFullScreenElement )( ICoreWebView2 * This, BOOL *containsFullScreenElement);
 	get_ContainsFullScreenElement As Function stdcall (This As ICoreWebView2 Ptr, containsFullScreenElement As BOOL Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *add_WebResourceRequested )( ICoreWebView2 * This, ICoreWebView2WebResourceRequestedEventHandler *eventHandler, EventRegistrationToken *token);
-	add_WebResourceRequested As Function stdcall (This As ICoreWebView2 Ptr, eventHandler As ICoreWebView2WebResourceRequestedEventHandler, token As EventRegistrationToken Ptr) As HRESULT
+	add_WebResourceRequested As Function stdcall (This As ICoreWebView2 Ptr, eventHandler As ICoreWebView2WebResourceRequestedEventHandler Ptr, token As EventRegistrationToken Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *remove_WebResourceRequested )( ICoreWebView2 * This, EventRegistrationToken token);
 	remove_WebResourceRequested As Function stdcall (This As ICoreWebView2 Ptr, token As EventRegistrationToken) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *AddWebResourceRequestedFilter )( ICoreWebView2 * This, const LPCWSTR uri, const COREWEBVIEW2_WEB_RESOURCE_CONTEXT resourceContext);
@@ -1285,7 +1285,7 @@ Type ICoreWebView2Vtbl
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *RemoveWebResourceRequestedFilter )( ICoreWebView2 * This, const LPCWSTR uri, const COREWEBVIEW2_WEB_RESOURCE_CONTEXT resourceContext);
 	RemoveWebResourceRequestedFilter As Function stdcall (This As ICoreWebView2 Ptr, uri As Const LPCWSTR, resourceContext As Const COREWEBVIEW2_WEB_RESOURCE_CONTEXT) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *add_WindowCloseRequested )( ICoreWebView2 * This, ICoreWebView2WindowCloseRequestedEventHandler *eventHandler, EventRegistrationToken *token);
-	add_WindowCloseRequested As Function stdcall (This As ICoreWebView2 Ptr, eventHandler As ICoreWebView2WindowCloseRequestedEventHandler, resourceContext As Const COREWEBVIEW2_WEB_RESOURCE_CONTEXT) As HRESULT
+	add_WindowCloseRequested As Function stdcall (This As ICoreWebView2 Ptr, eventHandler As ICoreWebView2WindowCloseRequestedEventHandler Ptr, token As EventRegistrationToken Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *remove_WindowCloseRequested )( ICoreWebView2 * This, EventRegistrationToken token);
 	remove_WindowCloseRequested As Function stdcall (This As ICoreWebView2 Ptr, token As EventRegistrationToken) As HRESULT
 	'' TODO: END_INTERFACE
@@ -1329,7 +1329,7 @@ Type ICoreWebView2ControllerVtbl
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *MoveFocus )( ICoreWebView2Controller * This, COREWEBVIEW2_MOVE_FOCUS_REASON reason);
 	MoveFocus As Function stdcall (This As ICoreWebView2Controller Ptr, reason As COREWEBVIEW2_MOVE_FOCUS_REASON) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *add_MoveFocusRequested )( ICoreWebView2Controller * This, ICoreWebView2MoveFocusRequestedEventHandler *eventHandler, EventRegistrationToken *token);
-	add_MoveFocusRequested As Function stdcall (This As ICoreWebView2Controller Ptr, eventHandler As ICoreWebView2MoveFocusRequestedEventHandler Ptr) As HRESULT
+	add_MoveFocusRequested As Function stdcall (This As ICoreWebView2Controller Ptr, eventHandler As ICoreWebView2MoveFocusRequestedEventHandler Ptr, token As EventRegistrationToken Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *remove_MoveFocusRequested )( ICoreWebView2Controller * This, EventRegistrationToken token);
 	remove_MoveFocusRequested As Function stdcall (This As ICoreWebView2Controller Ptr, token As EventRegistrationToken) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *add_GotFocus )( ICoreWebView2Controller * This, ICoreWebView2FocusChangedEventHandler *eventHandler, EventRegistrationToken *token);
@@ -1337,7 +1337,7 @@ Type ICoreWebView2ControllerVtbl
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *remove_GotFocus )( ICoreWebView2Controller * This, EventRegistrationToken token);
 	remove_GotFocus As Function stdcall (This As ICoreWebView2Controller Ptr, token As EventRegistrationToken) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *add_LostFocus )( ICoreWebView2Controller * This, ICoreWebView2FocusChangedEventHandler *eventHandler, EventRegistrationToken *token);
-	add_LostFocus As Function stdcall (This As ICoreWebView2Controller Ptr, eventHandler As ICoreWebView2FocusChangedEventHandler, token As EventRegistrationToken Ptr) As HRESULT
+	add_LostFocus As Function stdcall (This As ICoreWebView2Controller Ptr, eventHandler As ICoreWebView2FocusChangedEventHandler Ptr, token As EventRegistrationToken Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *remove_LostFocus )( ICoreWebView2Controller * This, EventRegistrationToken token);
 	remove_LostFocus As Function stdcall (This As ICoreWebView2Controller Ptr, token As EventRegistrationToken) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *add_AcceleratorKeyPressed )( ICoreWebView2Controller * This, ICoreWebView2AcceleratorKeyPressedEventHandler *eventHandler, EventRegistrationToken *token);
@@ -1395,7 +1395,7 @@ Type ICoreWebView2ContentLoadingEventHandlerVtbl
 	'' TODO: ULONG ( STDMETHODCALLTYPE *Release )( ICoreWebView2ContentLoadingEventHandler * This);
 	Release As Function stdcall (This As ICoreWebView2ContentLoadingEventHandler Ptr) As CULONG
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *Invoke )( ICoreWebView2ContentLoadingEventHandler * This, ICoreWebView2 *webview, ICoreWebView2ContentLoadingEventArgs *args);
-	Invoke As Function stdcall (This As ICoreWebView2ContentLoadingEventHandler Ptr, webview As ICoreWebView2, args As ICoreWebView2ContentLoadingEventArgs Ptr) As HRESULT
+	Invoke As Function stdcall (This As ICoreWebView2ContentLoadingEventHandler Ptr, webview As ICoreWebView2 Ptr, args As ICoreWebView2ContentLoadingEventArgs Ptr) As HRESULT
 	'' TODO: END_INTERFACE
 End Type
 
@@ -1551,7 +1551,7 @@ Type ICoreWebView2DevToolsProtocolEventReceiverVtbl
 	'' TODO: ULONG ( STDMETHODCALLTYPE *Release )( ICoreWebView2DevToolsProtocolEventReceiver * This);
 	Release As Function stdcall (This As ICoreWebView2DevToolsProtocolEventReceiver Ptr) As CULONG
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *add_DevToolsProtocolEventReceived )( ICoreWebView2DevToolsProtocolEventReceiver * This, ICoreWebView2DevToolsProtocolEventReceivedEventHandler *handler, EventRegistrationToken *token);
-	add_DevToolsProtocolEventReceived As Function stdcall (This As ICoreWebView2DevToolsProtocolEventReceiver Ptr, handler As ICoreWebView2DevToolsProtocolEventReceivedEventHandler Ptr, token As EventRegistrationToken) As HRESULT
+	add_DevToolsProtocolEventReceived As Function stdcall (This As ICoreWebView2DevToolsProtocolEventReceiver Ptr, handler As ICoreWebView2DevToolsProtocolEventReceivedEventHandler Ptr, token As EventRegistrationToken Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *remove_DevToolsProtocolEventReceived )( ICoreWebView2DevToolsProtocolEventReceiver * This, EventRegistrationToken token);
 	remove_DevToolsProtocolEventReceived As Function stdcall (This As ICoreWebView2DevToolsProtocolEventReceiver Ptr, token As EventRegistrationToken) As HRESULT
 	'' TODO: END_INTERFACE
@@ -1576,11 +1576,11 @@ Type ICoreWebView2EnvironmentVtbl
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *CreateCoreWebView2Controller )( ICoreWebView2Environment * This, HWND parentWindow, ICoreWebView2CreateCoreWebView2ControllerCompletedHandler *handler);
 	CreateCoreWebView2Controller As Function stdcall (This As ICoreWebView2Environment Ptr, parentWindow As HWND, handler As ICoreWebView2CreateCoreWebView2ControllerCompletedHandler Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *CreateWebResourceResponse )( ICoreWebView2Environment * This, IStream *content, int statusCode, LPCWSTR reasonPhrase, LPCWSTR headers, ICoreWebView2WebResourceResponse **response);
-	CreateWebResourceResponse As Function stdcall (This As ICoreWebView2Environment Ptr, content As IStream Ptr, statusCode As Integer, reasonPhrase As LPCWSTR, headers As LPCWSTR, response As ICoreWebView2WebResourceResponse Ptr Ptr) As HRESULT
+	CreateWebResourceResponse As Function stdcall (This As ICoreWebView2Environment Ptr, content As IStream Ptr, statusCode As Long, reasonPhrase As LPCWSTR, headers As LPCWSTR, response As ICoreWebView2WebResourceResponse Ptr Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *get_BrowserVersionString )( ICoreWebView2Environment * This, LPWSTR *versionInfo);
 	get_BrowserVersionString As Function stdcall (This As ICoreWebView2Environment Ptr, versionInfo As LPWSTR Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *add_NewBrowserVersionAvailable )( ICoreWebView2Environment * This, ICoreWebView2NewBrowserVersionAvailableEventHandler *eventHandler, EventRegistrationToken *token);
-	add_NewBrowserVersionAvailable As Function stdcall (This As ICoreWebView2Environment Ptr, eventHandler As ICoreWebView2NewBrowserVersionAvailableEventHandler Ptr, token As EventRegistrationToken) As HRESULT
+	add_NewBrowserVersionAvailable As Function stdcall (This As ICoreWebView2Environment Ptr, eventHandler As ICoreWebView2NewBrowserVersionAvailableEventHandler Ptr, token As EventRegistrationToken Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *remove_NewBrowserVersionAvailable )( ICoreWebView2Environment * This, EventRegistrationToken token);
 	remove_NewBrowserVersionAvailable As Function stdcall (This As ICoreWebView2Environment Ptr, token As EventRegistrationToken) As HRESULT
 	'' TODO: END_INTERFACE
@@ -1649,7 +1649,7 @@ Type ICoreWebView2FocusChangedEventHandlerVtbl
 	'' TODO: ULONG ( STDMETHODCALLTYPE *Release )( ICoreWebView2FocusChangedEventHandler * This);
 	Release As Function stdcall (This As ICoreWebView2FocusChangedEventHandler Ptr) As CULONG
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *Invoke )( ICoreWebView2FocusChangedEventHandler * This, ICoreWebView2Controller *sender, IUnknown *args);
-	Invoke As Function stdcall (This As ICoreWebView2FocusChangedEventHandler Ptr, sender As ICoreWebView2Controller Ptr, args As IUnknown Ptr) As CULONG
+	Invoke As Function stdcall (This As ICoreWebView2FocusChangedEventHandler Ptr, sender As ICoreWebView2Controller Ptr, args As IUnknown Ptr) As HRESULT
 	'' TODO: END_INTERFACE
 End Type
 
@@ -1718,7 +1718,7 @@ Type ICoreWebView2HttpRequestHeadersVtbl
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *Contains )( ICoreWebView2HttpRequestHeaders * This, LPCWSTR name, BOOL *contains);
 	Contains As Function stdcall (This As ICoreWebView2HttpRequestHeaders Ptr, Name As LPCWSTR, contains_ As BOOL Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *SetHeader )( ICoreWebView2HttpRequestHeaders * This, LPCWSTR name, LPCWSTR value);
-	SetHeader As Function stdcall (This As ICoreWebView2HttpRequestHeaders Ptr, Name As LPCWSTR, value As LPCWSTR Ptr) As HRESULT
+	SetHeader As Function stdcall (This As ICoreWebView2HttpRequestHeaders Ptr, Name As LPCWSTR, value As LPCWSTR) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *RemoveHeader )( ICoreWebView2HttpRequestHeaders * This, LPCWSTR name);
 	RemoveHeader As Function stdcall (This As ICoreWebView2HttpRequestHeaders Ptr, Name As LPCWSTR) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *GetIterator )( ICoreWebView2HttpRequestHeaders * This, ICoreWebView2HttpHeadersCollectionIterator **iterator);
@@ -1746,11 +1746,11 @@ Type ICoreWebView2HttpResponseHeadersVtbl
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *Contains )( ICoreWebView2HttpResponseHeaders * This, LPCWSTR name, BOOL *contains);
 	Contains As Function stdcall (This As ICoreWebView2HttpResponseHeaders Ptr, Name As LPCWSTR, contains_ As BOOL Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *GetHeader )( ICoreWebView2HttpResponseHeaders * This, LPCWSTR name, LPWSTR *value);
-	GetHeader As Function stdcall (This As ICoreWebView2HttpResponseHeaders Ptr, Name As LPCWSTR, value As LPWSTR) As HRESULT
+	GetHeader As Function stdcall (This As ICoreWebView2HttpResponseHeaders Ptr, Name As LPCWSTR, value As LPWSTR Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *GetHeaders )( ICoreWebView2HttpResponseHeaders * This, LPCWSTR name, ICoreWebView2HttpHeadersCollectionIterator **iterator);
 	GetHeaders As Function stdcall (This As ICoreWebView2HttpResponseHeaders Ptr, Name As LPCWSTR, iterator As ICoreWebView2HttpHeadersCollectionIterator Ptr Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *GetIterator )( ICoreWebView2HttpResponseHeaders * This, ICoreWebView2HttpHeadersCollectionIterator **iterator);
-	GetIterator As Function stdcall (This As ICoreWebView2HttpResponseHeaders Ptr, Name As LPCWSTR, iterator As ICoreWebView2HttpHeadersCollectionIterator Ptr Ptr) As HRESULT
+	GetIterator As Function stdcall (This As ICoreWebView2HttpResponseHeaders Ptr, iterator As ICoreWebView2HttpHeadersCollectionIterator Ptr Ptr) As HRESULT
 	'' TODO: END_INTERFACE
 End Type
 
@@ -1770,7 +1770,7 @@ Type ICoreWebView2MoveFocusRequestedEventArgsVtbl
 	'' TODO: ULONG ( STDMETHODCALLTYPE *Release )( ICoreWebView2MoveFocusRequestedEventArgs * This);
 	Release As Function stdcall (This As ICoreWebView2MoveFocusRequestedEventArgs Ptr) As CULONG
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *get_Reason )( ICoreWebView2MoveFocusRequestedEventArgs * This, COREWEBVIEW2_MOVE_FOCUS_REASON *value);
-	get_Reason As Function stdcall (This As ICoreWebView2MoveFocusRequestedEventArgs Ptr, value As COREWEBVIEW2_MOVE_FOCUS_REASON) As HRESULT
+	get_Reason As Function stdcall (This As ICoreWebView2MoveFocusRequestedEventArgs Ptr, value As COREWEBVIEW2_MOVE_FOCUS_REASON Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *get_Handled )( ICoreWebView2MoveFocusRequestedEventArgs * This, BOOL *value);
 	get_Handled As Function stdcall (This As ICoreWebView2MoveFocusRequestedEventArgs Ptr, value As BOOL Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *put_Handled )( ICoreWebView2MoveFocusRequestedEventArgs * This, BOOL value);
@@ -2006,7 +2006,7 @@ Type ICoreWebView2PermissionRequestedEventHandlerVtbl
 	'' TODO: ULONG ( STDMETHODCALLTYPE *Release )( ICoreWebView2PermissionRequestedEventHandler * This);
 	Release As Function stdcall (This As ICoreWebView2PermissionRequestedEventHandler Ptr) As CULONG
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *Invoke )( ICoreWebView2PermissionRequestedEventHandler * This, ICoreWebView2 *sender, ICoreWebView2PermissionRequestedEventArgs *args);
-	Invoke As Function stdcall (This As ICoreWebView2PermissionRequestedEventHandler Ptr, sender As ICoreWebView2 Ptr, args As ICoreWebView2PermissionRequestedEventArgs Ptr) As CULONG
+	Invoke As Function stdcall (This As ICoreWebView2PermissionRequestedEventHandler Ptr, sender As ICoreWebView2 Ptr, args As ICoreWebView2PermissionRequestedEventArgs Ptr) As HRESULT
 	'' TODO: END_INTERFACE
 End Type
 
@@ -2337,9 +2337,9 @@ Type ICoreWebView2WebResourceResponseVtbl
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *get_Headers )( ICoreWebView2WebResourceResponse * This, ICoreWebView2HttpResponseHeaders **headers);
 	get_Headers As Function stdcall (This As ICoreWebView2WebResourceResponse Ptr, headers As ICoreWebView2HttpResponseHeaders Ptr Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *get_StatusCode )( ICoreWebView2WebResourceResponse * This, int *statusCode);
-	get_StatusCode As Function stdcall (This As ICoreWebView2WebResourceResponse Ptr, statusCode As Integer Ptr) As HRESULT
+	get_StatusCode As Function stdcall (This As ICoreWebView2WebResourceResponse Ptr, statusCode As Long Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *put_StatusCode )( ICoreWebView2WebResourceResponse * This, int statusCode);
-	put_StatusCode As Function stdcall (This As ICoreWebView2WebResourceResponse Ptr, statusCode As Integer) As HRESULT
+	put_StatusCode As Function stdcall (This As ICoreWebView2WebResourceResponse Ptr, statusCode As Long) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *get_ReasonPhrase )( ICoreWebView2WebResourceResponse * This, LPWSTR *reasonPhrase);
 	get_ReasonPhrase As Function stdcall (This As ICoreWebView2WebResourceResponse Ptr, reasonPhrase As LPWSTR Ptr) As HRESULT
 	'' TODO: HRESULT ( STDMETHODCALLTYPE *put_ReasonPhrase )( ICoreWebView2WebResourceResponse * This, LPCWSTR reasonPhrase);
@@ -2387,6 +2387,212 @@ End Type
 
 Type ICoreWebView2ZoomFactorChangedEventHandler_
 	lpVtbl As ICoreWebView2ZoomFactorChangedEventHandlerVtbl Ptr
+End Type
+
+Type COREWEBVIEW2_DOWNLOAD_STATE As Long
+Enum
+	COREWEBVIEW2_DOWNLOAD_STATE_IN_PROGRESS = 0
+	COREWEBVIEW2_DOWNLOAD_STATE_INTERRUPTED = COREWEBVIEW2_DOWNLOAD_STATE_IN_PROGRESS + 1
+	COREWEBVIEW2_DOWNLOAD_STATE_COMPLETED = COREWEBVIEW2_DOWNLOAD_STATE_INTERRUPTED + 1
+End Enum
+
+Type COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON As Long
+Type COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND As Long
+
+#define __ICoreWebView2DOMContentLoadedEventArgs_INTERFACE_DEFINED__
+
+Type ICoreWebView2DOMContentLoadedEventArgs As ICoreWebView2DOMContentLoadedEventArgs_
+Type ICoreWebView2DOMContentLoadedEventArgsVtbl
+	QueryInterface As Function stdcall (This As ICoreWebView2DOMContentLoadedEventArgs Ptr, riid As REFIID, ppvObject As PVOID Ptr) As HRESULT
+	AddRef As Function stdcall (This As ICoreWebView2DOMContentLoadedEventArgs Ptr) As CULONG
+	Release As Function stdcall (This As ICoreWebView2DOMContentLoadedEventArgs Ptr) As CULONG
+	get_NavigationId As Function stdcall (This As ICoreWebView2DOMContentLoadedEventArgs Ptr, navigationId As UINT64 Ptr) As HRESULT
+End Type
+
+Type ICoreWebView2DOMContentLoadedEventArgs_
+	lpVtbl As ICoreWebView2DOMContentLoadedEventArgsVtbl Ptr
+End Type
+
+#define __ICoreWebView2DOMContentLoadedEventHandler_INTERFACE_DEFINED__
+
+Type ICoreWebView2DOMContentLoadedEventHandler As ICoreWebView2DOMContentLoadedEventHandler_
+Type ICoreWebView2DOMContentLoadedEventHandlerVtbl
+	QueryInterface As Function stdcall (This As ICoreWebView2DOMContentLoadedEventHandler Ptr, riid As REFIID, ppvObject As PVOID Ptr) As HRESULT
+	AddRef As Function stdcall (This As ICoreWebView2DOMContentLoadedEventHandler Ptr) As CULONG
+	Release As Function stdcall (This As ICoreWebView2DOMContentLoadedEventHandler Ptr) As CULONG
+	Invoke As Function stdcall (This As ICoreWebView2DOMContentLoadedEventHandler Ptr, sender As ICoreWebView2 Ptr, args As ICoreWebView2DOMContentLoadedEventArgs Ptr) As HRESULT
+End Type
+
+Type ICoreWebView2DOMContentLoadedEventHandler_
+	lpVtbl As ICoreWebView2DOMContentLoadedEventHandlerVtbl Ptr
+End Type
+
+#define __ICoreWebView2DownloadOperation_INTERFACE_DEFINED__
+
+Type ICoreWebView2DownloadOperation As ICoreWebView2DownloadOperation_
+Type ICoreWebView2DownloadOperationVtbl
+	QueryInterface As Function stdcall (This As ICoreWebView2DownloadOperation Ptr, riid As REFIID, ppvObject As PVOID Ptr) As HRESULT
+	AddRef As Function stdcall (This As ICoreWebView2DownloadOperation Ptr) As CULONG
+	Release As Function stdcall (This As ICoreWebView2DownloadOperation Ptr) As CULONG
+	add_BytesReceivedChanged As Function stdcall (This As ICoreWebView2DownloadOperation Ptr, eventHandler As Any Ptr, token As EventRegistrationToken Ptr) As HRESULT
+	remove_BytesReceivedChanged As Function stdcall (This As ICoreWebView2DownloadOperation Ptr, token As EventRegistrationToken) As HRESULT
+	add_EstimatedEndTimeChanged As Function stdcall (This As ICoreWebView2DownloadOperation Ptr, eventHandler As Any Ptr, token As EventRegistrationToken Ptr) As HRESULT
+	remove_EstimatedEndTimeChanged As Function stdcall (This As ICoreWebView2DownloadOperation Ptr, token As EventRegistrationToken) As HRESULT
+	add_StateChanged As Function stdcall (This As ICoreWebView2DownloadOperation Ptr, eventHandler As Any Ptr, token As EventRegistrationToken Ptr) As HRESULT
+	remove_StateChanged As Function stdcall (This As ICoreWebView2DownloadOperation Ptr, token As EventRegistrationToken) As HRESULT
+	get_Uri As Function stdcall (This As ICoreWebView2DownloadOperation Ptr, uri As LPWSTR Ptr) As HRESULT
+	get_ContentDisposition As Function stdcall (This As ICoreWebView2DownloadOperation Ptr, contentDisposition As LPWSTR Ptr) As HRESULT
+	get_MimeType As Function stdcall (This As ICoreWebView2DownloadOperation Ptr, mimeType As LPWSTR Ptr) As HRESULT
+	get_TotalBytesToReceive As Function stdcall (This As ICoreWebView2DownloadOperation Ptr, totalBytesToReceive As LongInt Ptr) As HRESULT
+	get_BytesReceived As Function stdcall (This As ICoreWebView2DownloadOperation Ptr, bytesReceived As LongInt Ptr) As HRESULT
+	get_EstimatedEndTime As Function stdcall (This As ICoreWebView2DownloadOperation Ptr, estimatedEndTime As LPWSTR Ptr) As HRESULT
+	get_ResultFilePath As Function stdcall (This As ICoreWebView2DownloadOperation Ptr, resultFilePath As LPWSTR Ptr) As HRESULT
+	get_State As Function stdcall (This As ICoreWebView2DownloadOperation Ptr, downloadState As COREWEBVIEW2_DOWNLOAD_STATE Ptr) As HRESULT
+	get_InterruptReason As Function stdcall (This As ICoreWebView2DownloadOperation Ptr, interruptReason As COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON Ptr) As HRESULT
+	Cancel As Function stdcall (This As ICoreWebView2DownloadOperation Ptr) As HRESULT
+	Pause As Function stdcall (This As ICoreWebView2DownloadOperation Ptr) As HRESULT
+	Resume As Function stdcall (This As ICoreWebView2DownloadOperation Ptr) As HRESULT
+	get_CanResume As Function stdcall (This As ICoreWebView2DownloadOperation Ptr, canResume As BOOL Ptr) As HRESULT
+End Type
+
+Type ICoreWebView2DownloadOperation_
+	lpVtbl As ICoreWebView2DownloadOperationVtbl Ptr
+End Type
+
+#define __ICoreWebView2DownloadStartingEventArgs_INTERFACE_DEFINED__
+
+Type ICoreWebView2DownloadStartingEventArgs As ICoreWebView2DownloadStartingEventArgs_
+Type ICoreWebView2DownloadStartingEventArgsVtbl
+	QueryInterface As Function stdcall (This As ICoreWebView2DownloadStartingEventArgs Ptr, riid As REFIID, ppvObject As PVOID Ptr) As HRESULT
+	AddRef As Function stdcall (This As ICoreWebView2DownloadStartingEventArgs Ptr) As CULONG
+	Release As Function stdcall (This As ICoreWebView2DownloadStartingEventArgs Ptr) As CULONG
+	get_DownloadOperation As Function stdcall (This As ICoreWebView2DownloadStartingEventArgs Ptr, downloadOperation As ICoreWebView2DownloadOperation Ptr Ptr) As HRESULT
+	get_Cancel As Function stdcall (This As ICoreWebView2DownloadStartingEventArgs Ptr, cancel As BOOL Ptr) As HRESULT
+	put_Cancel As Function stdcall (This As ICoreWebView2DownloadStartingEventArgs Ptr, cancel As BOOL) As HRESULT
+	get_ResultFilePath As Function stdcall (This As ICoreWebView2DownloadStartingEventArgs Ptr, resultFilePath As LPWSTR Ptr) As HRESULT
+	put_ResultFilePath As Function stdcall (This As ICoreWebView2DownloadStartingEventArgs Ptr, resultFilePath As LPCWSTR) As HRESULT
+	get_Handled As Function stdcall (This As ICoreWebView2DownloadStartingEventArgs Ptr, handled As BOOL Ptr) As HRESULT
+	put_Handled As Function stdcall (This As ICoreWebView2DownloadStartingEventArgs Ptr, handled As BOOL) As HRESULT
+	GetDeferral As Function stdcall (This As ICoreWebView2DownloadStartingEventArgs Ptr, deferral As ICoreWebView2Deferral Ptr Ptr) As HRESULT
+End Type
+
+Type ICoreWebView2DownloadStartingEventArgs_
+	lpVtbl As ICoreWebView2DownloadStartingEventArgsVtbl Ptr
+End Type
+
+#define __ICoreWebView2DownloadStartingEventHandler_INTERFACE_DEFINED__
+
+Type ICoreWebView2DownloadStartingEventHandler As ICoreWebView2DownloadStartingEventHandler_
+Type ICoreWebView2DownloadStartingEventHandlerVtbl
+	QueryInterface As Function stdcall (This As ICoreWebView2DownloadStartingEventHandler Ptr, riid As REFIID, ppvObject As PVOID Ptr) As HRESULT
+	AddRef As Function stdcall (This As ICoreWebView2DownloadStartingEventHandler Ptr) As CULONG
+	Release As Function stdcall (This As ICoreWebView2DownloadStartingEventHandler Ptr) As CULONG
+	Invoke As Function stdcall (This As ICoreWebView2DownloadStartingEventHandler Ptr, sender As ICoreWebView2 Ptr, args As ICoreWebView2DownloadStartingEventArgs Ptr) As HRESULT
+End Type
+
+Type ICoreWebView2DownloadStartingEventHandler_
+	lpVtbl As ICoreWebView2DownloadStartingEventHandlerVtbl Ptr
+End Type
+
+#define __ICoreWebView2PrintToPdfCompletedHandler_INTERFACE_DEFINED__
+
+Type ICoreWebView2PrintToPdfCompletedHandler As ICoreWebView2PrintToPdfCompletedHandler_
+Type ICoreWebView2PrintToPdfCompletedHandlerVtbl
+	QueryInterface As Function stdcall (This As ICoreWebView2PrintToPdfCompletedHandler Ptr, riid As REFIID, ppvObject As PVOID Ptr) As HRESULT
+	AddRef As Function stdcall (This As ICoreWebView2PrintToPdfCompletedHandler Ptr) As CULONG
+	Release As Function stdcall (This As ICoreWebView2PrintToPdfCompletedHandler Ptr) As CULONG
+	Invoke As Function stdcall (This As ICoreWebView2PrintToPdfCompletedHandler Ptr, errorCode As HRESULT, isSuccessful As BOOL) As HRESULT
+End Type
+
+Type ICoreWebView2PrintToPdfCompletedHandler_
+	lpVtbl As ICoreWebView2PrintToPdfCompletedHandlerVtbl Ptr
+End Type
+
+'' ICoreWebView2_2 ... ICoreWebView2_7 extend ICoreWebView2: each Vtbl starts with the parent Vtbl
+#define __ICoreWebView2_2_INTERFACE_DEFINED__
+
+Type ICoreWebView2_2 As ICoreWebView2_2_
+Type ICoreWebView2_2Vtbl
+	Base As ICoreWebView2Vtbl
+	add_WebResourceResponseReceived As Function stdcall (This As ICoreWebView2_2 Ptr, eventHandler As Any Ptr, token As EventRegistrationToken Ptr) As HRESULT
+	remove_WebResourceResponseReceived As Function stdcall (This As ICoreWebView2_2 Ptr, token As EventRegistrationToken) As HRESULT
+	NavigateWithWebResourceRequest As Function stdcall (This As ICoreWebView2_2 Ptr, request As ICoreWebView2WebResourceRequest Ptr) As HRESULT
+	add_DOMContentLoaded As Function stdcall (This As ICoreWebView2_2 Ptr, eventHandler As ICoreWebView2DOMContentLoadedEventHandler Ptr, token As EventRegistrationToken Ptr) As HRESULT
+	remove_DOMContentLoaded As Function stdcall (This As ICoreWebView2_2 Ptr, token As EventRegistrationToken) As HRESULT
+	get_CookieManager As Function stdcall (This As ICoreWebView2_2 Ptr, cookieManager As Any Ptr Ptr) As HRESULT
+	get_Environment As Function stdcall (This As ICoreWebView2_2 Ptr, environment As ICoreWebView2Environment Ptr Ptr) As HRESULT
+End Type
+
+Type ICoreWebView2_2_
+	lpVtbl As ICoreWebView2_2Vtbl Ptr
+End Type
+
+#define __ICoreWebView2_3_INTERFACE_DEFINED__
+
+Type ICoreWebView2_3 As ICoreWebView2_3_
+Type ICoreWebView2_3Vtbl
+	Base As ICoreWebView2_2Vtbl
+	TrySuspend As Function stdcall (This As ICoreWebView2_3 Ptr, handler As Any Ptr) As HRESULT
+	Resume As Function stdcall (This As ICoreWebView2_3 Ptr) As HRESULT
+	get_IsSuspended As Function stdcall (This As ICoreWebView2_3 Ptr, isSuspended As BOOL Ptr) As HRESULT
+	SetVirtualHostNameToFolderMapping As Function stdcall (This As ICoreWebView2_3 Ptr, hostName As LPCWSTR, folderPath As LPCWSTR, accessKind As COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND) As HRESULT
+	ClearVirtualHostNameToFolderMapping As Function stdcall (This As ICoreWebView2_3 Ptr, hostName As LPCWSTR) As HRESULT
+End Type
+
+Type ICoreWebView2_3_
+	lpVtbl As ICoreWebView2_3Vtbl Ptr
+End Type
+
+#define __ICoreWebView2_4_INTERFACE_DEFINED__
+
+Type ICoreWebView2_4 As ICoreWebView2_4_
+Type ICoreWebView2_4Vtbl
+	Base As ICoreWebView2_3Vtbl
+	add_FrameCreated As Function stdcall (This As ICoreWebView2_4 Ptr, eventHandler As Any Ptr, token As EventRegistrationToken Ptr) As HRESULT
+	remove_FrameCreated As Function stdcall (This As ICoreWebView2_4 Ptr, token As EventRegistrationToken) As HRESULT
+	add_DownloadStarting As Function stdcall (This As ICoreWebView2_4 Ptr, eventHandler As ICoreWebView2DownloadStartingEventHandler Ptr, token As EventRegistrationToken Ptr) As HRESULT
+	remove_DownloadStarting As Function stdcall (This As ICoreWebView2_4 Ptr, token As EventRegistrationToken) As HRESULT
+End Type
+
+Type ICoreWebView2_4_
+	lpVtbl As ICoreWebView2_4Vtbl Ptr
+End Type
+
+#define __ICoreWebView2_5_INTERFACE_DEFINED__
+
+Type ICoreWebView2_5 As ICoreWebView2_5_
+Type ICoreWebView2_5Vtbl
+	Base As ICoreWebView2_4Vtbl
+	add_ClientCertificateRequested As Function stdcall (This As ICoreWebView2_5 Ptr, eventHandler As Any Ptr, token As EventRegistrationToken Ptr) As HRESULT
+	remove_ClientCertificateRequested As Function stdcall (This As ICoreWebView2_5 Ptr, token As EventRegistrationToken) As HRESULT
+End Type
+
+Type ICoreWebView2_5_
+	lpVtbl As ICoreWebView2_5Vtbl Ptr
+End Type
+
+#define __ICoreWebView2_6_INTERFACE_DEFINED__
+
+Type ICoreWebView2_6 As ICoreWebView2_6_
+Type ICoreWebView2_6Vtbl
+	Base As ICoreWebView2_5Vtbl
+	OpenTaskManagerWindow As Function stdcall (This As ICoreWebView2_6 Ptr) As HRESULT
+End Type
+
+Type ICoreWebView2_6_
+	lpVtbl As ICoreWebView2_6Vtbl Ptr
+End Type
+
+#define __ICoreWebView2_7_INTERFACE_DEFINED__
+
+Type ICoreWebView2_7 As ICoreWebView2_7_
+Type ICoreWebView2_7Vtbl
+	Base As ICoreWebView2_6Vtbl
+	PrintToPdf As Function stdcall (This As ICoreWebView2_7 Ptr, resultFilePath As LPCWSTR, printSettings As Any Ptr, handler As ICoreWebView2PrintToPdfCompletedHandler Ptr) As HRESULT
+End Type
+
+Type ICoreWebView2_7_
+	lpVtbl As ICoreWebView2_7Vtbl Ptr
 End Type
 
 End Extern

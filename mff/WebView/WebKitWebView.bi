@@ -20,5 +20,19 @@ Extern "C"
 	Declare Function webkit_web_view_is_loading(web_view As Any Ptr) As gboolean
 	Declare Function webkit_web_view_get_load_status (web_view As Any Ptr) As Long
 	Declare Function webkit_web_resource_get_data(resource As Any Ptr) As String Ptr
-	Declare Function webkit_web_view_get_main_resource(web_view As Any Ptr) As Any Ptr	
+	Declare Function webkit_web_view_get_main_resource(web_view As Any Ptr) As Any Ptr
+	Declare Function webkit_web_view_get_title(web_view As Any Ptr) As gchar Ptr
+	#ifdef __USE_GTK4__
+		Declare Function webkit_navigation_policy_decision_get_navigation_action(decision As Any Ptr) As Any Ptr
+		Declare Function webkit_navigation_action_get_request(navigation As Any Ptr) As Any Ptr
+		Declare Function webkit_navigation_action_is_user_gesture(navigation As Any Ptr) As gboolean
+		Declare Function webkit_navigation_action_is_redirect(navigation As Any Ptr) As gboolean
+		Declare Function webkit_uri_request_get_uri(request As Any Ptr) As gchar Ptr
+		Declare Sub webkit_policy_decision_ignore(decision As Any Ptr)
+	#else
+		Declare Function webkit_web_view_get_main_frame(web_view As Any Ptr) As Any Ptr
+		Declare Function webkit_network_request_get_uri(request As Any Ptr) As gchar Ptr
+		Declare Function webkit_web_navigation_action_get_reason(navigationAction As Any Ptr) As Long
+		Declare Sub webkit_web_policy_decision_ignore(decision As Any Ptr)
+	#endif
 End Extern
