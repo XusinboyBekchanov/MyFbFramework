@@ -32,6 +32,8 @@
 #if defined(__USE_WINAPI__) OrElse (defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK4__))
 	#define UNICODE
 	#include once "windows.bi"
+#else
+	#include once "crt/time.bi"
 #endif
 
 #ifdef __USE_GTK__
