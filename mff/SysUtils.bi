@@ -59,6 +59,7 @@
 #elseif defined(__USE_WASM__)
 	#define Max(a, b) IIf((a) > (b), (a), (b))
 	#define Min(a, b) IIf((a) < (b), (a), (b))
+	Declare Function TimerHiRes() As Double
 	Declare Sub AddColumn(Id As Any Ptr, Caption As String)
 	Declare Sub AddRow(Id As Any Ptr, Text As String)
 	Declare Sub AddSelectItem(Id As Any Ptr, Text As String)
