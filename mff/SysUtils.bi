@@ -29,7 +29,7 @@
 	#endif
 #endif
 
-#if defined(__USE_WINAPI__) OrElse (defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK4__))
+#if defined(__FB_WIN32__) OrElse defined(__USE_WINAPI__)
 	#define UNICODE
 	#include once "windows.bi"
 #else
