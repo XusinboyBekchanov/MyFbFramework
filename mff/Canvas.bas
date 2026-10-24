@@ -2182,7 +2182,7 @@ Namespace My.Sys.Drawing
 						pRenderTarget->lpVtbl->BindDC(pRenderTarget, Handle, @RC)
 						pRenderTarget->lpVtbl->SetTextAntialiasMode(pRenderTarget, D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE)
 						pRenderTarget->lpVtbl->SetAntialiasMode(pRenderTarget, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE)
-						pDWriteFactory->lpVtbl->CreateTextFormat(pDWriteFactory, StrPtr(Font.Name), 0, DWRITE_FONT_WEIGHT_THIN, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, Font.Size * ydpi / 72 * 96, @"", @pTextFormat)
+						pDWriteFactory->lpVtbl->CreateTextFormat(pDWriteFactory, @(Font.Name), 0, DWRITE_FONT_WEIGHT_THIN, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, Font.Size * ydpi / 72 * 96, @"", @pTextFormat)
 						Dim As Double iRed, iGreen, iBlue
 						iRed = Abs(GetRed(Font.Color) / 255.0): iGreen = Abs(GetGreen(Font.Color) / 255.0): iBlue = Abs(GetBlue(Font.Color) / 255.0)
 						pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @Type<D2D1_COLOR_F>(iRed, iGreen, iBlue, 1.0), 0, @pBrushBorder)
