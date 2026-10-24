@@ -870,8 +870,12 @@ Namespace My.Sys.Drawing
 							SelectObject(Handle_, Brush.Handle)
 							SetROP2 Handle_, Pen.Mode
 							If UsingGdip Then
-								If GdipGraphics Then Return GdipGraphics 'GdipDeleteGraphics(GdipGraphics)
-								GdipCreateFromHDC(Handle, @GdipGraphics)
+								' Recreate on the DC we just acquired -- never reuse a
+								' GdipGraphics cached on an earlier (already released)
+								' HDC. Paired with UnSetHandle clearing the pointer,
+								' each drawing session owns exactly one graphics.
+								If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)
+								GdipCreateFromHDC(Handle_, @GdipGraphics)
 								If  GdipGraphics = NULL Then
 									Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & " (Line " & __LINE__ & ") " & "Initial GdipGraphics failure! "
 								Else
@@ -2267,6 +2271,11 @@ Namespace My.Sys.Drawing
 				pRenderTarget->lpVtbl->EndDraw(pRenderTarget, 0, 0)
 			ElseIf UsingGdip Then
 				If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)
+				' Must clear the pointer: the next paint session's SetHandle
+				' deletes whatever is in GdipGraphics before recreating it, so a
+				' dangling pointer here turned every repaint into a double free
+				' of a GpGraphics object
+				GdipGraphics = 0
 			End If
 			Handle = 0
 		#endif
