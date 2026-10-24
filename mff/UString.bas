@@ -404,14 +404,22 @@ End Sub
 
 Private Function UString.AppendBuffer(ByVal addrMemory As Any Ptr, ByVal NumBytes As ULong) As Boolean
 	If m_Data = 0 OrElse addrMemory = 0 OrElse NumBytes < 1 Then Return False
-	
-	This.Resize(m_Length + NumBytes)
-	If m_Data = 0 Then Return False
+	Dim As Integer newLen = m_Length + NumBytes
+	If NumBytes > m_Capacity Then
+		Dim As Integer newCapacity = newLen * 2
+		If newCapacity < 16 Then newCapacity = 16
+		If m_Capacity < 1 Then newCapacity = newLen + 1 ' 精确容量模式回退
+		m_Capacity = newCapacity - newLen  '“最小化分配”模式，Capacity 表示*剩余*空间！
+		This.Resize(newCapacity)
+	Else
+		m_Capacity -= NumBytes
+	End If
 	#ifdef __USE_WINAPI__
 		memcpy(m_Data + m_BufferLen, addrMemory, NumBytes)
 	#else
 		Fb_MemCopy(* (m_Data + m_BufferLen), addrMemory, NumBytes)
 	#endif
+	(*m_Data)[newLen] = 0
 	m_BufferLen += NumBytes
 	Return True
 End Function
