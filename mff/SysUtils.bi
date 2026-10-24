@@ -28,11 +28,12 @@
 		#endif
 	#endif
 #endif
-
-#if defined(__FB_WIN32__) OrElse defined(__USE_WINAPI__)
+#if defined(__USE_WINAPI__) OrElse (defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK4__))
 	#define UNICODE
 	#include once "windows.bi"
-#else
+#endif
+
+#if Not defined(__FB_WIN32__) AndAlso Not defined(__USE_WINAPI__)
 	#include once "crt/time.bi"
 #endif
 
