@@ -53,6 +53,7 @@
 		End Function
 	#endif
 #endif
+
 Private Function TimerHiRes() As Double
     Static initialized As Long = 0
     #ifdef __FB_WIN32__
@@ -65,16 +66,17 @@ Private Function TimerHiRes() As Double
         QueryPerformanceCounter(@cnt)
         Return cnt.QuadPart / freq.QuadPart
     #elseif defined(__FB_LINUX__)
-        ' 频率固定为 10^9
-        Static freq As ULongInt = 1000000000ULL
-        initialized = 1  ' 实际上只需设置一次，这里直接标记
-        Dim ts As timespec
-        #define CLOCK_MONOTONIC_RAW 4
-        clock_gettime(CLOCK_MONOTONIC_RAW, @ts)
-        Return (ts.tv_sec * 1000000000ULL + ts.tv_nsec) / 1e9
+        '' 频率固定为 10^9
+        'Static freq As ULongInt = 1000000000ULL
+        'initialized = 1  ' 实际上只需设置一次，这里直接标记
+        'Dim ts As timespec
+        '#define CLOCK_MONOTONIC_RAW 4
+        'clock_gettime(CLOCK_MONOTONIC_RAW, @ts)
+        'Return (ts.tv_sec * 1000000000ULL + ts.tv_nsec) / 1e9
+        Return Timer
     #else
         '#error Unsupported platform
-        
+        Return Timer
     #endif
 End Function
 
@@ -1669,4 +1671,3 @@ Private Function ErrDescription(Code As Integer) ByRef As WString
 	Case Else: Return ""
 	End Select
 End Function
-
