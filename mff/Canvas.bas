@@ -870,8 +870,12 @@ Namespace My.Sys.Drawing
 							SelectObject(Handle_, Brush.Handle)
 							SetROP2 Handle_, Pen.Mode
 							If UsingGdip Then
-								If GdipGraphics Then Return GdipGraphics 'GdipDeleteGraphics(GdipGraphics)
-								GdipCreateFromHDC(Handle, @GdipGraphics)
+								' Recreate on the DC we just acquired -- never reuse a
+								' GdipGraphics cached on an earlier (already released)
+								' HDC. Paired with UnSetHandle clearing the pointer,
+								' each drawing session owns exactly one graphics.
+								If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)
+								GdipCreateFromHDC(Handle_, @GdipGraphics)
 								If  GdipGraphics = NULL Then
 									Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & " (Line " & __LINE__ & ") " & "Initial GdipGraphics failure! "
 								Else
@@ -2178,7 +2182,7 @@ Namespace My.Sys.Drawing
 						pRenderTarget->lpVtbl->BindDC(pRenderTarget, Handle, @RC)
 						pRenderTarget->lpVtbl->SetTextAntialiasMode(pRenderTarget, D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE)
 						pRenderTarget->lpVtbl->SetAntialiasMode(pRenderTarget, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE)
-						pDWriteFactory->lpVtbl->CreateTextFormat(pDWriteFactory, StrPtr(Font.Name), 0, DWRITE_FONT_WEIGHT_THIN, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, Font.Size * ydpi / 72 * 96, @"", @pTextFormat)
+						pDWriteFactory->lpVtbl->CreateTextFormat(pDWriteFactory, @(Font.Name), 0, DWRITE_FONT_WEIGHT_THIN, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, Font.Size * ydpi / 72 * 96, @"", @pTextFormat)
 						Dim As Double iRed, iGreen, iBlue
 						iRed = Abs(GetRed(Font.Color) / 255.0): iGreen = Abs(GetGreen(Font.Color) / 255.0): iBlue = Abs(GetBlue(Font.Color) / 255.0)
 						pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @Type<D2D1_COLOR_F>(iRed, iGreen, iBlue, 1.0), 0, @pBrushBorder)
@@ -2267,6 +2271,11 @@ Namespace My.Sys.Drawing
 				pRenderTarget->lpVtbl->EndDraw(pRenderTarget, 0, 0)
 			ElseIf UsingGdip Then
 				If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)
+				' Must clear the pointer: the next paint session's SetHandle
+				' deletes whatever is in GdipGraphics before recreating it, so a
+				' dangling pointer here turned every repaint into a double free
+				' of a GpGraphics object
+				GdipGraphics = 0
 			End If
 			Handle = 0
 		#endif

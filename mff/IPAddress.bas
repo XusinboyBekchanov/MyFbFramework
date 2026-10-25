@@ -93,11 +93,11 @@ Namespace My.Sys.Forms
 		If Value = "" Then
 			This.Clear
 		Else
-			Dim res(Any) As UString, Addresses(3) As Integer
+			Dim res(Any) As WString Ptr, Addresses(3) As Integer
 			Split(Value, ".", res())
 			For i As Integer = 0 To 3
 				If UBound(res) >= i Then
-					Addresses(i) = Max(0, Min(Val(res(i)), 255))
+					Addresses(i) = Max(0, min(Val(*res(i)), 255))
 				End If
 				#ifdef __USE_GTK__
 					#ifdef __USE_GTK4__
@@ -106,7 +106,9 @@ Namespace My.Sys.Forms
 						gtk_entry_set_text(GTK_ENTRY(Entries(i)), Trim(Str(Addresses(i))))
 					#endif
 				#endif
+				_Deallocate(res(i))
 			Next
+			Erase res
 			#ifdef __USE_WINAPI__
 				SendMessage FHandle, IPM_SETADDRESS, 0, MAKEIPADDRESS(Addresses(0), Addresses(1), Addresses(2), Addresses(3))
 			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)

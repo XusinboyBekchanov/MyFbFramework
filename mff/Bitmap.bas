@@ -14,6 +14,29 @@
 #include once "Bitmap.bi"
 
 Namespace My.Sys.Drawing
+	#ifdef __USE_WINAPI__
+		' GDI+ lifetime rule: every GpImage must be disposed *before* the token
+		' that created it is shut down. The load routines below used to start and
+		' shut down a private token per call while keeping pImage alive across
+		' that shutdown ("save the ptr and send the ptr to canvas later") -- a
+		' use-after-free that surfaced as gdiplus access violations and heap
+		' corruption 0xC0000374 (e.g. FBXiangQi crashing whenever the board
+		' background image was changed; regression: FBXiangQi tests/BgLoadStress.bas).
+		' Keep one process-lifetime token instead: started on first use (and from
+		' the Application constructor), never shut down; the OS reclaims it at
+		' process exit. pImage then belongs to a live token from creation
+		' (GdipLoadImageFromFile / GdipCreateBitmapFromStream) to disposal
+		' (Free / Destructor), so Canvas.DrawAlpha can keep using it.
+		Dim Shared GdipBitmapToken As ULONG_PTR = 0
+
+		Private Sub GdipBitmapEnsureToken()
+			If GdipBitmapToken = 0 Then
+				Dim StartupInput As GdiplusStartupInput
+				StartupInput.GdiplusVersion = 1
+				GdiplusStartup(@GdipBitmapToken, @StartupInput, NULL)
+			End If
+		End Sub
+	#endif
 	#ifndef ReadProperty_Off
 		Private Function BitmapType.ReadProperty(ByRef PropertyName As String) As Any Ptr
 			Select Case LCase(PropertyName)
@@ -111,11 +134,9 @@ Namespace My.Sys.Drawing
 			Case Else
 				'Dim pImage As GpImage Ptr
 				If Handle Then DeleteObject Handle: Handle = 0
-				' // Initialize Gdiplus
-				Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
-				StartupInput.GdiplusVersion = 1
-				GdiplusStartup(@token, @StartupInput, NULL)
-				If token = NULL Then If Changed Then Changed(*Designer, This) End If: Return False
+				' // GDI+ stays up for the whole process (see GdipBitmapEnsureToken)
+				GdipBitmapEnsureToken
+				If GdipBitmapToken = NULL Then If Changed Then Changed(*Designer, This) End If: Return False
 				' // Load the image from file
 				If pImage Then GdipDisposeImage pImage: pImage = 0
 				GdipLoadImageFromFile(File, @pImage)
@@ -125,10 +146,8 @@ Namespace My.Sys.Drawing
 				GdipGetImageHeight(pImage, @FHeight)
 				' // Create bitmap from image
 				GdipCreateHBITMAPFromBitmap(Cast(GpBitmap Ptr, pImage), @Handle, iMaskColor)
-				' // Free the image Save the Ptr and send the ptr to canvas later
-				'If pImage Then GdipDisposeImage pImage
-				' // Shutdown Gdiplus
-				GdiplusShutdown token
+				' // pImage is kept for GDI+ drawing (Canvas.DrawAlpha); it stays
+				' // valid because the process-lifetime token is never shut down.
 			End Select
 		#endif
 		If Changed Then Changed(*Designer, This)
@@ -411,10 +430,8 @@ Namespace My.Sys.Drawing
 						GlobalFree(hGlobal)
 						Return False
 					End If
-					' Initialize Gdiplus
-					Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
-					StartupInput.GdiplusVersion = 1
-					GdiplusStartup(@token, @StartupInput, NULL)
+					' GDI+ stays up for the whole process (see GdipBitmapEnsureToken)
+					GdipBitmapEnsureToken
 					' Copy the image from the binary string file to global memory
 					CopyMemory(pData, hPictureData, dwSize)
 					Dim As IStream Ptr pngstream = NULL
@@ -436,8 +453,6 @@ Namespace My.Sys.Drawing
 					GlobalUnlock pData
 					' Free the memory
 					GlobalFree hGlobal
-					' Shutdown Gdiplus
-					GdiplusShutdown token
 				End If
 				GetObject(Handle,SizeOf(BMP),@BMP)
 				FWidth  = BMP.bmWidth
@@ -594,17 +609,12 @@ Namespace My.Sys.Drawing
 	
 	Private Destructor BitmapType
 		If FResName Then _Deallocate(FResName)
+		' Free releases pImage (GdipDisposeImage) and Handle; both are safe
+		' because the process-lifetime GDI+ token is still alive here.
 		Free
 		#ifdef __USE_WINAPI__
-			If pImage <> NULL Then
-				Dim token As ULONG_PTR, StartupInput As GdiplusStartupInput
-				StartupInput.GdiplusVersion = 1
-				GdiplusStartup(@token, @StartupInput, NULL)
-				If pImage Then GdipDisposeImage pImage: pImage = 0
-				If token Then GdiplusShutdown token
-				If FDevice Then DeleteObject FDevice
-				If Handle Then DeleteObject Handle
-			End If
+			If FDevice Then DeleteObject FDevice
+			If Handle Then DeleteObject Handle
 		#elseif defined( __USE_GTK__)
 			If Handle Then g_object_unref(Handle)
 		#endif

@@ -176,8 +176,8 @@ End Property
 			Dim As OpenFileDialog Ptr OpenDial = Cast(OpenFileDialog Ptr, GetWindowLongPtr(FWindow, GWLP_USERDATA))
 			POF = Cast(OFNOTIFY Ptr, lParam)
 			Select Case POF->hdr.code
-'			Case FILEOKSTRING
-'				Return 2
+				'			Case FILEOKSTRING
+				'				Return 2
 			Case CDN_FILEOK
 				Return 2
 				SetWindowLongPtr GetParent(FWindow), DWLP_MSGRESULT, 1
@@ -522,17 +522,17 @@ Private Function SaveFileDialog.Execute As Boolean
 		ToUtf8("Cancel"), GTK_RESPONSE_CANCEL, _
 		ToUtf8("Save"), GTK_RESPONSE_ACCEPT, _
 		NULL)
-		Dim As UString res()
+		Dim As WString Ptr res()
 		If *FFilter <> "" Then
 			Split *FFilter, "|", res()
 			ReDim filefilter(UBound(res) + 1)
 			Dim j As Integer
 			For i As Integer = 1 To UBound(res) Step 2
-				If res(i) = "" Then Continue For
+				If *res(i) = "" Then Continue For
 				j += 1
 				filefilter(j) = gtk_file_filter_new()
-				gtk_file_filter_set_name(filefilter(j), ToUtf8(res(i - 1)))
-				gtk_file_filter_add_pattern(filefilter(j), res(i))
+				gtk_file_filter_set_name(filefilter(j), ToUtf8(*res(i - 1)))
+				gtk_file_filter_add_pattern(filefilter(j), *res(i))
 				gtk_file_chooser_add_filter(GTK_FILE_CHOOSER (widget), filefilter(j))
 			Next
 			If FilterIndex <= j Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FilterIndex))
@@ -559,8 +559,8 @@ Private Function SaveFileDialog.Execute As Boolean
 			Next
 			Var Index = FilterIndex * 2 - 1
 			If Index <= UBound(res) Then
-				WLet(cwsFileExt, Replace(res(Index), "*", ""))
-				If res(Index) = "*.*" Then
+				WLet(cwsFileExt, Replace(*res(Index), "*", ""))
+				If *res(Index) = "*.*" Then
 					FileName = *cwsFile
 				ElseIf Not EndsWith(*cwsFile, *cwsFileExt) Then
 					FileName = *cwsFile & *cwsFileExt
@@ -571,6 +571,10 @@ Private Function SaveFileDialog.Execute As Boolean
 				FileName = *cwsFile
 			End If
 		End If
+		For j As Integer = 0 To UBound(res)
+			_Deallocate(res(j))
+		Next
+		Erase res
 		#ifdef __USE_GTK4__
 			gtk_widget_destroy(widget): widget = 0
 		#else
@@ -616,14 +620,20 @@ Private Function SaveFileDialog.Execute As Boolean
 		If GetSaveFileName(@ofn) Then
 			If ofn.nFileExtension = 0 Then
 				FilterIndex = ofn.nFilterIndex
-				Dim As UString res()
+				Dim As WString Ptr res()
 				Split(*FFilter, "|", res())
 				Var Index = FilterIndex * 2 - 1
-				If res(Index) = "*.*" Then
-					FileName = *cwsFile
-				Else
-					FileName = *cwsFile & Replace(res(Index), "*", "")
+				If Index <= UBound(res) Then
+					If *res(Index) = "*.*" Then
+						FileName = *cwsFile
+					Else
+						FileName = *cwsFile & Replace(*res(Index), "*", "")
+					End If
 				End If
+				For j As Integer = 0 To UBound(res)
+					_Deallocate(res(j))
+				Next
+				Erase res
 			Else
 				FileName = *cwsFile
 			End If
@@ -910,7 +920,7 @@ Private Function FolderBrowserDialog.Execute As Boolean
 		BI.hwndOwner      = MainHandle
 		BI.pszDisplayName = xPath
 		BI.lpszTitle      = FTitle
-		BI.ulFlags        = BIF_USENEWUI 
+		BI.ulFlags        = BIF_USENEWUI
 		BI.lpfn           = @FolderBrowserDialog.Hook
 		BI.lParam         = Cast(LPARAM, FInitialDir)
 		'Message.Captured = Control

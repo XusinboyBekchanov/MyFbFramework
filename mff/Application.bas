@@ -704,6 +704,10 @@ Namespace My
 		#elseif defined(__USE_JNI__)
 			
 		#elseif defined(__USE_WINAPI__)
+			' Start the shared process-lifetime GDI+ token used by BitmapType
+			' loading/drawing (see mff/Bitmap.bas GdipBitmapEnsureToken) right at
+			' application startup, so no GDI+ call can ever run before it.
+			My.Sys.Drawing.GdipBitmapEnsureToken
 			Const ICC_ALL =  _
 			ICC_ANIMATE_CLASS      Or _
 			ICC_BAR_CLASSES        Or _

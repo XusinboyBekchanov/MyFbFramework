@@ -30,8 +30,24 @@
 #endif
 
 #if defined(__USE_WINAPI__) OrElse (defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK4__))
-	#define UNICODE
-	#include once "windows.bi"
+    #define UNICODE
+    #include once "windows.bi"
+#else
+    '' POSIX / Unix-like platforms
+    '#if defined(__FB_LINUX__) OrElse defined(__FB_MACOSX__) OrElse defined(__FB_FREEBSD__) OrElse defined(__FB_OPENBSD__) OrElse defined(__FB_NETBSD__) OrElse defined(__FB_SOLARIS__)
+    '    Extern "C"
+    '        
+    '        Enum clockid_t
+    '            CLOCK_REALTIME = 0
+    '            CLOCK_MONOTONIC = 1
+    '            CLOCK_PROCESS_CPUTIME_ID = 2
+    '            CLOCK_THREAD_CPUTIME_ID = 3
+    '        End Enum
+'
+    '        Declare Function clock_gettime Alias "clock_gettime" _
+    '            (ByVal clk_id As Integer, ByVal tp As timespec Ptr) As Integer
+    '    End Extern
+    '#endif
 #endif
 
 #ifdef __USE_GTK__
@@ -54,11 +70,12 @@
 	'#endif
 #elseif defined(__USE_JNI__)
 	#include once "jni.bi"
-	#define Max(a, b) IIf((a) > (b), (a), (b))
-	#define Min(a, b) IIf((a) < (b), (a), (b))
+	#define max(a, b) IIf((a) > (b), (a), (b))
+	#define min(a, b) IIf((a) < (b), (a), (b))
 #elseif defined(__USE_WASM__)
 	#define Max(a, b) IIf((a) > (b), (a), (b))
 	#define Min(a, b) IIf((a) < (b), (a), (b))
+	Declare Function TimerHiRes() As Double
 	Declare Sub AddColumn(Id As Any Ptr, Caption As String)
 	Declare Sub AddRow(Id As Any Ptr, Text As String)
 	Declare Sub AddSelectItem(Id As Any Ptr, Text As String)

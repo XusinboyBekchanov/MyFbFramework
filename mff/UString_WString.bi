@@ -1,0 +1,157 @@
+﻿#define UNICODE
+#include once "file.bi"
+#if (Not defined(__USE_JNI__)) AndAlso (Not defined(__USE_WASM__))
+	#undef FileExists
+	#ifdef __USE_GTK__
+		#ifdef __USE_GTK4__
+			#include once "gir_headers/Gir/GLib-2.0.bi"
+			#include once "gir_headers/Gir/_GLibMacros-2.0.bi"
+		#else
+			#include once "glib.bi"
+		#endif
+	#else
+		#include once "win\shlwapi.bi"
+	#endif
+#endif
+#ifndef MEMCHECK
+	#define MEMCHECK 0
+#endif
+#include once "utf_conv.bi"
+#include once "FBMemCheck.bi"
+Private Type UStr As UString
+
+'Represents unicode text (Windows, Linux, Android, Web).
+Private Type UString Extends WString
+Private:
+	m_Capacity As Integer
+Public:
+	Declare Constructor()
+	'Declare Constructor(ByRef Value As Const WString)
+	Declare Constructor(ByRef Value As WString)
+	Declare Constructor(ByRef Value As ZString)
+	Declare Constructor(ByRef Value As String)
+	Declare Constructor(ByRef Value As UString)
+	
+	Declare Destructor()
+	
+	Declare Sub Resize(NewLength As Integer)
+	Declare Function AppendBuffer(ByVal addrMemory As Any Ptr, ByVal NumBytes As ULong) As Boolean
+	Declare Function Add(ByRef txt As Const WString, AddBefore As Boolean = False) As Boolean
+	Declare Operator [](ByVal Index As Integer) ByRef As UShort
+	
+	'Declare Operator Let(ByRef Value As Const WString)
+	Declare Operator Let(ByRef Value As WString)
+	Declare Operator Let(ByRef Value As UString)
+	Declare Operator Let(ByRef Value As String)
+	Declare Operator Let(ByRef Value As Const ZString)
+	
+	Declare Operator Cast() As WString
+	Declare Operator Cast() As Any Ptr
+	
+	Declare Property Length() As Integer
+	Declare Function vptr As WString Ptr
+	
+	Declare Function StartsWith(ByRef Value As WString) As Boolean
+	Declare Function EndsWith(ByRef Value As WString) As Boolean
+	Declare Function Contains(ByRef Value As WString) As Boolean
+	Declare Function TrimAll As UString
+	Declare Function TrimEnd As UString
+	Declare Function TrimStart As UString
+	Declare Function ToLower As UString
+	Declare Function ToUpper As UString
+	Declare Function SubString(ByVal start As Integer, ByVal n As Integer, ByRef expression As Const WString = "") As UString
+	
+	Declare Operator &= (ByRef Value As UString)
+	Declare Operator &= (ByRef Value As Const WString)
+	Declare Operator &= (ByRef Value As WString)
+	Declare Operator &= (ByRef Value As String)
+	Declare Operator &= (ByRef Value As Const ZString)
+	Declare Operator += (ByRef Value As UString)
+	Declare Operator += (ByRef Value As Const WString)
+	Declare Operator += (ByRef Value As WString)
+	Declare Operator += (ByRef Value As String)
+	Declare Operator += (ByRef Value As Const ZString)
+	
+	m_Data As WString Ptr
+	m_Length As Integer
+	m_BufferLen As Integer
+	m_BytesCount As Integer
+	m_Owner As Any Ptr
+	OnChange As Sub(ByRef Sender As UString)
+End Type
+
+Declare Function WStrPtr(ByRef Value As UString) As WString Ptr
+Declare Operator & (ByRef LeftText As UString, ByRef RightText As UString) As UString
+Declare Operator & (ByRef LeftText As UString, ByRef RightText As Const WString) As UString
+Declare Operator & (ByRef LeftText As Const WString, ByRef RightText As UString) As UString
+Declare Operator + (ByRef LeftText As UString, ByRef RightText As UString) As UString
+Declare Operator + (ByRef LeftText As UString, ByRef RightText As Const WString) As UString
+Declare Operator + (ByRef LeftText As Const WString, ByRef RightText As UString) As UString
+Declare Function Left Overload(ByRef subject As UString, ByVal n As Integer) As UString
+Declare Function Right Overload(ByRef subject As UString, ByVal n As Integer) As UString
+Declare Function Val Overload(ByRef subject As UString) As Double
+Declare Operator Len(ByRef lhs As UString) As Integer
+Declare Function WGet(ByRef subject As WString Ptr) As WString
+#if MEMCHECK = 0
+	Declare Sub WReAllocate(ByRef subject As WString Ptr, lLen As Integer)
+	Declare Sub WLet(ByRef subject As WString Ptr, ByRef txt As WString)
+	'Minimal allocation mode, Capacity represents remaining space. Mustbe reset Capacity = 0 after using the WLet function.
+	
+	Declare Sub WDeAllocate (ByRef subject As WString Ptr)
+	Declare Sub ZLet(ByRef subject As ZString Ptr, ByRef txt As ZString)
+	Declare Sub ZDeAllocate(ByRef subject As ZString Ptr)
+	Declare Sub ZAdd(ByRef subject As ZString Ptr, ByRef txt As ZString, AddBefore As Boolean = False, ByRef Capacity As Integer = 0)
+#endif
+Declare Sub WDeAllocateEx(subject() As WString Ptr)
+Declare Sub WAdd(ByRef subject As WString Ptr, ByRef txt As WString, AddBefore As Boolean = False, ByRef Capacity As Integer = 0)
+Declare Sub WLetEx(ByRef subject As WString Ptr, ByRef txt As WString, ByVal tmpPara As Boolean = False)
+Declare Sub ZLetEx(ByRef subject As ZString Ptr, ByRef txt As ZString, ByVal tmpPara As Boolean = False)
+
+Declare Function ToUtf8(ByRef nWString As WString) As String
+Declare Function FromUtf8(pZString As ZString Ptr) As WString Ptr
+Declare Function FromHexStrUTF8(ByRef HexString As WString) As String
+Declare Function ToHexStrUTF8(ByRef iString As WString) As String
+Declare Function FromHexStrUnicode(ByRef HexString As WString) As String
+Declare Function ToHexStrUnicode(ByRef iString As WString) As String
+Declare Function Replace(ByRef Expression As WString, ByRef FindingText As WString, ByRef ReplacingText As WString, ByVal Start As Integer = 1, ByVal Count As Integer = -1, MatchCase As Boolean = True, ByRef CountReplaced As Integer = 0) As WString
+Declare Function ZGet(ByRef subject As ZString Ptr) As String
+Declare Function InStrCount(ByRef subject As WString, ByRef searchtext As WString, start As Integer = 1, MatchCase As Boolean = True) As Long
+'Declare Function Replace Overload(ByRef wszMainStr As WString, ByRef wszMatchStr As Const WString, ByRef wszReplaceWith As Const WString, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As String
+'Declare Function Replace Overload(ByRef wszMainStr As WString, MatchedStr() As WString Ptr, ReplaceWith() As WString Ptr, ByVal Start As Integer = 1, ByRef Count As Integer = 0, MatchCase As Boolean = True) As String
+Declare Function Split Overload(ByRef wszMainStr As String, ByRef Delimiter As Const String, Result() As String, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
+Declare Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As String, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
+Declare Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As WString, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
+Declare Function Split(ByRef wszMainStr As WString, ByRef Delimiter As Const WString, Result() As WString Ptr, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
+Declare Function Split(ByRef wszMainStr As ZString, ByRef Delimiter As Const ZString, Result() As ZString Ptr, MatchCase As Boolean = True, skipEmptyElement As Boolean = False) As Long
+Declare Function Join Overload(Subject() As String, ByRef Delimiter As Const String, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As String
+Declare Function Join(Subject() As UString, ByRef Delimiter As Const WString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As UString
+' WString **值**数组的重载(原先缺失)。
+' 原来只有 String / UString / WString Ptr / ZString Ptr 四个重载, 于是
+' `Dim a() As WString : Join(a(), "|")` 会报
+'   error 99: No matching overloaded function, JOIN()
+' —— 而 Split 早就有 WString 值数组的对应重载(UString.bi:123), 两者不对称。
+' 对称地补上, 让 Split/Join 都能直接吃 WString。
+Declare Function Join(Subject() As WString, ByRef Delimiter As Const WString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As WString
+Declare Function Join(SubjectPtr() As WString Ptr, ByRef Delimiter As Const WString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As WString Ptr
+Declare Function Join(SubjectPtr() As ZString Ptr, ByRef Delimiter As Const ZString, ByVal skipEmptyElement As Boolean = False, iStart As Integer = 0, iStep As Integer = 1) As ZString Ptr
+
+Declare Function StartsWith(ByRef a As Const WString, ByRef b As Const WString, Start As Integer = 0) As Boolean
+Declare Function EndsWith(ByRef a As Const WString, ByRef b As Const WString) As Boolean
+Declare Function StringExtract Overload(ByRef wszMainStr As WString, ByRef wszMatchStr As Const WString, ByVal nStart As Long = 1, ByVal MatchCase As Boolean = True) As UString
+Declare Function StringExtract(ByRef wszMainStr As WString, ByRef wszDelim1 As Const WString, ByRef wszDelim2 As Const WString, ByVal nStart As Long = 1, ByVal MatchCase As Boolean = True) As UString
+Declare Function StringSubStringAll(ByRef wszMainStr As WString, ByRef ParseStart As Const WString, ByRef ParseEnd As Const WString, Result() As WString Ptr, MatchCase As Boolean = True) As Long
+Declare Function StringsCompare(ByRef s1 As Const WString, ByRef s2 As Const WString, ByVal bMatchCase As Boolean = True, ByVal iDirection As Integer = 1, ByVal bNaturalSort As Boolean = False) As Integer
+'When expression Is empty, uses FreeBASIC's native Mid function,extracts a portion of the string,
+'In-place replacement: When expression is provided, replaces the specified SubString range With the New larger text
+'Example: Dim As WString * 20 mainStr = "Hello World" : Dim As WString * 100 result = SubString(mainStr, 7, 5, "FreeBasic" )(Expected: 'Hello FreeBasic')
+Declare Function SubString(ByRef wszMainStr As WString, ByVal start As Integer, ByVal n As Integer, ByRef expression As Const WString = "" ) As UString
+Declare Function FormatFileName(ByRef originalName As WString) As WString
+Declare Function IsNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boolean
+#if (Not defined(__USE_JNI__)) AndAlso (Not defined(__USE_WASM__))
+	Declare Function FileExists Overload(ByRef FileName As UString) As Boolean
+	Declare Function FileExists Overload(ByRef FileName As WString) As Boolean
+#endif
+
+#ifndef __USE_MAKE__
+	#include once "UString.bas"
+#endif

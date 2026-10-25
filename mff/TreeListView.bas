@@ -762,12 +762,14 @@ Namespace My.Sys.Forms
 			.ImageIndex     = FImageIndex
 			Var MinColumnsCount = 0
 			If InStr(FCaption, Chr(9)) > 0 Then
-				Dim As UString Captions(Any)
-				Split(FCaption, Chr(9), Captions())
-				MinColumnsCount = Min(UBound(Captions), Cast(TreeListView Ptr, Parent)->Columns.Count - 1)
+				Dim As WString Ptr Res(Any)
+				Split(FCaption, Chr(9), Res())
+				MinColumnsCount = min(UBound(Res), Cast(TreeListView Ptr, Parent)->Columns.Count - 1)
 				For j As Integer = 0 To MinColumnsCount
-					.Text(j)        = Captions(j)
+					.Text(j)        = *Res(j)
+					_Deallocate(Res(j))
 				Next
+				Erase Res
 			Else
 				.Text(0)        = FCaption
 			End If
