@@ -36,18 +36,6 @@
     ' POSIX / Unix-like platforms
     #if defined(__FB_LINUX__) OrElse defined(__FB_MACOSX__) OrElse defined(__FB_FREEBSD__) OrElse defined(__FB_OPENBSD__) OrElse defined(__FB_NETBSD__) OrElse defined(__FB_SOLARIS__)
         Extern "C"
-            Type timespec
-                As Long tv_sec
-                As Long tv_nsec
-            End Type
-
-            Enum clockid_t
-                CLOCK_REALTIME = 0
-                CLOCK_MONOTONIC = 1
-                CLOCK_PROCESS_CPUTIME_ID = 2
-                CLOCK_THREAD_CPUTIME_ID = 3
-            End Enum
-
             Declare Function clock_gettime Alias "clock_gettime" _
                 (ByVal clk_id As Integer, ByVal tp As timespec Ptr) As Integer
         End Extern
