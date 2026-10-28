@@ -101,8 +101,10 @@ Namespace My.Sys.Drawing
 						End If
 					#elseif defined(__USE_WINAPI__)
 						If QComponent(FParent).Handle Then
-							SendMessage(QComponent(FParent).Handle, WM_SETFONT, CUInt(Handle), True)
-							InvalidateRect Cast(Component Ptr, FParent)->Handle, 0, True
+							' In a layout or DPI pass the container is repainted once when the pass ends:
+							'a synchronous repaint per control is the most expensive part of the pass
+							SendMessage(QComponent(FParent).Handle, WM_SETFONT, CUInt(Handle), AlignLock = 0)
+							If AlignLock = 0 Then InvalidateRect Cast(Component Ptr, FParent)->Handle, 0, True
 						End If
 					#endif
 				End If
@@ -257,7 +259,8 @@ Namespace My.Sys.Drawing
 	End Operator
 	
 	Private Operator Font.Cast ByRef As WString
-		Return ToString
+		WLet(FTemp, This.Name & ", " & This.Size)
+		Return *FTemp
 	End Operator
 	
 	Private Function Font.ToString ByRef As WString

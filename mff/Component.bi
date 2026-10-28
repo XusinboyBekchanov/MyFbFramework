@@ -396,6 +396,23 @@ Private Enum Keys
 	#endif
 End Enum
 
+#ifndef __USE_WASM__
+	'Greater than 0 while a pass sets the bounds of many controls (RequestAlign) or
+	'rescales a whole tree (WM_DPICHANGED). In such a pass a single move or font change
+	'must not repaint its control: a synchronous paint of a half finished layout costs
+	'more than the move itself. The outermost pass repaints its container once at the end.
+	'Every pass restores the value it found, so a stuck counter cannot stop repainting.
+	Common Shared AlignLock As Integer
+	'Set by a move of such a pass which really changed the bounds: only then the
+	'outermost pass repaints, a pass which moved nothing leaves the container alone
+	Common Shared AlignMoved As Integer
+	#ifdef __USE_WINAPI__
+		'Open DeferWindowPos batch of the running pass: one call reaches the window manager
+		'instead of one per moved control (about eight times faster for a large form)
+		Common Shared AlignDefer As HDWP
+	#endif
+#endif
+
 Declare Sub ThreadsEnter
 
 Declare Sub ThreadsLeave

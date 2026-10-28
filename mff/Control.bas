@@ -1180,6 +1180,38 @@ Namespace My.Sys.Forms
 					Instance, _
 					@This) ' '
 					'End If
+					'Per-monitor DPI: ScaleX initialized xdpi from the primary
+					'monitor, but this window may live on a monitor with another
+					'DPI and no WM_DPICHANGED arrives for the creation itself.
+					'Adopt the window's real DPI and rescale the window, fonts
+					'and children with the new factor.
+					If FHandle <> 0 Then
+						Dim As HDC WndDc = GetDC(FHandle)
+						Dim As Single NewXdpi = GetDeviceCaps(WndDc, LOGPIXELSX) / 96
+						Dim As Single NewYdpi = GetDeviceCaps(WndDc, LOGPIXELSY) / 96
+						ReleaseDC FHandle, WndDc
+						If NewXdpi > 0 AndAlso NewYdpi > 0 AndAlso (NewXdpi <> xdpi OrElse NewYdpi <> ydpi) Then
+							xdpi = NewXdpi
+							ydpi = NewYdpi
+							oldxdpi = NewXdpi
+							oldydpi = NewYdpi
+							Canvas.xdpi = NewXdpi
+							Canvas.ydpi = NewYdpi
+							Font.xdpi = NewXdpi
+							Font.ydpi = NewYdpi
+							Font.Size = Font.Size
+							For i As Integer = 0 To ControlCount - 1
+								Controls[i]->xdpi = NewXdpi
+								Controls[i]->ydpi = NewYdpi
+								Controls[i]->Font.xdpi = NewXdpi
+								Controls[i]->Font.ydpi = NewYdpi
+							Next i
+							'Do not override Windows-default placement (CW_USEDEFAULT).
+							If nLeft <> CW_USEDEFAULT AndAlso nTop <> CW_USEDEFAULT AndAlso nWidth <> CW_USEDEFAULT AndAlso nHeight <> CW_USEDEFAULT Then
+								MoveWindow FHandle, ScaleX(FLeft), ScaleY(FTop), ScaleX(FWidth), ScaleY(FHeight), True
+							End If
+						End If
+					End If
 				#endif
 			#elseif defined(__USE_JNI__)
 				If env = 0 OrElse Instance = 0 Then Exit Sub
@@ -1929,17 +1961,32 @@ Namespace My.Sys.Forms
 						SendMessageW(Message.hWnd, WM_THEMECHANGED, 0, 0)
 					End If
 				Case WM_DPICHANGED
+					' Rescaling the tree rebuilds the font of every control and moves it: batched like
+					'a layout pass, so that only the outermost call repaints the container
+					Dim As Integer iSavedAlignLock = AlignLock
+					Dim As Boolean bOwnDefer = (AlignDefer = 0)
+					AlignLock = iSavedAlignLock + 1
+					If bOwnDefer Then
+						AlignDefer = BeginDeferWindowPos(Max(8, ControlCount))
+						' A rescale always repaints: the fonts and the bounds changed
+						If iSavedAlignLock = 0 Then AlignMoved = 1
+					End If
 					Canvas.xdpi = xdpi
 					Canvas.ydpi = ydpi
-					Font.xdpi = xdpi
-					Font.ydpi = ydpi
-					Font.Size = Font.Size
+					' The point size does not change when only the screen changes: the font must be
+					'rebuilt only if the scale it is mapped with really changed
+					Dim As Boolean bScaleChanged = (oldxdpi <> xdpi OrElse oldydpi <> ydpi)
+					If bScaleChanged Then
+						Font.xdpi = xdpi
+						Font.ydpi = ydpi
+						Font.Size = Font.Size
+					End If
 					If oldxdpi = 0 OrElse oldydpi = 0 Then
 						oldxdpi = 1 OrElse oldydpi = 1
 					End If
 					If Message.lParam <> 0 Then
 						Dim As .Rect Ptr rct = Cast(Any Ptr, Message.lParam)
-						MoveWindow FHandle, rct->Left, rct->Top, rct->Right - rct->Left, rct->Bottom - rct->Top, True
+						MoveWindow FHandle, rct->Left, rct->Top, rct->Right - rct->Left, rct->Bottom - rct->Top, False
 					Else
 						If FParent = 0 OrElse FParent->ClassName <> "ReBar" Then
 							If FHandle = GetCapture Then
@@ -1957,6 +2004,16 @@ Namespace My.Sys.Forms
 							Controls[i]->ydpi = ydpi
 							Controls[i]->Perform(WM_DPICHANGED, Message.wParam, 0)
 						Next
+					End If
+					If bOwnDefer Then
+						Dim As HDWP hDefer = AlignDefer
+						AlignDefer = 0
+						If hDefer Then EndDeferWindowPos(hDefer)
+					End If
+					AlignLock = iSavedAlignLock
+					If iSavedAlignLock = 0 AndAlso FHandle <> 0 AndAlso AlignMoved Then
+						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+						AlignMoved = 0
 					End If
 					Message.Result = 0
 					Return
@@ -3322,6 +3379,39 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Private Sub Control.RequestAlign(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False, bWithoutControl As Control Ptr = 0)
+			#ifdef __USE_WINAPI__
+				' One layout pass moves every docked and anchored control. Letting each move
+				' repaint its control shows a half finished layout and is by far the most
+				' expensive part of the pass, so the pass is batched and the container is
+				' repainted once when the outermost pass ends
+				Dim As Integer iSavedAlignLock = AlignLock
+				' A pass of its own collects its moves in one DeferWindowPos batch. A nested
+				' pass (a child container resized by this one) adds its moves to the same batch
+				Dim As Boolean bOwnDefer = (AlignDefer = 0)
+				AlignLock = iSavedAlignLock + 1
+				If bOwnDefer Then
+					AlignDefer = BeginDeferWindowPos(Max(8, ControlCount))
+					If iSavedAlignLock = 0 Then AlignMoved = 0
+				End If
+				RequestAlignCore iClientWidth, iClientHeight, bInDraw, bWithoutControl
+				If bOwnDefer Then
+					' Cleared before the batch is applied: the WM_SIZE messages it sends run
+					'nested passes which must start a batch of their own
+					Dim As HDWP hDefer = AlignDefer
+					AlignDefer = 0
+					If hDefer Then EndDeferWindowPos(hDefer)
+				End If
+				AlignLock = iSavedAlignLock
+				If iSavedAlignLock = 0 AndAlso FHandle <> 0 AndAlso AlignMoved Then
+					RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+					AlignMoved = 0
+				End If
+			#else
+				RequestAlignCore iClientWidth, iClientHeight, bInDraw, bWithoutControl
+			#endif
+		End Sub
+		
+		Private Sub Control.RequestAlignCore(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False, bWithoutControl As Control Ptr = 0)
 			#ifdef __USE_GTK__
 				If GTK_IS_NOTEBOOK(widget) Then
 					For i As Integer = 0 To ControlCount - 1
@@ -3353,6 +3443,16 @@ Namespace My.Sys.Forms
 			rLeft = iClientWidth - Margins.Right
 			tTop  = Margins.Top
 			bTop  = iClientHeight - Margins.Bottom
+			'Every control goes into at most one of the lists: allocate the worst case once
+			'instead of reallocating on every control of the pass
+			If ControlCount > 0 Then
+				Dim As Integer iCapacity = ControlCount * SizeOf(Control Ptr)
+				ListLeft   = _Allocate(iCapacity)
+				ListRight  = _Allocate(iCapacity)
+				ListTop    = _Allocate(iCapacity)
+				ListBottom = _Allocate(iCapacity)
+				ListClient = _Allocate(iCapacity)
+			End If
 			If ControlCount <> 0 Then
 				#ifdef __USE_GTK__
 					If rLeft <= 1 And bTop <= 1 Then
@@ -3395,41 +3495,52 @@ Namespace My.Sys.Forms
 				'		Exit Sub
 				'	End If
 				'#endif
+				' The anchored children are scaled against the current size of this control:
+				' read it once, the getters go through GetWindowRect for every control
+				Dim As Boolean bAnchored
+				For i = 0 To ControlCount - 1
+					With *Controls[i]
+						If Cast(Integer, .Anchor.Left) + Cast(Integer, .Anchor.Right) + Cast(Integer, .Anchor.Top) + Cast(Integer, .Anchor.Bottom) <> 0 Then
+							bAnchored = True
+							Exit For
+						End If
+					End With
+				Next i
+				If bAnchored Then
+					This.FWidth = This.Width
+					This.FHeight = This.Height
+					#ifdef __USE_JNI__
+						'The controls are in the layout of the form (without the title bar)
+						If layoutview Then This.FWidth = iClientWidth: This.FHeight = iClientHeight
+					#endif
+				End If
 				For i = 0 To ControlCount - 1
 					'If Controls[i]->Handle = 0 Then Continue For
 					Select Case Controls[i]->Align
 					Case 1'alLeft
 						LeftCount += 1
-						ListLeft = _Reallocate(ListLeft,SizeOf(Control Ptr)*LeftCount)
 						ListLeft[LeftCount - 1] = Controls[i]
 					Case 2'alRight
 						RightCount += 1
-						ListRight = _Reallocate(ListRight,SizeOf(Control Ptr)*RightCount)
 						ListRight[RightCount - 1] = Controls[i]
 					Case 3'alTop
 						TopCount += 1
-						ListTop = _Reallocate(ListTop, SizeOf(Control Ptr)*TopCount)
 						ListTop[TopCount - 1] = Controls[i]
 					Case 4'alBottom
 						BottomCount += 1
-						ListBottom = _Reallocate(ListBottom,SizeOf(Control Ptr)*BottomCount)
 						ListBottom[BottomCount - 1] = Controls[i]
 					Case 5'alClient
 						ClientCount += 1
-						ListClient = _Reallocate(ListClient,SizeOf(Control Ptr)*ClientCount)
 						ListClient[ClientCount - 1] = Controls[i]
 					Case Else
 						If ClassName = "VerticalBox" Then
 							TopCount += 1
-							ListTop = _Reallocate(ListTop, SizeOf(Control Ptr)*TopCount)
 							ListTop[TopCount - 1] = Controls[i]
 						ElseIf ClassName = "HorizontalBox" Then
 							LeftCount += 1
-							ListLeft = _Reallocate(ListLeft,SizeOf(Control Ptr)*LeftCount)
 							ListLeft[LeftCount - 1] = Controls[i]
 						ElseIf ClassName = "PagePanel" AndAlso Controls[i]->Name <> "PagePanel_NumericUpDownControl" Then
 							ClientCount += 1
-							ListClient = _Reallocate(ListClient,SizeOf(Control Ptr)*ClientCount)
 							ListClient[ClientCount - 1] = Controls[i]
 						End If
 					End Select
@@ -3441,11 +3552,6 @@ Namespace My.Sys.Forms
 								If CInt(.FVisible) AndAlso CInt(.Handle) Then
 							#endif
 								aLeft = .FLeft: aTop = .FTop: aWidth = .FWidth: aHeight = .FHeight
-								This.FWidth = This.Width: This.FHeight = This.Height
-								#ifdef __USE_JNI__
-									'The controls are in the layout of the form (without the title bar)
-									If layoutview Then This.FWidth = iClientWidth: This.FHeight = iClientHeight
-								#endif
 								If .Anchor.Left <> asNone Then
 									If .Anchor.Left = asAnchorProportional Then aLeft = This.FWidth / .FAnchoredParentWidth * .FAnchoredLeft
 									If .Anchor.Right <> asNone Then aWidth = This.FWidth - aLeft - IIf(.Anchor.Right = asAnchor, .FAnchoredRight, This.FWidth / .FAnchoredParentWidth * .FAnchoredRight)

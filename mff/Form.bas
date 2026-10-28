@@ -1159,9 +1159,29 @@ Namespace My.Sys.Forms
 				'	RequestAlign
 				'End If
 				FDPIChanging = True
+				'Every control rebuilds its font and moves itself: repaint only once, when the
+				'whole tree has the new scale (a paint in between shows a broken layout)
+				Dim As Integer iSavedAlignLock = AlignLock
+				Dim As Boolean bOwnDefer = (AlignDefer = 0)
+				AlignLock = iSavedAlignLock + 1
+				If bOwnDefer Then
+					AlignDefer = BeginDeferWindowPos(Max(8, ControlCount))
+					' A rescale always repaints: the fonts and the bounds changed
+					If iSavedAlignLock = 0 Then AlignMoved = 1
+				End If
 				LockWindowUpdate(FHandle)
 				Base.ProcessMessage(msg)
 				LockWindowUpdate(0)
+				If bOwnDefer Then
+					Dim As HDWP hDefer = AlignDefer
+					AlignDefer = 0
+					If hDefer Then EndDeferWindowPos(hDefer)
+				End If
+				AlignLock = iSavedAlignLock
+				If iSavedAlignLock = 0 AndAlso FHandle <> 0 AndAlso AlignMoved Then
+					RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+					AlignMoved = 0
+				End If
 				FDPIChanging = False
 				Return
 			Case WM_SIZE

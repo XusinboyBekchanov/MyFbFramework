@@ -774,6 +774,8 @@ Namespace My.Sys.Forms
 			Declare Sub SendToBack
 			'Instructs the parent of a control to reposition the control, enforcing its Align property (Windows, Linux, Android, Web).
 			Declare Sub RequestAlign(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False, bWithoutControl As Control Ptr = 0)
+			'The layout pass itself, without the paint batching of RequestAlign
+			Declare Sub RequestAlignCore(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False, bWithoutControl As Control Ptr = 0)
 			'Displays the control to the user (Windows, Linux, Android, Web).
 			Declare Virtual Sub Show
 			'Conceals the control from the user (Windows, Linux, Android, Web).
