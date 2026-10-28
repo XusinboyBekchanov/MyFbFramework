@@ -310,7 +310,26 @@ Namespace My.Sys.ComponentModel
 				EndIf
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then
-					MoveWindow FHandle, ScaleX(iLeft), ScaleY(iTop), ScaleX(iWidth), ScaleY(iHeight), True
+					Dim As Integer nLeft = ScaleX(iLeft), nTop = ScaleY(iTop), nWidth = ScaleX(iWidth), nHeight = ScaleY(iHeight)
+					If AlignLock > 0 Then
+						' A layout pass is running and repaints the container when it ends.
+						' Repainting here would show a half finished layout and costs more than
+						' the move itself; a window which already has the bounds is skipped
+						Dim As RECT R
+						GetWindowRect FHandle, @R
+						If R.Right - R.Left = nWidth AndAlso R.Bottom - R.Top = nHeight Then
+							MapWindowPoints 0, GetParent(FHandle), Cast(Point Ptr, @R), 2
+							If R.Left = nLeft AndAlso R.Top = nTop Then Exit Sub
+						End If
+						AlignMoved = 1
+						If AlignDefer Then
+							AlignDefer = DeferWindowPos(AlignDefer, FHandle, 0, nLeft, nTop, nWidth, nHeight, SWP_NOZORDER Or SWP_NOACTIVATE Or SWP_NOREDRAW)
+						Else
+							SetWindowPos FHandle, 0, nLeft, nTop, nWidth, nHeight, SWP_NOZORDER Or SWP_NOACTIVATE Or SWP_NOREDRAW
+						End If
+						Exit Sub
+					End If
+					MoveWindow FHandle, nLeft, nTop, nWidth, nHeight, True
 				End If
 			#elseif defined(__USE_JNI__)
 				If env = 0 OrElse FHandle = 0 Then Exit Sub
