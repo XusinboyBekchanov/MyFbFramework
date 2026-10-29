@@ -339,6 +339,12 @@ html.mffdark {color-scheme: dark;
 	--mff-line: #3f3f46; --mff-gray: #a0a0a0; --mff-disabled: #6d6d6d; --mff-glyph: #c8c8c8; --mff-hover: #3e3e42; --mff-pressed: #505055;
 	--mff-hot: #094771; --mff-menu-hover: #3e3e42; --mff-frame: #3f5f86; --mff-caption: linear-gradient(#34383e, #2b2f34);
 	--mff-caption-line: #3f3f46; --mff-caption-text: #dce6f2; --mff-caption-button: #b8c4d4;}
+/* A designed form (the designer of the IDE) is seen as on Windows, light: the variables are reset (initial), so var()
+   takes its light color; the check boxes and the other inputs of the browser are light too */
+html.mffdark .mffdesign {color-scheme: light; color: #000;
+	--mff-window: initial; --mff-text: initial; --mff-face: initial; --mff-header: initial; --mff-border: initial; --mff-grid: initial;
+	--mff-line: initial; --mff-gray: initial; --mff-disabled: initial; --mff-glyph: initial; --mff-hover: initial; --mff-pressed: initial;
+	--mff-hot: initial; --mff-menu-hover: initial;}
 html.mffdark body {background: #252526; color: #e0e0e0;}
 html.mffdark a:link, html.mffdark a:visited {color: #4daafc;}
 html.mffdark .vetdialog.box {background: #252526;}
