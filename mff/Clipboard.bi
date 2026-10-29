@@ -27,7 +27,7 @@ Namespace My.Sys
 		Declare Sub Close
 		Declare Sub SetAsText(ByRef Value As WString)
 		Declare Function GetAsText ByRef As WString
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Declare Sub SetAsHandle(FFormat As WORD, Value As HANDLE)
 			Declare Function GetAsHandle(FFormat As WORD) As HANDLE
 			Declare Function HasFormat(FFormat As WORD) As Boolean

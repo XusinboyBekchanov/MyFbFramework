@@ -15,6 +15,9 @@ Namespace My.Sys.Forms
 	Protected:
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 		Declare Virtual Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
+		#ifdef __USE_WASM__
+			Declare Virtual Function GetContent() As UString
+		#endif
 	Public:
 		#ifdef __USE_GTK__
 			'Function registers a window class for subsequent use in calls to the create window (Windows, Linux)

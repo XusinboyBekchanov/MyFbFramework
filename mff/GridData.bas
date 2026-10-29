@@ -1015,7 +1015,9 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Sub GridDataColumns.Clear
-		On Error Goto ErrorHandler
+		#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+			On Error Goto ErrorHandler
+		#endif
 		If FColumns.Count>0 Then
 			For i As Integer = FColumns.Count -1 To 0 Step -1
 				#ifdef __USE_WINAPI__
@@ -2809,7 +2811,7 @@ Namespace My.Sys.Forms
 				WLet(FClassAncestor, WC_LISTVIEW)
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "table")
-				FElementStyle = "border: 1px solid #aaa; background: white;"
+				FElementStyle = "border: 1px solid var(--mff-border, #aaa); background: var(--mff-window, white);"
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "android/widget/ListView")
@@ -2831,7 +2833,7 @@ Namespace My.Sys.Forms
 		ListItems.Clear
 		Columns.Clear
 		#ifdef __USE_WINAPI__
-			UnregisterClass "GridData",GetModuleHandle(NULL)
+			'UnregisterClass "GridData",GetModuleHandle(NULL)
 			If mFontHandleBody Then DeleteObject(mFontHandleBody)
 			If mFontHandleHeader Then DeleteObject(mFontHandleHeader)
 			If mFontHandleBodyUnderline Then DeleteObject(mFontHandleBodyUnderline)

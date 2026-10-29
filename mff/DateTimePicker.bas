@@ -1347,7 +1347,7 @@ Namespace My.Sys.Forms
 	
 	Private Destructor DateTimePicker
 		#ifdef __USE_WINAPI__
-			UnregisterClass "DateTimePicker",GetModuleHandle(NULL)
+			'UnregisterClass "DateTimePicker",GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace

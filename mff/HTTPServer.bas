@@ -35,19 +35,17 @@ Namespace My.Sys.Forms
 	
 	' multithreaded socket handling
 	Private Sub HTTPServer.Del(ByVal client As CLIENT Ptr)
-		#ifdef __USE_WINAPI__
+		#ifdef __MFF_HTTPSERVER_SOCKETS__
 			Dim s As SOCKET
+			Dim t As Any Ptr
+			'Taking the socket and removing from the list are done under the lock: Quit, Accept and
+			'the recv threads change the list at the same time. Without the lock two clients removed
+			'at once could leave a closed client as the list head, and Quit looped on it forever
+			MutexLock(globmutex)
+			s = client->_socket
+			client->_socket = NULL
 			' not already removed?
-			If (client->_socket <> NULL) Then
-				's = NULL
-				Swap s, client->_socket        ' this should be atomic..
-				' close connection
-				shutdown(s, 2)
-				closesocket(s)
-				' recv thread stills running?
-				If (client->recvthread <> NULL) Then
-					ThreadWait(client->recvthread)
-				End If
+			If (s <> NULL) Then
 				' remove from list
 				If (client->next_) Then
 					client->next_->prev = client->prev
@@ -57,6 +55,21 @@ Namespace My.Sys.Forms
 				Else
 					clientlisthead = client->next_
 				End If
+				client->prev = NULL
+				client->next_ = NULL
+				'Del is called from the recv thread itself too: then the thread is already detached
+				t = client->recvthread
+				client->recvthread = NULL
+			End If
+			MutexUnlock(globmutex)
+			If (s <> NULL) Then
+				' close connection
+				shutdown(s, 2)
+				closesocket(s)
+				' recv thread stills running?
+				If (t <> NULL) Then
+					ThreadWait(t)
+				End If
 			End If
 		#endif
 	End Sub
@@ -65,7 +78,7 @@ Namespace My.Sys.Forms
 		Dim client As CLIENT Ptr
 		isrunning = False
 		
-		#ifdef __USE_WINAPI__
+		#ifdef __MFF_HTTPSERVER_SOCKETS__
 			' close the listening socket
 			If (_socket <> 0) Then
 				shutdown(_socket, 2)
@@ -82,19 +95,42 @@ Namespace My.Sys.Forms
 				End If
 				Del(client)
 			Loop
-			' shutdown winsock
-			Function = WSACleanup( )
+			#ifdef __FB_WIN32__
+				' shutdown winsock
+				Function = WSACleanup( )
+			#else
+				Function = 0
+			#endif
 		#else
 			Function = 0
 		#endif
 	End Function
 	
 	' thread waiting for data to arrive, parsing HTTP GET requests and sending responses
+	'The Content-Type of a file by its extension (application/wasm is needed for the WebAssembly streaming compilation)
+	Private Function ContentTypeOf(ByRef FileName As String) As String
+		Select Case LCase(Mid(FileName, InStrRev(FileName, ".") + 1))
+		Case "html", "htm": Return "text/html; charset=utf-8"
+		Case "js", "mjs": Return "text/javascript; charset=utf-8"
+		Case "wasm": Return "application/wasm"
+		Case "css": Return "text/css; charset=utf-8"
+		Case "json": Return "application/json"
+		Case "txt", "bas", "bi", "ini": Return "text/plain; charset=utf-8"
+		Case "png": Return "image/png"
+		Case "jpg", "jpeg": Return "image/jpeg"
+		Case "gif": Return "image/gif"
+		Case "svg": Return "image/svg+xml"
+		Case "ico": Return "image/x-icon"
+		Case Else: Return "application/octet-stream"
+		End Select
+	End Function
+
 	Private Sub HTTPServer.Receive(ByVal client As CLIENT Ptr)
 		
 		Dim PacketBuffer(BuffSize) As Byte
-		Dim As Integer  ReceivedLen = 0
-		Dim As Byte Ptr ReceivedBuffer = 0
+		'The request is collected in a String: the body of a POST can be big and have any bytes (also Chr(0))
+		Dim As String   Received
+		Dim As Integer  HeaderEnd, ContentLength
 		Dim As String   stNL   = Chr(13) & Chr(10)
 		Dim As String   stNLNL = stNL & stNL
 		
@@ -102,7 +138,7 @@ Namespace My.Sys.Forms
 		Dim SendBuffer() As Byte 'fix for fb0.16beta, thx v1ctor
 		Dim FileHandle As UByte
 		
-		#ifdef __USE_WINAPI__
+		#ifdef __MFF_HTTPSERVER_SOCKETS__
 			'receive loop
 			Do While(Cast(HTTPServer Ptr, client->server)->isrunning And (client->_socket <> NULL))
 				' block until some data
@@ -114,60 +150,73 @@ Namespace My.Sys.Forms
 				End If
 				
 				' accumulate received data
-				ReceivedBuffer = _Reallocate(ReceivedBuffer, bytes + ReceivedLen)
+				Dim As String Chunk = Space(bytes)
 				Dim i As Integer
 				For i = 0 To bytes - 1
-					ReceivedBuffer[ReceivedLen + i] = PacketBuffer(i)
+					Chunk[i] = PacketBuffer(i)
 				Next i
-				ReceivedLen += bytes
-				'CRLF found twice ?
-				Var Pos0 = InStr(.Left(*Cast(ZString Ptr, ReceivedBuffer), ReceivedLen), Chr(13, 10, 13, 10))
+				Received &= Chunk
+				'CRLF found twice: the headers are there, Content-Length is the size of the body (0 without it, a GET)
+				If HeaderEnd = 0 Then
+					HeaderEnd = InStr(Received, Chr(13, 10, 13, 10))
+					If HeaderEnd = 0 Then Continue Do
+					Dim As String LowerHeaders = LCase(.Left(Received, HeaderEnd - 1))
+					Var Pos1 = InStr(LowerHeaders, "content-length:")
+					If Pos1 > 0 Then
+						Var Pos2 = InStr(Pos1, LowerHeaders, Chr(13))
+						If Pos2 = 0 Then Pos2 = Len(LowerHeaders) + 1
+						ContentLength = ValInt(Mid(LowerHeaders, Pos1 + 15, Pos2 - Pos1 - 15))
+					End If
+				End If
+				Var Pos0 = HeaderEnd
 				If Pos0 > 0 Then
-					Var Pos1 = InStr(LCase(.Left(*Cast(ZString Ptr, ReceivedBuffer), ReceivedLen)), "content-length:")
-					Var Pos2 = InStr(Pos1 + 1, LCase(.Left(*Cast(ZString Ptr, ReceivedBuffer), ReceivedLen)), Chr(13))
-					Dim As Integer ContentLength = Val(Mid(.Left(*Cast(ZString Ptr, ReceivedBuffer), ReceivedLen), Pos1 + 15, Pos2 - Pos1 - 15))
-					If Pos0 + ContentLength + 3 <> ReceivedLen Then Continue Do
+					If Len(Received) < Pos0 + 3 + ContentLength Then Continue Do
 					'extract get path + url decoding (special chars are coded %XY)
 					Dim As HTTPServerRequest Request
-					Request.Headers = .Left(*Cast(ZString Ptr, ReceivedBuffer), Pos0 - 1)
-					Request.Body = Mid(.Left(*Cast(ZString Ptr, ReceivedBuffer), ReceivedLen), Pos0 + 4)
-					Dim As String stPath = Cast(HTTPServer Ptr, client->server)->HomeDir
+					Request.Headers = .Left(Received, Pos0 - 1)
+					Request.Body = Mid(Received, Pos0 + 4, ContentLength)
+					'The path of the URL (after the method): HomeDir is not in it, it can have ".." itself (a folder like src/../)
+					Dim As String URLPath
 					Dim As Integer iAcc = 0, iHex = 0
-					Var Pos3 = InStr(.Left(*Cast(ZString Ptr, ReceivedBuffer), ReceivedLen), " ")
+					Var Pos3 = InStr(Received, " ")
 					If Pos3 > 0 Then
-						Request.HTTPMethod = .Left(*Cast(ZString Ptr, ReceivedBuffer), Pos3 - 1)
+						Request.HTTPMethod = .Left(Received, Pos3 - 1)
 					End If
-					For i = Pos3 + 1 To ReceivedLen - 1
-						Dim c As Byte
-						c = ReceivedBuffer[i]
+					'Pos3 (1-based) is the 0-based index of the "/" after the space
+					For i = Pos3 To Pos0 - 1
+						Dim c As UByte
+						c = Received[i]
 						If c = Asc(" ") Then Exit For
 						If iHex <> 0 Then
-							iHex += 1   'decode hex code
+							iHex += 1   'decode hex code (%XY: 0-9, A-F, a-f)
 							iAcc *= 16
-							iAcc += (c-48)
+							Select Case c
+							Case Asc("0") To Asc("9"): iAcc += c - Asc("0")
+							Case Asc("A") To Asc("F"): iAcc += c - Asc("A") + 10
+							Case Asc("a") To Asc("f"): iAcc += c - Asc("a") + 10
+							End Select
 							If iHex = 3 Then
 								c = iAcc
 								iAcc = 0
 								iHex = 0
 							End If
-						End If
-						If c=Asc("%") Then 'hex code coming ?
+						ElseIf c = Asc("%") Then 'hex code coming ?
 							iHex = 1
 							iAcc = 0
 						End If
-						If iHex = 0 Then stPath += Chr(c)
+						If iHex = 0 Then URLPath += Chr(c)
 					Next i
 					' tricky hack to accept parameters append to url aka page.html?title=etc
-					stPath = Mid(stPath, 1, InStrRev(stPath, "?") - 1)
-					If (stPath = Cast(HTTPServer Ptr, client->server)->HomeDir + "/") Or _  'default page and
-						(InStr(stPath, "..") <> 0) Then 'restrict to wwwroot
-						stPath = Cast(HTTPServer Ptr, client->server)->HomeDir + "/index.html"
-					End If
+					If InStr(URLPath, "?") > 0 Then URLPath = Mid(URLPath, 1, InStr(URLPath, "?") - 1)
+					'default page and restrict to wwwroot (only the URL can not go up with "..")
+					If (URLPath = "/") OrElse (URLPath = "") OrElse (InStr(URLPath, "..") <> 0) Then URLPath = "/index.html"
+					Dim As String stPath = Cast(HTTPServer Ptr, client->server)->HomeDir & URLPath
 					Request.RelativeURL = stPath
 					
 					' get rid of received data
-					ReceivedLen = 0
-					_Deallocate((ReceivedBuffer))
+					Received = ""
+					HeaderEnd = 0
+					ContentLength = 0
 					
 					' prepare response
 					Dim As HTTPServerResponce Responce
@@ -182,22 +231,35 @@ Namespace My.Sys.Forms
 						Responce.Reason = "OK"
 					Else
 						' read requested file from disk (no mutex, thanx to Zerospeed)
+						'A missing file is 404 (the page errors/404.html of the program if it has one), a file which can
+						'not be read is 403
+						Dim As Integer ErrorCode
+						'The requests are received in parallel threads (a page loads its pictures at the same time): Dir and
+						'FreeFile...Open are not thread-safe, without the lock a file is sometimes not found (404) or not opened (403)
+						MutexLock(Cast(HTTPServer Ptr, client->server)->filemutex)
 						If Dir(stPath) = "" Then
-							'Responce.Headers = "HTTP/1.1 404 Not Found" & stNL & stNL
-							Responce.StatusCode = 404
-							Responce.BodyFileName = ExePath + "/errors/404.html"
-							Responce.Reason = "Not Found"
-							stReponseHeader = "HTTP/1.1 404 Not Found" '& stNL & stNL
-							stPath = ExePath + "/errors/404.html"
+							ErrorCode = 404
+						Else
+							FileHandle = FreeFile
+							If Open( stPath For Binary Access Read Shared As #FileHandle ) <> 0 Then ErrorCode = 403
 						End If
-						FileHandle = FreeFile
-						If Open( stPath For Binary Access Read Shared As #FileHandle ) <> 0 Then
-							'Responce.Headers = "HTTP/1.1 403 Forbbiden" & stNL & stNL
-							Responce.StatusCode = 403
-							Responce.BodyFileName = ExePath + "/errors/403.html"
-							Responce.Reason = "Forbbiden"
-							stReponseHeader = "HTTP/1.1 403 Forbbiden" '& stNL & stNL
-							stPath = ExePath + "/errors/403.html"
+						If ErrorCode <> 0 Then
+							Responce.StatusCode = ErrorCode
+							Responce.Reason = IIf(ErrorCode = 404, "Not Found", "Forbidden")
+							Dim As String ErrorPage = ExePath + "/errors/" & ErrorCode & ".html"
+							FileHandle = FreeFile
+							If Dir(ErrorPage) <> "" AndAlso Open(ErrorPage For Binary Access Read Shared As #FileHandle) = 0 Then
+								Responce.Body = Space(LOF(FileHandle))
+								If Len(Responce.Body) Then Get #FileHandle, , Responce.Body
+								Close #FileHandle
+								stReponseHeader = "Content-Type: text/html; charset=utf-8"
+							Else
+								Responce.Body = ErrorCode & " " & Responce.Reason & ": " & URLPath
+								stReponseHeader = "Content-Type: text/plain; charset=utf-8"
+							End If
+							FileLength = Len(Responce.Body)
+							Responce.Headers = stReponseHeader & stNL & "Content-Length: " & FileLength & stNL & "Connection: close"
+							Responce.BodyFileName = stPath
 						Else
 							FileLength = LOF(FileHandle)    'file len
 							If FileLength <> 0 Then
@@ -207,16 +269,21 @@ Namespace My.Sys.Forms
 							End If
 							Close #FileHandle
 							'stReponseHeader = "HTTP/1.1 200 OK" & stNL
-							stReponseHeader = "Cache-Control: private" & stNL
-							stReponseHeader += "content-length : " & Str(FileLength) '& stNL & stNL
+							'no-cache: a rebuilt page (the .js, .wasm and .data of a WebAssembly program) is loaded again
+							stReponseHeader = "Cache-Control: no-cache" & stNL
+							stReponseHeader += "Content-Type: " & ContentTypeOf(stPath) & stNL
+							stReponseHeader += "Content-Length: " & Str(FileLength) & stNL
+							stReponseHeader += "Connection: close"
 							Responce.Headers = stReponseHeader
 							Responce.StatusCode = 200
 							Responce.Reason = "OK"
 						End If
+						MutexUnlock(Cast(HTTPServer Ptr, client->server)->filemutex)
 					End If
 					If Cast(HTTPServer Ptr, client->server)->OnReceive Then Cast(HTTPServer Ptr, client->server)->OnReceive(* (Cast(HTTPServer Ptr, client->server)->Designer), *Cast(HTTPServer Ptr, client->server), Request, Responce)
 					If Responce.BodyFileName <> stPath Then
 						stPath = Responce.BodyFileName
+						MutexLock(Cast(HTTPServer Ptr, client->server)->filemutex)
 						FileHandle = FreeFile
 						If Open( stPath For Binary Access Read Shared As #FileHandle ) <> 0 Then
 							'Responce.Headers = "HTTP/1.1 403 Forbbiden" & stNL & stNL
@@ -231,6 +298,7 @@ Namespace My.Sys.Forms
 							End If
 							Close #FileHandle
 						End If
+						MutexUnlock(Cast(HTTPServer Ptr, client->server)->filemutex)
 					ElseIf Request.HTTPMethod = "POST" Then
 						FileLength = Len(Responce.Body)
 					End If
@@ -239,32 +307,15 @@ Namespace My.Sys.Forms
 					Else
 						stReponseHeader = "HTTP/1.1 " & Trim(Str(Responce.StatusCode)) & " " & Responce.Reason & stNL & Responce.Headers & stNL & stNL
 					End If
-					'copy response header to sendbuffer
-					Dim HeaderLength As Integer
-					HeaderLength = Len(stReponseHeader)
-					
-					Dim As Integer SendBufferLen = HeaderLength + FileLength
-					'Dim As String SendBuffer = stReponseHeader & Responce.Body
-					ReDim SendBuffer(SendBufferLen) As Byte
-					
-					'copy loop (thx v1ctor for this simplified version)
-					For i = 0 To HeaderLength - 1
-						SendBuffer(i) = stReponseHeader[i]
-					Next i
-					
-					'copy response data to sendbuffer
-					If FileLength <> 0 Then
-						For i = 0 To FileLength - 1
-							SendBuffer(i + HeaderLength) = Responce.Body[i] 'FileBuffer(i)
-						Next i
-					End If
-					'?Len(SendBuffer), SendBufferLen
+					'the response header and the data in one buffer (a big file, like a .wasm, is not copied byte by byte)
+					Dim As String SendData = stReponseHeader & .Left(Responce.Body, FileLength)
+					Dim As Integer SendBufferLen = Len(SendData)
 					'send response
 					Dim As Byte Ptr sendptr
-					sendptr = @SendBuffer(0) 'Cast(Byte Ptr, @SendBuffer)
+					sendptr = Cast(Byte Ptr, StrPtr(SendData))
 					Do While (Cast(HTTPServer Ptr, client->server)->isrunning And (client->_socket <> NULL) And (SendBufferLen > 0))
 						' loop until the whole buffer is sent
-						bytes = send(client->_socket, sendptr, SendBufferLen, 0 )
+						bytes = send(client->_socket, sendptr, SendBufferLen, HTTPServerSendFlags)
 						' connection closed?
 						If ( bytes <= 0 ) Then
 							Exit Do
@@ -275,16 +326,25 @@ Namespace My.Sys.Forms
 					
 					' remove client
 					' possible fix for issue with increasing handles
-					ThreadDetach(client->recvthread)
+					'Under the lock: Quit (Del) may take the thread at the same time to wait for it
+					Dim As Any Ptr DetachThread
+					MutexLock(Cast(HTTPServer Ptr, client->server)->globmutex)
+					DetachThread = client->recvthread
 					client->recvthread = NULL
+					MutexUnlock(Cast(HTTPServer Ptr, client->server)->globmutex)
+					If DetachThread <> NULL Then ThreadDetach(DetachThread)
 					Cast(HTTPServer Ptr, client->server)->Del(client)
 					
 				End If 'bFound
 			Loop 'receive loop
 			
 			' remove client
-			ThreadDetach(client->recvthread)
+			Dim As Any Ptr OwnThread
+			MutexLock(Cast(HTTPServer Ptr, client->server)->globmutex)
+			OwnThread = client->recvthread
 			client->recvthread = NULL
+			MutexUnlock(Cast(HTTPServer Ptr, client->server)->globmutex)
+			If OwnThread <> NULL Then ThreadDetach(OwnThread)
 		#endif
 		
 		Cast(HTTPServer Ptr, client->server)->Del(client)
@@ -292,18 +352,26 @@ Namespace My.Sys.Forms
 	
 	
 	Private Sub HTTPServer.Accept(server As HTTPServer Ptr)
-		#ifdef __USE_WINAPI__
+		#ifdef __MFF_HTTPSERVER_SOCKETS__
 			Dim sa As SOCKADDR_IN
 			Dim s  As SOCKET
 		
 			Do While (server->isrunning)
 				
-				Dim salen As Long
+				#ifdef __FB_WIN32__
+					Dim salen As Long
+				#else
+					Dim salen As socklen_t
+				#endif
 				salen = Len(SOCKADDR_IN)
 				s = .accept(server->_socket, CPtr(PSOCKADDR, @sa), @salen)
 				If (s = INVALID_SOCKET) Then
 					Exit Do
 				End If
+				#ifdef __FB_WIN32__
+					'A request which runs a compilation: its programs do not get the connection (like the socket of Run)
+					SetHandleInformation(Cast(Any Ptr, s), HANDLE_FLAG_INHERIT, 0)
+				#endif
 				Dim client1 As CLIENT Ptr
 				
 				' access global data, lock it
@@ -311,20 +379,20 @@ Namespace My.Sys.Forms
 				
 				' allocate node
 				client1 = _Allocate(Len(CLIENT))
-				
+
+				' setup the client before it is in the list (Quit may read it at once)
+				client1->_socket      = s
+				client1->server       = server
+				client1->ip          = (@sa)->sin_addr.s_addr
+				client1->port        = (@sa)->sin_port
 				' add to head of list
 				client1->next_ = server->clientlisthead
 				server->clientlisthead = client1
 				If client1->next_ Then client1->next_->prev = client1
 				client1->prev = NULL
-				MutexUnlock(server->globmutex)
-				' setup the client
-				client1->_socket      = s
-				client1->server       = server
-				client1->ip          = (@sa)->sin_addr.s_addr
-				client1->port        = (@sa)->sin_port
-				' start new recv and send threads
+				' start new recv and send threads (still under the lock: the thread reads recvthread under it)
 				client1->recvthread  = ThreadCreate(Cast(Sub(ByVal As Any Ptr), @Receive), client1)
+				MutexUnlock(server->globmutex)
 			Loop
 		#endif
 		
@@ -333,37 +401,49 @@ Namespace My.Sys.Forms
 	
 	
 	Private Function HTTPServer.Run() As Integer
-		#ifdef __USE_WINAPI__
-			' start winsock
-			Dim wsaData As WSADATA
-			If (WSAStartup(MAKEWORD(2, 0), @wsaData) <> 0) Then
-				'print "error calling WSAStartup: "; WSAGetLastError( )
-				Return False
-			End If
-			
-			If (wsaData.wVersion <> MAKEWORD(2, 0)) Then
-				WSACleanup()
-				Return False
-			End If
-			
+		#ifdef __MFF_HTTPSERVER_SOCKETS__
+			#ifdef __FB_WIN32__
+				' start winsock
+				Dim wsaData As WSADATA
+				If (WSAStartup(MAKEWORD(2, 0), @wsaData) <> 0) Then
+					'print "error calling WSAStartup: "; WSAGetLastError( )
+					Return False
+				End If
+
+				If (wsaData.wVersion <> MAKEWORD(2, 0)) Then
+					WSACleanup()
+					Return False
+				End If
+			#endif
+
 			' create a socket for listening
 			_socket = opensocket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
-			If (_socket = NULL) Then
+			If (_socket = INVALID_SOCKET) Then
 				'print "error calling opensocket: "; WSAGetLastError( )
+				_socket = 0
 				Return False
 			End If
+			#ifdef __FB_WIN32__
+				'The programs which the program starts do not get the socket: a long-lived one (the daemon of Gradle of a
+				'compilation) would keep the port after the program ended and take its connections
+				SetHandleInformation(Cast(Any Ptr, _socket), HANDLE_FLAG_INHERIT, 0)
+			#else
+				'The port can be listened to again at once after the program ended (without it: about a minute later)
+				Dim As Long ReuseAddress = 1
+				setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, @ReuseAddress, SizeOf(ReuseAddress))
+			#endif
 			
 			' bind it to the server port
 			Dim sa As SOCKADDR_IN
 			sa.sin_port         = htons(Port)
 			sa.sin_family       = AF_INET
-			sa.sin_addr.s_addr  = INADDR_ANY
-			If (bind(_socket, CPtr(PSOCKADDR, @sa), Len(sa)) = SOCKET_ERROR) Then
+			'Address: 127.0.0.1 (the default) - only this computer can connect, "" or 0.0.0.0 - every network interface
+			sa.sin_addr.s_addr  = IIf(Address = "" OrElse Address = "0.0.0.0", INADDR_ANY, inet_addr(Address))
+			'The port is used by another program: the socket is closed, Run can be called again
+			If (bind(_socket, CPtr(PSOCKADDR, @sa), Len(sa)) = SOCKET_ERROR) OrElse (listen(_socket, SOMAXCONN) = SOCKET_ERROR) Then
 				'print "error calling bind: "; WSAGetLastError( )
-				Return False
-			End If
-			
-			If (listen(_socket, SOMAXCONN) = SOCKET_ERROR) Then
+				closesocket(_socket)
+				_socket = 0
 				Return False
 			End If
 			
@@ -372,6 +452,8 @@ Namespace My.Sys.Forms
 			globmutex = MutexCreate()
 			filemutex = MutexCreate()
 			acceptthread = ThreadCreate(Cast(Sub(ByVal As Any Ptr), @Accept), @This) 'launch accept thread
+		#else
+			Return False
 		#endif
 		Function = True
 	End Function

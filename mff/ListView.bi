@@ -310,6 +310,10 @@ Namespace My.Sys.Forms
 			'Shows the captions of the columns
 			Declare Sub UpdateColumns()
 		#endif
+		#ifdef __USE_WASM__
+			'The name of View for TableSetView ("icon", "smallicon", "list", "tile", "report")
+			Declare Function WebViewName() As String
+		#endif
 		'Initializes control components.
 		Declare Sub Init()
 		'Scrolls to make item visible.

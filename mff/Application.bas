@@ -166,10 +166,14 @@ Namespace My
 								Exit For
 							End If
 						Next i
-					#elseif defined(__USE_WASM__)
-						If MainForm Then
-							WLet(FTitle, MainForm->Text)
-						End If
+					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+						#ifdef APP_TITLE
+							WLet(FTitle, APP_TITLE)
+						#else
+							If MainForm Then
+								WLet(FTitle, MainForm->Text)
+							End If
+						#endif
 					#endif
 				End If
 			End If
@@ -532,6 +536,11 @@ Namespace My
 						If (GetWindowLong(M.hwnd,GWL_EXSTYLE) And WS_EX_APPWINDOW) = WS_EX_APPWINDOW Then End -1
 					End If
 				Wend
+			#elseif defined(__USE_WASM__)
+				'The browser draws the page only when the program gives it the time (ASYNCIFY). Only during the start (the
+				'main form is not created yet, e.g. a splash form is shown): later DoEvents runs in the events of the page,
+				'which can not wait
+				If MainForm = 0 OrElse MainForm->Handle = 0 Then PageSleep(1)
 			#endif
 		End Sub
 	#endif
@@ -1057,14 +1066,11 @@ Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As
 		Case mtError: MsgTypeIn = 4
 		Case mtOther: MsgTypeIn = 0
 		End Select
-		Select Case ButtonsType
-		Case btNone: ButtonsTypeIn = 0
-		Case btOK: ButtonsTypeIn = 1
-		Case btYesNo: ButtonsTypeIn = 0
-		Case btYesNoCancel: ButtonsTypeIn = 0
-		Case btOkCancel: ButtonsTypeIn = 2
-		End Select
-		MessageBox(ToUtf8(MsgStr), ToUtf8(*FCaption), 0, 0)
+		'The dialog of mff_lib.js waits for the button (ASYNCIFY) and gives the MessageResult
+		Result = MessageBox(ToUtf8(MsgStr), ToUtf8(*FCaption), MsgTypeIn, ButtonsType)
+	#elseif defined(__USE_JNI__)
+		'An AlertDialog of mffActivity.messageBox waits for the button (a nested message loop) and gives the MessageResult
+		Result = MessageBox(ToUtf8(MsgStr), ToUtf8(*FCaption), MsgType, ButtonsType)
 	#endif
 	'Do
 	'    App.DoEvents

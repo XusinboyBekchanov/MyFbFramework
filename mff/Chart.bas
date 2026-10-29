@@ -1293,7 +1293,9 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Sub Chart.Draw()
-		On Error Goto ErrorHandler
+		#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+			On Error Goto ErrorHandler
+		#endif
 		#ifdef __USE_WINAPI__
 			Dim hPath As GpPath Ptr
 			Dim hBrush As GpBrush Ptr, hPen As GpPen Ptr
@@ -5339,7 +5341,7 @@ Namespace My.Sys.Forms
 			If gToken Then
 				GdiplusShutdown(gToken)
 			End If
-			UnregisterClass "Chart", GetModuleHandle(NULL)
+			'UnregisterClass "Chart", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace

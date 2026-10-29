@@ -221,7 +221,7 @@ Namespace My.Sys.Forms
 			#else
 				Return CBool(FFullScreenMode)
 			#endif
-		#elseif defined(__USE_GTK__)
+		#else
 			Return CBool(FFullScreenMode)
 		#endif
 	End Property

@@ -141,7 +141,7 @@ Namespace My.Sys.ComponentModel
 		Else
 			s = "Unspecified printer error"
 		End If
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			MessageBox NULL,s, "Printer Error",  MB_ICONERROR
 		#endif
 	End Sub
@@ -152,7 +152,7 @@ Namespace My.Sys.ComponentModel
 	' DMORIENT_LANDSCAPE = Landscape
 	' ========================================================================================
 	Private Function Printer.SetPrinterOrientation (ByRef PrinterName As WString, ByVal nOrientation As Long) As Long
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim hPrinter As HWND
 			Dim pDevMode As DEVMODE Ptr
 			Dim pi2 As PRINTER_INFO_2 Ptr
@@ -253,7 +253,7 @@ Namespace My.Sys.ComponentModel
 	' DMORIENT_LANDSCAPE = Landscape
 	' ========================================================================================
 	Private Function Printer.SetPrinterOrientation2 (ByRef PrinterName As WString, ByVal nOrientation As Long) As Long
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim hPrinter As HWND
 			Dim pDevMode As DEVMODE Ptr
 			Dim pi2 As PRINTER_INFO_2 Ptr
@@ -359,7 +359,7 @@ Namespace My.Sys.ComponentModel
 	' - DMORIENT_LANDSCAPE = Landscape
 	' ========================================================================================
 	Private Function Printer.GetPrinterOrientation (ByRef PrinterName As WString) As Long
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As .HANDLE hPrinter
 			Dim As PRINTER_DEFAULTS pd
 			Dim As DEVMODE Ptr pDevMode
@@ -518,7 +518,7 @@ Namespace My.Sys.ComponentModel
 	
 	Private Property  Printer.PrintableWidth() As Long
 		Dim As Long nResult, pixHorzRes, mmHorzSize
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim hdc As HDC
 			'hdc = CreateIC (ByVal NULL,   printerName, ByVal NULL, ByVal NULL)
 			hdc = GetDC(0)
@@ -544,7 +544,7 @@ Namespace My.Sys.ComponentModel
 	
 	Private Property  Printer.PrintableHeight() As Long
 		Dim As Long nResult, pixVertRes, mmVertSize
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim hdc As HDC
 			'hdc = CreateIC (ByVal NULL,   printerName, ByVal NULL, ByVal NULL)
 			hdc = GetDC(0)
@@ -578,7 +578,7 @@ Namespace My.Sys.ComponentModel
 		Return GetPrinterMaxPaperWidth (printerName )
 	End Property
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Property Printer.Handle() As HDC
 			If m_hdc  = 0 Then printerName = This.DefaultPrinter()
 			Return m_hdc
@@ -586,23 +586,43 @@ Namespace My.Sys.ComponentModel
 	#endif
 	
 	Private Property Printer.PageWidth As  Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Return GetDocumentProperties(DM_PAPERWIDTH)
 		#else
 			For i As Integer = 0 To PaperSizes.Count - 1
 				If PaperSizes.Item(i)->RawKind = m_PageSize Then Return PaperSizes.Item(i)->Width
 			Next
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				'Web and Android: the papers of Page Setup (PageSetupDialog.Execute), there is no list of the printer
+				Select Case m_PageSize
+				Case PrinterPaperSize.ppsA3: Return 2970
+				Case PrinterPaperSize.ppsLetter, PrinterPaperSize.ppsLEGALr: Return 2159
+				Case PrinterPaperSize.ppsTABLOID: Return 2794
+				Case PrinterPaperSize.ppsEXECUTIVE: Return 1842
+				Case PrinterPaperSize.ppsSTATEMENT: Return 1397
+				End Select
+			#endif
 			Return 2100 ' A4, tenths of a millimeter
 		#endif
 	End Property
 
 	Private Property Printer.PageLength() As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Return GetDocumentProperties(DM_PAPERLENGTH)
 		#else
 			For i As Integer = 0 To PaperSizes.Count - 1
 				If PaperSizes.Item(i)->RawKind = m_PageSize Then Return PaperSizes.Item(i)->Height
 			Next
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				Select Case m_PageSize
+				Case PrinterPaperSize.ppsA3: Return 4200
+				Case PrinterPaperSize.ppsLetter: Return 2794
+				Case PrinterPaperSize.ppsLEGALr: Return 3556
+				Case PrinterPaperSize.ppsTABLOID: Return 4318
+				Case PrinterPaperSize.ppsEXECUTIVE: Return 2667
+				Case PrinterPaperSize.ppsSTATEMENT: Return 2159
+				End Select
+			#endif
 			Return 2970 ' A4, tenths of a millimeter
 		#endif
 	End Property
@@ -643,7 +663,7 @@ Namespace My.Sys.ComponentModel
 	
 	
 	Private Function Printer.DefaultPrinter() As String    'determine default printer and device context handle
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim hPrinter As .HANDLE, dwNeeded As Long, n As Long
 			Dim tm As TEXTMETRIC, sz As WString * 128
 			Dim As HGLOBAL hDevMode
@@ -676,7 +696,7 @@ Namespace My.Sys.ComponentModel
 	
 	Private Function Printer.ChoosePrinter() As String  'choose printer and determine device context handle
 		Dim n As Long
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim hPrinter As HWND
 			Dim pd As PRINTDLG , pDevNames As DEVNAMES Ptr
 			Dim tm As TEXTMETRIC, psz As ZString Ptr
@@ -704,7 +724,7 @@ Namespace My.Sys.ComponentModel
 		
 	End Function
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Function Printer.newFont(fName As String, fSize As Long, ibold As Long = False, iunderline As Long = False, iitalic As Long = False ) As HFONT
 			'define a new font using a font name, font size in points, and font attributes
 			'combine attributes: "b" for bold, "u" for underline, "i" for italic
@@ -765,7 +785,7 @@ Namespace My.Sys.ComponentModel
 	
 	
 	Private Sub printer.getCharSize(ByRef wi As Integer, ByRef ht As Integer) 'character width and height in inches 'average character width if proportional font
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim tm As TEXTMETRIC
 			If m_hdc  = 0 Then printerName=This.defaultprinter
 			GetTextMetrics m_hdc , @tm
@@ -775,7 +795,7 @@ Namespace My.Sys.ComponentModel
 	End Sub
 	
 	Private Function printer.getLines(  ByVal y As Integer) As Long 'determine number of remaining lines from y to bottom margin
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim  As Long yppi, paperHt, topNoPrn, bottomNoPrn
 			Dim yn As Integer
 			If m_hdc  = 0 Then printerName=This.defaultprinter
@@ -793,14 +813,14 @@ Namespace My.Sys.ComponentModel
 	End Function
 	
 	Private Property Printer.DuplexMode() As PrinterDuplexMode
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			m_Duplex=GetPrinterDuplex (printerName)
 		#endif
 		Return m_Duplex
 	End Property
 	
 	Private Property Printer.DuplexMode(n As PrinterDuplexMode)   'n = 1 Simplex  'n = 2 Horizontal  'n = 3 Vertical
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim pDevMode As DEVMODE Ptr
 			If hDevMode = 0 Or n = 0 Then Exit Property
 			pDevMode = GlobalLock(Cast(HGLOBAL,hDevMode))
@@ -817,7 +837,7 @@ Namespace My.Sys.ComponentModel
 	Private Sub Printer.orientPrint(n As Long) 'n = 1 Portrait 'n = 2 Landscape
 		' If SetPrinterOrientation(printername,n)=FALSE Then Print "Error on Orientation"
 		' Return
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim lpDevMode As DEVMODE Ptr
 			If hDevMode = 0 Then Exit Sub
 			lpDevMode = GlobalLock(Cast(HGLOBAL,hDevMode))
@@ -832,7 +852,7 @@ Namespace My.Sys.ComponentModel
 	End Sub
 	
 	Private Property Printer.Orientation(value As PrinterOrientation)
-		#ifdef __USE_GTK__
+		#ifndef __USE_WINAPI__
 			m_Orientation = value
 		#else
 			SetPrinterOrientation2(printerName, value) ' orientPrint(value)
@@ -840,7 +860,7 @@ Namespace My.Sys.ComponentModel
 	End Property
 
 	Private Property Printer.Orientation() As PrinterOrientation
-		#ifdef __USE_GTK__
+		#ifndef __USE_WINAPI__
 			Return m_Orientation
 		#else
 			Return GetPrinterOrientation(printerName)
@@ -857,7 +877,7 @@ Namespace My.Sys.ComponentModel
 		'if x or y are omitted then last valuew, xLast, yLast are used
 		Dim As Long xc, yc, xm, leftNoPrn, rightNoPrn, topNoPrn, bottomNoPrn
 		Dim As Long paperWi, paperHt, xMax, yMax, xppi, yppi
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If m_hdc  = 0 Then printerName=This.DefaultPrinter
 			paperWi = GetDeviceCaps(m_hdc ,  PHYSICALWIDTH)
 			paperHt = GetDeviceCaps(m_hdc ,  PHYSICALHEIGHT)
@@ -883,7 +903,7 @@ Namespace My.Sys.ComponentModel
 	End Property
 	
 	Private Sub Printer.StartDoc()
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim nErr As Long, sz As WString*64
 			Dim di As DOCINFO
 			If m_hdc  = 0 Then printerName=This.defaultprinter
@@ -896,7 +916,7 @@ Namespace My.Sys.ComponentModel
 	End Sub
 	
 	Private Sub Printer.StartPage
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim nErr As Long
 			nErr = .StartPage(m_hdc )
 			If nErr <= 0 Then This.reportError(2)
@@ -904,13 +924,13 @@ Namespace My.Sys.ComponentModel
 	End Sub
 	
 	Private Sub Printer.EndDPage
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			.EndPage(m_hdc )
 		#endif
 	End Sub
 	
 	Private Sub Printer.NewPage
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			.EndPage(m_hdc )
 			.StartPage(m_hdc)
 			FPageNumber+=1
@@ -918,7 +938,7 @@ Namespace My.Sys.ComponentModel
 	End Sub
 	
 	Private Sub Printer.EndDoc
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			.EndDoc(m_hdc )
 			SelectObject m_hdc , hOrigFont
 			DeleteObject m_hFont
@@ -935,7 +955,7 @@ Namespace My.Sys.ComponentModel
 	' Context. Works with both window and printer DC's. Requires %MM_TEXT mode.
 	'
 	Private Sub Printer.CalcPageSize(ByRef Rows As Long, ByRef Columns As Long)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim tm As TEXTMETRIC
 			GetTextMetrics m_hdc, @tm
 			Rows    = GetDeviceCaps(m_hdc, VERTRES) \ (tm.tmHeight + tm.tmExternalLeading)
@@ -945,7 +965,7 @@ Namespace My.Sys.ComponentModel
 	
 	Private Function Printer.PrinterPaperNames (ByRef PrinterName As WString) As String
 		Dim Names As String
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim i As Long
 			Dim r As Long
 			r = DeviceCapabilities (@PrinterName, ByVal NULL, DC_PAPERNAMES, ByVal NULL, ByVal NULL)
@@ -970,7 +990,7 @@ Namespace My.Sys.ComponentModel
 	' ========================================================================================
 	Private Function Printer.GetPrinterPaperSizesAsString(ByRef PrinterName As WString) As String
 		Dim i As Long, r As Long, Sizes As String
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			r = DeviceCapabilities (PrinterName, ByVal NULL, DC_PAPERSIZE, ByVal NULL, ByVal NULL)
 			If r = -1 Then Exit Function
 			ReDim pSizes(r - 1) As Point
@@ -1034,6 +1054,24 @@ Namespace My.Sys.ComponentModel
 			' Освобождаем выделенную память
 			'_Deallocate((paperIDs))
 			_Deallocate((paperNames))
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'Web and Android: there is no list of the printer (the printer is chosen in the print dialog of the browser or
+			'of the system when the document is printed): the papers of Page Setup, in tenths of a millimeter
+			Dim As PrinterPaperSize Kinds(6) = {PrinterPaperSize.ppsA4, PrinterPaperSize.ppsA3, PrinterPaperSize.ppsLetter, _
+				PrinterPaperSize.ppsLEGALr, PrinterPaperSize.ppsTABLOID, PrinterPaperSize.ppsEXECUTIVE, PrinterPaperSize.ppsSTATEMENT}
+			Dim As String Names(6) = {"A4", "A3", "Letter", "Legal", "Tabloid", "Executive", "Statement"}
+			Dim As Integer Widths(6) = {2100, 2970, 2159, 2159, 2794, 1842, 1397}
+			Dim As Integer Heights(6) = {2970, 4200, 2794, 3556, 4318, 2667, 2159}
+			PaperSizes.Clear
+			Dim pPaperSize As PaperSize Ptr
+			For i = 0 To 6
+				pPaperSize = PaperSizes.Add
+				pPaperSize->Kind = Kinds(i)
+				pPaperSize->RawKind = Kinds(i)
+				pPaperSize->PaperName = Names(i)
+				pPaperSize->Width = Widths(i)
+				pPaperSize->Height = Heights(i)
+			Next
 		#elseif defined(__USE_GTK__)
 			' Standard GTK paper sizes, the locale default (A4 or Letter) goes first
 			PaperSizes.Clear
@@ -1066,7 +1104,7 @@ Namespace My.Sys.ComponentModel
 	
 	Private Function Printer.GetPrinterPort (ByRef PrinterName As WString) As String ' Returns the port name for a given printer name.
 		Dim i As Long, Level As Long, cbNeeded As Long, cbReturned As Long
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim   Pi5( ) As PRINTER_INFO_5
 			Level = 5
 			EnumPrinters  PRINTER_ENUM_LOCAL, ByVal NULL, Level, ByVal NULL, 0, @cbNeeded, @cbReturned
@@ -1095,7 +1133,7 @@ Namespace My.Sys.ComponentModel
 	' - DMRES_HIGH   = High
 	' ========================================================================================
 	Private Function Printer.GetPrinterQualityMode (ByRef PrinterName As WString) As PrinterQuality
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim hPrinter As HWND
 			Dim pDevMode As DEVMODE Ptr
 			Dim pi2 As PRINTER_INFO_2 Ptr
@@ -1136,7 +1174,7 @@ Namespace My.Sys.ComponentModel
 	' height and width.
 	' ========================================================================================
 	Private Function Printer.GetPrinterScale (ByRef PrinterName As WString) As Long
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim hPrinter As HWND
 			Dim pDevMode As DEVMODE Ptr
 			Dim pi2 As PRINTER_INFO_2 Ptr
@@ -1170,7 +1208,7 @@ Namespace My.Sys.ComponentModel
 	
 	Private Function Printer.GetPrinterScalingFactorX (ByRef PrinterName As WString) As Long  ' Scaling factor for the x-axis of the printer.
 		Dim nResult As Long
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim hdc As HDC
 			hdc = CreateIC (NULL,PrinterName, ByVal NULL, ByVal NULL)
 			If hdc = 0 Then Exit Function
@@ -1184,7 +1222,7 @@ Namespace My.Sys.ComponentModel
 	
 	Private Function printer.GetPrinterScalingFactorY (ByRef PrinterName As WString) As Long ' Scaling factor for the y-axis of the printer.
 		Dim nResult As Long
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim hdc As HDC
 			hdc = CreateIC (ByVal NULL,   PrinterName, ByVal NULL, ByVal NULL)
 			If hdc = 0 Then Exit Function
@@ -1202,7 +1240,7 @@ Namespace My.Sys.ComponentModel
 	'   DMCOLOR_MONOCHROME
 	' ========================================================================================
 	Private Function printer.SetPrinterColorMode (ByRef PrinterName As WString, ByVal nMode As Long) As Long
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim hPrinter As HWND
 			Dim pDevMode As DEVMODE Ptr
 			Dim pi2 As PRINTER_INFO_2 Ptr
@@ -1290,7 +1328,7 @@ Namespace My.Sys.ComponentModel
 	' Selects the number of copies printed if the device supports multiple-page copies.
 	' ========================================================================================
 	Private Function printer.SetPrinterCopies (ByRef PrinterName As WString, ByVal nCopies As Long) As Long
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim hPrinter As HWND
 			Dim pDevMode As DEVMODE Ptr
 			Dim pi2 As PRINTER_INFO_2 Ptr
@@ -1381,7 +1419,7 @@ Namespace My.Sys.ComponentModel
 	' DMDUP_HORIZONTAL = Page flipped on the horizontal edge
 	' ========================================================================================
 	Private Function printer.SetPrinterDuplexMode (ByRef PrinterName As WString, ByVal nDuplexMode As Long) As Long
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim hPrinter As HWND
 			Dim pDevMode As DEVMODE Ptr
 			Dim pi2 As PRINTER_INFO_2 Ptr
@@ -1476,7 +1514,7 @@ Namespace My.Sys.ComponentModel
 	
 	
 	Private Function Printer.SetPrinterPaperSize (ByRef PrinterName As WString, ByVal nSize As Long) As Long ' Sets the printer paper size.
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim hPrinter As HWND
 			Dim pDevMode As DEVMODE Ptr
 			Dim pi2 As PRINTER_INFO_2 Ptr
@@ -1561,7 +1599,7 @@ Namespace My.Sys.ComponentModel
 	End Function
 	
 	Private Function Printer.SetPrinterQuality (ByRef PrinterName As WString, ByVal nMode As PrinterQuality) As Long ' Specifies the printer resolution.
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim hPrinter As HWND
 			Dim pDevMode As DEVMODE Ptr
 			Dim pi2 As PRINTER_INFO_2 Ptr
@@ -1647,7 +1685,7 @@ Namespace My.Sys.ComponentModel
 	
 	
 	Private Function Printer.GetPrinterDriverVersion (ByRef PrinterName As WString) As Long  ' Returns the version number of the printer driver.
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Function = DeviceCapabilities (PrinterName, ByVal NULL, DC_DRIVER, ByVal NULL, ByVal NULL)
 		#else
 			Function = 0
@@ -1655,7 +1693,7 @@ Namespace My.Sys.ComponentModel
 	End Function
 	
 	Private Function Printer.GetPrinterDuplex (ByRef PrinterName As WString) As Long  ' If the printer supports duplex printing, the return value is 1; otherwise, the return value is zero.
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Function = DeviceCapabilities (PrinterName, ByVal NULL, DC_DUPLEX, ByVal NULL, ByVal NULL)
 		#else
 			Function = 0
@@ -1665,7 +1703,7 @@ Namespace My.Sys.ComponentModel
 	
 	Private Function Printer.GetPrinterFromPort (ByRef sPortName As WString) As String ' Returns the printer name for a given port name.
 		Dim i As Long, Level As Long, cbNeeded As Long, cbReturned As Long, Names As String
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim   Pi5() As PRINTER_INFO_5
 			Level = 5
 			EnumPrinters  PRINTER_ENUM_LOCAL, ByVal NULL, Level, ByVal NULL, 0, @cbNeeded, @cbReturned
@@ -1686,7 +1724,7 @@ Namespace My.Sys.ComponentModel
 	
 	Private Function Printer.GetPrinterHorizontalResolution (ByRef PrinterName As WString) As Long ' Width, in pixels, of the printable area of the page.
 		Dim nResult As Long
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim hdc As HDC
 			hdc = CreateIC (ByVal NULL,   PrinterName, ByVal NULL, ByVal NULL)
 			If hdc = 0 Then Exit Function
@@ -1699,7 +1737,7 @@ Namespace My.Sys.ComponentModel
 	
 	Private Function Printer.GetPrinterVerticalResolution (ByRef PrinterName As WString) As Long ' Width, in pixels, of the printable area of the page.
 		Dim nResult As Long
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim hdc As HDC
 			hdc = CreateIC (ByVal NULL,   PrinterName, ByVal NULL, ByVal NULL)
 			If hdc = 0 Then Exit Function
@@ -1743,7 +1781,7 @@ Namespace My.Sys.ComponentModel
 	#endif
 	
 	Private Function Printer.GetPrinterMaxCopies (ByRef PrinterName As WString) As Long
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Function = DeviceCapabilities (  PrinterName, ByVal NULL, DC_COPIES, ByVal NULL, ByVal NULL)
 		#else
 			Function = 0
@@ -1751,7 +1789,7 @@ Namespace My.Sys.ComponentModel
 	End Function
 	
 	Private Function Printer.GetPrinterMaxPaperHeight (ByRef PrinterName As WString) As Long  ' Returns the maximum paper width in tenths of a millimeter.
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim r As Long
 			r = DeviceCapabilities (PrinterName, ByVal NULL,DC_MAXEXTENT, ByVal NULL, ByVal NULL)
 			If r = -1 Then Exit Function
@@ -1762,7 +1800,7 @@ Namespace My.Sys.ComponentModel
 	End Function
 	
 	Private Function Printer.GetPrinterMaxPaperWidth (ByRef PrinterName As WString) As Long ' Returns the maximum paper width in tenths of a millimeter.
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim r As Long
 			r = DeviceCapabilities (PrinterName, ByVal NULL, DC_MAXEXTENT, ByVal NULL, ByVal NULL)
 			If r = -1 Then Exit Function
@@ -1781,7 +1819,7 @@ Namespace My.Sys.ComponentModel
 	' ========================================================================================
 	Private Function Printer.EnumPrinterPorts () As String
 		Dim i As Long, Level As Long, cbNeeded As Long, cbReturned As Long, Names As String
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim   Pi5( ) As  PRINTER_INFO_5
 			Level = 5
 			EnumPrinters  PRINTER_ENUM_LOCAL, NULL, Level,  NULL, 0, @cbNeeded, @cbReturned
@@ -1801,7 +1839,7 @@ Namespace My.Sys.ComponentModel
 	' ========================================================================================
 	Private Function Printer.EnumPrinters_ () As String
 		Dim i As Long, Level As Long, cbNeeded As Long, cbReturned As Long, Names As String
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim   Pi5( )  As PRINTER_INFO_5
 			Level = 5
 			EnumPrinters PRINTER_ENUM_LOCAL, ByVal NULL, Level, ByVal NULL, 0, @cbNeeded, @cbReturned
@@ -1827,7 +1865,7 @@ Namespace My.Sys.ComponentModel
 	'/
 	
 	Private Function Printer.GetDefaultPrinterDevice () As String  ' Retrieves the name of the default printer device.
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim buffer As ZString * MAX_PATH
 			GetProfileString "WINDOWS", "DEVICE", "", buffer, SizeOf(buffer)
 			Function = Parse (buffer, 2)
@@ -1838,7 +1876,7 @@ Namespace My.Sys.ComponentModel
 	
 	
 	Private Function Printer.GetDefaultPrinterDriver () As String  ' Retrieves the name of the default printer driver.
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim buffer As ZString * MAX_PATH
 			GetProfileString "WINDOWS", "DEVICE", "", buffer, SizeOf(buffer)
 			Function = Parse (buffer, 1)
@@ -1849,7 +1887,7 @@ Namespace My.Sys.ComponentModel
 	
 	
 	Private Function Printer.GetDefaultPrinterPort () As String  ' Retrieves the name of the default printer port.
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim buffer As ZString * MAX_PATH
 			GetProfileString  "WINDOWS", "DEVICE", "", buffer, SizeOf(buffer)
 			Function = Parse (buffer, 3)
@@ -1859,7 +1897,7 @@ Namespace My.Sys.ComponentModel
 	End Function
 	
 	Private Sub Printer.ShowPrinterProperties()
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim hPrinter As HWND
 			OpenPrinter printerName, @hPrinter, ByVal 0&
 			PrinterProperties  GetActiveWindow(), hPrinter
@@ -1871,5 +1909,9 @@ Namespace My.Sys.ComponentModel
 	Private Constructor Printer
 		Canvas.Ctrl = @This
 		WLet(FClassName, "Printer")
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'Web and Android: A4 like PageSetupDialog (the first paper of the list is Letter)
+			m_PageSize = PrinterPaperSize.ppsA4
+		#endif
 	End Constructor
 End Namespace

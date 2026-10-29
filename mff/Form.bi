@@ -84,6 +84,13 @@ Namespace My.Sys.Forms
 		FStyle(6)      As Integer
 		FClassStyle(6) As Integer
 		FWindowState   As Integer
+		#ifdef __USE_WASM__
+			'The bounds of the form before it was maximized or minimized (WindowState)
+			FRestoreLeft   As Integer
+			FRestoreTop    As Integer
+			FRestoreWidth  As Integer
+			FRestoreHeight As Integer
+		#endif
 		FFormCreated   As Boolean
 		FDPIChanging   As Boolean
 		FShowInTaskbar As Boolean
@@ -92,6 +99,15 @@ Namespace My.Sys.Forms
 			FExternalEventAction As WString * 256
 			FExternalEventExtra  As WString * 256
 			Declare Sub UpdateExternalEventFilter
+			Declare Function IsSecondForm As Boolean
+			FInShowModal As Boolean
+			'The size of the form of the designer: a modal form on a tablet (Show)
+			FDialogLeft As Integer
+			FDialogTop As Integer
+			FDialogWidth As Integer
+			FDialogHeight As Integer
+			Declare Function IsToolWindow As Boolean
+			Declare Sub ApplyAndroidStyle
 		#endif
 		Declare Static Sub ActiveControlChanged(ByRef Sender As Control)
 		#ifdef __USE_GTK__
@@ -277,6 +293,12 @@ Namespace My.Sys.Forms
 		OnShow                  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
 	End Type
 End Namespace
+
+#ifdef __USE_JNI__
+	'Android: the units of the design per inch. 96 keeps the physical size of the design (a form of the designer);
+	'160 makes a unit one dp of Android (smaller, for big forms). Set it before the main form is created (onCreate).
+	Dim Shared As Single AndroidDesignDpi = 96
+#endif
 
 #ifndef __USE_MAKE__
 	#include once "Form.bas"

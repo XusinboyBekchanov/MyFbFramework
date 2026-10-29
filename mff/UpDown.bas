@@ -530,10 +530,11 @@ Namespace My.Sys.Forms
 				.Width             = 40
 				.Height            = 24
 			#elseif defined(__USE_JNI__)
+				'The number and the arrows like the ones of Windows (mffActivity.MffSpinBox)
 				WLet(FClassAncestor, "mff:NumberPicker")
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.Width             = 40
-				.Height            = 60
+				.Height            = 24
 			#endif
 			WLet(FClassName, "UpDown")
 		End With

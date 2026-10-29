@@ -6,11 +6,30 @@
 
 #include once "Object.bi"
 #include once "Dictionary.bi"
-#ifdef __USE_WINAPI__
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	'Web and Android: the program has no sockets to listen to
+#elseif defined(__FB_WIN32__)
+	'Windows (WinAPI and GTK): Winsock
+	#define __MFF_HTTPSERVER_SOCKETS__
 	#include once "win/winsock2.bi"
 	#include once "windows.bi"
 	#include once "win/shellapi.bi"
 	#include once "fbthread.bi"
+	#define HTTPServerSendFlags 0
+#else
+	'Linux and the other Unix systems: the sockets of the C library (crt/sys/socket.bi has the names of Winsock:
+	'SOCKET, PSOCKADDR, SOCKET_ERROR, closesocket, opensocket)
+	#define __MFF_HTTPSERVER_SOCKETS__
+	#include once "crt/sys/socket.bi"
+	#include once "crt/netinet/in.bi"
+	#include once "crt/arpa/inet.bi"
+	#include once "crt/unistd.bi"
+	#include once "fbthread.bi"
+	#ifndef INVALID_SOCKET
+		#define INVALID_SOCKET (-1)
+	#endif
+	'A browser which closed the connection would end the program with SIGPIPE
+	#define HTTPServerSendFlags MSG_NOSIGNAL
 #endif
 
 Using My.Sys.ComponentModel
@@ -31,7 +50,7 @@ Namespace My.Sys.Forms
 	End Type
 	
 	Type CLIENT
-		#ifdef __USE_WINAPI__
+		#ifdef __MFF_HTTPSERVER_SOCKETS__
 			_socket     As SOCKET
 		#endif
 		ip          As Integer
@@ -42,11 +61,11 @@ Namespace My.Sys.Forms
 		server      As Any Ptr
 	End Type
 	
-	'This class implements a simple HTTP server (Windows only).
+	'This class implements a simple HTTP server (Windows, Linux and the other Unix systems).
 	Type HTTPServer Extends Component
 	Private:
-		#define BuffSize 16
-		#ifdef __USE_WINAPI__
+		#define BuffSize 16384
+		#ifdef __MFF_HTTPSERVER_SOCKETS__
 			_socket     As SOCKET
 		#endif
 		acceptthread    As Any Ptr

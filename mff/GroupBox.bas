@@ -80,12 +80,12 @@ Namespace My.Sys.Forms
 			If widget Then gtk_frame_set_label(GTK_FRAME(widget), ToUtf8(Value))
 		#elseif defined(__USE_JNI__)
 			If FHandle AndAlso Activity Then
-				Dim As jstring jText = (*env)->NewStringUTF(env, ToUtf8(Value))
+				Dim As jstring jText = (*env)->NewStringUTF(env, ToUtf8(RemoveMnemonic(Value)))
 				(*env)->CallVoidMethod(env, Activity, ActivityMethodID("groupSetTitle", "(Landroid/view/View;Ljava/lang/String;)V"), FHandle, jText)
 				(*env)->DeleteLocalRef(env, jText)
 			End If
 		#elseif defined(__USE_WASM__)
-			If FHandle Then SetInnerTextByStringId(Trim(Str(FHandle)) & "legend", ToUtf8(Value))
+			If FHandle Then SetInnerTextByStringId(Trim(Str(FHandle)) & "legend", ToUtf8(RemoveMnemonic(Value)))
 		#endif
 	End Property
 	
@@ -110,7 +110,11 @@ Namespace My.Sys.Forms
 	
 	#ifdef __USE_WASM__
 		Private Function GroupBox.GetContent() As UString
-			Return "<legend id=""" & Trim(Str(@This)) & "legend"">" & HtmlEscape(FText) & "</legend>"
+			'The padding box of a fieldset (the place of its absolute children) is under the legend: the children are in
+			'the client element over the whole fieldset like on Windows (Top 0 is the top of the group box). The legend is
+			'one line high also without a text, the client element goes up by one line and out over the 2px border
+			Return "<legend id=""" & Trim(Str(@This)) & "legend"" style=""min-height: 1lh;"">" & HtmlMnemonic(FText) & "</legend>" & _
+			"<div id=""" & Trim(Str(@This)) & "Client"" style=""position: absolute; left: -2px; top: -1lh; right: -2px; bottom: -2px;""></div>"
 		End Function
 	#endif
 	

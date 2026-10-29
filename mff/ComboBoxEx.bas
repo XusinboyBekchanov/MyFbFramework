@@ -8,6 +8,34 @@
 #include once "ComboBoxEx.bi"
 
 Namespace My.Sys.Forms
+	#ifdef __USE_WASM__
+		'Web: the picture of the item from the image list of the ComboBoxEx (the resource name of ImageList.Add)
+		Private Sub ComboBoxItemShowImage(Item As ComboBoxItem Ptr, ByVal ItemIndex As Integer)
+			If Item = 0 OrElse Item->Parent = 0 OrElse Item->Parent->Handle = 0 Then Exit Sub
+			Dim As ImageList Ptr Imgs = Cast(ComboBoxEx Ptr, Item->Parent)->ImagesList
+			Dim As String URLs
+			If Imgs <> 0 AndAlso Item->ImageIndex >= 0 AndAlso Item->ImageIndex < Imgs->Items.Count Then URLs = FindResourceFile(Imgs->Items.Item(Item->ImageIndex)->Text)
+			SetSelectItemImage(Item->Parent->Handle, ItemIndex, URLs, Item->Indent)
+		End Sub
+	#elseif defined(__USE_JNI__)
+		'Android: the text of the row of the item: the indent, Chr(1) & the picture file & Chr(1) (a picture in the text of
+		'the row of mffActivity) and the text
+		Private Function ComboBoxItemRowText(Item As ComboBoxItem Ptr) As String
+			If Item = 0 Then Return ""
+			Dim As String sPicture
+			Dim As ImageList Ptr Imgs
+			If Item->Parent Then Imgs = Cast(ComboBoxEx Ptr, Item->Parent)->ImagesList
+			If Imgs <> 0 AndAlso Item->ImageIndex >= 0 AndAlso Item->ImageIndex < Imgs->Items.Count Then sPicture = FindResourceFile(Imgs->Items.Item(Item->ImageIndex)->Text)
+			If sPicture <> "" Then sPicture = Chr(1) & sPicture & Chr(1)
+			Return Space(Item->Indent * 2) & sPicture & ToUtf8(Item->Text)
+		End Function
+
+		Private Sub ComboBoxItemShowImage(Item As ComboBoxItem Ptr, ByVal ItemIndex As Integer)
+			If Item = 0 OrElse Item->Parent = 0 OrElse Item->Parent->Handle = 0 Then Exit Sub
+			TableSetRow(Item->Parent->Handle, ItemIndex, ComboBoxItemRowText(Item))
+		End Sub
+	#endif
+
 	Private Function ComboBoxItem.Index As Integer
 		If Parent Then
 			Return Cast(ComboBoxEx Ptr, Parent)->Items.IndexOf(@This)
@@ -79,6 +107,8 @@ Namespace My.Sys.Forms
 					cbei.iImage = FImageIndex
 					SendMessage Parent->Handle, CBEM_SETITEM, 0, CInt(@cbei)
 				End If
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				ComboBoxItemShowImage(@This, Index)
 			#endif
 		End If
 	End Property
@@ -235,8 +265,13 @@ Namespace My.Sys.Forms
 			PItem->Parent = Parent
 			#ifdef __USE_WINAPI__
 				SendMessage Parent->Handle, CBEM_INSERTITEM, 0, CInt(@cbei)
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_JNI__)
+				If Parent->Handle Then InsertSelectItem(Parent->Handle, IIf(Cast(ComboBoxEx Ptr, Parent)->Sort, i, IIf(Index = -1, FItems.Count - 1, Index)), ComboBoxItemRowText(PItem))
+			#elseif defined(__USE_WASM__)
 				If Parent->Handle Then InsertSelectItem(Parent->Handle, IIf(Cast(ComboBoxEx Ptr, Parent)->Sort, i, IIf(Index = -1, FItems.Count - 1, Index)), ToUtf8(FText))
+				#ifdef __USE_WASM__
+					ComboBoxItemShowImage(PItem, IIf(Cast(ComboBoxEx Ptr, Parent)->Sort, i, IIf(Index = -1, FItems.Count - 1, Index)))
+				#endif
 			#endif
 		End If
 		Return PItem
@@ -570,7 +605,11 @@ Namespace My.Sys.Forms
 					#endif
 					'The items are in ComboBoxEx.Items, not in the items of ComboBoxEdit
 					For i As Integer = 0 To .Items.Count - 1
+						#ifdef __USE_JNI__
+						AddSelectItem(.FHandle, ComboBoxItemRowText(.Items.Item(i)))
+					#else
 						AddSelectItem(.FHandle, ToUtf8(.Items.Item(i)->Text))
+					#endif
 					Next
 					If .FItemIndex <> -1 Then SetSelectedIndex(.FHandle, .FItemIndex)
 				End With
@@ -873,7 +912,7 @@ Namespace My.Sys.Forms
 	Private Destructor ComboBoxEx
 		Items.Clear
 		#ifdef __USE_WINAPI__
-			UnregisterClass "ComboBoxEx", GetModuleHandle(NULL)
+			'UnregisterClass "ComboBoxEx", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace

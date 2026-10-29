@@ -38,7 +38,18 @@ Namespace My.Sys.Forms
 		FSelIntVal          As Integer
 		FSelBoolVal         As Integer
 		m_bMenuOpen         As Boolean
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Declare Function RtfToText(ByRef Value As WString, Html As Boolean) As UString
+		#endif
+		#ifdef __USE_WASM__
+			'A command of the element (RICHTEXTCMD of mff_lib.js): "get..." returns the value
+			Declare Function WebCmd(Cmd As String, ByRef Value As WString = "") As UString
+			FFindStart As Integer
+		#endif
 	Protected:
+		#ifdef __USE_WASM__
+			Declare Virtual Function GetContent() As UString
+		#endif
 		#ifdef __USE_WINAPI__
 			hRichTextBox    As HINSTANCE
 			Pf              As PARAFORMAT

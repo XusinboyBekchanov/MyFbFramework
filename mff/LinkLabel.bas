@@ -178,6 +178,8 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "div")
+				'The lines of the text are kept (CR LF like the SysLink of Windows), the markup is HTML
+				FElementStyle = "white-space: pre-wrap;"
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "mff:Link")
@@ -191,8 +193,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor LinkLabel
-		#ifdef __USE_WINAPI__
-			UnregisterClass "LinkLabel", GetModuleHandle(NULL)
-		#endif
+		'The class is not unregistered: it is shared by all LinkLabels (for example the tooltips of the
+		'code editor tabs), the other ones (frmAbout) could not create their window after it
 	End Destructor
 End Namespace

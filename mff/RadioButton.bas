@@ -121,10 +121,10 @@ Namespace My.Sys.Forms
 			#endif
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
-				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(*FText)))
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(RemoveMnemonic(*FText))))
 			End If
 		#elseif defined(__USE_WASM__)
-			If FHandle Then SetInnerTextByStringId(Trim(Str(FHandle)) & "label", ToUtf8(*FText))
+			If FHandle Then SetInnerTextByStringId(Trim(Str(FHandle)) & "label", ToUtf8(RemoveMnemonic(*FText)))
 		#endif
 	End Property
 	
@@ -195,6 +195,11 @@ Namespace My.Sys.Forms
 			With QRadioButton(@Sender)
 				If .FChecked Then .Checked = .FChecked
 			End With
+		#elseif defined(__USE_WASM__)
+			'Checked set before the element (a form before Show)
+			With QRadioButton(@Sender)
+				If .FChecked Then SetChecked(Trim(Str(.FHandle)) & "radio", True)
+			End With
 		#endif
 	End Sub
 	
@@ -208,7 +213,8 @@ Namespace My.Sys.Forms
 	
 	#ifdef __USE_WASM__
 		Private Function RadioButton.GetContent() As UString
-			Return "<input type=""radio"" id=""" & Trim(Str(@This)) & "radio"" name=""" & IIf(FParent, FParent->Name, "") & """ value=""" & *FName & """/>" & !"\r" & "<label for=""" & Trim(Str(@This)) & "radio"" id=""" & Trim(Str(@This)) & "label"">" & HtmlEscape(FText) & "</label>"
+			'margin-block: the browser gives a radio button a top margin without a bottom one, it would be lower than its text
+			Return "<input type=""radio"" style=""margin-block: 0"" id=""" & Trim(Str(@This)) & "radio"" name=""" & IIf(FParent, FParent->Name, "") & """ value=""" & *FName & """/>" & !"\r" & "<label for=""" & Trim(Str(@This)) & "radio"" id=""" & Trim(Str(@This)) & "label"">" & HtmlMnemonic(FText) & "</label>"
 		End Function
 	#endif
 	

@@ -387,7 +387,7 @@ Namespace My.Sys.Forms
 	
 	Private Destructor Panel
 		#ifdef __USE_WINAPI__
-			UnregisterClass "Panel", GetModuleHandle(NULL)
+			'UnregisterClass "Panel", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace

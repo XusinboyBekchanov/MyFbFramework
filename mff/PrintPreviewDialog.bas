@@ -1,5 +1,14 @@
 ﻿#include once "PrintPreviewDialog.bi"
 
+'The box of the commands of the pages and of the zoom: Android - the second row (hbxPages)
+#ifdef __USE_JNI__
+	#define PreviewPagesBox hbxPages
+	#define PreviewZoomBox hbxPages
+#else
+	#define PreviewPagesBox hbxCommands
+	#define PreviewZoomBox hbxCommands
+#endif
+
 #ifndef ReadProperty_Off
 	Private Function PrintPreviewDialog.ReadProperty(PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
@@ -95,6 +104,16 @@ Private Sub PrintPreviewDialog.cboOrientation_Selected(ByRef Sender As ComboBoxE
 End Sub
 
 Private Sub PrintPreviewDialog.Form_Show(ByRef Sender As Form)
+	' The orientation of the document (Page Setup can change it)
+	cboOrientation.ItemIndex = IIf(pnlPrintPreviewControl.Document->PrinterSettings.Orientation = PrinterOrientation.poLandscape, 1, 0)
+	' The paper of the document (Page Setup can change it)
+	For i As Integer = 0 To cboSize.ItemCount - 1
+		Dim As PaperSize Ptr pPaperSize = Cast(PaperSize Ptr, cboSize.ItemData(i))
+		If pPaperSize AndAlso pPaperSize->RawKind = pnlPrintPreviewControl.Document->PrinterSettings.PageSize Then
+			If cboSize.ItemIndex <> i Then cboSize.ItemIndex = i
+			Exit For
+		End If
+	Next
 	pnlPrintPreviewControl.Document->Repaint
 	ChangePagesCount
 End Sub
@@ -154,6 +173,22 @@ Private Constructor PrintPreviewDialog
 		.Designer = @This
 		.Parent = @frmDialog
 	End With
+	#ifdef __USE_JNI__
+		'Android: one row of the commands does not fit in the screen of a phone. The first row - Print, the orientation,
+		'the paper and Fit to Window, the second one - the pages and the zoom (the TrackBar takes the rest of its width,
+		'the pages are at the left of it)
+		With hbxPages
+			.Name = "hbxPages"
+			.Align = DockStyle.alTop
+			.SetBounds 0, 22, 620, 22
+			.Designer = @This
+			.Parent = @frmDialog
+		End With
+		lblPrevious.Align = DockStyle.alLeft
+		txtPageNumber.Align = DockStyle.alLeft
+		lblPagesCount.Align = DockStyle.alLeft
+		lblNext.Align = DockStyle.alLeft
+	#endif
 	' cmdPrint
 	With cmdPrint
 		.Name = "cmdPrint"
@@ -223,7 +258,7 @@ Private Constructor PrintPreviewDialog
 		.SetBounds 600, 0, 20, 22
 		.Designer = @This
 		.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @lblPrevious_Click)
-		.Parent = @hbxCommands
+		.Parent = @PreviewPagesBox
 	End With
 	' txtPageNumber
 	With txtPageNumber
@@ -235,7 +270,7 @@ Private Constructor PrintPreviewDialog
 		.SetBounds 310, 0, 20, 22
 		.Designer = @This
 		.OnActivate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox), @txtPageNumber_Activate)
-		.Parent = @hbxCommands
+		.Parent = @PreviewPagesBox
 	End With
 	' lblPagesCount
 	With lblPagesCount
@@ -248,7 +283,7 @@ Private Constructor PrintPreviewDialog
 		.Alignment = AlignmentConstants.taCenter
 		.SetBounds 600, 0, 50, 22
 		.Designer = @This
-		.Parent = @hbxCommands
+		.Parent = @PreviewPagesBox
 	End With
 	' lblNext
 	With lblNext
@@ -262,7 +297,7 @@ Private Constructor PrintPreviewDialog
 		.SetBounds 600, 0, 20, 22
 		.Designer = @This
 		.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @lblNext_Click)
-		.Parent = @hbxCommands
+		.Parent = @PreviewPagesBox
 	End With
 	' cmdFitToWindow
 	With cmdFitToWindow
@@ -291,7 +326,7 @@ Private Constructor PrintPreviewDialog
 		.SetBounds 280, 0, 20, 22
 		.Designer = @This
 		.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @lblPlus_Click)
-		.Parent = @hbxCommands
+		.Parent = @PreviewZoomBox
 	End With
 	' trbPercent
 	With trbPercent
@@ -301,11 +336,15 @@ Private Constructor PrintPreviewDialog
 		.MinValue = 10
 		.MaxValue = 500
 		.Position = 75
-		.Align = DockStyle.alRight
+		#ifdef __USE_JNI__
+			.Align = DockStyle.alClient
+		#else
+			.Align = DockStyle.alRight
+		#endif
 		.SetBounds 380, 0, 200, 22
 		.Designer = @This
 		.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @trbPercent_Change)
-		.Parent = @hbxCommands
+		.Parent = @PreviewZoomBox
 		pnlPrintPreviewControl.Zoom = 75
 	End With
 	' lblMinus
@@ -316,12 +355,16 @@ Private Constructor PrintPreviewDialog
 		.Caption = "-"
 		.CenterImage = True
 		.ID = 1012
-		.Align = DockStyle.alRight
+		#ifdef __USE_JNI__
+			.Align = DockStyle.alLeft
+		#else
+			.Align = DockStyle.alRight
+		#endif
 		.Alignment = AlignmentConstants.taCenter
 		.SetBounds 600, 0, 20, 22
 		.Designer = @This
 		.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @lblMinus_Click)
-		.Parent = @hbxCommands
+		.Parent = @PreviewZoomBox
 	End With
 	' lblPercent
 	With lblPercent
@@ -335,6 +378,6 @@ Private Constructor PrintPreviewDialog
 		.Alignment = AlignmentConstants.taCenter
 		.SetBounds 570, 0, 50, 22
 		.Designer = @This
-		.Parent = @hbxCommands
+		.Parent = @PreviewZoomBox
 	End With
 End Constructor

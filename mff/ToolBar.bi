@@ -294,9 +294,9 @@ Namespace My.Sys.Forms
 End Namespace
 
 #ifdef __EXPORT_PROCS__
-	Declare Function ToolBarAddButtonWithImageIndex Alias "ToolBarAddButtonWithImageIndex" (tb As My.Sys.Forms.ToolBar Ptr, FStyle As ToolButtonStyle = My.Sys.Forms.tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As ToolButtonState = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr
+	Declare Function ToolBarAddButtonWithImageIndex Alias "ToolBarAddButtonWithImageIndex" (tb As My.Sys.Forms.ToolBar Ptr, FStyle As My.Sys.Forms.ToolButtonStyle = My.Sys.Forms.tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As My.Sys.Forms.ToolButtonState = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr
 	
-	Declare Function ToolBarAddButtonWithImageKey Alias "ToolBarAddButtonWithImageKey"(tb As My.Sys.Forms.ToolBar Ptr, FStyle As ToolButtonStyle = My.Sys.Forms.tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As ToolButtonState = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr
+	Declare Function ToolBarAddButtonWithImageKey Alias "ToolBarAddButtonWithImageKey"(tb As My.Sys.Forms.ToolBar Ptr, FStyle As My.Sys.Forms.ToolButtonStyle = My.Sys.Forms.tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As My.Sys.Forms.ToolButtonState = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr
 	
 	Declare Sub ToolBarRemoveButton Alias "ToolBarRemoveButton"(tb As My.Sys.Forms.ToolBar Ptr, Index As Integer)
 	

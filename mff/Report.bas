@@ -234,8 +234,42 @@ Namespace My.Sys.Forms
 		This.Parent = 0
 	End Sub
 
+	#ifdef __USE_WASM__
+		Private Constructor ReportHost
+			WLet(FClassAncestor, "div")
+			WLet(FClassName, "ReportHost")
+			'The text of a label or a field is shown like the STATIC window of Windows
+			FElementStyle = "overflow: hidden; white-space: pre-wrap; word-break: break-word;"
+		End Constructor
+
+		Private Function ReportHost.GetContent() As UString
+			If Owner = 0 OrElse Cast(Component Ptr, Owner)->ClassName = "Report" Then Return ""
+			Return HtmlEscape(Cast(Component Ptr, Owner)->ReadProperty("text"))
+		End Function
+	#endif
+
 	Private Sub ReportControl.CreateHandle
-		#ifdef __USE_WINAPI__
+		#ifdef __USE_WASM__
+			If FHandle <> 0 Then Return
+			'The report is in the control of the designer, an item in the element of its report
+			Dim As Control Ptr ParentCtrl
+			If This Is Report Then
+				ParentCtrl = FParentHandle
+			ElseIf FParent <> 0 AndAlso FParent->Parent <> 0 Then
+				ParentCtrl = FParent->Parent->Handle
+			End If
+			If ParentCtrl = 0 Then Return
+			Dim As ReportHost Ptr Host = _New(ReportHost)
+			Host->Owner = @This
+			Host->DesignMode = True
+			Host->SetBounds FLeft, FTop, FWidth, FHeight
+			ParentCtrl->Add Host
+			If Host->Handle = 0 Then Host->CreateWnd
+			FHandle = Host->Handle
+			'The panel of the designer shows the part of the report in it (scroll bars like a designed form, CREATEELEMENT)
+			If This Is Report Then SetStyle(ParentCtrl->Handle, "overflow", "auto")
+			If Not (This Is Report) Then ApplyAlignmentStyle()
+		#elseif defined(__USE_WINAPI__)
 			If FHandle <> 0 Then Return
 			If This Is Report Then
 				If FParentHandle = 0 Then Return
@@ -331,7 +365,9 @@ Namespace My.Sys.Forms
 	End Sub
 
 	Private Sub ReportControl.Invalidate
-		#ifdef __USE_WINAPI__
+		#ifdef __USE_WASM__
+			If FHandle <> 0 Then Cast(Control Ptr, FHandle)->Repaint
+		#elseif defined(__USE_WINAPI__)
 			If FHandle <> 0 Then InvalidateRect(FHandle, NULL, True)
 		#elseif defined(__USE_GTK__)
 			If widget <> 0 Then gtk_widget_queue_draw(widget)
@@ -340,7 +376,9 @@ Namespace My.Sys.Forms
 
 	Private Sub ReportControl.Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 		Base.Move(cLeft, cTop, cWidth, cHeight)
-		#ifdef __USE_WINAPI__
+		#ifdef __USE_WASM__
+			If FHandle <> 0 Then Cast(Control Ptr, FHandle)->SetBounds FLeft, FTop, FWidth, FHeight
+		#elseif defined(__USE_WINAPI__)
 			If This.ClassName = "Report" AndAlso FHandle <> 0 Then
 				SetWindowPos(FHandle, 0, FLeft, FTop, FWidth, FHeight, SWP_NOZORDER Or SWP_NOACTIVATE)
 			End If
@@ -355,7 +393,14 @@ Namespace My.Sys.Forms
 	End Sub
 
 	Private Sub ReportControl.DestroyHandle
-		#ifdef __USE_WINAPI__
+		#ifdef __USE_WASM__
+			If FHandle <> 0 Then
+				Dim As ReportHost Ptr Host = FHandle
+				FHandle = 0
+				If Host->Parent Then Host->Parent->Remove Host
+				_Delete(Host)
+			End If
+		#elseif defined(__USE_WINAPI__)
 			If This.Handle <> 0 Then
 				DestroyWindow(This.Handle)
 				This.Handle = 0
@@ -371,7 +416,16 @@ Namespace My.Sys.Forms
 
 	'See the declaration in Report.bi for the full rationale.
 	Private Sub ReportControl.ApplyAlignmentStyle
-		#ifdef __USE_WINAPI__
+		#ifdef __USE_WASM__
+			If FHandle = 0 Then Return
+			Dim As Any Ptr pAlign = This.ReadProperty("alignment")
+			Dim As Any Ptr pWrap  = This.ReadProperty("wordwraps")
+			If pAlign = 0 Then Return
+			Dim As Integer Align = *Cast(Integer Ptr, pAlign)
+			Dim As Boolean Wraps = IIf(pWrap <> 0, *Cast(Boolean Ptr, pWrap), True)
+			SetStyle(FHandle, "text-align", IIf(Align = 1, "center", IIf(Align = 2, "right", "left")))
+			SetStyle(FHandle, "white-space", IIf(Wraps, "pre-wrap", "pre"))
+		#elseif defined(__USE_WINAPI__)
 			If FHandle = 0 Then Return
 			Dim As Any Ptr pAlign = This.ReadProperty("alignment")
 			Dim As Any Ptr pWrap  = This.ReadProperty("wordwraps")
@@ -431,7 +485,9 @@ Namespace My.Sys.Forms
 
 	Private Property ReportControl.Visible(Value As Boolean)
 		FVisible = Value
-		#ifdef __USE_WINAPI__
+		#ifdef __USE_WASM__
+			If FHandle <> 0 Then Cast(Control Ptr, FHandle)->Visible = Value
+		#elseif defined(__USE_WINAPI__)
 			If FHandle <> 0 Then ShowWindow(FHandle, IIf(Value, SW_SHOW, SW_HIDE))
 		#elseif defined(__USE_GTK__)
 			If widget <> 0 Then gtk_widget_set_visible(widget, Value)
@@ -466,6 +522,15 @@ Namespace My.Sys.Forms
 			FParentHandle = Value
 			If FDesignMode AndAlso This.ClassName = "Report" Then CreateHandle()
 		End Property
+	#elseif defined(__USE_WASM__)
+		Private Property ReportControl.ParentHandle As Any Ptr
+			Return FParentHandle
+		End Property
+
+		Private Property ReportControl.ParentHandle(Value As Any Ptr)
+			FParentHandle = Value
+			If FDesignMode AndAlso This.ClassName = "Report" Then CreateHandle()
+		End Property
 	#endif
 	
 	#ifndef ReadProperty_Off
@@ -476,7 +541,7 @@ Namespace My.Sys.Forms
 			Case "parent":    If This.ClassName <> "Report" Then Return FParent Else Return 0
 			#ifdef __USE_GTK__
 				Case "parentwidget": Return FParentWidget
-			#elseif defined(__USE_WINAPI__)
+			#elseif defined(__USE_WINAPI__) OrElse defined(__USE_WASM__)
 				Case "parenthandle": Return @FParentHandle
 			#endif
 			Case Else: Return Base.ReadProperty(PropertyName)
@@ -493,6 +558,8 @@ Namespace My.Sys.Forms
 				Case "parentwidget": This.ParentWidget = Value
 			#elseif defined(__USE_WINAPI__)
 				Case "parenthandle": If Value <> 0 Then This.ParentHandle = *Cast(HWND Ptr, Value)
+			#elseif defined(__USE_WASM__)
+				Case "parenthandle": If Value <> 0 Then This.ParentHandle = *Cast(Any Ptr Ptr, Value)
 			#endif
 			Case "parent":   If This.ClassName <> "Report" Then This.Parent = Value
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
@@ -538,6 +605,8 @@ Namespace My.Sys.Forms
 			If FHandle Then
 				SetWindowTextW FHandle, FText
 			End If
+		#elseif defined(__USE_WASM__)
+			If FHandle Then SetInnerHTML(FHandle, ToUtf8(HtmlEscape(FText)))
 		#endif
 	End Property
 
@@ -686,6 +755,8 @@ Namespace My.Sys.Forms
 			If FHandle Then
 				SetWindowTextW FHandle, FText
 			End If
+		#elseif defined(__USE_WASM__)
+			If FHandle Then SetInnerHTML(FHandle, ToUtf8(HtmlEscape(FText)))
 		#endif
 	End Property
 

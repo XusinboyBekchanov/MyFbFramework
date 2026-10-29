@@ -33,6 +33,10 @@ Namespace My.Sys.ComponentModel
 			End If
 		#elseif defined(__USE_GTK__)
 			If Surface Then cairo_surface_destroy(Surface): Surface = 0
+		#elseif defined(__USE_WASM__)
+			PageDelete(@This)
+		#elseif defined(__USE_JNI__)
+			If Handle Then PageDelete(Handle): Handle = 0
 		#endif
 	End Destructor
 	
@@ -131,6 +135,26 @@ Namespace My.Sys.ComponentModel
 	#endif
 
 	Private Sub PrintDocument.Print
+		#ifdef __USE_WASM__
+			'Web: the print dialog of the browser prints the pages (it chooses the printer)
+			If Pages.Count = 0 Then Repaint
+			Dim As String Ids
+			For i As Integer = 0 To Pages.Count - 1
+				Ids &= Str(Cast(Integer, Pages.Item(i))) & " "
+			Next
+			PrintPages(Ids, ToUtf8(DocumentName))
+			Return
+		#elseif defined(__USE_JNI__)
+			'Android: the print dialog of the system prints the pages (it chooses the printer and the paper)
+			If Pages.Count = 0 Then Repaint
+			If Pages.Count = 0 Then Return
+			Dim As Any Ptr PageHandles(Pages.Count - 1)
+			For i As Integer = 0 To Pages.Count - 1
+				PageHandles(i) = Pages.Item(i)->Handle
+			Next
+			PrintPages(@PageHandles(0), Pages.Count, ToUtf8(DocumentName), PrinterSettings.PageWidth, PrinterSettings.PageLength, PrinterSettings.Orientation = PrinterOrientation.poLandscape)
+			Return
+		#endif
 		#ifdef __USE_GTK__
 			If Pages.Count = 0 Then Repaint
 			If Pages.Count = 0 Then Return
@@ -207,6 +231,17 @@ Namespace My.Sys.ComponentModel
 				NewPage->Canvas.Handle = cairo_create(NewPage->Surface)
 				NewPage->Canvas.layout = pango_cairo_create_layout(NewPage->Canvas.Handle)
 				pango_layout_set_font_description(NewPage->Canvas.layout, NewPage->Canvas.Font.Handle)
+			#elseif defined(__USE_WASM__)
+				'Web: an offscreen canvas of the page (mff_lib.js), the page is the Handle of its Canvas
+				PageCreate(NewPage, PrinterSettings.PrintableWidth, PrinterSettings.PrintableHeight)
+				NewPage->Canvas.Handle = NewPage
+			#elseif defined(__USE_JNI__)
+				'Android: the Canvas draws in pixels (the units of the form by the DPI of the main form, a canvas without a
+				'control has none), the page is an MffPage of them
+				NewPage->Canvas.xdpi = IIf(pApp AndAlso pApp->MainForm AndAlso pApp->MainForm->xdpi > 0, pApp->MainForm->xdpi, 1)
+				NewPage->Canvas.ydpi = IIf(pApp AndAlso pApp->MainForm AndAlso pApp->MainForm->ydpi > 0, pApp->MainForm->ydpi, 1)
+				NewPage->Handle = PageCreate(NewPage->Canvas.ScaleX(PrinterSettings.PrintableWidth), NewPage->Canvas.ScaleY(PrinterSettings.PrintableHeight))
+				NewPage->Canvas.Handle = NewPage->Handle
 			#endif
 			If OnPrintPage Then OnPrintPage(*Designer, This, NewPage->Canvas, HasMorePages)
 			#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)

@@ -122,7 +122,13 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Sub PrintPreviewControl.SetScrollsInfo
-		#ifndef __USE_GTK__
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'The place of the page stays in the new size (PaintControl)
+			If Document = 0 Then Exit Sub
+			FScrollX = Max(0, Min(FScrollX, Document->PrinterSettings.PrintableWidth * FZoom / 100 + 20 - ClientWidth))
+			FScrollY = Max(0, Min(FScrollY, Document->PrinterSettings.PrintableHeight * FZoom / 100 + 20 - ClientHeight))
+		#endif
+		#ifdef __USE_WINAPI__
 			Dim Si As SCROLLINFO
 			Dim As Integer MaxWidth, MaxHeight
 			
@@ -156,7 +162,7 @@ Namespace My.Sys.Forms
 			Si.nPos   = Min(Si.nPos, Si.nMax)
 			Si.nPage  = This.ClientHeight
 			SetScrollInfo(This.Handle, SB_VERT, @Si, True)
-		#else
+		#elseif defined(__USE_GTK__)
 			If FDrawingArea = 0 OrElse Document = 0 Then Exit Sub
 			' The scrolled window shows scrollbars when the drawing area is bigger than the view
 			Dim As Integer iWidth = Document->PrinterSettings.PrintableWidth * FZoom / 100
@@ -228,7 +234,36 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 
-	#ifndef __USE_GTK__
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		'Web: the recorded page (an offscreen canvas, PrintDocument.Repaint) scaled by Zoom on gray like the other systems,
+		'in the middle when it is smaller than the control, moved by the mouse wheel when it is bigger.
+		'Android: the page is an MffPage (a Picture), it is moved by a drag
+		Private Sub PrintPreviewControl.PaintControl
+			#ifdef __USE_JNI__
+				Dim As Any Ptr PaintView = IIf(layoutview, Cast(Any Ptr, layoutview), Cast(Any Ptr, FHandle))
+			#else
+				Dim As Any Ptr PaintView = FHandle
+			#endif
+			CanvasFillRect(PaintView, 0, 0, 100000, 100000, &hC0C0C0, 255)
+			If Document = 0 Then Exit Sub
+			If Document->Pages.Count = 0 Then Document->Repaint
+			If Document->Pages.Count = 0 Then Exit Sub
+			FCurrentPage = Max(1, Min(FCurrentPage, Document->Pages.Count))
+			Dim As Integer iWidth = Document->PrinterSettings.PrintableWidth * FZoom / 100
+			Dim As Integer iHeight = Document->PrinterSettings.PrintableHeight * FZoom / 100
+			If iWidth <= 0 OrElse iHeight <= 0 Then Exit Sub
+			SetScrollsInfo
+			Dim As Integer iLeft = IIf(iWidth + 20 <= ClientWidth, (ClientWidth - iWidth) \ 2, 10 - FScrollX)
+			Dim As Integer iTop = IIf(iHeight + 20 <= ClientHeight, (ClientHeight - iHeight) \ 2, 10 - FScrollY)
+			#ifdef __USE_JNI__
+				PageDraw(PaintView, Document->Pages.Item(FCurrentPage - 1)->Handle, ScaleX(iLeft), ScaleY(iTop), ScaleX(iWidth), ScaleY(iHeight))
+			#else
+				PageDraw(PaintView, Document->Pages.Item(FCurrentPage - 1), ScaleX(iLeft), ScaleY(iTop), ScaleX(iWidth), ScaleY(iHeight))
+			#endif
+		End Sub
+	#endif
+	
+	#ifdef __USE_WINAPI__
 		Private Sub PrintPreviewControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QPrintPreviewControl(Sender.Child)
@@ -302,7 +337,50 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub PrintPreviewControl.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Select Case Message.Msg
+			Case CM_PAINT
+				PaintControl
+			#ifdef __USE_JNI__
+			Case CM_MOUSEDOWN
+				'Android: a drag of the finger moves the page bigger than the control
+				If Message.wParam = 0 Then
+					FDragging = True
+					FDragX = MffPointX(Message.lParam)
+					FDragY = MffPointY(Message.lParam)
+				End If
+			Case CM_MOUSEMOVE
+				If FDragging AndAlso Document <> 0 Then
+					Dim As Integer x = MffPointX(Message.lParam), y = MffPointY(Message.lParam)
+					Dim As Integer dx = UnScaleX(x - FDragX), dy = UnScaleY(y - FDragY)
+					If dx <> 0 OrElse dy <> 0 Then
+						FScrollX -= dx: FScrollY -= dy
+						If dx <> 0 Then FDragX = x
+						If dy <> 0 Then FDragY = y
+						SetScrollsInfo
+						Repaint
+					End If
+				End If
+			Case CM_MOUSEUP, CM_MOUSELEAVE
+				FDragging = False
+			#endif
+			Case CM_MOUSEWHEEL
+				'Up (1) and down (-1): the page moves up and down, sideways when only its width is bigger
+				If Document <> 0 Then
+					Dim As Integer iWidth = Document->PrinterSettings.PrintableWidth * FZoom / 100
+					Dim As Integer iHeight = Document->PrinterSettings.PrintableHeight * FZoom / 100
+					If iHeight + 20 > ClientHeight Then
+						FScrollY -= Message.wParam * FVerticalMouseWheelChangeSize
+					ElseIf iWidth + 20 > ClientWidth Then
+						FScrollX -= Message.wParam * FHorizontalMouseWheelChangeSize
+					End If
+					SetScrollsInfo
+					Repaint
+					Message.Result = 1
+				End If
+			End Select
+		#endif
+		#ifdef __USE_WINAPI__
 			Static bShifted As Boolean, bCtrl As Boolean
 			Static scrStyle As Integer, scrDirection As Integer
 			Dim Si As SCROLLINFO
@@ -586,7 +664,7 @@ Namespace My.Sys.Forms
 		FTabStop = True
 		With This
 			.Child      = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.RegisterClass "PrintPreviewControl"
 				.ChildProc   = @WNDPROC
 				.ExStyle     = 0
@@ -595,6 +673,9 @@ Namespace My.Sys.Forms
 				FDefaultBackColor = .BackColor
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.DoubleBuffered = True
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				'The mouse wheel (Android: a drag) moves the page (ProcessMessage)
+				FMouseEvents = True
 			#endif
 			WLet(FClassName, "PrintPreviewControl")
 			FHorizontalArrowChangeSize = 10

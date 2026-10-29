@@ -242,7 +242,13 @@ Namespace My.Sys.Drawing
 	#endif
 	
 	Private Operator Cursor.Let(Value As Integer)
-		#ifdef __USE_WINAPI__
+		#ifdef __USE_WASM__
+			'Cursor = 0 restores the cursor of the element (after crWait: the children without their own cursor show it)
+			If Value = 0 Then
+				WLet(FResName, "")
+				If Ctrl AndAlso Ctrl->Handle Then SetStyle(Ctrl->Handle, "cursor", "")
+			End If
+		#elseif defined(__USE_WINAPI__)
 			If Handle Then DestroyCursor(Handle)
 			Handle = Cast(HCURSOR, Value)
 			If Ctrl AndAlso Ctrl->Handle Then SendMessage(Ctrl->Handle, WM_SETCURSOR, Cast(WPARAM, Ctrl->Handle), Cast(LPARAM, 1))

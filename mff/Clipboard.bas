@@ -17,7 +17,7 @@ Dim Shared As My.Sys.ClipboardType Clipboard
 
 Namespace My.Sys
 	Private Sub ClipboardType.Open
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			OpenClipboard(NULL)
 		#endif
 	End Sub
@@ -25,18 +25,18 @@ Namespace My.Sys
 	Private Sub ClipboardType.Clear
 		#ifdef __USE_GTK__
 			gtk_clipboard_clear(FClipboard)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			EmptyClipboard
 		#endif
 	End Sub
 	
 	Private Sub ClipboardType.Close
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			CloseClipboard
 		#endif
 	End Sub
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Function ClipboardType.HasFormat(FFormat As WORD) As Boolean
 			Return IsClipboardFormatAvailable(FFormat)
 		End Function
@@ -45,6 +45,8 @@ Namespace My.Sys
 	Private Sub ClipboardType.SetAsText(ByRef Value As WString)
 		#ifdef __USE_GTK__
 			gtk_clipboard_set_text(FClipboard, ToUtf8(Value), -1)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			ClipboardSetText(ToUtf8(Value))
 		#else
 			Dim pchData As WString Ptr
 			Dim hClipboardData As HGLOBAL
@@ -76,6 +78,12 @@ Namespace My.Sys
    	         Else
     	            WLet(FText, "")
      	       End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Dim As ZString Ptr pUtf8 = ClipboardGetText()
+			Dim As WString Ptr pWide = IIf(pUtf8, FromUtf8(pUtf8), 0)
+			If pUtf8 Then Deallocate(pUtf8)
+			WLet(FText, IIf(pWide, *pWide, ""))
+			If pWide Then WDeAllocate(pWide)
 		#else
 			Dim hClipboardData As HANDLE
 			This.Open
@@ -92,7 +100,7 @@ Namespace My.Sys
 		If FText Then Return *FText Else Return ""
 	End Function
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Sub ClipboardType.SetAsHandle(FFormat As WORD, Value As HANDLE)
 			This.Open
 			This.Clear
@@ -101,7 +109,7 @@ Namespace My.Sys
 		End Sub
 	#endif
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Private Function ClipboardType.GetAsHandle(FFormat As WORD) As HANDLE
 			This.Open
 			Function = GetClipboardData(FFormat)
@@ -110,7 +118,7 @@ Namespace My.Sys
 	#endif
 	
 	Private Property ClipboardType.FormatCount As Integer
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Return CountClipboardFormats
 		#else
 			Return 0
@@ -122,7 +130,7 @@ Namespace My.Sys
 	
 	Private Property ClipboardType.Format ByRef As WString
 		Dim s As String = Space(255)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim i As Integer, IFormat As UINT
 			i = GetClipboardFormatName(IFormat, s, 255)
 			If i > 0 Then
@@ -135,7 +143,7 @@ Namespace My.Sys
 	
 	Private Property ClipboardType.Format(ByRef Value As WString)
 		WLet(FFormat, Value)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			RegisterClipboardFormat(FFormat)
 		#endif
 	End Property

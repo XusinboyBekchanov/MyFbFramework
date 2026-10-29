@@ -211,6 +211,9 @@ Namespace My.Sys.Forms
 			If FHandle Then
 				SendMessage(FHandle, EM_SETMARGINS, EC_LEFTMARGIN, MAKELPARAM(ScaleX(FLeftMargin), ScaleX(FRightMargin)))
 			End If
+		#elseif defined(__USE_WASM__)
+			'The space inside the border before the text (0: the one of the browser)
+			If FHandle Then SetStyle(FHandle, "padding-left", IIf(Value > 0, Str(ScaleX(Value)) & "px", ""))
 		#endif
 	End Property
 	
@@ -238,6 +241,8 @@ Namespace My.Sys.Forms
 			If FHandle Then
 				SendMessage(FHandle, EM_SETMARGINS, EC_RIGHTMARGIN, MAKELPARAM(ScaleX(FLeftMargin), ScaleX(FRightMargin)))
 			End If
+		#elseif defined(__USE_WASM__)
+			If FHandle Then SetStyle(FHandle, "padding-right", IIf(Value > 0, Str(ScaleX(Value)) & "px", ""))
 		#endif
 	End Property
 	
@@ -284,8 +289,9 @@ Namespace My.Sys.Forms
 			End If
 			RecreateWnd
 		#elseif defined(__USE_WASM__)
-			'A multiline text box is a <textarea>; the element type is chosen when it is created
-			If FHandle = 0 Then
+			'A multiline text box is a <textarea>; the element type is chosen when it is created. A RichTextBox stays a
+			'<div contenteditable> (.mffrichtext)
+			If FHandle = 0 AndAlso FClass <> "mffrichtext" Then
 				WLet(FClassAncestor, IIf(FMultiline, "textarea", "input"))
 				FType = IIf(FMultiline, "", "text")
 			End If
@@ -572,6 +578,8 @@ Namespace My.Sys.Forms
 			gtk_editable_set_editable(GTK_EDITABLE(WidgetEntry), Not Value)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(EM_SETREADONLY, FReadOnly, 0)
+		#elseif defined(__USE_WASM__)
+			If FHandle Then SetReadOnly(FHandle, FReadOnly)
 		#endif
 	End Property
 	
@@ -886,6 +894,29 @@ Namespace My.Sys.Forms
 			If FHandle Then
 				SendMessage(FHandle, EM_GETSEL, CInt(@iSelStart), CInt(@iSelEnd))
 			End If
+		#elseif defined(__USE_JNI__)
+			If FHandle Then
+				iSelStart = (*env)->CallIntMethod(env, FHandle, GetMethodID(*FClassAncestor, "getSelectionStart", "()I"))
+				iSelEnd = (*env)->CallIntMethod(env, FHandle, GetMethodID(*FClassAncestor, "getSelectionEnd", "()I"))
+				'-1: the view has no selection (no cursor)
+				If iSelStart < 0 OrElse iSelEnd < 0 Then iSelStart = Len(Text): iSelEnd = iSelStart
+			Else
+				iSelStart = FSelStart
+				iSelEnd = FSelEnd
+			End If
+		#elseif defined(__USE_WASM__)
+			'The selection of the <input>, the <textarea> or the RichTextBox: "start,end" (TEXTGETSEL of mff_lib.js)
+			If FHandle Then
+				Dim As ZString Ptr pSel = TextGetSel(FHandle)
+				If pSel Then
+					iSelStart = ValInt(*pSel)
+					iSelEnd = ValInt(Mid(*pSel, InStr(*pSel, ",") + 1))
+					Deallocate(pSel)
+				End If
+			Else
+				iSelStart = FSelStart
+				iSelEnd = FSelEnd
+			End If
 		#endif
 	End Sub
 	
@@ -944,6 +975,13 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setSelection", "(II)V"), iSelStart, iSelEnd)
+			Else
+				FSelStart = iSelStart
+				FSelEnd = iSelEnd
+			End If
+		#elseif defined(__USE_WASM__)
+			If FHandle Then
+				TextSetSel(FHandle, iSelStart, iSelEnd)
 			Else
 				FSelStart = iSelStart
 				FSelEnd = iSelEnd
@@ -1125,6 +1163,9 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			SendMessage(Handle, EM_GETSEL, CInt(@FSelStart), 0)
+		#elseif defined(__USE_WASM__)
+			Dim As Integer iSelEnd
+			GetSel FSelStart, iSelEnd
 		#endif
 		Return FSelStart
 	End Property
@@ -1147,6 +1188,8 @@ Namespace My.Sys.Forms
 			SendMessage(Handle, EM_SETSEL, Value, Value)
 		#elseif defined(__USE_JNI__)
 			SetSel Value, Value
+		#elseif defined(__USE_WASM__)
+			SetSel Value, Value
 		#endif
 	End Property
 	
@@ -1166,6 +1209,8 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			SendMessage(Handle, EM_GETSEL, CInt(@LStart), CInt(@LEnd))
+		#elseif defined(__USE_WASM__)
+			GetSel LStart, LEnd
 		#endif
 		FSelLength = LEnd - LStart
 		Return FSelLength
@@ -1194,6 +1239,9 @@ Namespace My.Sys.Forms
 			FEnd = LStart + Value
 			SendMessage(Handle, EM_SETSEL, LStart, FEnd)
 			'SendMessage(Handle, EM_SCROLLCARET, 0,0)
+		#elseif defined(__USE_WASM__)
+			GetSel LStart, LEnd
+			SetSel LStart, LStart + Value
 		#endif
 	End Property
 	
@@ -1211,6 +1259,8 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			SendMessage(Handle, EM_GETSEL, 0, CInt(@LEnd))
+		#elseif defined(__USE_WASM__)
+			GetSel LStart, LEnd
 		#endif
 		FSelEnd = LEnd
 		Return FSelEnd
@@ -1235,6 +1285,9 @@ Namespace My.Sys.Forms
 			SendMessage(Handle, EM_GETSEL, CInt(@LStart), CInt(@LEnd))
 			SendMessage(Handle, EM_SETSEL, LStart, FSelEnd)
 			'SendMessage(Handle, EM_SCROLLCARET, 0,0)
+		#elseif defined(__USE_WASM__)
+			GetSel LStart, LEnd
+			SetSel LStart, FSelEnd
 		#endif
 	End Property
 	
@@ -1262,6 +1315,9 @@ Namespace My.Sys.Forms
 					*FSelText = Mid(Text, LStart + 1, LEnd - LStart)
 				End If
 			End If
+		#elseif defined(__USE_WASM__)
+			GetSel LStart, LEnd
+			WLet(FSelText, Mid(Text, LStart + 1, LEnd - LStart))
 		#endif
 		Return *FSelText
 	End Property
@@ -1282,6 +1338,14 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			SendMessage(FHandle, EM_REPLACESEL, 0, CInt(FSelText))
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'The selection is replaced by Value, the place after it is selected (Android: before, nothing was added, e.g.
+			'to the Output of the IDE)
+			Dim As Integer LStart, LEnd
+			GetSel LStart, LEnd
+			Dim As UString sText = Text
+			Text = ..Left(*sText.vptr, LStart) & Value & Mid(*sText.vptr, LEnd + 1)
+			SetSel LStart + Len(Value), LStart + Len(Value)
 		#endif
 	End Property
 	
@@ -1358,6 +1422,8 @@ Namespace My.Sys.Forms
 						'End If
 					#elseif defined(__USE_JNI__)
 						If .FMultiline Then .Multiline = True
+					#elseif defined(__USE_WASM__)
+						If .FReadOnly Then SetReadOnly(.FHandle, True)
 					#endif
 				End With
 			End If
@@ -1369,6 +1435,13 @@ Namespace My.Sys.Forms
 			If message.Msg = CM_CHANGE Then
 				If OnChange Then OnChange(*Designer, This)
 				message.Handled = True
+			End If
+			'The events of TextBox (its own fields, not the ones of Control which SendControlInputMessage raises)
+			If message.Msg = CM_SETFOCUS AndAlso OnGotFocus <> 0 Then OnGotFocus(*Designer, This)
+			If message.Msg = CM_KILLFOCUS AndAlso OnLostFocus <> 0 Then OnLostFocus(*Designer, This)
+			'Enter in a text box of one line is OnActivate like on Windows (the editor of the Properties of the IDE)
+			If CBool(message.Msg = CM_KEYDOWN) AndAlso CBool(message.wParam = 13) AndAlso Not FMultiline Then
+				If OnActivate Then OnActivate(*Designer, This)
 			End If
 		#endif
 		#ifdef __USE_GTK__

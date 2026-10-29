@@ -143,6 +143,11 @@ Declare Function IsNumeric(ByRef subject As Const WString, base_ As Integer = 10
 #if (Not defined(__USE_JNI__)) AndAlso (Not defined(__USE_WASM__))
 	Declare Function FileExists Overload(ByRef FileName As UString) As Boolean
 	Declare Function FileExists Overload(ByRef FileName As WString) As Boolean
+#else
+	'Web and Android: fb_FileExists (file.bi) of the runtime does not find the files there
+	Declare Function FileExistsWebAndroid(ByRef FileName As Const WString) As Boolean
+	#undef FileExists
+	#define FileExists(FileName) FileExistsWebAndroid(FileName)
 #endif
 
 #ifndef __USE_MAKE__

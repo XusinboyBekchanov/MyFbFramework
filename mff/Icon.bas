@@ -148,6 +148,9 @@ Namespace My.Sys.Drawing
 			FHeight = BMP.bmHeight
 			DeleteObject(ICIF.hbmColor)
 			DeleteObject(ICIF.hbmMask)
+		#elseif defined(__USE_WASM__)
+			'Web: the browser loads the file (Form.IconChanged, FindIconFile)
+			This.ResName = File
 		#endif
 		If Changed Then Changed(*Designer, This)
 		Return True
@@ -185,6 +188,9 @@ Namespace My.Sys.Drawing
 				FHeight = BMP.bmHeight
 				DeleteObject(ICIF.hbmColor)
 				DeleteObject(ICIF.hbmMask)
+			#elseif defined(__USE_WASM__)
+				'Web: the resource of the .rc file of the program (Form.IconChanged, FindIconFile)
+				This.ResName = ResourceName
 			#endif
 			If Changed Then Changed(*Designer, This)
 			Return True
@@ -207,6 +213,8 @@ Namespace My.Sys.Drawing
 				FHeight = BMP.bmHeight
 				DeleteObject(ICIF.hbmColor)
 				DeleteObject(ICIF.hbmMask)
+			#elseif defined(__USE_WASM__)
+				This.ResName = WStr(ResID)
 			#endif
 			If Changed Then Changed(*Designer, This)
 			Return True

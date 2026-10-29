@@ -16,7 +16,7 @@
 
 Namespace My.Sys.ComponentModel
 	Private Enum PrinterOrientation
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			poPortait =DMORIENT_PORTRAIT
 			poLandscape=DMORIENT_LANDSCAPE
 		#else
@@ -26,7 +26,7 @@ Namespace My.Sys.ComponentModel
 	End Enum
 	
 	Private Enum PrinterQuality
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			pqDraft=DMRES_DRAFT
 			pqLow =DMRES_LOW
 			pqMedium =DMRES_MEDIUM
@@ -46,7 +46,7 @@ Namespace My.Sys.ComponentModel
 	End Enum
 	
 	Private Enum PrinterPaperSize
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ppsLetter=DMPAPER_LETTER	'Letter, 8 1/2- by 11-inches
 			ppsLEGALr=DMPAPER_LEGAL	'Legal, 8 1/2- by 14-inches
 			ppsA4=DMPAPER_A4	'A4 Sheet, 210- by 297-millimeters
@@ -133,7 +133,7 @@ Namespace My.Sys.ComponentModel
 	'Enables you to communicate with a system printer (initially the default printer) (Windows only).
 	Private Type Printer Extends Component
 	Private:
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			m_hdc As HDC               'handle of a display device context
 			m_hFont As HFONT             'handle of current font
 			hOrigFont As HFONT       'handle of original font
@@ -149,7 +149,7 @@ Namespace My.Sys.ComponentModel
 		m_PortName As String
 		m_Page As Integer
 		m_PageSize As Integer
-		#ifdef __USE_GTK__
+		#ifndef __USE_WINAPI__
 			m_Orientation As PrinterOrientation
 		#endif
 		m_Quality  As Integer
@@ -225,7 +225,7 @@ Namespace My.Sys.ComponentModel
 		Declare Property Name() As String
 		Declare Property PortName(vData As String)
 		Declare Property PortName() As String
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Declare Property  HANDLE() As HDC
 		#endif
 		Declare Property PageLength As  Integer
@@ -281,7 +281,7 @@ Namespace My.Sys.ComponentModel
 		Declare Sub CalcPageSize(ByRef Rows As Long, ByRef Columns As Long)
 		Declare Property FontSize() As Integer
 		Declare Property FontSize(As Integer)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Declare Function NewFont(fName As String = "times new Roman", fSize As Long = 12, ibold As Long = False, iunderline As Long = False, iitalic As Long = False ) As HFONT
 		#endif
 		Declare Constructor()

@@ -309,6 +309,11 @@
 	End Sub
 #endif
 
+#ifdef __USE_JNI__
+	'the one of libc: the environment of the process which Os.getenv of Java reads
+	Declare Function setenv cdecl Alias "setenv" (ByVal Name As ZString Ptr, ByVal Value As ZString Ptr, ByVal Overwrite As Long) As Long
+#endif
+
 Sub SetDarkMode(useDark As Boolean, fixDarkScrollbar_ As Boolean)
 	#ifdef __USE_WINAPI__
 		If (g_darkModeSupported) Then
@@ -337,5 +342,15 @@ Sub SetDarkMode(useDark As Boolean, fixDarkScrollbar_ As Boolean)
 			g_value_unset(@bValue)
 			g_darkModeEnabled = useDark
 		#endif
+	#elseif defined(__USE_WASM__)
+		'The dark colors of the page (html.mffdark of mff.html)
+		SetPageDarkMode useDark
+		g_darkModeEnabled = useDark
+	#elseif defined(__USE_JNI__)
+		'The night mode of the theme DayNight: set in the module code (before the activity) attachBaseContext of mffActivity.java
+		'takes it from MFF_DARKMODE, later the activity changes it at once (the views made before keep their colors)
+		setenv "MFF_DARKMODE", IIf(useDark, @"1", @"0"), 1
+		SetActivityDarkMode useDark
+		g_darkModeEnabled = useDark
 	#endif
 End Sub

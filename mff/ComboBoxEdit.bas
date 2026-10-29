@@ -118,6 +118,14 @@ Namespace My.Sys.Forms
 			gtk_combo_box_popup(GTK_COMBO_BOX(widget))
 		#elseif defined(__USE_WINAPI__)
 			Perform CB_SHOWDROPDOWN, Value, 0
+		#elseif defined(__USE_WASM__)
+			'The list of a <select> can not be opened by the program: while it is dropped down the select is a list
+			'box (size, the rows in its height)
+			If FHandle Then SetAttribute(FHandle, "size", IIf(Value, "8", ""))
+		#elseif defined(__USE_JNI__)
+			'The list of a Spinner can not be opened by the program without taking the focus: while it is dropped down
+			'the items are in a list in the place of the Spinner
+			If FHandle Then ListShowDropDown(FHandle, Value)
 		#endif
 	End Sub
 	
@@ -212,6 +220,15 @@ Namespace My.Sys.Forms
 				End If
 			#elseif defined(__USE_WINAPI__)
 				Base.Style = WS_CHILD Or WS_VSCROLL Or CBS_HASSTRINGS Or CBS_AUTOHSCROLL Or AStyle(abs_(FStyle)) Or ASortStyle(abs_(FSort)) Or AIntegralHeight(abs_(FIntegralHeight))
+			#elseif defined(__USE_WASM__)
+				'Web: a ComboBoxEdit with an edit box (cbSimple, cbDropDown) is an <input> with a <datalist> of the items
+				'(mff_lib.js), the one without it a <select>; the element is made with the style (CreateWnd)
+				If *FClassName = "ComboBoxEdit" Then
+					WLet(FClassAncestor, IIf(FStyle <= cbDropDown, "input", "select"))
+					FType = IIf(FStyle <= cbDropDown, "text", "")
+					'.mffcombo of mff.html: the arrow of the list
+					FClass = IIf(FStyle <= cbDropDown, "mffcombo", "")
+				End If
 			#endif
 		End If
 	End Property
@@ -305,6 +322,9 @@ Namespace My.Sys.Forms
 		Else
 			#ifdef __USE_GTK__
 				WLet(FText, *gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(widget)))
+			#elseif defined(__USE_WASM__)
+				'The text typed in the edit box
+				If FHandle Then ReadElementValue(FHandle, FText)
 			#else
 				'If This.ItemIndex > -1 Then
 				'	FText = This.Item(This.ItemIndex)
@@ -343,7 +363,9 @@ Namespace My.Sys.Forms
 				If Index >= 0 Then ItemIndex = Index
 			End If
 		#elseif defined(__USE_WASM__)
-			If FHandle Then SetSelectedIndex(FHandle, IndexOf(*FText))
+			If FHandle Then
+				If FStyle <= cbDropDown Then SetStringValue(FHandle, ToUtf8(*FText)) Else SetSelectedIndex(FHandle, IndexOf(*FText))
+			End If
 		#endif
 	End Property
 	
@@ -516,6 +538,13 @@ Namespace My.Sys.Forms
 		Private Sub ComboBoxEdit.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QComboBoxEdit(Sender.Child)
+					#ifdef __USE_WASM__
+						If .FType = "text" Then
+							For i As Integer = 0 To .Items.Count - 1
+								AddSelectItem(.FHandle, ToUtf8(.Items.Item(i)))
+							Next
+						End If
+					#endif
 					#ifdef __USE_JNI__
 						ListInit(.FHandle)
 						For i As Integer = 0 To .Items.Count - 1
@@ -621,6 +650,8 @@ Namespace My.Sys.Forms
 	
 	#ifdef __USE_WASM__
 		Private Function ComboBoxEdit.GetContent() As UString
+			'An <input>: its value, the items are added to its <datalist> (HandleIsAllocated)
+			If FType = "text" Then Return IIf(FText, *FText, "")
 			Dim As UString FContent
 			For i As Integer = 0 To Items.Count - 1
 				FContent &= "<option value=""" & Str(i) & """>" & HtmlEscape(@Items.Item(i)) & "</option>"
@@ -632,12 +663,16 @@ Namespace My.Sys.Forms
 	Private Sub ComboBoxEdit.ProcessMessage(ByRef Message As Message)
 		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 			If Message.Msg = CM_CHANGE Then
+				Dim As Boolean IsTextBox
 				#ifdef __USE_JNI__
 					FItemIndex = Message.wParam
+					IsTextBox = FStyle <= cbDropDown
 				#else
 					FItemIndex = GetSelectedIndex(FHandle)
+					IsTextBox = FType = "text"
 				#endif
-				If OnSelected Then OnSelected(*Designer, This, FItemIndex)
+				'The edit box (<input>) changes at each typed key: an item is selected only when its text is chosen
+				If OnSelected AndAlso (Not IsTextBox OrElse FItemIndex <> -1) Then OnSelected(*Designer, This, FItemIndex)
 				If OnChange Then OnChange(*Designer, This)
 				Message.Handled = True
 			End If
@@ -963,7 +998,7 @@ Namespace My.Sys.Forms
 			'				gtk_container_remove(gtk_container(This.Parent->Widget), gtk_widget(Widget))
 			'			End If
 		#elseif defined(__USE_WINAPI__)
-			UnregisterClass "ComboBoxEdit", GetModuleHandle(NULL)
+			'UnregisterClass "ComboBoxEdit", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace

@@ -180,7 +180,7 @@ Namespace My.Sys.Forms
 	
 	Private Destructor HorizontalBox
 		#ifdef __USE_WINAPI__
-			UnregisterClass "HorizontalBox", GetModuleHandle(NULL)
+			'UnregisterClass "HorizontalBox", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace

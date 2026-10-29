@@ -217,6 +217,11 @@ Namespace My.Sys.Forms
 		OnTabAdded     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, Page As TabPage Ptr, NewIndex As Integer)
 		OnTabRemoved   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, Page As TabPage Ptr, FromIndex As Integer)
 		OnTabReordered As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, Page As TabPage Ptr, NewIndex As Integer)
+		#if defined(__USE_JNI__) OrElse defined(__USE_WASM__)
+			'Android and Web: the tabs have a close button (set before the tabs are shown); its tap raises OnTabClose
+			ShowCloseButtons As Boolean
+			OnTabClose     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, Page As TabPage Ptr)
+		#endif
 	End Type
 End Namespace
 

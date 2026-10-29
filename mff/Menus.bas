@@ -1238,9 +1238,12 @@ Namespace My.Sys.Forms
 					CheckMenuItem(Owner->Handle, VisibleMenuIndex, MF_BYPOSITION Or FCheck(FChecked))
 				End If
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'Web and Android: the popup menu is made when it is shown (PopupMenuAddItems), with this value
+			FChecked = value
 		#endif
 	End Property
-	
+
 	Private Property MenuItem.RadioItem As Boolean
 		Return FRadioItem
 	End Property
@@ -1654,6 +1657,9 @@ Namespace My.Sys.Forms
 		FVisible    = True
 		FEnabled    = True
 		FChecked    = False
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			FCheckable = Checkable
+		#endif
 		#ifdef __MFF_MENU_MODEL__
 			' No widgets: the item is shown by the models of its menus (see ModelFill)
 			FCheckable = Checkable
@@ -1852,6 +1858,10 @@ Namespace My.Sys.Forms
 		Private Property Menu.Handle(value As GtkWidget Ptr)
 			Widget = value
 			MenuWidget_Watch Widget, FWatchedWidget
+		End Property
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Property Menu.Handle As Any Ptr
+			Return @This
 		End Property
 	#endif
 	Private Property Menu.ParentWindow As Component Ptr
@@ -2636,8 +2646,47 @@ Namespace My.Sys.Forms
 			If FParentWindow AndAlso FParentWindow->Handle Then
 				TrackPopupMenuEx(This.FHandle, 0, x, y, FParentWindow->Handle, 0)
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Dim As MenuItem Ptr mi = ShowMenuModal(x, y)
+			If mi Then MenuItemChoose mi
 		#endif
 	End Sub
+
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		'The items as the lines of ShowPopupMenu (SysUtils.bi); Items gets the items in the same order
+		Private Sub PopupMenuAddItems(ByVal Count As Integer, ByVal pMenu As Menu Ptr, ByVal pParentItem As MenuItem Ptr, ByVal Level As Integer, ByRef sItems As UString, Items() As MenuItem Ptr)
+			For i As Integer = 0 To Count - 1
+				Dim As MenuItem Ptr mi = IIf(pParentItem, pParentItem->Item(i), pMenu->Item(i))
+				If mi = 0 OrElse Not mi->Visible Then Continue For
+				ReDim Preserve Items(UBound(Items) + 1)
+				Items(UBound(Items)) = mi
+				sItems &= Level & Chr(9) & IIf(mi->Enabled, 1, 0) & Chr(9) & IIf(mi->Checked, 1, 0) & Chr(9)
+				#ifdef __USE_WASM__
+					'Web: the picture of the item is the one of its resource name (like the buttons of ToolBar)
+					sItems &= IIf(mi->ImageKey <> "", "Resources/" & mi->ImageKey & ".png", "") & Chr(9)
+				#else
+					'Android: the picture file of the item before the caption (a picture in the text of the row of mffActivity)
+					If mi->ImageKey <> "" Then
+						Dim As String sPicture = FindResourceFile(mi->ImageKey)
+						If sPicture <> "" Then sItems &= Chr(1) & sPicture & Chr(1)
+					End If
+				#endif
+				sItems &= mi->Caption & Chr(10)
+				If mi->Count > 0 Then PopupMenuAddItems mi->Count, 0, mi, Level + 1, sItems, Items()
+			Next
+		End Sub
+
+		'Shows the menu at x, y (the pixels of the page / the screen) and waits for the choice; 0 - nothing was chosen
+		Private Function PopupMenu.ShowMenuModal(x As Integer, y As Integer) As MenuItem Ptr
+			Dim As UString sItems
+			Dim As MenuItem Ptr Items(Any)
+			PopupMenuAddItems Count, @This, 0, 0, sItems, Items()
+			If UBound(Items) < 0 Then Return 0
+			Dim As Long Index = ShowPopupMenu(ToUtf8(sItems), x, y)
+			If Index < 0 OrElse Index > UBound(Items) Then Return 0
+			Return Items(Index)
+		End Function
+	#endif
 	
 	Private Sub PopupMenu.ProcessMessages(ByRef message As Message)
 		Dim As PMenuItem I
@@ -2673,6 +2722,28 @@ Namespace My.Sys.Forms
 	Private Destructor PopupMenu
 	End Destructor
 End Namespace
+
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	Function MenuItemShowItems(ByVal pItem As My.Sys.Forms.MenuItem Ptr, ByVal x As Long = 0, ByVal y As Long = 0) As My.Sys.Forms.MenuItem Ptr
+		If pItem = 0 OrElse pItem->Count = 0 Then Return pItem
+		Dim As UString sItems
+		Dim As My.Sys.Forms.MenuItem Ptr Items(Any)
+		My.Sys.Forms.PopupMenuAddItems pItem->Count, 0, pItem, 0, sItems, Items()
+		If UBound(Items) < 0 Then Return 0
+		Dim As Long Index = ShowPopupMenu(ToUtf8(sItems), x, y)
+		If Index < 0 OrElse Index > UBound(Items) Then Return 0
+		Return Items(Index)
+	End Function
+
+	Sub MenuItemChoose(ByVal pItem As My.Sys.Forms.MenuItem Ptr)
+		If pItem = 0 Then Exit Sub
+		'Like GTK: OnClick sees the old Checked (e.g. Value = Not mi->Checked), the item gets the new one after it,
+		'unless OnClick changed Checked itself
+		Dim As Boolean OldChecked = pItem->Checked
+		pItem->Click
+		If pItem->FCheckable AndAlso pItem->Checked = OldChecked Then pItem->Checked = Not OldChecked
+	End Sub
+#endif
 
 #ifdef __EXPORT_PROCS__
 	Function MenuItemItemsCount Alias "MenuItemItemsCount" (PMenuItem As My.Sys.Forms.MenuItem Ptr) As Integer Export

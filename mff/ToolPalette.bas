@@ -261,7 +261,7 @@ Namespace My.Sys.Forms
 			.CommandID      = (Cast(ToolGroup Ptr, This.Parent)->Index + 1) * 100 + FButtons.Count
 			.OnClick        = FClick
 		End With
-		PButton->Ctrl = @Cast(ToolGroup Ptr, Parent)->Ctrl
+		PButton->Ctrl = Cast(ToolGroup Ptr, Parent)->Ctrl
 		#ifdef __USE_GTK__
 			If Parent Then
 				gtk_tool_item_group_insert(GTK_TOOL_ITEM_GROUP(Cast(ToolGroup Ptr, Parent)->Widget), GTK_TOOL_ITEM(PButton->Widget), Index)
@@ -311,6 +311,9 @@ Namespace My.Sys.Forms
 			Else
 				PButton = Add(FStyle, -1, Index, FClick, FKey, FCaption, FHint, FShowHint, FState)
 			End If
+		#else
+			PButton = Add(FStyle, -1, Index, FClick, FKey, FCaption, FHint, FShowHint, FState)
+			If PButton Then PButton->ImageKey = ImageKey
 		#endif
 		Return PButton
 	End Function
@@ -745,12 +748,21 @@ Namespace My.Sys.Forms
 			Dim As UString Items
 			Dim As Integer Count
 			Erase FItemGroups, FItemButtons
+			#ifdef __USE_JNI__
+				'The first item 5: the palette is a column which scrolls vertically (mffActivity.buttonsSet)
+				Items = "5"
+				Count = 0
+			#endif
 			For i As Integer = 0 To Groups.Count - 1
 				Dim As ToolGroup Ptr PGroup = Groups.Item(i)
 				ReDim Preserve FItemGroups(Count): ReDim Preserve FItemButtons(Count)
 				FItemGroups(Count) = PGroup
-				If Count > 0 Then Items &= Chr(10)
+				If Count > 0 OrElse Items <> "" Then Items &= Chr(10)
 				Items &= "0" & IIf(PGroup->Expanded, WChr(&H25BC), WChr(&H25BA)) & " " & PGroup->Caption
+				#ifdef __USE_WASM__
+					'Web: G - the header of a group, a whole row of the palette (SETBUTTONS of mff_lib.js)
+					Items &= Chr(9) & Chr(9) & "G" & Chr(9) & PGroup->Caption
+				#endif
 				Count += 1
 				If Not PGroup->Expanded Then Continue For
 				For j As Integer = 0 To PGroup->Buttons.Count - 1
@@ -758,6 +770,12 @@ Namespace My.Sys.Forms
 						ReDim Preserve FItemGroups(Count): ReDim Preserve FItemButtons(Count)
 						FItemButtons(Count) = PGroup->Buttons.Item(j)
 						Items &= Chr(10) & IIf(.Style And tbsSeparator, "3", IIf(Not .Visible, "4", IIf(Not .Enabled, "1", IIf(.Checked, "2", "0")))) & IIf(.Caption <> "", .Caption, IIf(.Hint <> "", .Hint, .Name))
+						#ifdef __USE_JNI__
+							If .ImageKey <> "" Then Items &= Chr(9) & FindResourceFile(.ImageKey)
+						#else
+							'Web: "Text\tImage\tOptions\tHint" like ToolBar, S - the caption is by the picture (not tpsIcons)
+							Items &= Chr(9) & FindResourceFile(.ImageKey) & Chr(9) & IIf(FStyle = tpsIcons, "", "S") & Chr(9) & IIf(.Hint <> "", .Hint, .Caption)
+						#endif
 						Count += 1
 					End With
 				Next
@@ -770,6 +788,30 @@ Namespace My.Sys.Forms
 		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 			Select Case Message.Msg
 			Case CM_ITEMSCHANGED
+				'A button of a group was checked (ToolButton.Checked): the other ones of its group (the buttons with
+				'tbsGroup next to it in its ToolGroup) are unchecked
+				If Message.wParam = 1 AndAlso Message.lParam <> 0 Then
+					Dim As ToolButton Ptr PButton = Cast(ToolButton Ptr, Message.lParam), PItem
+					Dim As ToolGroup Ptr PGroup
+					Dim As Integer Index = -1, i
+					For g As Integer = 0 To Groups.Count - 1
+						PGroup = Groups.Item(g)
+						Index = PGroup->Buttons.IndexOf(PButton)
+						If Index > -1 Then Exit For
+					Next
+					If Index > -1 Then
+						For i = Index - 1 To 0 Step -1
+							PItem = PGroup->Buttons.Item(i)
+							If (PItem->Style And tbsGroup) = 0 Then Exit For
+							If PItem->Checked Then PItem->Checked = False
+						Next
+						For i = Index + 1 To PGroup->Buttons.Count - 1
+							PItem = PGroup->Buttons.Item(i)
+							If (PItem->Style And tbsGroup) = 0 Then Exit For
+							If PItem->Checked Then PItem->Checked = False
+						Next
+					End If
+				End If
 				UpdateItems
 				Message.Handled = True
 			Case CM_CHANGE
@@ -782,7 +824,12 @@ Namespace My.Sys.Forms
 				If Index >= 0 AndAlso Index <= UBound(FItemGroups) Then
 					If FItemButtons(Index) Then
 						With *FItemButtons(Index)
-							If .Style And tbsCheck Then .Checked = Not .Checked
+							'A button of a check group stays checked when it is pressed again (like on Windows)
+							If (.Style And tbsCheckGroup) = tbsCheckGroup Then
+								If Not .Checked Then .Checked = True
+							ElseIf .Style And tbsCheck Then
+								.Checked = Not .Checked
+							End If
 							If .OnClick Then .OnClick(*.Designer, *FItemButtons(Index))
 						End With
 						If OnButtonClick Then OnButtonClick(*Designer, This, *FItemButtons(Index))
@@ -813,6 +860,9 @@ Namespace My.Sys.Forms
 				If HotImagesList Then HotImagesList->SetImageSize FBitmapWidth, FBitmapHeight, xdpi, ydpi
 				If DisabledImagesList Then DisabledImagesList->SetImageSize FBitmapWidth, FBitmapHeight, xdpi, ydpi
 				If ImagesList AndAlso ImagesList->Handle Then SendMessage(FHandle, TB_SETIMAGELIST, 0, CInt(ImagesList->Handle))
+				' Every button update lays out and paints the palette again: it is painted once at the end
+				'(the buttons have no child windows, which would need the layout of every step)
+				SendMessage FHandle, WM_SETREDRAW, False, 0
 				For i As Integer = 0 To Groups.Count - 1
 					For j As Integer = 0 To Groups.Item(i)->Buttons.Count - 1
 						Groups.Item(i)->Buttons.Item(j)->xdpi = xdpi
@@ -821,6 +871,7 @@ Namespace My.Sys.Forms
 						Groups.Item(i)->Buttons.Item(j)->Caption = Groups.Item(i)->Buttons.Item(j)->Caption
 					Next
 				Next
+				SendMessage FHandle, WM_SETREDRAW, True, 0
 				SetBounds FLeft, FTop, FWidth, FHeight
 				Return
 			Case WM_DESTROY
@@ -921,6 +972,53 @@ Namespace My.Sys.Forms
 						If SendMessage(Tbn->hdr.hwndFrom, TB_GETBUTTON, i, CInt(@TB)) Then
 							'TrackPopupMenu(Buttons.Item(i)->DropDownMenu.Handle,0,R.Left,R.Bottom,0,Tbn->hdr.hwndFrom,NULL)
 						End If
+					End If
+				Case NM_CUSTOMDRAW
+					If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso FDefaultBackColor = FBackColor Then
+						Dim As LPNMCUSTOMDRAW nmcd = Cast(LPNMCUSTOMDRAW, Message.lParam)
+						Select Case nmcd->dwDrawStage
+						Case CDDS_PREPAINT
+							'The dark theme fills the background with its own color (#383838): like ToolBar it is the one of the
+							'other controls
+							FillRect nmcd->hdc, @nmcd->rc, hbrBkgnd
+							Message.Result = CDRF_NOTIFYPOSTPAINT
+							Return
+						Case CDDS_POSTPAINT
+							'The separators of the groups are wrapped: the dark theme draws them as light lines in the gap under
+							'their row. The item rect of a wrapped separator is its row and this gap (as high as the width of the
+							'separator) under it: only the gap is filled and a dark line is drawn in it (like ToolBar)
+							Dim As HPEN SeparatorPen = CreatePen(PS_SOLID, 1, darkHlBkColor)
+							Dim As HPEN PrevPen = SelectObject(nmcd->hdc, SeparatorPen)
+							Dim As ..Rect rc, rcGap, rcClient
+							GetClientRect FHandle, @rcClient
+							For j As Integer = 0 To SendMessage(FHandle, TB_BUTTONCOUNT, 0, 0) - 1
+								If SendMessage(FHandle, TB_GETBUTTON, j, Cast(LPARAM, @TB)) = 0 Then Continue For
+								If (TB.fsStyle And TBSTYLE_SEP) = 0 OrElse (TB.fsState And TBSTATE_WRAP) = 0 OrElse (TB.fsState And TBSTATE_HIDDEN) Then Continue For
+								If SendMessage(FHandle, TB_GETITEMRECT, j, Cast(LPARAM, @rc)) = 0 Then Continue For
+								'The theme draws it by the last button of its row too (where it was before the wrap): it is filled
+								For k As Integer = j - 1 To 0 Step -1
+									Dim As ..Rect rcPrev
+									If SendMessage(FHandle, TB_GETITEMRECT, k, Cast(LPARAM, @rcPrev)) AndAlso rcPrev.Right > rcPrev.Left Then
+										rcPrev.Left = rcPrev.Right
+										rcPrev.Right = rcPrev.Left + (rc.Right - rc.Left)
+										FillRect nmcd->hdc, @rcPrev, hbrBkgnd
+										Exit For
+									End If
+								Next k
+								rcGap.Left = rcClient.Left
+								rcGap.Right = rcClient.Right
+								rcGap.Top = rc.Bottom - (rc.Right - rc.Left)
+								rcGap.Bottom = rc.Bottom
+								FillRect nmcd->hdc, @rcGap, hbrBkgnd
+								Dim As Integer iLineY = (rcGap.Top + rcGap.Bottom) \ 2 - 1 'the upper one of the two lines of the theme
+								MoveToEx nmcd->hdc, rcGap.Left + ScaleX(2), iLineY, 0
+								LineTo nmcd->hdc, rcGap.Right - ScaleX(2), iLineY
+							Next j
+							SelectObject(nmcd->hdc, PrevPen)
+							DeleteObject SeparatorPen
+							Message.Result = CDRF_DODEFAULT
+							Return
+						End Select
 					End If
 				End Select
 			Case CM_NEEDTEXT

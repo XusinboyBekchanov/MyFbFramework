@@ -4,7 +4,9 @@
 '#  Authors: Xusinboy Bekchanov                                                #
 '###############################################################################
 '#define __USE_GTK3__
-#if defined(__USE_WINAPI__) OrElse defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__FB_JS__) OrElse defined(__FB_ANDROID__)
+	'Web and Android: no library, the program includes this file (the designer of VisualFBEditor creates the controls with it)
+#elseif defined(__USE_WINAPI__) OrElse defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK__)
 	#ifdef __FB_64BIT__
 		#cmdline "-x ../mff64.dll"
 	#else
@@ -148,7 +150,7 @@
 
 Using My.Sys.Forms
 
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	Private Function DllMain(hinstDLL As HINSTANCE, fdwReason As DWORD, lpvReserved As LPVOID) As Boolean
 		Select Case fdwReason
 		Case DLL_PROCESS_ATTACH
@@ -263,47 +265,47 @@ Using My.Sys.Forms
 		Return RptCtrl
 	End Function
 	
-	Dim Shared Cpnt As Component Ptr
+	Dim Shared CreatedCpnt As Component Ptr
 	Function CreateComponent Alias "CreateComponent" (ByRef ClassName As String, ByRef sName As WString, lLeft As Integer, lTop As Integer, Parent As Control Ptr) As Component Ptr Export
-		Cpnt = 0
+		CreatedCpnt = 0
 		Select Case LCase(ClassName)
-		Case "httpconnection": Cpnt = _New(HTTPConnection)
-		Case "httpserver": Cpnt = _New(HTTPServer)
-		Case "imagelist": Cpnt = _New( ImageList)
-		Case "timercomponent": Cpnt = _New( TimerComponent)
-		Case "tooltips": Cpnt = _New( ToolTips)
-		Case "mainmenu": Cpnt = _New( MainMenu)
-		Case "notifyicon": Cpnt = _New(NotifyIcon)
-		Case "popupmenu": Cpnt = _New( PopupMenu)
-		Case "colordialog": Cpnt = _New( ColorDialog)
-		Case "folderbrowserdialog": Cpnt = _New( FolderBrowserDialog)
-		Case "fontdialog": Cpnt = _New( FontDialog)
-		Case "openfiledialog": Cpnt = _New( OpenFileDialog)
-		Case "savefiledialog": Cpnt = _New( SaveFileDialog)
-		Case "pagesetupdialog": Cpnt = _New( PageSetupDialog)
-		Case "printdialog": Cpnt = _New( PrintDialog)
-		Case "printdocument": Cpnt = _New(PrintDocument)
-		Case "printpreviewdialog": Cpnt = _New( PrintPreviewDialog)
-		Case "printer": Cpnt = _New( Printer)
-		Case "report": Cpnt = _New(Report)
+		Case "httpconnection": CreatedCpnt = _New(HTTPConnection)
+		Case "httpserver": CreatedCpnt = _New(HTTPServer)
+		Case "imagelist": CreatedCpnt = _New( ImageList)
+		Case "timercomponent": CreatedCpnt = _New( TimerComponent)
+		Case "tooltips": CreatedCpnt = _New( ToolTips)
+		Case "mainmenu": CreatedCpnt = _New( MainMenu)
+		Case "notifyicon": CreatedCpnt = _New(NotifyIcon)
+		Case "popupmenu": CreatedCpnt = _New( PopupMenu)
+		Case "colordialog": CreatedCpnt = _New( ColorDialog)
+		Case "folderbrowserdialog": CreatedCpnt = _New( FolderBrowserDialog)
+		Case "fontdialog": CreatedCpnt = _New( FontDialog)
+		Case "openfiledialog": CreatedCpnt = _New( OpenFileDialog)
+		Case "savefiledialog": CreatedCpnt = _New( SaveFileDialog)
+		Case "pagesetupdialog": CreatedCpnt = _New( PageSetupDialog)
+		Case "printdialog": CreatedCpnt = _New( PrintDialog)
+		Case "printdocument": CreatedCpnt = _New(PrintDocument)
+		Case "printpreviewdialog": CreatedCpnt = _New( PrintPreviewDialog)
+		Case "printer": CreatedCpnt = _New( Printer)
+		Case "report": CreatedCpnt = _New(Report)
 		Case Else
-			Cpnt = CreateControl(ClassName, sName, sName, lLeft, lTop, 10, 10, Parent)
-			If Cpnt = 0 Then
-				Cpnt = CreateReportControl(ClassName, sName, sName, lLeft, lTop, 10, 10, 0)
+			CreatedCpnt = CreateControl(ClassName, sName, sName, lLeft, lTop, 10, 10, Parent)
+			If CreatedCpnt = 0 Then
+				CreatedCpnt = CreateReportControl(ClassName, sName, sName, lLeft, lTop, 10, 10, 0)
 			End If
 		End Select
-		If Cpnt Then
-			Cpnt->Name = sName
-			Cpnt->Left = lLeft
-			Cpnt->Top = lTop
+		If CreatedCpnt Then
+			CreatedCpnt->Name = sName
+			CreatedCpnt->Left = lLeft
+			CreatedCpnt->Top = lTop
 			If LCase(ClassName) <> "report" Then
 				#ifndef WriteProperty_Off
-					Cpnt->WriteProperty("Parent", Parent)
+					CreatedCpnt->WriteProperty("Parent", Parent)
 				#endif
 			End If
-			If Not Objects.Contains(Cpnt) Then Objects.Add Cpnt
+			If Not Objects.Contains(CreatedCpnt) Then Objects.Add CreatedCpnt
 		EndIf
-		Return Cpnt
+		Return CreatedCpnt
 	End Function
 	
 	Dim Shared Obj As My.Sys.Object Ptr
@@ -448,12 +450,12 @@ Using My.Sys.Forms
 	#ifndef ShowPropertyPage_Off
 		Function ShowPropertyPage Alias "ShowPropertyPage"(Ctrl As Any Ptr) As Boolean Export
 			If Objects.Contains(Ctrl) Then
-				Cpnt = Objects.Item(Objects.IndexOf(Ctrl))
+				CreatedCpnt = Objects.Item(Objects.IndexOf(Ctrl))
 			Else
 				Return False
 			End If
-			If Cpnt = 0 Then Return False
-			Select Case LCase(Cpnt->ClassName)
+			If CreatedCpnt = 0 Then Return False
+			Select Case LCase(CreatedCpnt->ClassName)
 			Case "imagelist":
 			End Select
 			Return True

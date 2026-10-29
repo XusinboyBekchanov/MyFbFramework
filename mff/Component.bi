@@ -52,6 +52,11 @@ Namespace My.Sys.ComponentModel
 		Declare Sub FreeWidget()
 		Declare Virtual Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 	Public:
+		#ifdef __USE_JNI__
+			'Android: the title bar of the designed form (the designer of the IDE) is above its view like the one of a
+			'window of Windows: the view is lower by its height (FormDesignFrame draws it)
+			Declare Function DesignCaptionHeight() As Integer
+		#endif
 		'Stores any extra data needed for your program (Windows, Linux, Android, Web).
 		Tag As Any Ptr
 		'Returns/sets the space between controls (Windows, Linux, Android, Web).
@@ -145,10 +150,17 @@ Private Type Message
 		lParamHi As Integer
 		Captured As Any Ptr
 	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		'The handle of the control (code written for Windows reads it)
+		hWnd     As Any Ptr
 		Msg      As Integer
 		wParam   As Integer
 		lParam   As Integer
 		Result   As Integer
+		'The words of wParam / lParam like on Windows, for a control which handles the messages of Windows (EditControl)
+		wParamLo As Integer
+		wParamHi As Integer
+		lParamLo As Integer
+		lParamHi As Integer
 	#endif
 	Handled As Boolean
 End Type
@@ -315,8 +327,81 @@ Private Enum Keys
 		F22 = GDK_KEY_F22
 		F23 = GDK_KEY_F23
 		F24 = GDK_KEY_F24
-	#elseif defined(__USE_JNI__)
-		Key_Esc = 0
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		'The key codes of Windows (CM_KEYDOWN of the Web / Android side); the masks are the state of the CM_KEY* messages
+		Key_Esc = &h1B
+		Key_Left = &h25
+		Key_Right = &h27
+		Key_Up = &h26
+		Key_Down = &h28
+		Key_Home = &h24
+		Key_End = &h23
+		Key_Delete = &h2E
+		Key_Enter = &h0D
+		ShiftMask = 1
+		CtrlMask = 2
+		AltMask = 4
+		LockMask = 8
+		Key_1 = &h31
+		Key_2 = &h32
+		Key_3 = &h33
+		Key_4 = &h34
+		Key_5 = &h35
+		Key_6 = &h36
+		Key_7 = &h37
+		Key_8 = &h38
+		Key_9 = &h39
+		Key_0 = &h30
+		Key_A = &h41
+		Key_B = &h42
+		Key_C = &h43
+		Key_D = &h44
+		Key_E = &h45
+		Key_F = &h46
+		Key_G = &h47
+		Key_H = &h48
+		Key_I = &h49
+		Key_J = &h4A
+		Key_K = &h4B
+		Key_L = &h4C
+		Key_M = &h4D
+		Key_N = &h4E
+		Key_O = &h4F
+		Key_P = &h50
+		Key_Q = &h51
+		Key_R = &h52
+		Key_S = &h53
+		Key_T = &h54
+		Key_U = &h55
+		Key_V = &h56
+		Key_W = &h57
+		Key_X = &h58
+		Key_Y = &h59
+		Key_Z = &h5A
+		F1 = &h70
+		F2 = &h71
+		F3 = &h72
+		F4 = &h73
+		F5 = &h74
+		F6 = &h75
+		F7 = &h76
+		F8 = &h77
+		F9 = &h78
+		F10 = &h79
+		F11 = &h7A
+		F12 = &h7B
+		F13 = &h7C
+		F14 = &h7D
+		F15 = &h7E
+		F16 = &h7F
+		F17 = &h80
+		F18 = &h81
+		F19 = &h82
+		F20 = &h83
+		F21 = &h84
+		F22 = &h85
+		F23 = &h86
+		F24 = &h87
 	#elseif defined(__USE_WINAPI__)
 		Key_Esc = VK_ESCAPE
 		Key_Left = VK_LEFT
@@ -404,12 +489,30 @@ End Enum
 	'Every pass restores the value it found, so a stuck counter cannot stop repainting.
 	Common Shared AlignLock As Integer
 	'Set by a move of such a pass which really changed the bounds: only then the
-	'outermost pass repaints, a pass which moved nothing leaves the container alone
+	'outermost pass repaints, a pass which moved nothing leaves the container alone.
+	'1 = repaint the places in AlignRgn, 2 = repaint the whole container (a rescale)
 	Common Shared AlignMoved As Integer
 	#ifdef __USE_WINAPI__
 		'Open DeferWindowPos batch of the running pass: one call reaches the window manager
 		'instead of one per moved control (about eight times faster for a large form)
 		Common Shared AlignDefer As HDWP
+		'Container whose children the open batch collects: all windows of one DeferWindowPos
+		'batch must have the same parent, otherwise DeferWindowPos fails and drops the batch
+		Common Shared AlignDeferParent As HWND
+		'Greater than 0 while WM_DPICHANGED rescales a tree. Every rescaled control requests a
+		'layout of its parent (a ReBar for every band, a ToolBar for every rebuild): such a
+		'request only goes into the list and the outermost rescale lays out each container once
+		Common Shared DpiPass As Integer
+		Common Shared DpiPendingCount As Integer
+		Common Shared DpiPending As Any Ptr Ptr
+		'Screen region of the old and the new places of the windows moved in the pass
+		Common Shared AlignRgn As HRGN
+		Declare Sub AlignAddRect(ByVal pRect As RECT Ptr)
+		'Notes a window whose content changed in the pass (a new font) for the repaint
+		Declare Sub AlignAddWindow(ByVal hWnd As HWND)
+		Declare Sub AlignClear
+		'Ends the outermost pass: repaints the noted places of the container (bNow: at once)
+		Declare Sub AlignRedraw(ByVal hContainer As HWND, ByVal bNow As Boolean = False)
 	#endif
 #endif
 

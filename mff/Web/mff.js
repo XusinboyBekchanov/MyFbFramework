@@ -12,6 +12,14 @@
     }
 }
 
+// The console of FreeBASIC (termlib.js) shows "\r" as "^": the new line of Print ("\r\n" of the runtime) is "\n"
+if (typeof __fb_rtlib !== "undefined" && __fb_rtlib.console && __fb_rtlib.console.write) {
+	var mffConsoleWrite = __fb_rtlib.console.write;
+	__fb_rtlib.console.write = function(text) {
+		return mffConsoleWrite.call(this, String(text).replace(/\r\n/g, "\n"));
+	};
+}
+
 // The event emitter will be emitted when page is loaded
 addOnPostRun(function() {
 	if (Module["_ONSTART"]) Module["_ONSTART"]();
@@ -250,7 +258,7 @@ mymod.dialog = (function() {
 		}
 		//catch the char 32 (spacebar) because it triggers the foccused button action, i.e. default cancel
 		if (e.keyCode==32) {
-			e.preventDefault()
+			(e.mffPreventDefault || e.preventDefault).call(e)
 			e.stopPropagation()
 			e.target.value += " "
 		}
@@ -310,3 +318,35 @@ function dragElement(elmnt, frm) {
     document.onmousemove = null;
   }
 }
+
+// The keyboard of the console of FreeBASIC (fb_rtlib: the key callbacks of emscripten on the page) stops the action of
+// keys like Backspace and Delete: in a text box of the page they keep their action. The listener on the window in the
+// capture phase runs first (this file is loaded before the program starts): preventDefault of the event does nothing
+// then, the handlers of the controls use the original one (mff.prevent of mff_lib.js)
+// The keys of the characters of the punctuation (the OEM keys: - = ; , . / ` [ \ ] ') are not stopped by it anywhere: its
+// table has the key codes of Firefox for some of them (173 "-", 61 "=", 59 ";"), with the ones of Chrome and Edge (189,
+// 187, 186) it stopped the keydown, so the browser gave no keypress (the letters "ғ" and "ҳ" of the Uzbek keyboard
+// on "-" and "=" could not be typed). INKEY gets the character from the keypress
+var mffCharKeys = [186, 187, 188, 189, 190, 191, 192, 219, 220, 221, 222, 226];
+["keydown", "keypress", "keyup"].forEach(function(type) {
+	window.addEventListener(type, function(e) {
+		var el = e.target;
+		if ((el && (el.tagName == "INPUT" || el.tagName == "TEXTAREA" || el.tagName == "SELECT" || el.isContentEditable)) ||
+			(type == "keydown" && !e.ctrlKey && !e.altKey && !e.metaKey && mffCharKeys.indexOf(e.keyCode) >= 0)) {
+			e.mffPreventDefault = e.preventDefault;
+			e.preventDefault = function() {};
+		}
+	}, true);
+});
+
+// The active control of the form (Form.ActiveControl, OnActiveControlChanged: the IDE closes a collapsed panel when
+// another control gets the focus) follows the focus of the page like on Windows: the control of the focused element
+// (the element whose id is the address of the control) is told unless it tells it itself (SETGOTFOCUSEVENT)
+document.addEventListener("focusin", function(e) {
+	for (var el = e.target; el && el !== document.body; el = el.parentElement) {
+		if (/^\d+$/.test(el.id)) {
+			if (!el.mffGotFocusEvent) mff.call("ONGOTFOCUS", [Number(el.id)]);
+			return;
+		}
+	}
+}, true);

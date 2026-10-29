@@ -19,7 +19,7 @@ Private Property PrintDialog.SetupDialog(value As Integer)
 	If value Then xSetupDialog=True Else xSetupDialog=False
 End Property
 
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	' Currently, these two HookProcs are exactly the same code, but may change....
 	Private Function PrintDialog.PrintHookProc(hWnd As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 		If uMsg=WM_INITDIALOG Then                              ' ALL initializing is done here
@@ -122,7 +122,7 @@ Private Function PrintDialog.Execute() As Boolean
 		End If
 		g_object_unref(op)
 		Return FAccepted
-	#else
+	#elseif defined(__USE_WINAPI__)
 		Dim As PRINTDLG pd
 		
 		'Clear(@pd, 0, SizeOf(PRINTDLG))
@@ -147,6 +147,10 @@ Private Function PrintDialog.Execute() As Boolean
 			GlobalUnlock(dn)
 			Return True
 		End If
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		'Web: the print dialog of the browser chooses the printer when the document is printed (PrintDocument.Print);
+		'Android: the print dialog of the system (PrintManager)
+		Return True
 	#endif
 	Return False
 End Function

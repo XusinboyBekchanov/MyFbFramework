@@ -327,7 +327,7 @@ Namespace My.Sys.Forms
 					For i = 0 To Count - 1
 						sCaption = Panels[i]->Caption
 						sHTML &= "<span style=""display: inline-block; box-sizing: border-box; height: 100%; padding: 2px 4px; overflow: hidden; white-space: nowrap; vertical-align: top; " & _
-							IIf(i = Count - 1, "", "width: " & Panels[i]->Width & "px; ") & IIf(Panels[i]->Bevel = BevelStyle.pbNone, "", "border-right: 1px solid #aaa; ") & _
+							IIf(i = Count - 1, "", "width: " & Panels[i]->Width & "px; ") & IIf(Panels[i]->Bevel = BevelStyle.pbNone, "", "border-right: 1px solid var(--mff-border, #aaa); ") & _
 							"text-align: " & IIf(Panels[i]->Alignment = 1, "center", IIf(Panels[i]->Alignment = 2, "right", "left")) & ";"">" & HtmlEscape(sCaption.vptr) & "</span>"
 					Next i
 				End If
@@ -519,6 +519,14 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Private Sub StatusBar.ProcessMessage(ByRef Message As Message)
+			#ifdef __USE_WINAPI__
+				If Message.Msg = WM_DPICHANGED Then
+					Base.ProcessMessage(Message)
+					' The parts are in pixels: they are set again with the new scale
+					UpdatePanels
+					Return
+				End If
+			#endif
 			Base.ProcessMessage(Message)
 		End Sub
 	#endif
@@ -548,7 +556,7 @@ Namespace My.Sys.Forms
 			WLet(FClassAncestor, "msctls_StatusBar32")
 			#ifdef __USE_WASM__
 				WLet(FClassAncestor, "div")
-				FElementStyle = "border-top: 1px solid #aaa; overflow: hidden; white-space: nowrap;"
+				FElementStyle = "border-top: 1px solid var(--mff-border, #aaa); overflow: hidden; white-space: nowrap;"
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "android/widget/TextView")
@@ -587,7 +595,7 @@ Namespace My.Sys.Forms
 		Next
 		_Deallocate(Panels) 'CAllocate_(0)
 		#ifdef __USE_WINAPI__
-			UnregisterClass "StatusBar",GetModuleHandle(NULL)
+			'UnregisterClass "StatusBar",GetModuleHandle(NULL)
 		#endif
 		If FSimpleText <> 0 Then _Deallocate( FSimpleText)
 	End Destructor

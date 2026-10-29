@@ -10,6 +10,15 @@
 
 #include once "Dialogs.bi"
 #include once "Printer.bi"
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	'Web and Android: the form of Page Setup (PageSetupDialog.Execute)
+	#include once "Form.bi"
+	#include once "Label.bi"
+	#include once "ComboBoxEdit.bi"
+	#include once "RadioButton.bi"
+	#include once "TextBox.bi"
+	#include once "CommandButton.bi"
+#endif
 
 'Enables users to change page-related print settings, including margins and paper orientation.
 Private Type PageSetupDialog Extends Dialog

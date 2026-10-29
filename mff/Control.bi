@@ -450,10 +450,18 @@ Namespace My.Sys.Forms
 			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 				FPainting As Boolean
 			#endif
+			#ifdef __USE_WASM__
+				'The size which the element got the last time (Move): FWidth and FHeight are new already in Move
+				FElementWidth As Integer = -1
+				FElementHeight As Integer = -1
+			#endif
 		Protected:
 			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
-				'The control gets the CM_MOUSE* messages also without OnMouse* events (Chart)
+				'The control gets the CM_MOUSE* messages (and CM_MOUSEWHEEL) also without OnMouse* events (Chart)
 				FMouseEvents As Boolean
+				'The control gets the CM_KEYDOWN, CM_KEYUP, CM_CHAR, CM_SETFOCUS and CM_KILLFOCUS messages also without
+				'OnKey* / focus events and takes the keyboard input (EditControl); on Android it shows the soft keyboard
+				FKeyEvents As Boolean
 			#endif
 			FAutoSize As Boolean
 			FMainForm      As Boolean
@@ -731,6 +739,10 @@ Namespace My.Sys.Forms
 			Declare Function GetTextLength() As Integer
 			'Retrieves the form that the control is on (Windows, Linux, Android, Web).
 			Declare Function GetForm() As Control Ptr
+			#ifdef __USE_JNI__
+				'The control which got the focus is the active control of its form (Android only).
+				Declare Sub SetActiveInForm()
+			#endif
 			'Begins a drag operation (Windows only)
 			Declare Function DoDragDrop(ByRef DataObject As DataObject, AllowedEffects As DragDropEffects) As DragDropEffects
 			'Returns the parent control that is not parented by another Forms control. Typically, this is the outermost Form that the control is contained in (Windows, Linux, Android, Web).
@@ -742,6 +754,10 @@ Namespace My.Sys.Forms
 			Declare Function IndexOf(CtrlName As String) As Integer
 			'Retrieves the Control object from Control name in the collection (Windows, Linux, Android, Web).
 			Declare Function ControlByName(CtrlName As String) As Control Ptr
+			#ifdef __USE_JNI__
+				'Gives the back color to the view (Android)
+				Declare Sub ApplyBackColor
+			#endif
 			'Creates the window (Windows, Android, Web)
 			Declare Virtual Sub CreateWnd
 			'Recreates the window (Windows only)
@@ -863,6 +879,10 @@ Namespace My.Sys.Forms
 		End Type
 		
 		Dim Shared CreationControl As Control Ptr
+		#ifdef __USE_WINAPI__
+			'Lays out the containers noted by RequestAlign during a rescale (WM_DPICHANGED)
+			Declare Sub DpiAlignFlush
+		#endif
 	#endif
 	#ifdef __USE_JNI__
 		Dim Shared AppMainForm As Control Ptr
@@ -893,6 +913,13 @@ End Namespace
 	Declare Sub ControlSetFocus Alias "ControlSetFocus"(Ctrl As My.Sys.Forms.Control Ptr)
 	
 	Declare Sub ControlFreeWnd Alias "ControlFreeWnd"(Ctrl As My.Sys.Forms.Control Ptr)
+#endif
+
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	'All the messages of the Web/Android side go to the controls through DispatchControlMessage. A program can watch
+	'them before the control (VisualFBEditor: the designer): ControlMessageHook returns True if it handled the message
+	Dim Shared ControlMessageHook As Function(ByVal Ctrl As My.Sys.Forms.Control Ptr, ByRef msg As Message) As Boolean
+	Declare Sub DispatchControlMessage(ByVal Ctrl As My.Sys.Forms.Control Ptr, ByRef msg As Message)
 #endif
 
 #ifndef __USE_MAKE__

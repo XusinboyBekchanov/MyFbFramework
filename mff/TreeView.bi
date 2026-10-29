@@ -154,7 +154,8 @@ Namespace My.Sys.Forms
 			FSelectedNode As TreeNode Ptr
 			FRowNodes(Any) As TreeNode Ptr
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-			Declare Sub AddRows(PNodes As TreeNodeCollection Ptr, Level As Integer)
+			'Lines: the lines of the tree before the nodes (Web: "1" - the line of the level goes on, "0" - not)
+			Declare Sub AddRows(PNodes As TreeNodeCollection Ptr, Level As Integer, ByRef Lines As String = "")
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:

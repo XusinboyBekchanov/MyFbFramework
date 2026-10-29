@@ -182,6 +182,18 @@ Namespace My.Sys.Forms
 	'Designer's job (via reflection - see Report.FieldAt), not Report's own.
 	'The report's host widget/window and item widgets/handles are created only in DesignMode;
 	'a report used only for printing/PDF never allocates them.
+	#ifdef __USE_WASM__
+		'Web: the element of the report or of a report item in the designer of the IDE (the STATIC window of Windows):
+		'the designer uses it as the window of the item, GetProp "MFFControl" of Win32Compat.bi gives the item (Owner)
+		Private Type ReportHost Extends ContainerControl
+		Protected:
+			Declare Virtual Function GetContent() As UString
+		Public:
+			Owner As Any Ptr
+			Declare Constructor
+		End Type
+	#endif
+
 	Private Type ReportControl Extends Component
 	Private:
 		FVisible   As Boolean
@@ -190,6 +202,8 @@ Namespace My.Sys.Forms
 			FParentWidget As GtkWidget Ptr
 		#elseif defined(__USE_WINAPI__)
 			FParentHandle As HWND
+		#elseif defined(__USE_WASM__)
+			FParentHandle As Any Ptr
 		#endif
 		'Host native handles/widgets are created only for design-time hosting, never for print
 		'rendering.
@@ -238,6 +252,10 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			Declare Property ParentHandle As HWND
 			Declare Property ParentHandle(Value As HWND)
+		#elseif defined(__USE_WASM__)
+			'The control of the designer of the IDE in which the report is (the HWND of Win32Compat.bi)
+			Declare Property ParentHandle As Any Ptr
+			Declare Property ParentHandle(Value As Any Ptr)
 		#endif
 		Declare Constructor
 		Declare Destructor

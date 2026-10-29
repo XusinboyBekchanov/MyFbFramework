@@ -12,17 +12,17 @@ Namespace My.Sys.Forms
 	'Represents a small rectangular pop-up window that displays a brief description of a control's purpose when the user rests the pointer on the control (Windows, Linux).
 	Private Type ToolTips Extends Control
 	Private:
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Declare Static Sub WNDPROC(ByRef Message As Message)
 			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-		#else
+		#elseif defined(__USE_GTK__)
 			Declare Static Function ActivateLink(Label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean
 			Dim As GtkWidget Ptr winTooltip
 			lblTooltip As GtkWidget Ptr
 		#endif
 	Public:
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Declare Sub CreateWnd
 		#endif
 		'Displays the ToolTip to the user (Windows only).

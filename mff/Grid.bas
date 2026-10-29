@@ -1795,7 +1795,7 @@ Namespace My.Sys.Forms
 					Dim As Boolean bChanged = (RowIndex <> FRow)
 					FRow = RowIndex
 					If OnRowClick Then OnRowClick(*Designer, This, RowIndex)
-					If bChanged AndAlso OnSelectedRowChanged Then OnSelectedRowChanged(*Designer, This, RowIndex)
+					If bChanged AndAlso OnSelectedRowChanged <> 0 Then OnSelectedRowChanged(*Designer, This, RowIndex)
 				End If
 				Message.Handled = True
 			End If
@@ -2780,7 +2780,7 @@ Namespace My.Sys.Forms
 		Rows.Clear
 		Columns.Clear
 		#ifdef __USE_WINAPI__
-			UnregisterClass "Grid", GetModuleHandle(NULL)
+			'UnregisterClass "Grid", GetModuleHandle(NULL)
 		#elseif defined(__USE_GTK__)
 			If ColumnTypes Then _DeleteSquareBrackets( ColumnTypes)
 		#endif

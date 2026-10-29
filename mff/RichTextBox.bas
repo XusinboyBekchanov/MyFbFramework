@@ -107,6 +107,9 @@ Namespace My.Sys.Forms
 			txtrange.chrg.cpMax = cpMax
 			txtrange.lpstrText = FTextRange
 			SendMessage(FHandle, EM_GETTEXTRANGE, 0, CInt(@txtrange))
+		#elseif defined(__USE_WASM__)
+			Dim As UString sRange = WebCmd("gettextrange", WStr(cpMin) & "," & WStr(cpMax2))
+			WLet(FTextRange, *sRange.vptr)
 		#endif
 		If FTextRange> 0 Then Return *FTextRange Else Return ""
 	End Function
@@ -121,6 +124,8 @@ Namespace My.Sys.Forms
 				Perform(EM_GETPARAFORMAT, 0, Cast(LPARAM, @Pf))
 				Return Pf.wAlignment - 1
 			End If
+		#elseif defined(__USE_WASM__)
+			Return ValInt(WebCmd("getalignment"))
 		#endif
 		Return 0
 	End Property
@@ -141,6 +146,8 @@ Namespace My.Sys.Forms
 				End Select
 				Perform(EM_SETPARAFORMAT, 0, Cast(LPARAM, @Pf))
 			End If
+		#elseif defined(__USE_WASM__)
+			WebCmd "alignment", WStr(CInt(Value))
 		#endif
 	End Property
 	
@@ -165,6 +172,8 @@ Namespace My.Sys.Forms
 				Perform(EM_GETPARAFORMAT, 0, Cast(LPARAM, @Pf))
 				Return Pf.wNumbering = PFN_BULLET
 			End If
+		#elseif defined(__USE_WASM__)
+			Return WebCmd("getbullet") = "1"
 		#endif
 		Return 0
 	End Property
@@ -209,6 +218,8 @@ Namespace My.Sys.Forms
 				Pf.wNumbering = IIf(Value, PFN_BULLET, 0)
 				Perform(EM_SETPARAFORMAT, 0, Cast(LPARAM, @Pf))
 			End If
+		#elseif defined(__USE_WASM__)
+			WebCmd "bullet", WStr(Abs(CInt(Value)))
 		#endif
 	End Property
 	
@@ -221,6 +232,8 @@ Namespace My.Sys.Forms
 				Perform(EM_GETPARAFORMAT, 0, Cast(LPARAM, @Pf))
 				Return Pf.dxStartIndent
 			End If
+		#elseif defined(__USE_WASM__)
+			Return ValInt(WebCmd("getindent"))
 		#endif
 		Return 0
 	End Property
@@ -234,6 +247,8 @@ Namespace My.Sys.Forms
 				Pf.dxStartIndent = Value
 				Perform(EM_SETPARAFORMAT, 0, Cast(LPARAM, @Pf))
 			End If
+		#elseif defined(__USE_WASM__)
+			WebCmd "indent", WStr(Value)
 		#endif
 	End Property
 	
@@ -246,6 +261,8 @@ Namespace My.Sys.Forms
 				Perform(EM_GETPARAFORMAT, 0, Cast(LPARAM, @Pf))
 				Return Pf.dxRightIndent
 			End If
+		#elseif defined(__USE_WASM__)
+			Return ValInt(WebCmd("getrightindent"))
 		#endif
 		Return 0
 	End Property
@@ -259,6 +276,8 @@ Namespace My.Sys.Forms
 				Pf.dxRightIndent = Value
 				Perform(EM_SETPARAFORMAT, 0, Cast(LPARAM, @Pf))
 			End If
+		#elseif defined(__USE_WASM__)
+			WebCmd "rightindent", WStr(Value)
 		#endif
 	End Property
 	
@@ -271,6 +290,8 @@ Namespace My.Sys.Forms
 				Perform(EM_GETPARAFORMAT, 0, Cast(LPARAM, @Pf))
 				Return Pf.dxOffset
 			End If
+		#elseif defined(__USE_WASM__)
+			Return ValInt(WebCmd("gethangingindent"))
 		#endif
 		Return 0
 	End Property
@@ -284,6 +305,8 @@ Namespace My.Sys.Forms
 				Pf.dxOffset = Value
 				Perform(EM_SETPARAFORMAT, 0, Cast(LPARAM, @Pf))
 			End If
+		#elseif defined(__USE_WASM__)
+			WebCmd "hangingindent", WStr(Value)
 		#endif
 	End Property
 	
@@ -420,6 +443,8 @@ Namespace My.Sys.Forms
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf2))
 				Return BGRToRGBA(Cf2.crBackColor)
 			End If
+		#elseif defined(__USE_WASM__)
+			Return ValInt(WebCmd("getbackcolor"))
 		#endif
 		Return 0
 	End Property
@@ -436,6 +461,8 @@ Namespace My.Sys.Forms
 				Cf2.crBackColor = Value
 				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf2))
 			End If
+		#elseif defined(__USE_WASM__)
+			WebCmd "backcolor", WStr(Value)
 		#endif
 	End Property
 	
@@ -448,6 +475,8 @@ Namespace My.Sys.Forms
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 				Return BGRToRGBA(Cf.crTextColor)
 			End If
+		#elseif defined(__USE_WASM__)
+			Return ValInt(WebCmd("getcolor"))
 		#endif
 		Return 0
 	End Property
@@ -470,6 +499,8 @@ Namespace My.Sys.Forms
 				Cf.crTextColor = Value
 				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 			End If
+		#elseif defined(__USE_WASM__)
+			WebCmd "color", WStr(Value)
 		#endif
 	End Property
 	
@@ -483,6 +514,10 @@ Namespace My.Sys.Forms
 				WLet(FSelFontName, Cf.szFaceName)
 				Return *FSelFontName
 			End If
+		#elseif defined(__USE_WASM__)
+			Dim As UString sName = WebCmd("getfontname")
+			WLet(FSelFontName, *sName.vptr)
+			Return *FSelFontName
 		#endif
 		Return Font.Name
 	End Property
@@ -496,6 +531,8 @@ Namespace My.Sys.Forms
 				Cf.szFaceName = Value
 				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 			End If
+		#elseif defined(__USE_WASM__)
+			WebCmd "fontname", Value
 		#endif
 	End Property
 	
@@ -508,6 +545,9 @@ Namespace My.Sys.Forms
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 				Return Cf.yHeight
 			End If
+		#elseif defined(__USE_WASM__)
+			'The size is in twips like on Windows (yHeight of CHARFORMAT)
+			Return ValInt(WebCmd("getfontsize")) * 20
 		#endif
 		Return 0
 	End Property
@@ -521,6 +561,8 @@ Namespace My.Sys.Forms
 				Cf.yHeight = Value
 				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 			End If
+		#elseif defined(__USE_WASM__)
+			WebCmd "fontsize", WStr(Value / 20)
 		#endif
 	End Property
 	
@@ -657,6 +699,8 @@ Namespace My.Sys.Forms
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 				Return Cf.dwEffects And CFE_BOLD
 			End If
+		#elseif defined(__USE_WASM__)
+			Return WebCmd("getbold") = "1"
 		#endif
 		Return 0
 	End Property
@@ -675,6 +719,8 @@ Namespace My.Sys.Forms
 				End If
 				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 			End If
+		#elseif defined(__USE_WASM__)
+			WebCmd "bold", WStr(Abs(CInt(Value)))
 		#endif
 	End Property
 	
@@ -687,6 +733,8 @@ Namespace My.Sys.Forms
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 				Return Cf.dwEffects And CFE_ITALIC
 			End If
+		#elseif defined(__USE_WASM__)
+			Return WebCmd("getitalic") = "1"
 		#endif
 		Return 0
 	End Property
@@ -705,6 +753,8 @@ Namespace My.Sys.Forms
 				End If
 				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 			End If
+		#elseif defined(__USE_WASM__)
+			WebCmd "italic", WStr(Abs(CInt(Value)))
 		#endif
 	End Property
 	
@@ -717,6 +767,8 @@ Namespace My.Sys.Forms
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 				Return Cf.dwEffects And CFE_UNDERLINE
 			End If
+		#elseif defined(__USE_WASM__)
+			Return WebCmd("getunderline") = "1"
 		#endif
 		Return 0
 	End Property
@@ -735,6 +787,8 @@ Namespace My.Sys.Forms
 				End If
 				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 			End If
+		#elseif defined(__USE_WASM__)
+			WebCmd "underline", WStr(Abs(CInt(Value)))
 		#endif
 	End Property
 	
@@ -747,6 +801,8 @@ Namespace My.Sys.Forms
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 				Return Cf.dwEffects And CFE_STRIKEOUT
 			End If
+		#elseif defined(__USE_WASM__)
+			Return WebCmd("getstrikeout") = "1"
 		#endif
 		Return 0
 	End Property
@@ -765,6 +821,8 @@ Namespace My.Sys.Forms
 				End If
 				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 			End If
+		#elseif defined(__USE_WASM__)
+			WebCmd "strikeThrough", WStr(Abs(CInt(Value)))
 		#endif
 	End Property
 	
@@ -807,6 +865,9 @@ Namespace My.Sys.Forms
 				Perform(EM_GETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 				Return Cf.yOffset
 			End If
+		#elseif defined(__USE_WASM__)
+			'Superscript (> 0) or subscript (< 0), in twips like on Windows
+			Return ValInt(WebCmd("getcharoffset"))
 		#endif
 		Return 0
 	End Property
@@ -820,6 +881,8 @@ Namespace My.Sys.Forms
 				Cf.yOffset = Value
 				Perform(EM_SETCHARFORMAT, SCF_SELECTION, Cast(LPARAM, @Cf))
 			End If
+		#elseif defined(__USE_WASM__)
+			WebCmd "charoffset", WStr(Value)
 		#endif
 	End Property
 	
@@ -851,6 +914,10 @@ Namespace My.Sys.Forms
 			Dim As GtkTextIter TextIter
 			gtk_text_view_get_iter_at_position(GTK_TEXT_VIEW(widget), @TextIter, 0, p.X, p.Y)
 			Return gtk_text_iter_get_offset(@TextIter)
+		#elseif defined(__USE_WASM__)
+			Return ValInt(WebCmd("getcharindexfrompos", WStr(p.X) & "," & WStr(p.Y)))
+		#else
+			Return 0
 		#endif
 	End Function
 	
@@ -873,6 +940,8 @@ Namespace My.Sys.Forms
 			Else
 				Perform(EM_SETZOOM, Value, 100)
 			End If
+		#elseif defined(__USE_WASM__)
+			If FHandle Then WebCmd "zoom", WStr(IIf(Value = 0, 100, Value))
 		#endif
 	End Property
 	
@@ -886,6 +955,10 @@ Namespace My.Sys.Forms
 			Return Perform(EM_EXLINEFROMCHAR, 0, i)
 		#elseif defined(__USE_GTK__)
 			Return 0
+		#elseif defined(__USE_WASM__)
+			Return ValInt(WebCmd("getbottomline"))
+		#else
+			Return 0
 		#endif
 	End Function
 	
@@ -898,18 +971,26 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_GTK__)
 			Return 0
+		#elseif defined(__USE_WASM__)
+			Return WebCmd("getcanredo") = "1"
+		#else
+			Return False
 		#endif
 	End Function
 	
 	Private Sub RichTextBox.Undo
 		#ifdef __USE_WINAPI__
 			If FHandle Then Perform(EM_UNDO, 0, 0)
+		#elseif defined(__USE_WASM__)
+			WebCmd "undo"
 		#endif
 	End Sub
 	
 	Private Sub RichTextBox.Redo
 		#ifdef __USE_WINAPI__
 			If FHandle Then Perform(EM_REDO, 0, 0)
+		#elseif defined(__USE_WASM__)
+			WebCmd "redo"
 		#endif
 	End Sub
 	
@@ -936,6 +1017,11 @@ Namespace My.Sys.Forms
 			Dim As Boolean bResult = gtk_text_iter_forward_search(@_start, ToUtf8(Value), GTK_TEXT_SEARCH_TEXT_ONLY, @match_start, @match_end, @_end)
 			If bResult Then gtk_text_buffer_select_range(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @match_start, @match_end)
 			Return bResult
+		#elseif defined(__USE_WASM__)
+			WLet(FFindText, Value)
+			Return ValInt(WebCmd("find", "0,0," & Value)) >= 0
+		#else
+			Return False
 		#endif
 	End Function
 	
@@ -969,6 +1055,15 @@ Namespace My.Sys.Forms
 			Dim As Boolean bResult = gtk_text_iter_forward_search(@sel_end, ToUtf8(Value), GTK_TEXT_SEARCH_TEXT_ONLY, @match_start, @match_end, @_end)
 			If bResult Then gtk_text_buffer_select_range(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @match_start, @match_end)
 			Return bResult
+		#elseif defined(__USE_WASM__)
+			If Value <> "" Then WLet(FFindText, Value)
+			If FFindText = 0 Then Return False
+			'From the end of the selection
+			Dim As UString sSel = WebCmd("getsel")
+			Dim As Integer iFrom = ValInt(Mid(*sSel.vptr, InStr(*sSel.vptr, ",") + 1))
+			Return ValInt(WebCmd("find", WStr(iFrom) & ",0," & *FFindText)) >= 0
+		#else
+			Return False
 		#endif
 	End Function
 	
@@ -999,6 +1094,14 @@ Namespace My.Sys.Forms
 			Dim As Boolean bResult = gtk_text_iter_backward_search(@sel_start, ToUtf8(Value), GTK_TEXT_SEARCH_TEXT_ONLY, @match_start, @match_end, @_start)
 			If bResult Then gtk_text_buffer_select_range(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @match_start, @match_end)
 			Return bResult
+		#elseif defined(__USE_WASM__)
+			If Value <> "" Then WLet(FFindText, Value)
+			If FFindText = 0 Then Return False
+			'Before the start of the selection
+			Dim As UString sSel = WebCmd("getsel")
+			Return ValInt(WebCmd("find", WStr(ValInt(*sSel.vptr)) & ",1," & *FFindText)) >= 0
+		#else
+			Return False
 		#endif
 	End Function
 	
@@ -1199,6 +1302,9 @@ Namespace My.Sys.Forms
 					SendMessage(FHandle, EM_GETSELTEXT, 0, Cast(LPARAM, FSelText))
 				End If
 			End If
+		#elseif defined(__USE_WASM__)
+			Dim As UString sSel = WebCmd("getseltext")
+			WLet(FSelText, *sSel.vptr)
 		#endif
 		If FSelText > 0 Then Return *FSelText Else Return ""
 	End Property
@@ -1213,6 +1319,8 @@ Namespace My.Sys.Forms
 			stSetText.flags = ST_KEEPUNDO
 			stSetText.codepage = 1200
 			SendMessage(FHandle, EM_REPLACESEL, Cast(WPARAM, @stSetText), Cast(LPARAM, FSelText))
+		#elseif defined(__USE_WASM__)
+			WebCmd "seltext", Value
 		#endif
 	End Property
 	
@@ -1253,6 +1361,11 @@ Namespace My.Sys.Forms
 				editstream.dwCookie = Cast(DWORD_PTR, @FTextRTF)
 				editstream.pfnCallback = Cast(EDITSTREAMCALLBACK, @GetTextCallback)
 				SendMessage(FHandle, EM_STREAMOUT, SF_RTF, Cast(LPARAM, @editstream))
+			End If
+		#elseif defined(__USE_WASM__)
+			If FHandle Then
+				Dim As UString sRTF = WebCmd("getrtf")
+				WLet(FTextRTF, *sRTF.vptr)
 			End If
 		#endif
 		If FTextRTF = 0 Then Return "" Else Return *FTextRTF
@@ -1334,16 +1447,170 @@ Namespace My.Sys.Forms
 			Else
 				Base.Text = Value
 			End If
+		#elseif defined(__USE_WASM__)
+			'Web: the element is a <div contenteditable> (RichTextBox constructor), the RTF is shown as HTML with its formatting
+			If FHandle Then SetInnerHTML(FHandle, ToUtf8(GetContent))
+		#elseif defined(__USE_JNI__)
+			'Android: a text view without formatting gets the text of the RTF
+			If StartsWith(Value, "{\rtf") OrElse StartsWith(Value, "{\urtf") Then Base.Text = RtfToText(Value, False) Else Base.Text = Value
 		#endif
 	End Property
-	
+
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		'The text of an RTF: Html - with the formatting as HTML (\b, \i, \ul, \strike, their ends \b0, \i0, \ulnone, \strike0;
+		'a group {} keeps its formatting inside it), otherwise only the text. \par and \line are new lines, \tab a tab,
+		'\'hh and \uN characters; the groups of \* and of the tables of fonts and colors are left out
+		Private Function RichTextBox.RtfToText(ByRef Value As WString, Html As Boolean) As UString
+			Dim As UString sText
+			Dim As Integer i = 0, LenValue = Len(Value), Depth = 0, SkipDepth = 0, c
+			'The formatting (1 - bold, 2 - italic, 4 - underline, 8 - strikeout) of each group and the one of the open <span>
+			Dim As Integer States(Any), State, RunState = 0
+			ReDim States(0)
+			Do While i < LenValue
+				c = Value[i]
+				If c = 123 Then '{
+					ReDim Preserve States(Depth + 1)
+					States(Depth + 1) = States(Depth)
+					Depth += 1
+					i += 1
+					Continue Do
+				ElseIf c = 125 Then '}
+					If SkipDepth > 0 AndAlso Depth <= SkipDepth Then SkipDepth = 0
+					If Depth > 0 Then Depth -= 1
+					i += 1
+					Continue Do
+				End If
+				Dim As UString sChars
+				If c = 92 Then '\
+					i += 1
+					If i >= LenValue Then Exit Do
+					c = Value[i]
+					If c = 92 OrElse c = 123 OrElse c = 125 Then
+						sChars = WChr(c)
+						i += 1
+					ElseIf c = 39 Then '\'hh
+						sChars = WChr(Val("&H" & Mid(Value, i + 2, 2)))
+						i += 3
+					ElseIf c = 42 Then '\*: a group which is not shown
+						If SkipDepth = 0 Then SkipDepth = Depth
+						i += 1
+					ElseIf (c >= 97 AndAlso c <= 122) OrElse (c >= 65 AndAlso c <= 90) Then
+						Dim As String sWord, sNumber
+						Do While i < LenValue AndAlso ((Value[i] >= 97 AndAlso Value[i] <= 122) OrElse (Value[i] >= 65 AndAlso Value[i] <= 90))
+							sWord &= Chr(Value[i])
+							i += 1
+						Loop
+						Do While i < LenValue AndAlso (Value[i] = 45 OrElse (Value[i] >= 48 AndAlso Value[i] <= 57))
+							sNumber &= Chr(Value[i])
+							i += 1
+						Loop
+						'The space after a control word is a part of it
+						If i < LenValue AndAlso Value[i] = 32 Then i += 1
+						Dim As Boolean bOn = sNumber <> "0"
+						Select Case sWord
+						Case "fonttbl", "colortbl", "stylesheet", "info", "pict"
+							If SkipDepth = 0 Then SkipDepth = Depth
+						Case "par", "line"
+							sChars = WChr(10)
+						Case "tab"
+							sChars = WChr(9)
+						Case "u"
+							sChars = WChr(ValInt(sNumber) And &HFFFF)
+							'The character for the readers without Unicode
+							If i < LenValue AndAlso Value[i] = 63 Then i += 1
+						Case "b": States(Depth) = IIf(bOn, States(Depth) Or 1, States(Depth) And Not 1)
+						Case "i": States(Depth) = IIf(bOn, States(Depth) Or 2, States(Depth) And Not 2)
+						Case "ul": States(Depth) = IIf(bOn, States(Depth) Or 4, States(Depth) And Not 4)
+						Case "ulnone": States(Depth) = States(Depth) And Not 4
+						Case "strike": States(Depth) = IIf(bOn, States(Depth) Or 8, States(Depth) And Not 8)
+						Case "plain": States(Depth) = 0
+						End Select
+					Else
+						i += 1
+					End If
+				Else
+					If c <> 13 AndAlso c <> 10 Then sChars = WChr(c)
+					i += 1
+				End If
+				If SkipDepth > 0 OrElse Len(sChars) = 0 Then Continue Do
+				If Html Then
+					'A new <span> when the formatting of the text changes
+					State = States(Depth)
+					If State <> RunState Then
+						If RunState <> 0 Then sText &= "</span>"
+						If State <> 0 Then
+							'(If and not IIf: a chain of IIf of string literals gives wrong strings)
+							Dim As String sStyle
+							If State And 1 Then sStyle &= "font-weight: bold;"
+							If State And 2 Then sStyle &= "font-style: italic;"
+							If State And 12 Then
+								sStyle &= "text-decoration:"
+								If State And 4 Then sStyle &= " underline"
+								If State And 8 Then sStyle &= " line-through"
+								sStyle &= ";"
+							End If
+							sText &= "<span style=""" & sStyle & """>"
+						End If
+						RunState = State
+					End If
+					Select Case sChars
+					Case "&": sText &= "&amp;"
+					Case "<": sText &= "&lt;"
+					Case ">": sText &= "&gt;"
+					Case WChr(10): sText &= "<br>"
+					Case Else: sText &= sChars
+					End Select
+				Else
+					If sChars = WChr(10) Then sText &= WChr(13, 10) Else sText &= sChars
+				End If
+			Loop
+			If Html AndAlso RunState <> 0 Then sText &= "</span>"
+			Return sText
+		End Function
+	#endif
+
+	#ifdef __USE_WASM__
+		Private Function RichTextBox.WebCmd(Cmd As String, ByRef Value As WString = "") As UString
+			If FHandle = 0 Then Return ""
+			Dim As ZString Ptr pResult = RichTextCmd(FHandle, Cmd, ToUtf8(Value))
+			If pResult = 0 Then Return ""
+			Dim As WString Ptr pText = FromUtf8(pResult)
+			Deallocate(pResult)
+			Dim As UString sResult
+			If pText Then sResult = *pText: WDeAllocate(pText)
+			Return sResult
+		End Function
+
+		'The HTML of the element: the RTF with its formatting (TextRTF), otherwise the text (the new lines of the text are kept
+		'by white-space: pre-wrap of .mffrichtext of mff.html)
+		Private Function RichTextBox.GetContent() As UString
+			If FTextRTF <> 0 AndAlso (StartsWith(*FTextRTF, "{\rtf") OrElse StartsWith(*FTextRTF, "{\urtf")) Then Return RtfToText(*FTextRTF, True)
+			Dim As UString sText = Replace(Replace(Replace(Text, "&", "&amp;"), "<", "&lt;"), ">", "&gt;")
+			Return sText
+		End Function
+	#endif
+
 	Private Function RichTextBox.AddImageFromFile(ByRef File As WString) As Boolean
+		#ifdef __USE_WASM__
+			'Web: an <img> of the file of the file system of the page at the place of the selection
+			If FHandle = 0 Then Return False
+			WebCmd "image", File
+			Return True
+		#endif
 		Dim As My.Sys.Drawing.BitmapType Bitm
 		Bitm.LoadFromFile(File)
 		Return AddImage(Bitm)
 	End Function
 	
 	Private Function RichTextBox.AddImage(ByRef ResName As WString) As Boolean
+		#ifdef __USE_WASM__
+			'Web: an <img> of the picture of the resource (the first URL of FindResourceFile)
+			If FHandle = 0 Then Return False
+			Dim As String sURL = FindResourceFile(ResName)
+			If InStr(sURL, "|") Then sURL = ..Left(sURL, InStr(sURL, "|") - 1)
+			WebCmd "image", sURL
+			Return True
+		#endif
 		Dim As My.Sys.Drawing.BitmapType Bitm
 		Bitm.LoadFromResourceName(ResName)
 		Return AddImage(Bitm)
@@ -1512,6 +1779,20 @@ Namespace My.Sys.Forms
 					CloseHandle(hFile)
 				End If
 			End If
+		#elseif defined(__USE_WASM__)
+			'The file of the file system of the page: RTF or UTF-8 text
+			Dim As Integer Fn = FreeFile
+			If Open(Value For Binary Access Read As #Fn) = 0 Then
+				Dim As String sData = Space(LOF(Fn))
+				If Len(sData) Then Get #Fn, , sData
+				Close #Fn
+				If bRTF Then
+					TextRTF = sData
+				Else
+					Dim As WString Ptr pText = FromUtf8(StrPtr(sData))
+					If pText Then Text = *pText: WDeAllocate(pText) Else Text = ""
+				End If
+			End If
 		#endif
 	End Sub
 	
@@ -1529,6 +1810,18 @@ Namespace My.Sys.Forms
 					SendMessage(FHandle, EM_STREAMOUT, IIf(bRTF, SF_RTF, SF_TEXT), Cast(LPARAM, @editstream))
 					SendMessage(FHandle, EM_SETMODIFY, False, 0)
 					CloseHandle(hFile)
+				End If
+			End If
+		#elseif defined(__USE_WASM__)
+			If Not bRTF Then
+				Base.SaveToFile(Value)
+			Else
+				'The RTF of the element is ASCII (\uN for the other characters)
+				Dim As String sData = TextRTF
+				Dim As Integer Fn = FreeFile
+				If Open(Value For Output As #Fn) = 0 Then
+					Print #Fn, sData;
+					Close #Fn
 				End If
 			End If
 		#endif
@@ -1688,8 +1981,14 @@ Namespace My.Sys.Forms
 			FTabIndex          = -1
 			FTabStop           = True
 			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
-				'A multiline text box without the formatting of a rich edit
 				.Multiline = True
+			#endif
+			#ifdef __USE_WASM__
+				'Web: a <div contenteditable> (.mffrichtext of mff.html, CREATEELEMENT of mff_lib.js) shows the formatting of
+				'TextRTF; ReadOnly switches the editing off (SETREADONLY)
+				WLet(.FClassAncestor, "div")
+				.FType = ""
+				.FClass = "mffrichtext"
 			#endif
 			WLet(.FClassName, "RichTextBox")
 			.Child       = @This

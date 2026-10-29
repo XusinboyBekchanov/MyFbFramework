@@ -11,7 +11,7 @@
 '###############################################################################
 
 #include once "Application.bi"
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	#include once "Win/ShlObj.bi"
 #else
 	#include once "Graphics.bi"
@@ -19,7 +19,7 @@
 
 Const OFN_ENABLEINCLUDENOTIFY = &H400000
 
-#ifdef __USE_GTK__
+#ifndef __USE_WINAPI__
 	Private Enum OpenOption
 		ofReadOnly
 		ofOverwritePrompt
@@ -90,7 +90,7 @@ End Type
 'Displays a standard dialog box that prompts the user to open a file.
 Private Type OpenFileDialog Extends Dialog
 Private:
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Declare Static Function Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
 	#endif
 	Control     As My.Sys.Forms.Control
@@ -109,7 +109,7 @@ Public:
 		Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 	#endif
 	FileNames 	As WStringList
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		
 	#endif
 	FilterIndex  As Integer
@@ -140,7 +140,7 @@ End Type
 'Prompts the user to select a location for saving a file.
 Private Type SaveFileDialog Extends Dialog
 Private:
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Declare Static Function Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
 	#endif
 	Control      As My.Sys.Forms.Control
@@ -198,7 +198,7 @@ End Type
 'Prompts the user to select a folder.
 Private Type FolderBrowserDialog Extends Dialog
 Private:
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Declare Static Function Hook(hWnd As HWND, uMsg As UINT, lParam As LPARAM, lpData As LPARAM) As Long
 	#endif
 	Control     As My.Sys.Forms.Control
@@ -230,11 +230,11 @@ End Type
 'Represents a common dialog box that displays available colors along with controls that enable the user to define custom colors.
 Private Type ColorDialog Extends Dialog
 Private:
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		CC              As CHOOSECOLOR
 	#endif
 	_Caption        As WString Ptr
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Declare Static Function Hook(FWindow As HWND,Msg As UINT,wParam As WPARAM,lParam As LPARAM) As UInteger
 	#endif
 Public:
@@ -248,7 +248,7 @@ Public:
 	Center          As Integer
 	Color           As Integer
 	Style           As Integer
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Colors(16)      As COLORREF => {&H0,&H808080,&H000080,&H008080,_
 		&H008000,&H808000,&H800000,&H800080,_
 		&HFFFFFF,&HC0C0C0,&H0000FF,&H00FFFF,_

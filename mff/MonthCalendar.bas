@@ -341,7 +341,7 @@ Namespace My.Sys.Forms
 	
 	Private Destructor MonthCalendar
 		#ifdef __USE_WINAPI__
-			UnregisterClass "MonthCalendar",GetModuleHandle(NULL)
+			'UnregisterClass "MonthCalendar",GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace

@@ -31,6 +31,10 @@ Private:
 	
 	Dim As Form frmDialog
 	Dim As HorizontalBox hbxCommands
+	#ifdef __USE_JNI__
+		'Android: the second row of the commands (the pages and the zoom), one row does not fit in the screen of a phone
+		Dim As HorizontalBox hbxPages
+	#endif
 	Dim As CommandButton cmdPrint, cmdFitToWindow
 	Dim As TrackBar trbPercent
 	Dim As Label lblPercent, lblMinus, lblPlus, lblPrevious, lblNext, lblPagesCount

@@ -419,6 +419,9 @@ Namespace My.Sys.Forms
 					lvi.iImage     = FImageIndex
 					ListView_SetItem(Parent->Handle, @lvi)
 				End If
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				'The row gets the picture (ListView.RowCells): ListItems.Add sets the key after the row is added
+				If Parent AndAlso Parent->Handle AndAlso Index >= 0 Then TableSetRow(Parent->Handle, Index, Cast(ListView Ptr, Parent)->RowCells(@This))
 			#endif
 		End If
 	End Property
@@ -518,6 +521,9 @@ Namespace My.Sys.Forms
 				lvc.cx = ScaleX(FWidth)
 				ListView_SetColumn(Parent->Handle, Index, @lvc)
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'The header of the table gets the new width (the Value column of the Properties of the IDE, OnResize)
+			If Parent AndAlso Parent->Handle Then Cast(ListView Ptr, Parent)->UpdateColumns
 		#endif
 	End Sub
 	
@@ -681,7 +687,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_WINAPI__
 				If Parent->Handle Then ListView_InsertItem(Parent->Handle, @lvi)
 			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
-				If Parent->Handle Then TableInsertRow(Parent->Handle, IIf(iSortStyle <> SortStyle.ssNone OrElse Index <> -1, i, -1), ToUtf8(FCaption))
+				If Parent->Handle Then TableInsertRow(Parent->Handle, IIf(iSortStyle <> SortStyle.ssNone OrElse Index <> -1, i, -1), Replace(ToUtf8(FCaption), Chr(9), "    "))
 			#endif
 			PItem->Parent = Parent
 			PItem->Text(0) = FCaption
@@ -1268,6 +1274,12 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform LVM_SETVIEW, Cast(WPARAM, Cast(DWORD, Value)), 0
+		#elseif defined(__USE_WASM__)
+			If FHandle Then TableSetView(FHandle, WebViewName)
+		#elseif defined(__USE_JNI__)
+			'vsIcon: a grid of the pictures with the texts under them (mffActivity.createView "IconGrid", a GridView), the
+			'other views are the rows of a ListView. The view is made with its kind (a View of the designer)
+			If FHandle = 0 Then WLet(FClassAncestor, IIf(FView = ViewStyle.vsIcon, "mff:IconGrid", "android/widget/ListView"))
 		#endif
 	End Property
 	
@@ -1785,11 +1797,31 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
+	#ifdef __USE_WASM__
+		Private Function ListView.WebViewName() As String
+			Select Case FView
+			Case ViewStyle.vsIcon: Return "icon"
+			Case ViewStyle.vsSmallIcon: Return "smallicon"
+			Case ViewStyle.vsList: Return "list"
+			Case ViewStyle.vsTile: Return "tile"
+			Case Else: Return "report"
+			End Select
+		End Function
+	#endif
+
 	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 		Private Function ListView.RowCells(Item As ListViewItem Ptr) As String
-			Dim As String Cells = ToUtf8(Item->Text(0))
+			'Chr(9) separates the cells: a tab of a text (the indent of a line of the results of Find) is spaces
+			Dim As String Cells = Replace(ToUtf8(Item->Text(0)), Chr(9), "    ")
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				'The picture of the item (like Bitmap.LoadFromResourceName: the resource name is the key of the image list):
+				'Chr(1) & path & Chr(1) before the text of the first cell (TableSetView, the row of mffActivity)
+				If (Images <> 0 OrElse SmallImages <> 0) AndAlso Item->ImageKey <> "" Then
+					Cells = Chr(1) & FindResourceFile(ToUtf8(Item->ImageKey)) & Chr(1) & Cells
+				End If
+			#endif
 			For i As Integer = 1 To Columns.Count - 1
-				Cells &= Chr(9) & ToUtf8(Item->Text(i))
+				Cells &= Chr(9) & Replace(ToUtf8(Item->Text(i)), Chr(9), "    ")
 			Next
 			Return Cells
 		End Function
@@ -1803,7 +1835,12 @@ Namespace My.Sys.Forms
 				Widths &= Str(Columns.Column(i)->Width)
 			Next
 			If FColumnHeaderHidden Then
-				TableSetColumns(FHandle, "", "")
+				'Android: the cells keep the widths of the columns without the header row
+				#ifdef __USE_JNI__
+					TableSetColumns(FHandle, "", Widths)
+				#else
+					TableSetColumns(FHandle, "", "")
+				#endif
 			Else
 				TableSetColumns(FHandle, Captions, Widths)
 			End If
@@ -1813,6 +1850,9 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				With QListView(Sender.Child)
 					TableInit(.FHandle)
+					#ifdef __USE_WASM__
+						TableSetView(.FHandle, .WebViewName)
+					#endif
 					.UpdateColumns
 					For i As Integer = 0 To .ListItems.Count - 1
 						TableInsertRow(.FHandle, -1, .RowCells(.ListItems.Item(i)))
@@ -2058,7 +2098,7 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "table")
-				FElementStyle = "border: 1px solid #aaa; background: white;"
+				FElementStyle = "border: 1px solid var(--mff-border, #aaa); background: var(--mff-window, white);"
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			WLet(FClassName, "ListView")
@@ -2073,7 +2113,7 @@ Namespace My.Sys.Forms
 			ListItems.Clear
 		#endif
 		#ifdef __USE_WINAPI__
-			UnregisterClass "ListView",GetModuleHandle(NULL)
+			'UnregisterClass "ListView",GetModuleHandle(NULL)
 		#elseif defined(__USE_GTK__)
 			If ColumnTypes Then _DeleteSquareBrackets( ColumnTypes)
 			#ifndef __FB_WIN32__

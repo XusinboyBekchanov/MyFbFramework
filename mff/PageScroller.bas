@@ -636,7 +636,7 @@ Namespace My.Sys.Forms
 	
 	Private Destructor PageScroller
 		#ifdef __USE_WINAPI__
-			UnregisterClass "PageScroller", GetModuleHandle(NULL)
+			'UnregisterClass "PageScroller", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace

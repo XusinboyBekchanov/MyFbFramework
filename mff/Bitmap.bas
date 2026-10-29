@@ -623,10 +623,10 @@ End Namespace
 
 #ifdef __EXPORT_PROCS__
 	Function BitmapTypeLoadFromResourceName Alias "BitmapTypeLoadFromResourceName"(Bitm As My.Sys.Drawing.BitmapType Ptr, ResName As String, ModuleHandle As Any Ptr = 0) As Boolean  __EXPORT__
-		#ifdef __USE_GTK__
-			Return Bitm->LoadFromResourceName(ResName)
-		#else
+		#ifdef __USE_WINAPI__
 			Return Bitm->LoadFromResourceName(ResName, Cast(HINSTANCE, ModuleHandle))
+		#else
+			Return Bitm->LoadFromResourceName(ResName)
 		#endif
 	End Function
 	

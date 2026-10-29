@@ -185,6 +185,14 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property ScrollBarControl.PageSize(Value As Integer)
+		#ifdef __USE_WASM__
+			'Web: the thumb of the scroll bar has the size of the page (the scroll bar of the browser, SETRANGE)
+			If Value <> FPageSize Then
+				FPageSize = Value
+				If FHandle Then SetAttribute(FHandle, "data-page", Str(Value)): ..SetRange(FHandle, FMin, FMax)
+			End If
+			Exit Property
+		#endif
 		If FPageSize > FMax Or Value = FPageSize Then Exit Property
 		FPageSize = Value
 		#ifdef __USE_GTK__
@@ -218,12 +226,13 @@ Namespace My.Sys.Forms
 		Private Sub ScrollBarControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QScrollBarControl(Sender.Child)
+					#ifdef __USE_WASM__
+						'Web: the scroll bar of the browser (like the ones of the other controls) over the range (SETRANGE)
+						SetAttribute(.FHandle, "data-scrollbar", IIf(.FStyle = sbVertical, "v", "h"))
+						If .FPageSize > 0 Then SetAttribute(.FHandle, "data-page", Str(.FPageSize))
+					#endif
 					..SetRange(.FHandle, .FMin, .FMax)
 					SetPosition(.FHandle, .FPosition)
-					#ifdef __USE_WASM__
-						SetAttribute(.FHandle, "step", Str(.FArrowChangeSize))
-						If .FStyle = sbVertical Then SetAttribute(.FHandle, "orient", "vertical")
-					#endif
 				End With
 			End If
 		End Sub
@@ -350,8 +359,7 @@ Namespace My.Sys.Forms
 			WLet(FClassName, "ScrollBarControl")
 			WLet(FClassAncestor, "ScrollBar")
 			#ifdef __USE_WASM__
-				WLet(FClassAncestor, "input")
-				FType = "range"
+				WLet(FClassAncestor, "div")
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "mff:SeekBar")

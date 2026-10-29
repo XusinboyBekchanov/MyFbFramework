@@ -28,7 +28,9 @@ Namespace My.Sys.ComponentModel
 				Case "layoutwidget": Return layoutwidget
 				Case "overlaywidget": Return overlaywidget
 				Case "eventboxwidget": Return eventboxwidget
-				#elseif defined(__USE_WINAPI__)
+				#elseif defined(__USE_WINAPI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				'Web: the handle is the address of the control (the id of its element), Android: the view; the designer of the
+				'IDE reads it (SetParent of the designed form into its panel, Win32Compat.bi)
 				Case "handle": Return @FHandle
 				#endif
 			Case "left": FLeft = This.Left: Return @FLeft
@@ -222,6 +224,13 @@ Namespace My.Sys.ComponentModel
 	#endif
 	
 	#ifndef Move_Off
+		#ifdef __USE_JNI__
+			Private Function Component.DesignCaptionHeight() As Integer
+				If FDesignMode AndAlso ClassName = "Form" Then Return 28
+				Return 0
+			End Function
+		#endif
+
 		Private Sub Component.Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 			'#ifdef __USE_GTK__
 			'	Dim As Integer iLeft = FLeft, iTop = FTop, iWidth = FWidth, iHeight = FHeight
@@ -315,29 +324,65 @@ Namespace My.Sys.ComponentModel
 						' A layout pass is running and repaints the container when it ends.
 						' Repainting here would show a half finished layout and costs more than
 						' the move itself; a window which already has the bounds is skipped
-						Dim As RECT R
+						Dim As RECT R, ROld, RNew
+						Dim As HWND hParentWnd = GetParent(FHandle)
 						GetWindowRect FHandle, @R
+						ROld = R
 						If R.Right - R.Left = nWidth AndAlso R.Bottom - R.Top = nHeight Then
-							MapWindowPoints 0, GetParent(FHandle), Cast(Point Ptr, @R), 2
+							MapWindowPoints 0, hParentWnd, Cast(Point Ptr, @R), 2
 							If R.Left = nLeft AndAlso R.Top = nTop Then Exit Sub
 						End If
-						AlignMoved = 1
-						If AlignDefer Then
+						If AlignMoved = 0 Then AlignMoved = 1
+						' Only the old and the new place of the window are repainted when the pass ends
+						RNew.Left = nLeft: RNew.Top = nTop: RNew.Right = nLeft + nWidth: RNew.Bottom = nTop + nHeight
+						MapWindowPoints hParentWnd, 0, Cast(Point Ptr, @RNew), 2
+						AlignAddRect @ROld
+						AlignAddRect @RNew
+						' Only children of the container of the batch may join it
+						If AlignDefer AndAlso hParentWnd = AlignDeferParent Then
 							AlignDefer = DeferWindowPos(AlignDefer, FHandle, 0, nLeft, nTop, nWidth, nHeight, SWP_NOZORDER Or SWP_NOACTIVATE Or SWP_NOREDRAW)
-						Else
-							SetWindowPos FHandle, 0, nLeft, nTop, nWidth, nHeight, SWP_NOZORDER Or SWP_NOACTIVATE Or SWP_NOREDRAW
+							If AlignDefer Then Exit Sub
+							' The batch failed and is gone: the remaining moves are applied one by one
 						End If
+						SetWindowPos FHandle, 0, nLeft, nTop, nWidth, nHeight, SWP_NOZORDER Or SWP_NOACTIVATE Or SWP_NOREDRAW
 						Exit Sub
 					End If
 					MoveWindow FHandle, nLeft, nTop, nWidth, nHeight, True
 				End If
 			#elseif defined(__USE_JNI__)
+				'The bounds of Move (there is no WM_SIZE which gives them back like on Windows): an AutoSize container
+				'(VerticalBox, RequestAlign) became larger only in its fields of the native side
+				FLeft = iLeft: FTop = iTop: FWidth = iWidth: FHeight = iHeight
 				If env = 0 OrElse FHandle = 0 Then Exit Sub
 				Dim As jclass class_view = (*env)->FindClass(env, "android/view/View")
+				'The main Form is the Activity: its size is the one of the screen
+				If (*env)->IsInstanceOf(env, FHandle, class_view) = 0 Then Exit Sub
+				'The edges in pixels: the right edge of a control is the left one of the control next to it (the left and the
+				'width rounded apart gave a gap of a pixel or one over the other)
+				Dim As Long PixelLeft = ScaleX(FLeft), PixelTop = ScaleY(FTop + DesignCaptionHeight)
+				Dim As Long PixelWidth = ScaleX(FLeft + FWidth) - PixelLeft, PixelHeight = ScaleY(FTop + DesignCaptionHeight + FHeight) - PixelTop
+				'The same bounds: no new layout (setLayoutParams asks for one, and the layout aligns the controls again)
+				Scope
+					Dim As jobject OldParams = CallObjectMethod(FHandle, "android/view/View", "getLayoutParams", "()Landroid/view/ViewGroup$LayoutParams;")
+					'The view is not in an AbsoluteLayout (a second form in its activity, mffActivity.FormActivity: the scroll
+					'views give its size): the bounds of AbsoluteLayout would not be the ones of that parent
+					If OldParams <> 0 AndAlso IsAbsoluteLayoutParams(OldParams) = False Then
+						(*env)->DeleteLocalRef(env, OldParams)
+						Exit Sub
+					End If
+					If IsAbsoluteLayoutParams(OldParams) Then
+						If GetIntField(OldParams, "android/widget/AbsoluteLayout$LayoutParams", "x", "I") = PixelLeft AndAlso GetIntField(OldParams, "android/widget/AbsoluteLayout$LayoutParams", "y", "I") = PixelTop AndAlso _
+							GetIntField(OldParams, "android/widget/AbsoluteLayout$LayoutParams", "width", "I") = PixelWidth AndAlso GetIntField(OldParams, "android/widget/AbsoluteLayout$LayoutParams", "height", "I") = PixelHeight Then
+							(*env)->DeleteLocalRef(env, OldParams)
+							Exit Sub
+						End If
+					End If
+					If OldParams Then (*env)->DeleteLocalRef(env, OldParams)
+				End Scope
 				Dim As jmethodID setLayoutParams = (*env)->GetMethodID(env, class_view, "setLayoutParams", "(Landroid/view/ViewGroup$LayoutParams;)V")
 				Dim As jclass class_LayoutParams = (*env)->FindClass(env, "android/widget/AbsoluteLayout$LayoutParams")
 				Dim As jmethodID ConstructorMethod = (*env)->GetMethodID(env, class_LayoutParams, "<init>", "(IIII)V")
-				Dim As jobject LayoutParams = (*env)->NewObject(env, class_LayoutParams, ConstructorMethod, ScaleX(FWidth), ScaleY(FHeight), ScaleX(FLeft), ScaleY(FTop))
+				Dim As jobject LayoutParams = (*env)->NewObject(env, class_LayoutParams, ConstructorMethod, PixelWidth, PixelHeight, PixelLeft, PixelTop)
 				'Dim As jfieldID LeftField = (*env)->GetFieldID(env, class_MarginLayoutParams, "leftMargin", "I")
 				'CallVoidMethod(FHandle, "android/widget/Button", "setText", "(Ljava/lang/CharSequence;)V", (*env)->NewStringUTF(env, ToUTF8(Str((*env)->GetIntField(env, MarginLayoutParams, LeftField)))))
 '				Dim As jfieldID TopField = (*env)->GetFieldID(env, class_MarginLayoutParams, "topMargin", "I")
@@ -401,9 +446,11 @@ Namespace My.Sys.ComponentModel
 							Dim As jclass class_view = (*env)->FindClass(env, "android/view/View")
 							Dim As jmethodID getLayoutParamsMethod = (*env)->GetMethodID(env, class_view, "getLayoutParams", "()Landroid/view/ViewGroup$LayoutParams;")
 							Dim As jobject MarginLayoutParams = (*env)->CallObjectMethod(env, FHandle, getLayoutParamsMethod)
-							Dim As jclass class_MarginLayoutParams = (*env)->FindClass(env, "android/widget/AbsoluteLayout$LayoutParams")
-							Dim As jfieldID xField = (*env)->GetFieldID(env, class_MarginLayoutParams, "x", "I")
-							FLeft = UnScaleX((*env)->GetIntField(env, MarginLayoutParams, xField))
+							If IsAbsoluteLayoutParams(MarginLayoutParams) Then
+								Dim As jclass class_MarginLayoutParams = (*env)->FindClass(env, "android/widget/AbsoluteLayout$LayoutParams")
+								Dim As jfieldID xField = (*env)->GetFieldID(env, class_MarginLayoutParams, "x", "I")
+								FLeft = UnScaleX((*env)->GetIntField(env, MarginLayoutParams, xField))
+							End If
 							'If FParent Then FLeft -= FParent->Margins.Left
 						End If
 					End If
@@ -460,7 +507,7 @@ Namespace My.Sys.ComponentModel
 					Else
 						If FHandle Then
 							Dim As jobject MarginLayoutParams = CallObjectMethod(FHandle, "android/view/View", "getLayoutParams", "()Landroid/view/ViewGroup$LayoutParams;")
-							FTop = UnScaleY(GetIntField(MarginLayoutParams, "android/widget/AbsoluteLayout$LayoutParams", "y", "I"))
+							If IsAbsoluteLayoutParams(MarginLayoutParams) Then FTop = UnScaleY(GetIntField(MarginLayoutParams, "android/widget/AbsoluteLayout$LayoutParams", "y", "I"))
 							'If FParent Then FTop -= FParent->Margins.Top
 						End If
 					End If
@@ -519,15 +566,16 @@ Namespace My.Sys.ComponentModel
 				End If
 			#elseif defined(__USE_JNI__)
 				If FHandle Then
-					If ClassName = "Form" Then
+					'A second Form is not the Activity and has no window, the size of the design is kept
+					If ClassName = "Form" AndAlso (*env)->IsInstanceOf(env, FHandle, FindJNIClass("android/app/Activity")) Then
 						Dim As jobject iWindow = CallObjectMethod(FHandle, "android/app/Activity", "getWindow", "()Landroid/view/Window;")
-						Dim As jobject decorView = CallObjectMethod(iWindow, "android/view/Window", "getDecorView", "()Landroid/view/View;")
+						Dim As jobject decorView = IIf(iWindow, CallObjectMethod(iWindow, "android/view/Window", "getDecorView", "()Landroid/view/View;"), 0)
 						'Before the first layout the width is 0: the one of the design is kept
-						Dim As Integer iWidth = CallIntMethod(decorView, "android/view/View", "getWidth", "()I")
+						Dim As Integer iWidth = IIf(decorView, CallIntMethod(decorView, "android/view/View", "getWidth", "()I"), 0)
 						If iWidth > 0 Then FWidth = UnScaleX(iWidth)
-					Else
+					ElseIf ClassName <> "Form" AndAlso (*env)->IsInstanceOf(env, FHandle, FindJNIClass("android/view/View")) Then
 						Dim As jobject LayoutParams = CallObjectMethod(FHandle, "android/view/View", "getLayoutParams", "()Landroid/view/ViewGroup$LayoutParams;")
-						FWidth = UnScaleX(GetIntField(LayoutParams, "android/widget/AbsoluteLayout$LayoutParams", "width", "I"))
+						If IsAbsoluteLayoutParams(LayoutParams) Then FWidth = UnScaleX(GetIntField(LayoutParams, "android/widget/AbsoluteLayout$LayoutParams", "width", "I"))
 					End If
 				End If
 			#endif
@@ -576,15 +624,16 @@ Namespace My.Sys.ComponentModel
 				End If
 			#elseif defined(__USE_JNI__)
 				If FHandle Then
-					If ClassName = "Form" Then
+					'A second Form is not the Activity and has no window, the size of the design is kept
+					If ClassName = "Form" AndAlso (*env)->IsInstanceOf(env, FHandle, FindJNIClass("android/app/Activity")) Then
 						Dim As jobject iWindow = CallObjectMethod(FHandle, "android/app/Activity", "getWindow", "()Landroid/view/Window;")
-						Dim As jobject decorView = CallObjectMethod(iWindow, "android/view/Window", "getDecorView", "()Landroid/view/View;")
+						Dim As jobject decorView = IIf(iWindow, CallObjectMethod(iWindow, "android/view/Window", "getDecorView", "()Landroid/view/View;"), 0)
 						'Before the first layout the height is 0: the one of the design is kept
-						Dim As Integer iHeight = CallIntMethod(decorView, "android/view/View", "getHeight", "()I")
+						Dim As Integer iHeight = IIf(decorView, CallIntMethod(decorView, "android/view/View", "getHeight", "()I"), 0)
 						If iHeight > 0 Then FHeight = UnScaleY(iHeight)
-					Else
+					ElseIf ClassName <> "Form" AndAlso (*env)->IsInstanceOf(env, FHandle, FindJNIClass("android/view/View")) Then
 						Dim As jobject LayoutParams = CallObjectMethod(FHandle, "android/view/View", "getLayoutParams", "()Landroid/view/ViewGroup$LayoutParams;")
-						FHeight = UnScaleY(GetIntField(LayoutParams, "android/widget/AbsoluteLayout$LayoutParams", "height", "I"))
+						If IsAbsoluteLayoutParams(LayoutParams) Then FHeight = UnScaleY(GetIntField(LayoutParams, "android/widget/AbsoluteLayout$LayoutParams", "height", "I"))
 					End If
 				End If
 			#endif
@@ -700,8 +749,51 @@ Namespace My.Sys.ComponentModel
 	End Destructor
 End Namespace
 
+#ifdef __USE_WINAPI__
+	Private Sub AlignAddRect(ByVal pRect As RECT Ptr)
+		If pRect->Right <= pRect->Left OrElse pRect->Bottom <= pRect->Top Then Exit Sub
+		If AlignRgn = 0 Then
+			AlignRgn = CreateRectRgnIndirect(pRect)
+		Else
+			Dim As HRGN hRgn = CreateRectRgnIndirect(pRect)
+			CombineRgn AlignRgn, AlignRgn, hRgn, RGN_OR
+			DeleteObject hRgn
+		End If
+	End Sub
+
+	Private Sub AlignAddWindow(ByVal hWnd As HWND)
+		Dim As RECT R
+		If hWnd = 0 OrElse GetWindowRect(hWnd, @R) = 0 Then Exit Sub
+		If AlignMoved = 0 Then AlignMoved = 1
+		AlignAddRect @R
+	End Sub
+
+	Private Sub AlignClear
+		AlignMoved = 0
+		If AlignRgn Then DeleteObject AlignRgn: AlignRgn = 0
+	End Sub
+
+	Private Sub AlignRedraw(ByVal hContainer As HWND, ByVal bNow As Boolean = False)
+		If hContainer <> 0 AndAlso AlignMoved <> 0 Then
+			Dim As UINT uFlags = RDW_INVALIDATE Or RDW_ERASE Or RDW_FRAME Or RDW_ALLCHILDREN Or IIf(bNow, RDW_UPDATENOW, 0)
+			If AlignMoved = 1 AndAlso AlignRgn <> 0 Then
+				' Only the places the moved windows left and took: the rest of the container stays valid
+				Dim As .Point P
+				ClientToScreen hContainer, @P
+				OffsetRgn AlignRgn, -P.X, -P.Y
+				RedrawWindow hContainer, 0, AlignRgn, uFlags
+			Else
+				RedrawWindow hContainer, 0, 0, uFlags
+			End If
+		End If
+		AlignClear
+	End Sub
+#endif
+
 Function ThreadCreate_(ByVal ProcPtr_ As Sub ( ByVal userdata As Any Ptr ), ByVal param As Any Ptr = 0, ByVal stack_size As Integer = 0) As Any Ptr
-	#if defined(__USE_GTK__) AndAlso defined(__FB_WIN32__)
+	'Android: the views are only of the main thread and the JNIEnv of the controls is the one of it (a control changed
+	'by another thread crashed the program): the procedure runs in the main thread
+	#if (defined(__USE_GTK__) AndAlso defined(__FB_WIN32__)) OrElse defined(__USE_JNI__)
 		ProcPtr_(param)
 		Return 0
 	#else

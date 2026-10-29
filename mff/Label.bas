@@ -108,10 +108,14 @@ Namespace My.Sys.Forms
 			gtk_label_set_text(GTK_LABEL(widget), ToUtf8(Value))
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
-				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/TextView", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(*FText)))
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/TextView", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(RemoveMnemonic(*FText))))
+				'Without WordWraps the text is one line, with it the lines which the height shows (CreateWnd sets the text:
+				'the view gets it there too); the end of a longer text is "..."
+				If Activity <> 0 Then (*env)->CallVoidMethod(env, Activity, ActivityMethodID("textSetSingleLine", "(Landroid/view/View;Z)V"), FHandle, CUByte(IIf(FWordWraps, 0, 1)))
+				SetGravity
 			End If
 		#elseif defined(__USE_WASM__)
-			If FHandle Then SetInnerText(FHandle, ToUtf8(*FText))
+			If FHandle Then SetInnerText(FHandle, ToUtf8(RemoveMnemonic(*FText)))
 		#endif
 		SetAutoSize
 	End Property
@@ -120,7 +124,19 @@ Namespace My.Sys.Forms
 		Return FBorder
 	End Property
 	
+	#ifdef __USE_JNI__
+		Private Sub Label.SetGravity
+			If FHandle = 0 OrElse env = 0 Then Exit Sub
+			'Gravity: LEFT 3, CENTER_HORIZONTAL 1, RIGHT 5; TOP 48, CENTER_VERTICAL 16
+			Dim As Long Gravity = IIf(FAlignment = AlignmentConstants.taCenter, 1, IIf(FAlignment = AlignmentConstants.taRight, 5, 3)) Or IIf(FCenterImage, 16, 48)
+			(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/TextView", "setGravity", "(I)V"), Gravity)
+		End Sub
+	#endif
+	
 	Private Sub Label.ChangeLabelStyle
+		#ifdef __USE_JNI__
+			SetGravity
+		#endif
 		If Style <> lsText Then
 			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(abs_(FBorder)) Or AStyle(abs_(FStyle)) Or AWordWraps(abs_(FWordWraps)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ACenterImage(abs_(FCenterImage))
@@ -152,6 +168,16 @@ Namespace My.Sys.Forms
 						gtk_misc_set_alignment(GTK_MISC(widget), 1, 0)
 					#endif
 				End Select
+			#elseif defined(__USE_WASM__)
+				'The alignment and the wrapping of the text (the lines of the text are kept: a Static of Windows breaks
+				'the text at CR LF too); without WordWraps one line with ...
+				FElementStyle = "overflow: hidden; text-align: " & IIf(FAlignment = AlignmentConstants.taCenter, "center", IIf(FAlignment = AlignmentConstants.taRight, "right", "left")) & _
+					"; white-space: " & IIf(FWordWraps, "pre-wrap", "pre") & ";" & IIf(FWordWraps, "", " text-overflow: ellipsis;")
+				If FHandle Then
+					SetStyle(FHandle, "text-align", IIf(FAlignment = AlignmentConstants.taCenter, "center", IIf(FAlignment = AlignmentConstants.taRight, "right", "left")))
+					SetStyle(FHandle, "white-space", IIf(FWordWraps, "pre-wrap", "pre"))
+					SetStyle(FHandle, "text-overflow", IIf(FWordWraps, "", "ellipsis"))
+				End If
 			#endif
 		End If
 		RecreateWnd
@@ -260,6 +286,9 @@ Namespace My.Sys.Forms
 	Private Property Label.WordWraps(Value As Boolean)
 		If Value <> FWordWraps Then
 			FWordWraps = Value
+			#ifdef __USE_JNI__
+				If FHandle AndAlso env <> 0 AndAlso Activity <> 0 Then (*env)->CallVoidMethod(env, Activity, ActivityMethodID("textSetSingleLine", "(Landroid/view/View;Z)V"), FHandle, CUByte(IIf(Value, 0, 1)))
+			#endif
 			#ifdef __USE_GTK__
 				gtk_label_set_line_wrap(GTK_LABEL(widget), Value)
 			#else
@@ -422,7 +451,8 @@ Namespace My.Sys.Forms
 				WLet(FClassAncestor, "android/widget/TextView")
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "label")
-				FElementStyle = "overflow: hidden;"
+				'(ChangeLabelStyle: Alignment, WordWraps)
+				FElementStyle = "overflow: hidden; text-align: left; white-space: pre-wrap;"
 			#endif
 			WLet(FClassName, "Label")
 			.Width       = 90

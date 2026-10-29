@@ -15,14 +15,23 @@ Namespace My.Sys.Forms
 	'`PrintPreviewControl` - Displays document pages with zoom/scroll capabilities and print layout visualization.
 	Private Type PrintPreviewControl Extends Control
 	Private:
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Declare Static Sub WNDPROC(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-		#else
+		#elseif defined(__USE_GTK__)
 			FDrawingArea As GtkWidget Ptr
 			Declare Static Function DrawingArea_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
 			Declare Static Function DrawingArea_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
 			Declare Sub DrawPage(cr As cairo_t Ptr)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'The place of the page bigger than the control (the mouse wheel; Android: a drag)
+			FScrollX As Integer
+			FScrollY As Integer
+			#ifdef __USE_JNI__
+				FDragging As Boolean
+				FDragX As Integer
+				FDragY As Integer
+			#endif
 		#endif
 	Protected:
 		FZoom As Integer

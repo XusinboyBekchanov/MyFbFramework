@@ -57,7 +57,12 @@ Namespace Colors
 	#define clAppWorkSpace        &H000000
 	#define clHighlight           &H00A5FF
 	#define clHighlightText       &HFFFFFF
-	#define clBtnFace             &H808080
+	#ifdef __USE_WASM__
+		'the face of the controls of the page (var(--mff-face) of Control.BackColor: dark in the dark mode)
+		#define clBtnFace             &HF0F0F0
+	#else
+		#define clBtnFace             &H808080
+	#endif
 	#define clBtnShadow           &HC0C0C0
 	#define clGrayText            &H000000
 	#define clBtnText             &H000000

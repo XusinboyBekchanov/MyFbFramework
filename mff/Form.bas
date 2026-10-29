@@ -171,13 +171,39 @@ Namespace My.Sys.Forms
 			End If
 		End Property
 	#elseif defined(__USE_WASM__)
+		'A minimize or maximize button of the title bar like on Windows, hidden when MinimizeBox, MaximizeBox are False
+		'(OnCaptionButton of the click, mff_lib.js)
+		'Glyph: the character of the button (data-glyph, .mffcaptionbutton of mff.html)
+		Private Function FormCaptionButton(ByRef Id As String, ByRef Kind As String, ByRef Hint As String, ByRef Glyph As String, Visible As Boolean) As String
+			Return "<div class=""mffcaptionbutton"" id=""" & Id & Kind & "Button"" data-glyph=""" & Glyph & """ title=""" & Hint & """" & IIf(Visible, "", " style=""display: none""") & "></div>"
+		End Function
+
 		Private Function Form.GetContent() As UString
+			'The class of the element (Control.CreateWnd calls GetContent before it uses FClass): a form which is
+			'not the main one has a border and a shadow, without a border (a splash screen) only a shadow
+			If FMainForm Then
+				FClass = ""
+			Else
+				FClass = IIf(FBorderStyle = FormBorderStyle.None, "mffpopup", "mffdialog")
+				'A designed form (the designer of the IDE) is in the panel of the designer: it is not over the page, its
+				'title bar is in the panel above it like on Windows (.mffdesign of mff.html)
+				If FDesignMode Then FClass &= " mffdesign"
+			End If
+			'A tool window has only the close button
+			Dim As String CaptionButtons
+			If FBorderStyle <> FormBorderStyle.SizableToolWindow AndAlso FBorderStyle <> FormBorderStyle.FixedToolWindow Then
+				CaptionButtons = FormCaptionButton(Trim(Str(@This)), "Min", "Minimize", "min", FMinimizeBox) & _
+					FormCaptionButton(Trim(Str(@This)), "Max", "Maximize", "max", FMaximizeBox)
+			End If
 			If FFormStyle = fsMDIForm Then
 				Return "<div id=""" & Trim(Str(@This)) & "Client""></div>"
-			ElseIf Not FMainForm Then
-				Return "<div class=""flexpanel backgroundmenu unselectable basecolorblue"" id=""" & Trim(Str(@This)) & "Header"" style=""padding: 8px;>" & _
-				"<div class="""">" & HtmlEscape(FText) & _
-				"<div class=""vetdialogbutton fa fa-remove"" id=""" & Trim(Str(@This)) & "CloseButton"" style=""width: 20px; position: absolute; right: 8px; opacity: 0.7;"">X</div>" & "</div>" & _
+			ElseIf Not FMainForm AndAlso CBool(FBorderStyle <> FormBorderStyle.None) Then
+				'BorderStyle None (a splash screen): no title bar. The title bar is above the client area of the
+				'form (.mffcaption of mff.html): the controls keep their places, Height is the one of the client area
+				Return "<div class=""mffcaption unselectable"" id=""" & Trim(Str(@This)) & "Header"">" & _
+				"<span class=""mffcaptiontext"" id=""" & Trim(Str(@This)) & "Caption"">" & HtmlEscape(FText) & "</span>" & _
+				CaptionButtons & _
+				"<div class=""mffclose"" id=""" & Trim(Str(@This)) & "CloseButton"" title=""Close"">&#x2715;</div>" & _
 				"</div>"
 			Else
 				Return ""
@@ -405,6 +431,8 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			ChangeStyle WS_MINIMIZEBOX, Value
 			SetWindowPos(FHandle, 0, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_DRAWFRAME)
+		#elseif defined(__USE_WASM__)
+			If FHandle Then SetVisibleByStringId(Trim(Str(FHandle)) & "MinButton", Value)
 		#endif
 	End Property
 	
@@ -417,6 +445,8 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			ChangeStyle WS_MAXIMIZEBOX, Value
 			SetWindowPos(FHandle, 0, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_DRAWFRAME)
+		#elseif defined(__USE_WASM__)
+			If FHandle Then SetVisibleByStringId(Trim(Str(FHandle)) & "MaxButton", Value)
 		#endif
 	End Property
 	
@@ -426,6 +456,10 @@ Namespace My.Sys.Forms
 	
 	Private Property Form.BorderStyle(Value As FormBorderStyle)
 		FBorderStyle = Value
+		#ifdef __USE_JNI__
+			'None: without the action bar (the main form, a form in its own activity); a dialog form is shown by the next Show
+			ApplyAndroidStyle
+		#endif
 		#ifdef __USE_GTK__
 			Select Case Value
 			Case FormBorderStyle.None, FormBorderStyle.FixedToolWindow, FormBorderStyle.Fixed3D, FormBorderStyle.FixedSingle, FormBorderStyle.FixedDialog
@@ -594,6 +628,10 @@ Namespace My.Sys.Forms
 	Private Property Form.FormStyle(Value As FormStyles)
 		If Value = FFormStyle Then Exit Property
 		FFormStyle = Value
+		#ifdef __USE_JNI__
+			'Android has no MDI (fsMDIForm, fsMDIChild: normal forms); fsStayOnTop: over the other forms in its owner
+			If FHandle <> 0 AndAlso FMainForm = False Then FormSetOnTop(FHandle, Value = FormStyles.fsStayOnTop)
+		#endif
 		Select Case FFormStyle
 		Case 0 'fsNormal
 			#ifdef __USE_GTK__
@@ -725,6 +763,44 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property Form.WindowState(Value As WindowStates)
+		#ifdef __USE_WASM__
+			'Web: a form with a title bar fills the page (maximized), only its title bar stays at the bottom left of the
+			'page (minimized), it gets its bounds back (normal); the main form is the page
+			If FHandle <> 0 AndAlso Not FMainForm AndAlso Value <> FWindowState AndAlso (Value = WindowStates.wsNormal OrElse Value = WindowStates.wsMinimized OrElse Value = WindowStates.wsMaximized) Then
+				If FWindowState = WindowStates.wsNormal Then
+					FRestoreLeft = FLeft: FRestoreTop = FTop: FRestoreWidth = FWidth: FRestoreHeight = FHeight
+				End If
+				FWindowState = Value
+				'Left and Top are from the parent element (under the main menu), the page begins before it
+				Dim As Integer OffsetX = UnScaleX(GetParentPageOffset(FHandle, 0)), OffsetY = UnScaleY(GetParentPageOffset(FHandle, 1))
+				Select Case Value
+				Case WindowStates.wsMaximized
+					SetBounds -OffsetX, -OffsetY, UnScaleX(GetDocumentWidth), UnScaleY(GetDocumentHeight)
+				Case WindowStates.wsMinimized
+					'The title bar (28 pixels, .mffcaption of mff.html) and the border
+					SetBounds -OffsetX, UnScaleY(GetDocumentHeight - 29) - OffsetY, 200, UnScaleY(29)
+				Case Else
+					SetBounds FRestoreLeft, FRestoreTop, FRestoreWidth, FRestoreHeight
+				End Select
+				SetCaptionState(FHandle, IIf(Value = WindowStates.wsMinimized, 1, IIf(Value = WindowStates.wsMaximized, 2, 0)))
+				Exit Property
+			End If
+		#endif
+		#ifdef __USE_JNI__
+			'wsMinimized, wsHide: the main form goes to the background (Home), a second form is hidden; wsMaximized: the
+			'bars of the system are hidden (immersive), a dialog fills its owner (the next Show); wsNormal: back
+			If CBool(Not FDesignMode) AndAlso CBool(Value = WindowStates.wsMinimized OrElse Value = WindowStates.wsHide) Then
+				If FMainForm Then
+					ActivityMinimize
+				ElseIf FHandle <> 0 Then
+					Hide
+				End If
+				Exit Property
+			End If
+			FWindowState = Value
+			ApplyAndroidStyle
+			Exit Property
+		#endif
 		FWindowState = Value
 		#ifdef __USE_GTK__
 			If GTK_IS_WINDOW(widget) Then
@@ -800,12 +876,23 @@ Namespace My.Sys.Forms
 				#endif
 			End If
 		#elseif defined(__USE_JNI__)
-			If FHandle Then
+			'Only the main Form is the Activity, another Form is a layout without a title
+			If FHandle AndAlso (*env)->IsInstanceOf(env, FHandle, FindJNIClass("android/app/Activity")) Then
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setTitle", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(*FText)))
+			ElseIf FHandle AndAlso DesignCaptionHeight Then
+				'The title bar of the designed form (the designer of the IDE)
+				FormDesignFrame(FHandle, ToUtf8(*FText), ScaleY(DesignCaptionHeight))
+			ElseIf FHandle Then
+				'The caption of the title bar of a second form (only when it was made by Show) or of its activity
+				FormTitleBar(FHandle, ToUtf8(*FText), -1)
+				FormActivityTitle(FHandle, ToUtf8(*FText))
 			End If
 		#elseif defined(__USE_WASM__)
 			If FMainForm Then
 				SetTitle(ToUtf8(Value))
+			ElseIf FHandle Then
+				'The text of the title bar (GetContent)
+				SetInnerTextByStringId(Trim(Str(@This)) & "Caption", ToUtf8(Value))
 			End If
 		#endif
 	End Property
@@ -908,6 +995,16 @@ Namespace My.Sys.Forms
 				With QForm(Sender.Child)
 					#ifdef __USE_WASM__
 						If .OnShow Then SetLoadEvent(.FHandle)
+						If .Icon.ResName <> "" Then SetFormIcon(.FHandle, FindIconFile(ToUtf8(.Icon.ResName)), .FMainForm)
+						'The main menu is a bar above the main form (SetMainMenu of mff_lib.js), its items are shown by OnMainMenu
+						If .FMainForm AndAlso .FMenu <> 0 Then
+							Dim As UString Captions
+							For i As Integer = 0 To .FMenu->Count - 1
+								If i > 0 Then Captions &= Chr(10)
+								If .FMenu->Item(i) <> 0 AndAlso .FMenu->Item(i)->Visible Then Captions &= Replace(.FMenu->Item(i)->Caption, "&", "")
+							Next
+							SetMainMenu(.FHandle, ToUtf8(Captions))
+						End If
 					#elseif defined(__USE_WINAPI__)
 						Dim As HMENU NoNeedSysMenu
 						SetClassLong(.Handle, GCL_STYLE, .FClassStyle(.BorderStyle))
@@ -1073,6 +1170,14 @@ Namespace My.Sys.Forms
 	
 	Private Sub Form.ProcessMessage(ByRef msg As Message)
 		Dim As Integer Action = 1
+		#ifdef __USE_JNI__
+			'The close button of the title bar of a second form or Back (mffActivity.formTitleBar)
+			If msg.Msg = CM_CHANGE AndAlso msg.wParam = -1 AndAlso CInt(FMainForm) = 0 Then
+				CloseForm
+				msg.Result = -1
+				Exit Sub
+			End If
+		#endif
 		#ifdef __USE_GTK4__
 			' See Form_CloseRequest and Form_ActiveChanged
 		#elseif defined(__USE_GTK__)
@@ -1161,33 +1266,26 @@ Namespace My.Sys.Forms
 				FDPIChanging = True
 				'Every control rebuilds its font and moves itself: repaint only once, when the
 				'whole tree has the new scale (a paint in between shows a broken layout)
+				'(Not deferred: the tree spans many parents, see Control.ProcessMessage)
 				Dim As Integer iSavedAlignLock = AlignLock
-				Dim As Boolean bOwnDefer = (AlignDefer = 0)
 				AlignLock = iSavedAlignLock + 1
-				If bOwnDefer Then
-					AlignDefer = BeginDeferWindowPos(Max(8, ControlCount))
-					' A rescale always repaints: the fonts and the bounds changed
-					If iSavedAlignLock = 0 Then AlignMoved = 1
-				End If
+				' A rescale always repaints: the fonts and the bounds changed
+				If iSavedAlignLock = 0 Then AlignClear: AlignMoved = 2
 				LockWindowUpdate(FHandle)
 				Base.ProcessMessage(msg)
+				' OnResize of the new window size waited for the rescaled tree (see WM_SIZE):
+				'sizes computed from the children are right only now
+				If OnResize AndAlso Not IsIconic(FHandle) Then OnResize(*Designer, This, This.Width, This.Height)
 				LockWindowUpdate(0)
-				If bOwnDefer Then
-					Dim As HDWP hDefer = AlignDefer
-					AlignDefer = 0
-					If hDefer Then EndDeferWindowPos(hDefer)
-				End If
 				AlignLock = iSavedAlignLock
-				If iSavedAlignLock = 0 AndAlso FHandle <> 0 AndAlso AlignMoved Then
-					RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
-					AlignMoved = 0
-				End If
+				If iSavedAlignLock = 0 Then AlignRedraw FHandle
 				FDPIChanging = False
 				Return
 			Case WM_SIZE
 				'xdpi = FDpiFormX
 				'ydpi = FDpiFormY
-				If OnResize Then OnResize(*Designer, This, This.Width, This.Height)
+				' In a rescale OnResize runs once, when the whole tree has the new scale
+				If OnResize AndAlso Not FDPIChanging Then OnResize(*Designer, This, This.Width, This.Height)
 				If Not IsIconic(FHandle) Then
 					'If Not FDPIChanging Then UpdateLock
 					'RequestAlign
@@ -1840,14 +1938,116 @@ Namespace My.Sys.Forms
 			SelectNextControl
 		#elseif defined(__USE_WASM__)
 			If FHandle = 0 Then
-				If Not FMainForm Then
-					FClass = "vetdialog box dropshadow"
-				End If
+				'OnShow is raised by the load event of the new element (SetLoadEvent of HandleIsAllocated, ONLOAD) like
+				'WM_SHOWWINDOW of Windows: it is not raised here a second time
 				CreateWnd
+				Exit Sub
+			Else
+				'A hidden form (Hide, CloseForm with Action 3) is shown again
+				SetVisible(FHandle, True)
+			End If
+		#elseif defined(__USE_JNI__)
+			'A Form which is not the Activity is a layout (a second form, the form of the designer of the IDE): it was made
+			'hidden (View.GONE) and is shown like a control (View.VISIBLE)
+			'A second form shown for the first time (Show(OwnerForm)) has no view yet: it is made in the layout of its owner
+			'like a control; CreateWnd shows it (Show again, with its view) and raises OnShow
+			If FHandle = 0 AndAlso env <> 0 AndAlso FParent <> 0 AndAlso Cast(Control Ptr, FParent)->layoutview <> 0 Then
+				FVisible = True
+				'The layout is transparent without a color: the form has the color of the dialogs of Windows (BTNFACE) over
+				'the controls of its owner, the background of the dark theme in the night mode
+				If FBackColor = -1 Then FBackColor = IIf(ActivityNightMode, &h121212, &hF0F0F0)
+				CreateWnd
+				If FHandle Then Exit Sub
+			End If
+			If FHandle AndAlso env AndAlso (*env)->IsInstanceOf(env, FHandle, FindJNIClass("android/view/View")) Then
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/view/View", "setVisibility", "(I)V"), 0)
+				FVisible = True
+				'A second form of Show is a screen of its own (mffActivity.FormActivity: the caption in the action bar, Up; a
+				'dialog of FixedDialog on a phone: the close button, a full-screen dialog which scrolls); a form of ShowModal,
+				'a dialog on a tablet, a tool window, a form of fsStayOnTop (or without FormActivity in AndroidManifest.xml) is
+				'a dialog over its owner
+				If IsSecondForm Then
+					ApplyAndroidStyle
+					FormSetOnTop(FHandle, FFormStyle = FormStyles.fsStayOnTop)
+					'A form which was made before (CreateWnd at the start of the program) has no color yet either
+					If FBackColor = -1 Then FBackColor = IIf(ActivityNightMode, &h121212, &hF0F0F0): ApplyBackColor
+				End If
+				Dim As Boolean AsDialog = FInShowModal OrElse CBool(FBorderStyle = FormBorderStyle.FixedDialog AndAlso FormLargeScreen()) OrElse IsToolWindow OrElse CBool(FFormStyle = FormStyles.fsStayOnTop)
+				If IsSecondForm AndAlso (AsDialog OrElse Not FormActivityShow(FHandle, ToUtf8(*FText))) AndAlso FormTitleBarHeight() > 0 Then
+					'Like a full-screen dialog of Material: the form fills its owner under the title bar with the close
+					'button and the caption (mffActivity.formTitleBar). On a tablet it is a dialog of its size (the one of
+					'the designer) in the middle of its owner, the title bar is above it
+					'A form of ShowModal is over the action bar too (like the dialogs of Android): its place is in the
+					'window from the top of the action bar, the owner begins ActionBarHeight lower
+					Dim As Integer ActionBarHeight = -1
+					If FInShowModal Then ActionBarHeight = FormAttachTop(FHandle, Cast(Control Ptr, FParent)->layoutview)
+					If ActionBarHeight < 0 Then
+						FormAttach(FHandle, Cast(Control Ptr, FParent)->layoutview)
+						ActionBarHeight = 0
+					Else
+						ActionBarHeight = UnScaleY(ActionBarHeight)
+					End If
+					If FDialogWidth = 0 Then FDialogLeft = FLeft: FDialogTop = FTop: FDialogWidth = FWidth: FDialogHeight = FHeight
+					'BorderStyle None: no title bar, the form begins at the top of its owner
+					Dim As Integer BarHeight = IIf(FBorderStyle = FormBorderStyle.None, 0, UnScaleY(FormTitleBarHeight()))
+					With *Cast(Control Ptr, FParent)
+						Dim As Integer OwnerWidth = IIf(.ClientWidth > 0, .ClientWidth, .Width), OwnerHeight = IIf(.ClientHeight > 0, .ClientHeight, .Height) + ActionBarHeight
+						'Full-screen on a phone and maximized (wsMaximized); a dialog of its size on a tablet, a form of
+						'ShowModal and a tool window of their size also on a phone (they scroll what does not fit)
+						If FWindowState <> WindowStates.wsMaximized AndAlso (FormLargeScreen() OrElse IsToolWindow OrElse FInShowModal) Then
+							Dim As Integer DialogWidth = Max(0, min(FDialogWidth, OwnerWidth - 32)), DialogHeight = Max(0, min(FDialogHeight, OwnerHeight - BarHeight - 32))
+							Dim As Integer DialogLeft = (OwnerWidth - DialogWidth) \ 2, DialogTop = (OwnerHeight - DialogHeight + BarHeight) \ 2
+							'StartPosition Manual: at Left and Top of the designer, in the owner
+							If FStartPosition = FormStartPosition.Manual Then
+								DialogLeft = Max(0, min(FDialogLeft, OwnerWidth - DialogWidth))
+								DialogTop = Max(BarHeight, min(FDialogTop + BarHeight, OwnerHeight - DialogHeight))
+							End If
+							SetBounds DialogLeft, DialogTop, DialogWidth, DialogHeight
+						Else
+							SetBounds 0, BarHeight, OwnerWidth, OwnerHeight - BarHeight
+						End If
+					End With
+					'The docked and anchored controls follow the new size at once (also the first time, before the layout)
+					RequestAlign
+					BringToFront
+					'1 - shown, 2 - without the title bar, 8 - not modal (the owner gets the touches, no dim background)
+					FormTitleBar(FHandle, ToUtf8(*FText), 1 Or IIf(FBorderStyle = FormBorderStyle.None, 2, 0) Or IIf(FInShowModal, 0, 8))
+				End If
+				If FParent Then Cast(Control Ptr, FParent)->RequestAlign
 			End If
 		#endif
 		If OnShow Then OnShow(*Designer, This)
+		#ifdef __USE_JNI__
+			'The pictures of the controls whose state changed while they were not drawn (the form was hidden, OnCreate and
+			'OnShow before the first drawing, outside of the scrolled part) stay at the beginning of their animation: a
+			'checked RadioButton was only its ring
+			If CBool(FHandle <> 0) AndAlso CBool(env <> 0) AndAlso FVisible AndAlso CBool((*env)->IsInstanceOf(env, FHandle, FindJNIClass("android/view/View")) <> 0) Then
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/view/View", "jumpDrawablesToCurrentState", "()V"))
+			End If
+		#endif
 	End Sub
+	
+	#ifdef __USE_JNI__
+		'A second form of the program (made in the layout of its owner form, not the form of the designer of the IDE): Show
+		'shows it in its own activity, ShowModal as a full-screen dialog
+		Private Function Form.IsSecondForm As Boolean
+			If FMainForm OrElse FDesignMode OrElse DesignCaptionHeight <> 0 OrElse FParent = 0 Then Return False
+			Return *Cast(My.Sys.Object Ptr, FParent) Is Form
+		End Function
+		
+		Private Function Form.IsToolWindow As Boolean
+			Return FBorderStyle = FormBorderStyle.SizableToolWindow OrElse FBorderStyle = FormBorderStyle.FixedToolWindow
+		End Function
+		
+		'BorderStyle None: without the action bar; FixedDialog: the close button instead of Up (a full-screen dialog);
+		'WindowState wsMaximized: immersive (the bars of the system hidden). The main form is the activity of the
+		'program, a second form of Show is its FormActivity
+		Private Sub Form.ApplyAndroidStyle
+			If FDesignMode OrElse CBool(Not FMainForm AndAlso FHandle = 0) Then Exit Sub
+			Dim As Integer Style = IIf(FBorderStyle = FormBorderStyle.None, 1, 0) Or IIf(FWindowState = WindowStates.wsMaximized, 2, 0) Or IIf(FBorderStyle = FormBorderStyle.FixedDialog, 4, 0)
+			If FMainForm Then FormSetStyle(0, Style) Else FormSetStyle(FHandle, Style)
+		End Sub
+	#endif
 	
 	Private Sub Form.Show(ByRef OwnerForm As Form)
 		This.FParent = @OwnerForm
@@ -1926,6 +2126,21 @@ Namespace My.Sys.Forms
 				Visible = False
 				ReleaseCapture
 				'SetForegroundWindow FParentHandle
+			#elseif defined(__USE_WASM__)
+				'The page has no loop of messages: the program waits (ASYNCIFY, ModalWait of mff_lib.js) until the
+				'form is closed (CloseForm) or hidden (Hide), the events of the page run meanwhile
+				InShowModal = True
+				This.Show
+				If FHandle Then ModalWait(FHandle)
+				InShowModal = False
+			#elseif defined(__USE_JNI__)
+				'A full-screen dialog over its owner (the active form or the main form): the program waits in a nested
+				'message loop of mffActivity until the form is hidden (CloseForm, Hide)
+				If FParent = 0 AndAlso Not FMainForm AndAlso pApp <> 0 Then FParent = IIf(pApp->ActiveForm <> 0 AndAlso pApp->ActiveForm <> @This, pApp->ActiveForm, pApp->MainForm)
+				FInShowModal = True
+				This.Show
+				If FHandle <> 0 AndAlso FVisible Then FormModalWait(FHandle)
+				FInShowModal = False
 			#endif
 			Function = ModalResult
 		End Function
@@ -1955,6 +2170,22 @@ Namespace My.Sys.Forms
 					ShowWindow Handle, SW_HIDE
 				End If
 			End If
+		#elseif defined(__USE_WASM__)
+			'The element is hidden (a waiting ShowModal returns)
+			If FHandle Then
+				If OnHide Then OnHide(*Designer, This)
+				SetVisible(FHandle, False)
+			End If
+		#elseif defined(__USE_JNI__)
+			'A Form which is not the Activity (a layout) is hidden like a control
+			If FHandle AndAlso env AndAlso (*env)->IsInstanceOf(env, FHandle, FindJNIClass("android/view/View")) Then
+				If OnHide Then OnHide(*Designer, This)
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/view/View", "setVisibility", "(I)V"), 8)
+				FVisible = False
+				FormTitleBar(FHandle, ToUtf8(*FText), 0)
+				FormActivityHide(FHandle)
+				If FInShowModal Then FormModalEnd(FHandle)
+			End If
 		#endif
 	End Sub
 	
@@ -1981,6 +2212,18 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 	End Sub
+	
+	#ifdef __USE_WASM__
+		'The element of a closed form is removed with the ones of its controls: the controls get the handle 0, the next
+		'Show (ShowModal) makes their elements again (Control.CreateWnd does not make a second element of a handle)
+		Private Sub FormClearElementHandles(Ctrl As Control Ptr)
+			If Ctrl = 0 Then Exit Sub
+			For i As Integer = 0 To Ctrl->ControlCount - 1
+				FormClearElementHandles Ctrl->Controls[i]
+				If Ctrl->Controls[i] Then Ctrl->Controls[i]->Handle = 0
+			Next
+		End Sub
+	#endif
 	
 	Private Sub Form.CloseForm
 		#ifdef __USE_GTK__
@@ -2035,16 +2278,27 @@ Namespace My.Sys.Forms
 					#else
 						DeleteElement(FHandle)
 						FHandle = 0
+						FormClearElementHandles @This
 					#endif
 				End If
 			Case 2
 			Case 3
 				SetVisible(FHandle, False)
 			End Select
+		#elseif defined(__USE_JNI__)
+			'The main form is the Activity: it is not closed. A second form (a layout) is hidden, Show shows it again
+			If FMainForm Then Exit Sub
+			Dim As Integer Action = 1
+			If OnClose Then OnClose(*Designer, This, Action)
+			If Action <> 0 Then Hide
 		#endif
 	End Sub
 	
 	Private Sub Form.CenterToParent()
+		#ifdef __USE_JNI__
+			'A full-screen second form fills its owner (Show)
+			If IsSecondForm Then Exit Sub
+		#endif
 		If FParent Then
 			With *Cast(Control Ptr, FParent)
 				#ifdef __USE_GTK__
@@ -2147,6 +2401,9 @@ Namespace My.Sys.Forms
 		With *Cast(Form Ptr, Sender.Graphic)
 			#ifdef __USE_WINAPI__
 				SendMessage(.Handle, WM_SETICON, 1, CInt(.Icon.Handle))
+			#elseif defined(__USE_WASM__)
+				'Before the element of the form: HandleIsAllocated shows it
+				If .FHandle Then SetFormIcon(.FHandle, FindIconFile(ToUtf8(.Icon.ResName)), .FMainForm)
 			#endif
 		End With
 	End Sub
@@ -2241,6 +2498,7 @@ Namespace My.Sys.Forms
 				.Height            = 300
 				WLet(FClassAncestor, "div")
 				.OnHandleIsAllocated = @HandleIsAllocated
+				FDefaultBackColor = clWhite
 				.BackColor       = clWhite
 			#endif
 			.StartPosition = DefaultLocation
@@ -2288,15 +2546,15 @@ End Namespace
 				Dim As jfieldID ydpiField = (*env)->GetFieldID(env, displaymetricsClass, "ydpi", "F")
 				Dim As jfieldID densityDpiField = (*env)->GetFieldID(env, displaymetricsClass, "densityDpi", "I")
 				If pApp->MainForm Then
-					' The designer is 96 dpi: the form keeps its physical size (xdpi / ydpi are the physical pixels per inch);
+					' The designer is 96 dpi (AndroidDesignDpi): the form keeps its physical size (xdpi / ydpi are the physical pixels per inch);
 					' some devices and emulators give no xdpi / ydpi, then the generalized densityDpi
 					Dim As Single DensityDpi = (*env)->GetIntField(env, displaymetrics, densityDpiField)
 					Dim As Single PhysicalXDpi = (*env)->GetFloatField(env, displaymetrics, xdpiField)
 					Dim As Single PhysicalYDpi = (*env)->GetFloatField(env, displaymetrics, ydpiField)
 					If PhysicalXDpi <= 0 Then PhysicalXDpi = DensityDpi
 					If PhysicalYDpi <= 0 Then PhysicalYDpi = DensityDpi
-					pApp->MainForm->xdpi = IIf(PhysicalXDpi > 0, PhysicalXDpi / 96, 1)
-					pApp->MainForm->ydpi = IIf(PhysicalYDpi > 0, PhysicalYDpi / 96, 1)
+					pApp->MainForm->xdpi = IIf(PhysicalXDpi > 0, PhysicalXDpi / IIf(AndroidDesignDpi > 0, AndroidDesignDpi, 96), 1)
+					pApp->MainForm->ydpi = IIf(PhysicalYDpi > 0, PhysicalYDpi / IIf(AndroidDesignDpi > 0, AndroidDesignDpi, 96), 1)
 					pApp->MainForm->Handle = This_
 					'				Dim As jmethodID getWindow = (*env)->GetMethodID(env, activityClass, "getWindow", "()Landroid/view/Window;")
 					'				Dim As jobject iWindow = (*env)->CallObjectMethod(env, This_, getWindow)
@@ -2310,9 +2568,35 @@ End Namespace
 					pApp->MainForm->LayoutHandle = layout 'ViewGroup
 					pApp->MainForm->CreateWnd
 					pApp->MainForm->Text = pApp->MainForm->Text 'ViewGroup
+					'BorderStyle None: without the action bar; WindowState wsMaximized: immersive
+					FormSetStyle(0, IIf(pApp->MainForm->BorderStyle = My.Sys.Forms.FormBorderStyle.None, 1, 0) Or IIf(pApp->MainForm->WindowState = My.Sys.Forms.WindowStates.wsMaximized, 2, 0))
 				End If
 			End If
 		End If
+	End Sub
+	
+	'The captions of the items of the main menu of the main form, separated by Chr(10) ("" - a hidden item):
+	'mffActivity shows them in the action bar (onPrepareOptionsMenu)
+	Function mffActivity_mainMenuCaptions Alias AddToPackage(Package, mffActivity_mainMenuCaptions) (ByVal env1 As JNIEnv Ptr, This_ As jobject) As jstring Export
+		Dim As UString Captions
+		If pApp AndAlso pApp->MainForm AndAlso pApp->MainForm->Menu Then
+			With *pApp->MainForm->Menu
+				For i As Integer = 0 To .Count - 1
+					If i > 0 Then Captions &= Chr(10)
+					'Chr(9) & ">" - the item has items (the overflow menu shows an arrow by it)
+					If .Item(i) <> 0 AndAlso .Item(i)->Visible Then Captions &= Replace(.Item(i)->Caption, "&", "") & IIf(.Item(i)->Count > 0, Chr(9) & ">", "")
+				Next
+			End With
+		End If
+		Return (*env1)->NewStringUTF(env1, ToUtf8(Captions))
+	End Function
+	
+	'An item of the action bar was chosen: its items are shown as a popup menu, the chosen one is clicked
+	Sub mffActivity_onMainMenu Alias AddToPackage(Package, mffActivity_onMainMenu) (ByVal env1 As JNIEnv Ptr, This_ As jobject, Index As jint) Export
+		If pApp = 0 OrElse pApp->MainForm = 0 OrElse pApp->MainForm->Menu = 0 Then Exit Sub
+		If Index < 0 OrElse Index >= pApp->MainForm->Menu->Count Then Exit Sub
+		Dim As My.Sys.Forms.MenuItem Ptr mi = MenuItemShowItems(pApp->MainForm->Menu->Item(Index))
+		If mi Then MenuItemChoose mi
 	End Sub
 	
 	Sub mffActivity_onDestroy Alias AddToPackage(Package, mffActivity_onDestroy) (ByVal env1 As JNIEnv Ptr, This_ As jobject, layout As jobject) Export
@@ -2366,6 +2650,16 @@ End Namespace
 		End If
 	End Sub
 	
+	'An item of the bar of the main menu was pressed (SetMainMenu of mff_lib.js): its items are shown as a popup menu
+	'under it at x, y, the chosen one is clicked (an item without items is clicked itself)
+	Sub OnMainMenu(Id As Integer, Index As Integer, x As Integer, y As Integer) Export
+		If Id = 0 Then Exit Sub
+		Dim As My.Sys.Forms.Form Ptr Frm = Cast(Any Ptr, Id)
+		If Frm->Menu = 0 OrElse Index < 0 OrElse Index >= Frm->Menu->Count Then Exit Sub
+		Dim As My.Sys.Forms.MenuItem Ptr mi = MenuItemShowItems(Frm->Menu->Item(Index), x, y)
+		If mi Then MenuItemChoose mi
+	End Sub
+
 	'The main form got the size of the browser window (mff_lib.js): the anchored controls follow it
 	Sub OnResize(Id As Integer, NewWidth As Integer, NewHeight As Integer) Export
 		If Id > 0 Then
@@ -2404,7 +2698,7 @@ End Namespace
 				Dim As Message msg
 				msg.Sender = Ctrl
 				msg.Msg = CM_CHANGE
-				Ctrl->ProcessMessage(msg)
+				DispatchControlMessage(Ctrl, msg)
 			End If
 		End If
 	End Sub
@@ -2416,7 +2710,7 @@ End Namespace
 				Dim As Message msg
 				msg.Sender = Ctrl
 				msg.Msg = CM_CLICK
-				Ctrl->ProcessMessage(msg)
+				DispatchControlMessage(Ctrl, msg)
 				If (Not msg.Handled) AndAlso Ctrl->OnClick <> 0 Then Ctrl->OnClick(*Ctrl->Designer, *Ctrl)
 			End If
 		End If
@@ -2425,6 +2719,8 @@ End Namespace
 	Sub OnClose(Id As Integer) Export
 		If Id > 0 Then
 			Dim As My.Sys.Forms.Form Ptr frm = Cast(Any Ptr, Id)
+			'The close button of a designed form (the designer of the IDE) does not close it
+			If frm = 0 OrElse frm->DesignMode Then Exit Sub
 			Dim As Integer Action = 1
 			If frm AndAlso frm->OnClose Then frm->OnClose(*frm->Designer, *frm, Action)
 			Select Case Action
@@ -2438,6 +2734,7 @@ End Namespace
 					#else
 						DeleteElement(frm->Handle)
 						frm->Handle = 0
+						My.Sys.Forms.FormClearElementHandles frm
 					#endif
 				End If
 			Case 2
@@ -2455,39 +2752,174 @@ End Namespace
 	End Sub
 	
 	Sub OnGotFocus(Id As Integer) Export
-		If Id > 0 Then
-			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
-			If Ctrl AndAlso Ctrl->OnGotFocus Then Ctrl->OnGotFocus(*Ctrl->Designer, *Ctrl)
-		End If
+		If Id <= 0 Then Exit Sub
+		SendControlInputMessage(Cast(Any Ptr, Id), CM_SETFOCUS, 0, 0)
+		'The active control of the form like WM_SETFOCUS on Windows (Control.ProcessMessage)
+		Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+		If Ctrl->DesignMode Then Exit Sub
+		Dim As My.Sys.Forms.Form Ptr frm = Cast(My.Sys.Forms.Form Ptr, Ctrl->GetForm)
+		If frm = 0 OrElse frm->ActiveControl = Ctrl Then Exit Sub
+		frm->ActiveControl = Ctrl
 	End Sub
-	
+
 	Sub OnLostFocus(Id As Integer) Export
-		If Id > 0 Then
-			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
-			If Ctrl AndAlso Ctrl->OnLostFocus Then Ctrl->OnLostFocus(*Ctrl->Designer, *Ctrl)
+		If Id > 0 Then SendControlInputMessage(Cast(Any Ptr, Id), CM_KILLFOCUS, 0, 0)
+	End Sub
+
+	'The key handlers return 1 if the control handled the key: mff_lib.js then stops the action of the browser
+	Function OnKeyDown(Id As Integer, Key As Integer, Shift As Integer) As Integer Export
+		If Id > 0 Then Return IIf(SendControlInputMessage(Cast(Any Ptr, Id), CM_KEYDOWN, Key, Shift), 1, 0)
+	End Function
+
+	Function OnKeyPress(Id As Integer, Key As Integer, Shift As Integer) As Integer Export
+		If Id > 0 Then Return IIf(SendControlInputMessage(Cast(Any Ptr, Id), CM_CHAR, Key, Shift), 1, 0)
+	End Function
+
+	Function OnKeyUp(Id As Integer, Key As Integer, Shift As Integer) As Integer Export
+		If Id > 0 Then Return IIf(SendControlInputMessage(Cast(Any Ptr, Id), CM_KEYUP, Key, Shift), 1, 0)
+	End Function
+
+	'The key code of the key of a shortcut ("F", "F3", "Del", "PgUp", "+"), 0 - unknown
+	Private Function ShortcutKeyCode(ByRef KeyName As String) As Integer
+		Dim As String k = UCase(Trim(KeyName))
+		If Len(k) = 1 Then
+			Select Case k
+			Case "A" To "Z", "0" To "9": Return Asc(k)
+			Case "+", "=": Return 187
+			Case "-": Return 189
+			Case ",": Return 188
+			Case ".": Return 190
+			Case "/": Return 191
+			Case "`": Return 192
+			Case "[": Return 219
+			Case "\": Return 220
+			Case "]": Return 221
+			Case "'": Return 222
+			Case ";": Return 186
+			End Select
+			Return 0
+		End If
+		If Left(k, 1) = "F" AndAlso Val(Mid(k, 2)) >= 1 AndAlso Val(Mid(k, 2)) <= 24 Then Return 111 + Val(Mid(k, 2))
+		Select Case k
+		Case "DEL", "DELETE": Return 46
+		Case "INS", "INSERT": Return 45
+		Case "HOME": Return 36
+		Case "END": Return 35
+		Case "PGUP", "PAGEUP": Return 33
+		Case "PGDN", "PAGEDOWN": Return 34
+		Case "UP": Return 38
+		Case "DOWN": Return 40
+		Case "LEFT": Return 37
+		Case "RIGHT": Return 39
+		Case "TAB": Return 9
+		Case "ENTER", "RETURN": Return 13
+		Case "ESC", "ESCAPE": Return 27
+		Case "SPACE": Return 32
+		Case "BACK", "BACKSPACE", "BKSP": Return 8
+		End Select
+		Return 0
+	End Function
+
+	'The shortcut of an item (ShortCut, or the text after Chr(9) of its caption like on Windows) is Key with Shift
+	'(1 - Shift, 2 - Ctrl, 4 - Alt)
+	Private Function ShortcutIs(mi As My.Sys.Forms.MenuItem Ptr, Key As Integer, Shift As Integer) As Boolean
+		Dim As String sc = ToUtf8(mi->ShortCut)
+		If sc = "" Then
+			Dim As Integer p = InStr(mi->Caption, !"\t")
+			If p = 0 Then Return False
+			sc = ToUtf8(Mid(mi->Caption, p + 1))
+		End If
+		Dim As Integer Mods
+		Do
+			If UCase(Left(sc, 5)) = "CTRL+" Then
+				Mods Or= 2: sc = Mid(sc, 6)
+			ElseIf UCase(Left(sc, 6)) = "SHIFT+" Then
+				Mods Or= 1: sc = Mid(sc, 7)
+			ElseIf UCase(Left(sc, 4)) = "ALT+" Then
+				Mods Or= 4: sc = Mid(sc, 5)
+			Else
+				Exit Do
+			End If
+		Loop
+		Return Mods = Shift AndAlso ShortcutKeyCode(sc) = Key
+	End Function
+
+	'The enabled and visible item with the shortcut, in the item and its submenus
+	Private Function FindShortcutItem(mi As My.Sys.Forms.MenuItem Ptr, Key As Integer, Shift As Integer) As My.Sys.Forms.MenuItem Ptr
+		If CBool(mi = 0) OrElse Not mi->Enabled OrElse Not mi->Visible OrElse CBool(mi->Caption = "-") Then Return 0
+		If mi->Count = 0 Then Return IIf(ShortcutIs(mi, Key, Shift), mi, 0)
+		For i As Integer = 0 To mi->Count - 1
+			Dim As My.Sys.Forms.MenuItem Ptr Found = FindShortcutItem(mi->Item(i), Key, Shift)
+			If Found Then Return Found
+		Next
+		Return 0
+	End Function
+
+	'Hot keys (the keys of the page, mff_lib.js): the item of the main menu of the form of the focused control Id (of
+	'the main form when no control has the focus, of the IDE and not of a designed form) whose shortcut is the key like
+	'the accelerators of Windows, 0 - none. The page clicks the item after the key event (OnShortcutClick): a click can
+	'wait (ShowModal), a key event can not
+	Function OnShortcut(Id As Integer, Key As Integer, Shift As Integer) As Integer Export
+		Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+		Do While Ctrl AndAlso (Ctrl->ClassName <> "Form" OrElse Ctrl->DesignMode)
+			Ctrl = Ctrl->Parent
+		Loop
+		Dim As My.Sys.Forms.Form Ptr frm = IIf(Ctrl, Cast(My.Sys.Forms.Form Ptr, Ctrl), 0)
+		'A form without a menu (a tool window like Find: a modal form does not get the keys, mff_lib.js) has the hot keys
+		'of the main form
+		If (frm = 0 OrElse frm->Menu = 0) AndAlso pApp <> 0 Then frm = Cast(My.Sys.Forms.Form Ptr, pApp->MainForm)
+		If frm = 0 OrElse frm->Menu = 0 Then Return 0
+		For i As Integer = 0 To frm->Menu->Count - 1
+			Dim As My.Sys.Forms.MenuItem Ptr Found = FindShortcutItem(frm->Menu->Item(i), Key, Shift)
+			If Found Then Return Cast(Integer, Found)
+		Next
+		Return 0
+	End Function
+
+	'The minimize (1) and maximize (2) buttons of the title bar (the double click on it: 2): the next state of the form
+	Sub OnCaptionButton(Id As Integer, Button As Integer) Export
+		Dim As My.Sys.Forms.Form Ptr frm = Cast(Any Ptr, Id)
+		If frm = 0 Then Exit Sub
+		If Button = 1 Then
+			frm->WindowState = IIf(frm->WindowState = My.Sys.Forms.WindowStates.wsMinimized, My.Sys.Forms.WindowStates.wsNormal, My.Sys.Forms.WindowStates.wsMinimized)
+		ElseIf frm->MaximizeBox Then
+			frm->WindowState = IIf(frm->WindowState = My.Sys.Forms.WindowStates.wsNormal, My.Sys.Forms.WindowStates.wsMaximized, My.Sys.Forms.WindowStates.wsNormal)
 		End If
 	End Sub
-	
-	Sub OnKeyDown(Id As Integer, Key As Integer, Shift As Integer) Export
-		If Id > 0 Then
-			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
-			If Ctrl AndAlso Ctrl->OnKeyDown Then Ctrl->OnKeyDown(*Ctrl->Designer, *Ctrl, Key, Shift)
-		End If
+
+	Sub OnShortcutClick(Item As Integer) Export
+		If Item Then Cast(My.Sys.Forms.MenuItem Ptr, Item)->Click
 	End Sub
-	
-	Sub OnKeyPress(Id As Integer, Key As Integer, Shift As Integer) Export
-		If Id > 0 Then
-			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
-			If Ctrl AndAlso Ctrl->OnKeyPress Then Ctrl->OnKeyPress(*Ctrl->Designer, *Ctrl, Key)
-		End If
+
+	'The right button (contextmenu of the page): the control Id or its parent with ContextMenu like WM_CONTEXTMENU of
+	'Windows (a designed control: the panel of the designer), 0 - none. The page shows it after the event
+	'(OnContextMenuPopup): the popup menu waits for the chosen item
+	Function OnContextMenu(Id As Integer) As Integer Export
+		Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+		Do While Ctrl AndAlso Ctrl->ContextMenu = 0
+			Ctrl = Ctrl->Parent
+		Loop
+		Return Cast(Integer, Ctrl)
+	End Function
+
+	'x, y: the place of the page
+	Sub OnContextMenuPopup(Id As Integer, x As Integer, y As Integer) Export
+		Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+		If Ctrl AndAlso Ctrl->ContextMenu Then Ctrl->ContextMenu->Popup(x, y)
 	End Sub
-	
-	Sub OnKeyUp(Id As Integer, Key As Integer, Shift As Integer) Export
-		If Id > 0 Then
-			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
-			If Ctrl AndAlso Ctrl->OnKeyUp Then Ctrl->OnKeyUp(*Ctrl->Designer, *Ctrl, Key, Shift)
-		End If
-	End Sub
+
+	'Enter (13) and Escape (27) in a text box or a list of a form like a dialog of Windows: the button DefaultButton,
+	'CancelButton of the form of the control Id, 0 - none. The page clicks it after the key event (OnClick)
+	Function OnDialogKey(Id As Integer, Key As Integer) As Integer Export
+		Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+		Do While Ctrl AndAlso Ctrl->ClassName <> "Form"
+			Ctrl = Ctrl->Parent
+		Loop
+		If Ctrl = 0 OrElse Ctrl->DesignMode Then Return 0
+		Dim As My.Sys.Forms.Control Ptr btn = IIf(Key = 13, Cast(My.Sys.Forms.Form Ptr, Ctrl)->DefaultButton, Cast(My.Sys.Forms.Form Ptr, Ctrl)->CancelButton)
+		If CBool(btn = 0) OrElse Not btn->Enabled OrElse Not btn->Visible Then Return 0
+		Return Cast(Integer, btn)
+	End Function
 	
 	'The CM_MOUSE* message of the control (Chart), before its OnMouse* event
 	Private Sub SendMouseMessage(Ctrl As My.Sys.Forms.Control Ptr, MsgId As Integer, MouseButton As Integer, x As Integer, y As Integer)
@@ -2496,7 +2928,7 @@ End Namespace
 		msg.Msg = MsgId
 		msg.wParam = MouseButton
 		msg.lParam = MffPoint(x, y)
-		Ctrl->ProcessMessage(msg)
+		DispatchControlMessage(Ctrl, msg)
 	End Sub
 
 	Sub OnMouseDown(Id As Integer, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer) Export
@@ -2513,6 +2945,15 @@ End Namespace
 			'MouseButton is e.buttons: 1 - left, 2 - right, 4 - middle
 			If Ctrl Then SendMouseMessage Ctrl, CM_MOUSEMOVE, IIf(MouseButton And 1, 0, IIf(MouseButton And 2, 1, IIf(MouseButton And 4, 2, -1))), x, y
 			If Ctrl AndAlso Ctrl->OnMouseMove Then Ctrl->OnMouseMove(*Ctrl->Designer, *Ctrl, MouseButton, x, y, Shift)
+			'Like TrackMouseEvent of Windows: OnMouseHover when the mouse stays on the control (MouseHoverTimer)
+			If Ctrl AndAlso Ctrl->OnMouseHover Then MouseHoverTimer(Ctrl, x, y, Shift)
+		End If
+	End Sub
+	
+	Sub OnMouseHover(Id As Integer, x As Integer, y As Integer, Shift As Integer) Export
+		If Id > 0 Then
+			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
+			If Ctrl AndAlso Ctrl->OnMouseHover Then Ctrl->OnMouseHover(*Ctrl->Designer, *Ctrl, -1, x, y, Shift)
 		End If
 	End Sub
 	
@@ -2539,12 +2980,9 @@ End Namespace
 		End If
 	End Sub
 	
-	Sub OnMouseWheel(Id As Integer, Direction As Integer, x As Integer, y As Integer, Shift As Integer) Export
-		If Id > 0 Then
-			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
-			If Ctrl AndAlso Ctrl->OnMouseWheel Then Ctrl->OnMouseWheel(*Ctrl->Designer, *Ctrl, Direction, x, y, Shift)
-		End If
-	End Sub
+	Function OnMouseWheel(Id As Integer, Direction As Integer, x As Integer, y As Integer, Shift As Integer) As Integer Export
+		If Id > 0 Then Return IIf(SendControlInputMessage(Cast(Any Ptr, Id), CM_MOUSEWHEEL, Direction, MffPoint(x, y), x, y, Shift), 1, 0)
+	End Function
 	
 	Sub OnUnload(Id As Integer) Export
 		If Id > 0 Then

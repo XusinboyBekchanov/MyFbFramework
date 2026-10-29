@@ -4,6 +4,9 @@
 #include once "List.bi"
 #ifdef __USE_WINAPI__
 	#include once "win\wingdi.bi"
+#elseif defined(__USE_JNI__)
+	'Android: the DPI of the main form for the pixels of the pages (PrintDocument.Repaint)
+	#include once "Application.bi"
 #endif
 
 Namespace My.Sys.ComponentModel
@@ -13,6 +16,9 @@ Namespace My.Sys.ComponentModel
 		#elseif defined(__USE_GTK__)
 			' Recording surface with the page drawing (like the enhanced metafile on WinAPI)
 			Surface As cairo_surface_t Ptr
+		#elseif defined(__USE_JNI__)
+			'Android: the MffPage of the page (a global reference, PageCreate)
+			Handle As Any Ptr
 		#endif
 		Canvas As My.Sys.Drawing.Canvas
 		Declare Constructor

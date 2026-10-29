@@ -631,7 +631,7 @@ Namespace My.Sys.Forms
 	Private Destructor IPAddress
 		#ifdef __USE_WINAPI__
 			Handle = 0
-			UnregisterClass "IPAddress", GetModuleHandle(NULL)
+			'UnregisterClass "IPAddress", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace

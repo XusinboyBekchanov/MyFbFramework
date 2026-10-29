@@ -358,8 +358,10 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Destructor TreeNode
-		Nodes.Clear
+		'Disposed before its nodes are cleared: the rows of the tree are not made again while the node is still in its
+		'collection (TreeNodeCollection.Clear), also by the destructor of Nodes after its text is deallocated
 		FIsDisposed = True
+		Nodes.Clear
 		#ifdef __USE_GTK__
 			If Parent AndAlso Parent->Handle Then
 				If GTK_IS_TREE_VIEW(Parent->Handle) Then
@@ -616,9 +618,14 @@ Namespace My.Sys.Forms
 		'			#else
 		'				If Parent AndAlso Parent->Handle Then SendMessage(Parent->Handle, TVM_DELETEITEM, 0, Cast(LPARAM, TVI_ROOT))
 		'			#endif
+		'The nodes of the deleted nodes are cleared in their destructors: the rows are updated once after all of them
+		'(the tree is not complete while they are deleted)
+		Static As Integer ClearDepth
+		ClearDepth += 1
 		For i As Integer = FNodes.Count - 1 To 0 Step -1
 			If Cast(TreeNode Ptr, FNodes.Items[i])->FDynamic Then _Delete( Cast(TreeNode Ptr, FNodes.Items[i]))
 		Next i
+		ClearDepth -= 1
 		'		Else
 		'			For i As Integer = Count - 1 To 0 Step -1
 		'				Remove i
@@ -626,7 +633,8 @@ Namespace My.Sys.Forms
 		'		End If
 		FNodes.Clear
 		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
-			If Parent Then Cast(TreeView Ptr, Parent)->UpdateRows
+			'The nodes of a deleted node: the rows are updated by Remove or Clear of its collection after it is removed
+			If Parent AndAlso ClearDepth = 0 AndAlso (FParentNode = 0 OrElse Not FParentNode->IsDisposed) Then Cast(TreeView Ptr, Parent)->UpdateRows
 		#endif
 	End Sub
 	
@@ -843,27 +851,43 @@ Namespace My.Sys.Forms
 		End Function
 		
 		Private Function TreeView.GetContent() As UString
-			Dim As UString FContent
-			For i As Integer = 0 To Nodes.Count - 1
-				FContent &= "<li>" & !"\r\n"
-				FContent &= "<span style=""cursor: pointer; display: inline-block; width: 16px"" onclick=""toggleNode(event)"">" & IIf(Nodes.Item(i)->Nodes.Count = 0, " ", "►") & "</span>" & !"\r\n"
-				FContent &= Nodes.Item(i)->Text & !"\r\n" & CreateNodes(Nodes.Item(i))
-				FContent &= "</li>"
-			Next
-			Return FContent
+			'The rows of the table are added by UpdateRows (HandleIsAllocated), TABLEINIT keeps the content of the element
+			Return ""
 		End Function
 	#endif
 	
 	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
-		Private Sub TreeView.AddRows(PNodes As TreeNodeCollection Ptr, Level As Integer)
+		Private Sub TreeView.AddRows(PNodes As TreeNodeCollection Ptr, Level As Integer, ByRef Lines As String = "")
+			Dim As Boolean bFirst = True
 			For i As Integer = 0 To PNodes->Count - 1
 				Dim As TreeNode Ptr PNode = PNodes->Item(i)
 				If PNode = 0 OrElse Not PNode->Visible Then Continue For
+				'The last visible node of its parent: the line of its level ends at it
+				Dim As Boolean bLast = True
+				For j As Integer = i + 1 To PNodes->Count - 1
+					If PNodes->Item(j) <> 0 AndAlso PNodes->Item(j)->Visible Then bLast = False: Exit For
+				Next
 				Dim As WString * 3 Sign = IIf(PNode->Nodes.Count = 0, "  ", IIf(PNode->IsExpanded, WChr(&H25BC) & " ", WChr(&H25BA) & " "))
-				TableInsertRow(FHandle, -1, Space(Level * 4) & ToUtf8(Sign & PNode->Text))
+				Dim As String Cells = Space(Level * 4) & ToUtf8(Sign & PNode->Text)
+				#ifdef __USE_JNI__
+					'The picture of the node: Chr(1) & path & Chr(1) after the indent and the sign (a picture in the text of the
+					'row of mffActivity)
+					If Images <> 0 AndAlso PNode->ImageKey <> "" Then Cells = Space(Level * 4) & ToUtf8(Sign) & Chr(1) & FindResourceFile(PNode->ImageKey) & Chr(1) & ToUtf8(PNode->Text)
+				#endif
+				#ifdef __USE_WASM__
+					'The picture of the node: Chr(1) & URLs & Chr(1) before the text (tableFill of mff_lib.js)
+					If Images <> 0 AndAlso PNode->ImageKey <> "" Then Cells = Chr(1) & FindResourceFile(PNode->ImageKey) & Chr(1) & Cells
+					'The dotted lines of the tree like TVS_HASLINES of Windows: Chr(2) & the lines of the levels before & the
+					'line of the node & Chr(2) - "T" a node with nodes after it, "L" the last one, "F" the first root, "N" the
+					'only root (tableFill)
+					Dim As String NodeLine = IIf(Level = 0 AndAlso bFirst, IIf(bLast, "N", "F"), IIf(bLast, "L", "T"))
+					Cells = Chr(2) & Lines & NodeLine & Chr(2) & Cells
+				#endif
+				TableInsertRow(FHandle, -1, Cells)
 				ReDim Preserve FRowNodes(UBound(FRowNodes) + 1)
 				FRowNodes(UBound(FRowNodes)) = PNode
-				If PNode->IsExpanded Then AddRows(@PNode->Nodes, Level + 1)
+				If PNode->IsExpanded Then AddRows(@PNode->Nodes, Level + 1, Lines & IIf(bLast, "0", "1"))
+				bFirst = False
 			Next
 		End Sub
 		
@@ -902,12 +926,18 @@ Namespace My.Sys.Forms
 					FSelectedNode = PNode
 					If OnNodeClick Then OnNodeClick(*Designer, This, *PNode)
 					If bChanged AndAlso OnSelChanged <> 0 Then OnSelChanged(*Designer, This, *PNode)
-					'Web: a double click, Android: a tap opens or closes the node
+					'Web: a double click or a click on the sign of the node, Android: a tap opens or closes the node
 					#ifdef __USE_WASM__
-						If TableDblClick(FHandle) Then
+						Dim As ZString Ptr pEvent = GetAttribute(FHandle, "data-event")
+						Dim As Boolean bToggle = pEvent <> 0 AndAlso *pEvent = "toggle"
+						If pEvent Then FreePtr(pEvent)
+						If TableDblClick(FHandle) OrElse bToggle Then
 					#endif
 						If PNode->Nodes.Count > 0 Then
 							If PNode->IsExpanded Then PNode->Collapse Else PNode->Expand
+						#ifdef __USE_WASM__
+						ElseIf bToggle Then
+						#endif
 						ElseIf OnNodeActivate Then
 							OnNodeActivate(*Designer, This, *PNode)
 						End If
@@ -1381,7 +1411,9 @@ Namespace My.Sys.Forms
 				FDefaultBackColor = .BackColor
 				.DoubleBuffered = True
 			#elseif defined(__USE_WASM__)
-				FElementStyle = "overflow: auto; border: 1px solid rgb(192, 192, 192); padding: 10px;"
+				'A tree without the lines of a table (table.mfftree of mff.html)
+				FElementStyle = "overflow: auto; border: 1px solid var(--mff-border, #aaa); background: var(--mff-window, white);"
+				FClass = "mfftree"
 				WLet(FClassAncestor, "table")
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
@@ -1402,7 +1434,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			
 		#elseif defined(__USE_WINAPI__)
-			UnregisterClass "TreeView", GetModuleHandle(NULL)
+			'UnregisterClass "TreeView", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace

@@ -1380,7 +1380,7 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "iframe")
-				FElementStyle = "border: 1px solid #aaa;"
+				FElementStyle = "border: 1px solid var(--mff-border, #aaa);"
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "mff:WebView")

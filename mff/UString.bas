@@ -2107,4 +2107,15 @@ End Function
 			End If
 		#endif
 	End Function
+#else
+	'Web and Android: the file (or folder) can be opened for reading
+	Private Function FileExistsWebAndroid(ByRef FileName As Const WString) As Boolean
+		If FileName = "" Then Return False
+		Dim As Long Fn = FreeFile
+		If Open(FileName For Binary Access Read As #Fn) = 0 Then
+			Close #Fn
+			Return True
+		End If
+		Return False
+	End Function
 #endif

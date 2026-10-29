@@ -109,4 +109,9 @@ Namespace My.Sys.Drawing
 			If Handle Then DeleteObject Handle
 		#endif
 	End Destructor
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Private Property Pen.Handle As Any Ptr
+			Return @This
+		End Property
+	#endif
 End Namespace

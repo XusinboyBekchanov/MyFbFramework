@@ -353,7 +353,8 @@ Namespace My.Sys.Forms
 			Private Function CheckedListBox.GetContent() As UString
 				Dim As UString FContent
 				For i As Integer = 0 To Items.Count - 1
-					FContent &= "<label class=""mffitem"" style=""display: block; white-space: nowrap;""><input type=""" & IIf(FRadioCheck, "radio"" name=""" & Str(@This), "checkbox") & """/>" & HtmlEscape(@Items.Item(i)) & "</label>"
+					'Like mff.item of mff_lib.js: a click on the text selects the item, a click on the check box changes it
+					FContent &= "<div class=""mffitem"" style=""display: block; white-space: nowrap;""><input type=""" & IIf(FRadioCheck, "radio"" name=""" & Str(@This), "checkbox") & """/><span class=""mffnodetext"">" & HtmlEscape(@Items.Item(i)) & "</span></div>"
 				Next
 				Return FContent
 			End Function
@@ -468,7 +469,7 @@ Namespace My.Sys.Forms
 				.DoubleBuffered = True
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "div")
-				FElementStyle = "overflow: auto; border: 1px solid #aaa;"
+				FElementStyle = "overflow: auto; border: 1px solid var(--mff-border, #aaa);"
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				.OnHandleIsAllocated = @HandleIsAllocated

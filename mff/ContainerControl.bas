@@ -148,6 +148,13 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 	End Destructor
+	
+	#ifdef __USE_WASM__
+		'A container does not show its text (the name of the control) like on Windows, only its children
+		Private Function ContainerControl.GetContent() As UString
+			Return ""
+		End Function
+	#endif
 End Namespace
 
 #ifdef __EXPORT_PROCS__

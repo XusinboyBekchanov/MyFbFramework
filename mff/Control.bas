@@ -321,6 +321,17 @@ Namespace My.Sys.Forms
 			End Function
 		#endif
 		
+		#ifdef __USE_JNI__
+			'The active control of the form like WM_SETFOCUS on Windows (Control.ProcessMessage)
+			Private Sub Control.SetActiveInForm()
+				If FDesignMode Then Exit Sub
+				Dim As Control Ptr FormCtrl = GetForm
+				If FormCtrl = 0 OrElse FormCtrl->FActiveControl = @This Then Exit Sub
+				FormCtrl->FActiveControl = @This
+				If FormCtrl->OnActiveControlChanged Then FormCtrl->OnActiveControlChanged(*FormCtrl)
+			End Sub
+		#endif
+		
 		#ifndef Control_TopLevelControl_Off
 			Private Function Control.TopLevelControl As Control Ptr
 				If FParent = 0 Then
@@ -604,6 +615,10 @@ Namespace My.Sys.Forms
 							FClientWidth = This.Width
 						End If
 					End If
+				#elseif defined(__USE_WASM__)
+					'The client element (the pages of TabControl are under its tabs)
+					Dim As Integer iClient = IIf(FHandle <> 0, GetClientSize(FHandle, 0), -1)
+					FClientWidth = IIf(iClient > 0, UnScaleX(iClient), This.Width)
 				#else
 					FClientWidth = This.Width
 				#endif
@@ -661,6 +676,10 @@ Namespace My.Sys.Forms
 							FClientHeight = This.Height
 						End If
 					End If
+				#elseif defined(__USE_WASM__)
+					'The client element (the pages of TabControl are under its tabs)
+					Dim As Integer iClient = IIf(FHandle <> 0, GetClientSize(FHandle, 1), -1)
+					FClientHeight = IIf(iClient > 0, UnScaleY(iClient), This.Height)
 				#else
 					FClientHeight = This.Height
 				#endif
@@ -735,11 +754,24 @@ Namespace My.Sys.Forms
 						SendMessage(FHandle, EM_SETCHARFORMAT, SCF_ALL, Cast(LPARAM, @Cf))
 					End If
 				#elseif defined(__USE_WASM__)
-					If FHandle Then
-						SetBackColor(FHandle, Value)
+					'The default white (a form) is the color of the window of the page, clBtnFace the face of its controls:
+					'dark in its dark mode (mff.html)
+					Dim As String sColor
+					If Value < 0 Then
+					ElseIf Value = clWhite AndAlso FDefaultBackColor = clWhite Then
+						sColor = "var(--mff-window, white)"
+					ElseIf Value = clBtnFace Then
+						sColor = "var(--mff-face, rgb(240, 240, 240))"
 					Else
-						FElementStyle = FElementStyle & "background-color: rgb(" & GetRed(Value) & ", " & GetGreen(Value) & ", " & GetBlue(Value) & ");"
+						sColor = "rgb(" & GetRed(Value) & ", " & GetGreen(Value) & ", " & GetBlue(Value) & ")"
 					End If
+					If FHandle Then
+						SetStyle(FHandle, "background-color", sColor)
+					ElseIf sColor <> "" Then
+						FElementStyle = FElementStyle & "background-color: " & sColor & ";"
+					End If
+				#elseif defined(__USE_JNI__)
+					ApplyBackColor
 				#endif
 				Invalidate
 			End Property
@@ -1006,6 +1038,11 @@ Namespace My.Sys.Forms
 					If FHandle Then
 						SetVisible(FHandle, Value)
 					End If
+				#elseif defined(__USE_JNI__)
+					'View.VISIBLE = 0, View.GONE = 8 (a hidden control takes no place); the main Form is the Activity
+					If env AndAlso FHandle AndAlso (*env)->IsInstanceOf(env, FHandle, FindJNIClass("android/view/View")) Then
+						(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/view/View", "setVisibility", "(I)V"), IIf(Value, 0, 8))
+					End If
 				#endif
 			End If
 		End Property
@@ -1041,8 +1078,20 @@ Namespace My.Sys.Forms
 			End Sub
 		#elseif defined(__USE_WASM__)
 			Private Function Control.GetContent() As UString
+				'A button and a label show their text without the & of the access keys (Windows underlines the letter)
+				If FText <> 0 AndAlso (*FClassName = "CommandButton" OrElse *FClassName = "Label") Then Return HtmlMnemonic(FText)
 				Return HtmlEscape(FText)
 			End Function
+		#endif
+		
+		#ifdef __USE_JNI__
+			'The back color of the view (the color of FreeBasic is BGR, the one of Android ARGB)
+			Private Sub Control.ApplyBackColor
+				If env = 0 OrElse FHandle = 0 OrElse FBackColor < 0 Then Exit Sub
+				If (*env)->IsInstanceOf(env, FHandle, FindJNIClass("android/view/View")) = 0 Then Exit Sub
+				Dim As Long ARGB = &hFF000000 Or ((FBackColor And &hFF) Shl 16) Or (FBackColor And &hFF00) Or ((FBackColor Shr 16) And &hFF)
+				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/view/View", "setBackgroundColor", "(I)V"), ARGB)
+			End Sub
 		#endif
 		
 		Private Sub Control.CreateWnd
@@ -1215,11 +1264,18 @@ Namespace My.Sys.Forms
 				#endif
 			#elseif defined(__USE_JNI__)
 				If env = 0 OrElse Instance = 0 Then Exit Sub
+				'The view was made already and is in its parent (the control was added to a parent with a view, then the parent
+				'made the views of its controls): like an existing window on Windows. The main Form is the Activity, not a View
+				If FHandle AndAlso (*env)->IsInstanceOf(env, FHandle, FindJNIClass("android/view/View")) AndAlso CallObjectMethod(FHandle, "android/view/View", "getParent", "()Landroid/view/ViewParent;") <> 0 Then Exit Sub
 				'A control without an Android class (no class or a Windows class name like "SysPager") becomes an
 				'AbsoluteLayout: it has its bounds, colors and events and hosts its child controls
 				Dim As String sClassAncestor = *FClassAncestor
 				If sClassAncestor = "" OrElse (InStr(sClassAncestor, "/") = 0 AndAlso Mid(sClassAncestor, 1, 4) <> "mff:") Then sClassAncestor = "mff:Layout"
 				If sClassAncestor = "android/widget/AbsoluteLayout" Then sClassAncestor = "mff:Layout"
+				'Only the main Form is the Activity (onCreate gives its handle). Another Form would be a new Activity object
+				'without a window: it is a layout which is not shown yet
+				'A second form (not the form of the designer) scrolls its controls when it is smaller than in the designer
+				If EndsWith(sClassAncestor, "/mffActivity") Then sClassAncestor = IIf(FMainForm OrElse FDesignMode OrElse DesignCaptionHeight <> 0, "mff:Layout", "mff:ScrollLayout")
 				If FHandle = 0 AndAlso Activity <> 0 AndAlso (sClassAncestor = "android/widget/Button" OrElse sClassAncestor = "android/widget/CheckBox" OrElse sClassAncestor = "android/widget/RadioButton") Then
 					'The Material (AppCompat) widget of the theme is made by mffActivity.createView; an older
 					'mffActivity.java returns another view and the Android class is used
@@ -1253,9 +1309,14 @@ Namespace My.Sys.Forms
 				End If
 				Text = *FText
 			#elseif defined(__USE_WASM__)
+				'The element exists already (the parent created it, Control.Add, Visible): a second one would have the same id
+				If FHandle Then Exit Sub
 				'The parent element does not exist yet (Visible = True before the parent is shown): the parent creates
 				'this element with its own one, otherwise it would be put into the body over the whole page
 				If FParent AndAlso FParent->Handle = 0 Then Exit Sub
+				'Without a parent yet (Visible = True before Parent = ... in the constructor of a form) only a form is
+				'an element of the page: the control is created with its parent
+				If FParent = 0 AndAlso *FClassName <> "Form" Then Exit Sub
 				Dim As String HClassName = *FClassAncestor
 				Dim As Any Ptr HParent
 				'A Windows class name ("Static", "SysTabControl32", "msctls_hotkey32", ...) is not an HTML tag: a div is used
@@ -1281,21 +1342,28 @@ Namespace My.Sys.Forms
 				Dim As String sHeight = IIf(FAlign = alClient OrElse FAlign = alLeft OrElse FAlign = alRight, "100%", IIf(Anchor.Top = asAnchor AndAlso Anchor.Bottom = asAnchor, "", nHeight & "px"))
 				Dim As String sRight = IIf(FAlign = alRight, "0px", IIf(Anchor.Right = asAnchor AndAlso FParent <> 0, (FParent->Width - nLeft - nWidth) & "px", ""))
 				Dim As String sBottom = IIf(FAlign = alBottom, "0px", IIf(Anchor.Bottom = asAnchor AndAlso FParent <> 0, (FParent->Height - nTop - nHeight) & "px", ""))
-				CreateElement(IIf(FMainForm, "afterbegin", "beforeend"), HClassName, FClass, FType, FHandle, *FName, ToUtf8(GetContent), FElementStyle, IIf(FMainForm, "relative", "absolute"), sLeft, sTop, sWidth, sHeight, sRight, sBottom, HParent)
+				'GetContent first: it can set FClass (Form)
+				Dim As String sContent = ToUtf8(GetContent)
+				CreateElement(IIf(FMainForm, "afterbegin", "beforeend"), HClassName, FClass, FType, FHandle, *FName, sContent, FElementStyle, IIf(FMainForm, "relative", "absolute"), sLeft, sTop, sWidth, sHeight, sRight, sBottom, HParent)
 				SetClickEvent(FHandle)
 				SetChangeEvent(FHandle)
 				If OnDblClick Then SetDblClickEvent(FHandle)
-				If OnGotFocus Then SetGotFocusEvent(FHandle)
-				If OnLostFocus Then SetLostFocusEvent(FHandle)
-				If OnKeyDown Then SetKeyDownEvent(FHandle)
-				If OnKeyPress Then SetKeyPressEvent(FHandle)
-				If OnKeyUp Then SetKeyUpEvent(FHandle)
+				'A control in design mode gets all the mouse and key messages (the designer watches them, ControlMessageHook)
+				Dim As Boolean bKeyEvents = FKeyEvents OrElse FDesignMode, bMouseEvents = FMouseEvents OrElse FDesignMode
+				'A TextBox has its own OnGotFocus, OnLostFocus and OnActivate (Enter): it gets the focus and the keys always
+				'(TextBox.ProcessMessage)
+				Dim As Boolean bTextBox = *FClassName = "TextBox"
+				If CBool(OnGotFocus <> 0) OrElse bKeyEvents OrElse bTextBox Then SetGotFocusEvent(FHandle)
+				If CBool(OnLostFocus <> 0) OrElse bKeyEvents OrElse bTextBox Then SetLostFocusEvent(FHandle)
+				If CBool(OnKeyDown <> 0) OrElse bKeyEvents OrElse bTextBox Then SetKeyDownEvent(FHandle)
+				If OnKeyPress <> 0 OrElse bKeyEvents Then SetKeyPressEvent(FHandle)
+				If OnKeyUp <> 0 OrElse bKeyEvents Then SetKeyUpEvent(FHandle)
 				If OnMouseEnter Then SetMouseEnterEvent(FHandle)
-				If OnMouseDown <> 0 OrElse FMouseEvents Then SetMouseDownEvent(FHandle)
-				If OnMouseMove <> 0 OrElse FMouseEvents Then SetMouseMoveEvent(FHandle)
-				If OnMouseUp <> 0 OrElse FMouseEvents Then SetMouseUpEvent(FHandle)
-				If OnMouseLeave <> 0 OrElse FMouseEvents Then SetMouseLeaveEvent(FHandle)
-				If OnMouseWheel Then SetMouseWheelEvent(FHandle)
+				If OnMouseDown <> 0 OrElse bMouseEvents Then SetMouseDownEvent(FHandle)
+				If CBool(OnMouseMove <> 0) OrElse CBool(OnMouseHover <> 0) OrElse bMouseEvents Then SetMouseMoveEvent(FHandle)
+				If OnMouseUp <> 0 OrElse bMouseEvents Then SetMouseUpEvent(FHandle)
+				If OnMouseLeave <> 0 OrElse bMouseEvents Then SetMouseLeaveEvent(FHandle)
+				If OnMouseWheel <> 0 OrElse bMouseEvents Then SetMouseWheelEvent(FHandle)
 				If OnDestroy Then SetUnloadEvent(FHandle)
 			#endif
 			#if defined(__USE_WINAPI__) OrElse defined(__USE_JNI__) OrElse defined(__USE_WASM__)
@@ -1324,9 +1392,12 @@ Namespace My.Sys.Forms
 							If layoutview Then
 								layoutview = (*env)->NewGlobalRef(env, layoutview)
 								'A Form is an Activity: its touches are the ones of its layout
-								If CInt(FMouseEvents) OrElse OnMouseDown OrElse OnMouseMove OrElse OnMouseUp OrElse OnMouseLeave Then SetTouchEvent(layoutview)
-							ElseIf CInt(FMouseEvents) OrElse OnMouseDown OrElse OnMouseMove OrElse OnMouseUp OrElse OnMouseLeave Then
+								If CInt(FMouseEvents) OrElse CInt(FDesignMode) OrElse OnMouseDown OrElse OnMouseMove OrElse OnMouseUp OrElse OnMouseLeave Then SetTouchEvent(layoutview)
+							ElseIf CInt(FMouseEvents) OrElse CInt(FDesignMode) OrElse OnMouseDown OrElse OnMouseMove OrElse OnMouseUp OrElse OnMouseLeave Then
 								SetTouchEvent(FHandle)
+							End If
+							If CInt(FKeyEvents) OrElse CInt(FDesignMode) OrElse OnKeyDown OrElse OnKeyPress OrElse OnKeyUp OrElse OnGotFocus OrElse OnLostFocus Then
+								SetKeyEvent(IIf(layoutview, layoutview, FHandle), FKeyEvents)
 							End If
 							If layoutview Then
 								Dim As jclass class_view = (*env)->FindClass(env, "android/view/View")
@@ -1336,18 +1407,27 @@ Namespace My.Sys.Forms
 								Dim As jmethodID addOnLayoutChangeListener = (*env)->GetMethodID(env, class_view, "addOnLayoutChangeListener", "(Landroid/view/View$OnLayoutChangeListener;)V")
 								(*env)->CallVoidMethod(env, layoutview, addOnLayoutChangeListener, AppMainForm->Handle)
 							End If
-							If This.Parent AndAlso This.Parent->layoutview Then
+							'A Form in a parent is the Activity, not a View: it is not added to the layout of the parent
+							If This.Parent AndAlso This.Parent->layoutview AndAlso (*env)->IsInstanceOf(env, FHandle, (*env)->FindClass(env, "android/view/View")) Then
 								(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/view/View", "setId", "(I)V"), FID)
+								'A color which was set before the view was made (the default color keeps the style of the Android widget)
+								If FBackColor <> FDefaultBackColor Then ApplyBackColor
+								'A control hidden before its view was made (a page of a TabControl, ...)
+								If FVisible = False Then (*env)->CallVoidMethod(env, FHandle, GetMethodID("android/view/View", "setVisibility", "(I)V"), 8)
 								Dim As jclass class_viewgroup = (*env)->FindClass(env, "android/view/ViewGroup")
 								Dim As jmethodID addviewMethod = (*env)->GetMethodID(env, class_viewgroup, "addView", "(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V")
 								Dim As jclass class_MarginLayoutParams = (*env)->FindClass(env, "android/widget/AbsoluteLayout$LayoutParams")
 								Dim As jmethodID ConstructorMethod = (*env)->GetMethodID(env, class_MarginLayoutParams, "<init>", "(IIII)V")
-								Dim As jobject MarginLayoutParams = (*env)->NewObject(env, class_MarginLayoutParams, ConstructorMethod, ScaleX(FWidth), ScaleY(FHeight), ScaleX(FLeft), ScaleY(FTop))
+								'The edges in pixels like Component.Move (the controls next to each other have no gap)
+								Dim As jobject MarginLayoutParams = (*env)->NewObject(env, class_MarginLayoutParams, ConstructorMethod, ScaleX(FLeft + FWidth) - ScaleX(FLeft), _
+									ScaleY(FTop + DesignCaptionHeight + FHeight) - ScaleY(FTop + DesignCaptionHeight), ScaleX(FLeft), ScaleY(FTop + DesignCaptionHeight))
 								'								Dim As jfieldID LeftField = (*env)->GetFieldID(env, class_MarginLayoutParams, "leftMargin", "I")
 								'								(*env)->SetIntField(env, MarginLayoutParams, LeftField, FLeft)
 								'								Dim As jfieldID TopField = (*env)->GetFieldID(env, class_MarginLayoutParams, "topMargin", "I")
 								'								(*env)->SetIntField(env, MarginLayoutParams, TopField, FTop)
 								(*env)->CallVoidMethod(env, This.Parent->layoutview, addviewMethod, FHandle, MarginLayoutParams)
+								'The designed form has its title bar above the view and its border around it
+								If DesignCaptionHeight Then FormDesignFrame(FHandle, ToUtf8(WGet(FText)), ScaleY(DesignCaptionHeight))
 								'Text = Str(1)
 								'AdapterView (Spinner, ListView) does not allow a click listener; it reports through onListChange
 								If (*env)->IsInstanceOf(env, FHandle, (*env)->FindClass(env, "android/widget/AdapterView")) = 0 Then
@@ -1380,11 +1460,14 @@ Namespace My.Sys.Forms
 						If ShowHint AndAlso Hint <> "" Then AllocateHint
 					#elseif defined(__USE_WASM__)
 						If Cursor.ToString <> "" Then SetStyle(FHandle, "cursor", ToUtf8(Cursor.ToString))
+						'Font.Size is in points like on Windows (8 pt are about 11 px); CSS: [italic] [bold] size family
 						If This.Font.Name <> "" Then
-							SetFont(FHandle, Trim(IIf(Font.Bold, " bold", "") & IIf(Font.Italic, " italic", "") & " " & Str(Font.Size) & "px '" & Font.Name & "', serif"))
+							SetFont(FHandle, IIf(Font.Italic, "italic ", "") & IIf(Font.Bold, "bold ", "") & Str(IIf(Font.Size > 0, Font.Size, 9)) & "pt '" & Font.Name & "', sans-serif")
 						ElseIf This.Font.Size <> 0 Then
-							SetFont(FHandle, Str(Font.Size) & "px serif")
+							SetFont(FHandle, Str(Font.Size) & "pt sans-serif")
 						End If
+						'Font.Color set before the element was created (0, black, is the color of the page anyway)
+						If This.Font.Color <> 0 Then SetForeColor(FHandle, This.Font.Color)
 					#endif
 					If FParent Then
 						FAnchoredParentWidth = Cast(Control Ptr, FParent)->Width
@@ -1431,7 +1514,17 @@ Namespace My.Sys.Forms
 					#elseif defined(__USE_JNI__)
 						If FVisible Then This.Show
 					#elseif defined(__USE_WASM__)
-						If FVisible Then This.Show
+						If *FClassName = "Form" Then
+							'The element of a form is visible: its OnShow comes with the load event of the element (ONLOAD,
+							'SetLoadEvent of Form.HandleIsAllocated) when the program does not run (a modal form shown in
+							'OnShow waits then out of main, which ends with End: fb_End would stop the program in the wait)
+						ElseIf FVisible Then
+							This.Show
+						Else
+							'A hidden control (Visible = False before the element was made, pnlIntellisense of EditControl)
+							'is not shown: its new element is hidden
+							SetVisible(FHandle, False)
+						End If
 						PaintCanvas
 					#endif
 				Else
@@ -1477,6 +1570,31 @@ Namespace My.Sys.Forms
 				If ToolTipHandle Then
 					DestroyWindow ToolTipHandle
 					ToolTipHandle = 0
+				End If
+			#elseif defined(__USE_JNI__)
+				'The view leaves its layout (a closed page of a TabControl, ...); its events find no control any more
+				If FHandle AndAlso env <> 0 Then
+					If OnHandleIsDestroyed Then OnHandleIsDestroyed(This)
+					If (*env)->IsInstanceOf(env, FHandle, FindJNIClass("android/view/View")) Then
+						Dim As jobject ParentView = CallObjectMethod(FHandle, "android/view/View", "getParent", "()Landroid/view/ViewParent;")
+						If ParentView <> 0 AndAlso (*env)->IsInstanceOf(env, ParentView, FindJNIClass("android/view/ViewGroup")) Then
+							(*env)->CallVoidMethod(env, ParentView, GetMethodID("android/view/ViewGroup", "removeView", "(Landroid/view/View;)V"), FHandle)
+						End If
+						If ParentView Then (*env)->DeleteLocalRef(env, ParentView)
+						If FID > 0 AndAlso FID < Handles.Count AndAlso Handles.Item(FID) = @This Then Handles.Item(FID) = 0
+						If layoutview <> 0 AndAlso layoutview <> FHandle Then (*env)->DeleteGlobalRef(env, layoutview)
+						layoutview = 0
+						(*env)->DeleteGlobalRef(env, FHandle)
+						FHandle = 0
+					End If
+				End If
+			#elseif defined(__USE_WASM__)
+				'The element leaves the page with the elements of the children (a closed TabWindow of the IDE: its editor and
+				'its ComboBoxes stayed); a new control at this address would get the same id
+				If FHandle Then
+					If OnHandleIsDestroyed Then OnHandleIsDestroyed(This)
+					DeleteElement(FHandle)
+					FHandle = 0
 				End If
 			#endif
 		End Sub
@@ -1961,16 +2079,17 @@ Namespace My.Sys.Forms
 						SendMessageW(Message.hWnd, WM_THEMECHANGED, 0, 0)
 					End If
 				Case WM_DPICHANGED
-					' Rescaling the tree rebuilds the font of every control and moves it: batched like
-					'a layout pass, so that only the outermost call repaints the container
+					' Rescaling the tree rebuilds the font of every control and moves it: like in
+					'a layout pass only the outermost call repaints the container. The moves are
+					'not deferred: the tree spans many parents, and a nested pass must read the
+					'real bounds of the controls rescaled before it
 					Dim As Integer iSavedAlignLock = AlignLock
-					Dim As Boolean bOwnDefer = (AlignDefer = 0)
 					AlignLock = iSavedAlignLock + 1
-					If bOwnDefer Then
-						AlignDefer = BeginDeferWindowPos(Max(8, ControlCount))
-						' A rescale always repaints: the fonts and the bounds changed
-						If iSavedAlignLock = 0 Then AlignMoved = 1
-					End If
+					' A rescale always repaints: the fonts and the bounds changed
+					If iSavedAlignLock = 0 Then AlignClear: AlignMoved = 2
+					' Every control of the tree changes its size and requests a layout of its
+					'parent: in the pass these requests are collected (see RequestAlign)
+					DpiPass += 1
 					Canvas.xdpi = xdpi
 					Canvas.ydpi = ydpi
 					' The point size does not change when only the screen changes: the font must be
@@ -2005,16 +2124,11 @@ Namespace My.Sys.Forms
 							Controls[i]->Perform(WM_DPICHANGED, Message.wParam, 0)
 						Next
 					End If
-					If bOwnDefer Then
-						Dim As HDWP hDefer = AlignDefer
-						AlignDefer = 0
-						If hDefer Then EndDeferWindowPos(hDefer)
-					End If
+					DpiPass -= 1
+					' The outermost rescale lays out the noted containers once, the parents first
+					If DpiPass = 0 Then DpiAlignFlush
 					AlignLock = iSavedAlignLock
-					If iSavedAlignLock = 0 AndAlso FHandle <> 0 AndAlso AlignMoved Then
-						RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
-						AlignMoved = 0
-					End If
+					If iSavedAlignLock = 0 Then AlignRedraw FHandle
 					Message.Result = 0
 					Return
 				Case WM_THEMECHANGED
@@ -2877,11 +2991,18 @@ Namespace My.Sys.Forms
 		Private Sub Control.Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 			Base.Move IIf(FDesignMode AndAlso (Designer = @This), 0, IIf(Constraints.Left, Constraints.Left, cLeft)), IIf(FDesignMode AndAlso (Designer = @This), 0, IIf(Constraints.Top, Constraints.Top, cTop)), IIf(Constraints.Width, Constraints.Width, cWidth), IIf(Constraints.Height, Constraints.Height, cHeight)
 			#ifdef __USE_WASM__
-				'A docked control follows its parent with the CSS of CreateWnd (100%, right/bottom: 0) and
-				'the size of the main form is the one of the browser window (ONRESIZE): only the others are moved here
-				If CBool(FHandle <> 0) AndAlso CBool(FAlign = DockStyle.alNone) AndAlso Not FMainForm Then
+				'The size of the main form is the one of the browser window (ONRESIZE). A docked control gets the bounds of
+				'RequestAlign too: with the CSS of CreateWnd only (100%) it would cover the docked controls before it
+				If CBool(FHandle <> 0) AndAlso Not FMainForm Then
 					ElementSetBounds(FHandle, ScaleX(IIf(Constraints.Left, Constraints.Left, cLeft)), ScaleY(IIf(Constraints.Top, Constraints.Top, cTop)), _
 						ScaleX(IIf(Constraints.Width, Constraints.Width, cWidth)), ScaleY(IIf(Constraints.Height, Constraints.Height, cHeight)))
+					'Like WM_SIZE of Windows (onLayoutChange on Android): the docked and anchored controls follow the new size
+					If FWidth <> FElementWidth OrElse FHeight <> FElementHeight Then
+						FElementWidth = FWidth
+						FElementHeight = FHeight
+						If ControlCount > 0 Then RequestAlign
+						If OnResize Then OnResize(*Designer, This, FWidth, FHeight)
+					End If
 				End If
 			#endif
 			#ifdef __USE_GTK__
@@ -3378,20 +3499,60 @@ Namespace My.Sys.Forms
 			MaxHeight += Margins.Bottom
 		End Sub
 		
+		#ifdef __USE_WINAPI__
+			Private Sub DpiAlignFlush
+				' Parents first: a layout of a parent resizes its children, which lay out their own
+				'children by WM_SIZE, so most of the requests of the children are already done then
+				Do While DpiPendingCount > 0
+					Dim As Integer iBest, iBestDepth = &h7FFFFFFF
+					For i As Integer = 0 To DpiPendingCount - 1
+						Dim As Integer iDepth
+						Dim As Control Ptr Ctrl = DpiPending[i]
+						Do While Ctrl->Parent
+							iDepth += 1
+							Ctrl = Ctrl->Parent
+						Loop
+						If iDepth < iBestDepth Then iBestDepth = iDepth: iBest = i
+					Next
+					Dim As Control Ptr Ctrl = DpiPending[iBest]
+					DpiPendingCount -= 1
+					DpiPending[iBest] = DpiPending[DpiPendingCount]
+					If Ctrl->Handle Then Ctrl->RequestAlign
+				Loop
+				_Deallocate(DpiPending)
+				DpiPending = 0
+			End Sub
+		#endif
+
 		Private Sub Control.RequestAlign(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False, bWithoutControl As Control Ptr = 0)
 			#ifdef __USE_WINAPI__
+				' A request of a rescale (no given client size, not a part of a running layout) is
+				'only noted: the outermost rescale lays out every noted container once at its end
+				If DpiPass > 0 AndAlso iClientWidth = -1 AndAlso iClientHeight = -1 AndAlso bInDraw = False Then
+					For i As Integer = 0 To DpiPendingCount - 1
+						If DpiPending[i] = @This Then Exit Sub
+					Next
+					DpiPendingCount += 1
+					DpiPending = _Reallocate(DpiPending, DpiPendingCount * SizeOf(Any Ptr))
+					DpiPending[DpiPendingCount - 1] = @This
+					Exit Sub
+				End If
 				' One layout pass moves every docked and anchored control. Letting each move
 				' repaint its control shows a half finished layout and is by far the most
 				' expensive part of the pass, so the pass is batched and the container is
 				' repainted once when the outermost pass ends
 				Dim As Integer iSavedAlignLock = AlignLock
-				' A pass of its own collects its moves in one DeferWindowPos batch. A nested
-				' pass (a child container resized by this one) adds its moves to the same batch
-				Dim As Boolean bOwnDefer = (AlignDefer = 0)
+				' A pass collects the moves of the children of this control in one DeferWindowPos
+				' batch. A batch takes only windows of one parent: a nested pass of another
+				' container (a child container resized by this one) opens a batch of its own
+				Dim As HDWP hSavedDefer = AlignDefer
+				Dim As HWND hSavedDeferParent = AlignDeferParent
+				Dim As Boolean bOwnDefer = (FHandle <> 0) AndAlso (AlignDefer = 0 OrElse AlignDeferParent <> FHandle)
 				AlignLock = iSavedAlignLock + 1
+				If iSavedAlignLock = 0 Then AlignClear
 				If bOwnDefer Then
 					AlignDefer = BeginDeferWindowPos(Max(8, ControlCount))
-					If iSavedAlignLock = 0 Then AlignMoved = 0
+					AlignDeferParent = FHandle
 				End If
 				RequestAlignCore iClientWidth, iClientHeight, bInDraw, bWithoutControl
 				If bOwnDefer Then
@@ -3399,13 +3560,13 @@ Namespace My.Sys.Forms
 					'nested passes which must start a batch of their own
 					Dim As HDWP hDefer = AlignDefer
 					AlignDefer = 0
+					AlignDeferParent = 0
 					If hDefer Then EndDeferWindowPos(hDefer)
+					AlignDefer = hSavedDefer
+					AlignDeferParent = hSavedDeferParent
 				End If
 				AlignLock = iSavedAlignLock
-				If iSavedAlignLock = 0 AndAlso FHandle <> 0 AndAlso AlignMoved Then
-					RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
-					AlignMoved = 0
-				End If
+				If iSavedAlignLock = 0 Then AlignRedraw FHandle
 			#else
 				RequestAlignCore iClientWidth, iClientHeight, bInDraw, bWithoutControl
 			#endif
@@ -3439,6 +3600,15 @@ Namespace My.Sys.Forms
 			If iClientHeight = -1 Then iClientHeight = ClientHeight
 			'If ClassName = "ScrollControl" Then iClientWidth = Width: iClientHeight = Height
 			If iClientWidth <= 0 OrElse iClientHeight <= 0 Then Exit Sub
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				Scope
+					Dim As Message msg
+					msg.Msg = CM_SIZE
+					msg.wParam = iClientWidth
+					msg.lParam = iClientHeight
+					ProcessMessage(msg)
+				End Scope
+			#endif
 			lLeft = Margins.Left
 			rLeft = iClientWidth - Margins.Right
 			tTop  = Margins.Top
@@ -3803,7 +3973,7 @@ Namespace My.Sys.Forms
 				Dim As Message msg
 				msg.Sender = @This
 				msg.Msg = CM_PAINT
-				ProcessMessage(msg)
+				DispatchControlMessage(@This, msg)
 				If (Not msg.Handled) AndAlso OnPaint <> 0 Then OnPaint(*Designer, This, Canvas)
 				Canvas.UnSetHandle
 				CanvasEnd(PaintView)
@@ -3836,6 +4006,10 @@ Namespace My.Sys.Forms
 				If widget Then gtk_widget_grab_focus(widget)
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then .SetFocus FHandle
+			#elseif defined(__USE_WASM__)
+				If FHandle Then ElementSetFocus(FHandle)
+			#elseif defined(__USE_JNI__)
+				If env <> 0 AndAlso FHandle <> 0 Then (*env)->CallBooleanMethod(env, IIf(layoutview, layoutview, FHandle), GetMethodID("android/view/View", "requestFocus", "()Z"))
 			#endif
 		End Sub
 		
@@ -3854,6 +4028,11 @@ Namespace My.Sys.Forms
 				End If
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then SetWindowPos FHandle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE 'BringWindowToTop Handle
+			#elseif defined(__USE_WASM__)
+				If FHandle Then ElementZOrder(FHandle, 1)
+			#elseif defined(__USE_JNI__)
+				'The last child of the layout is drawn over the others (the dots of the designer over the form)
+				If FHandle Then ViewZOrder(FHandle, 1)
 			#endif
 		End Sub
 		
@@ -3879,6 +4058,10 @@ Namespace My.Sys.Forms
 				End If
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then SetWindowPos FHandle, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE
+			#elseif defined(__USE_WASM__)
+				If FHandle Then ElementZOrder(FHandle, 0)
+			#elseif defined(__USE_JNI__)
+				If FHandle Then ViewZOrder(FHandle, 0)
 			#endif
 		End Sub
 		
@@ -4013,6 +4196,22 @@ Namespace My.Sys.Forms
 						'#IFDEF __AUTOMATE_CREATE_CHILDS__
 						Ctrl->CreateWnd
 						'#ENDIF
+					End If
+				#elseif defined(__USE_JNI__)
+					'A control added to a parent which has its view already (a new page of a TabControl, ...) gets its own view now
+					If FHandle AndAlso Ctrl->Handle = 0 Then Ctrl->CreateWnd
+				#elseif defined(__USE_WASM__)
+					If FHandle Then
+						If Ctrl->Handle = 0 Then
+							'The parent has its element already (the controls of a designed form, a new page): the control
+							'gets its own one now
+							Ctrl->CreateWnd
+						Else
+							'A control with an element gets a new parent (SetParent of Win32Compat.bi: the designed form is
+							'put into the panel of the designer): its element is moved into the one of the parent
+							SetParentElement(Ctrl->Handle, FHandle)
+							Ctrl->RequestAlign
+						End If
 					End If
 				#endif
 				If Ctrl->FTabIndex = -1 Then Ctrl->ChangeTabIndex - 1
@@ -4192,7 +4391,59 @@ Namespace My.Sys.Forms
 	#endif
 End Namespace
 
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	Sub DispatchControlMessage(ByVal Ctrl As My.Sys.Forms.Control Ptr, ByRef msg As Message)
+		If Ctrl = 0 Then Exit Sub
+		If msg.hWnd = 0 Then msg.hWnd = Ctrl->Handle
+		If ControlMessageHook <> 0 AndAlso ControlMessageHook(Ctrl, msg) Then
+			msg.Handled = True
+			Exit Sub
+		End If
+		Ctrl->ProcessMessage(msg)
+	End Sub
+
+	'A key, a character, the focus or the mouse wheel of the Web/Android side: the CM_* message goes to the control
+	'and then its event. MsgId: CM_KEYDOWN, CM_KEYUP, CM_CHAR, CM_SETFOCUS, CM_KILLFOCUS or CM_MOUSEWHEEL.
+	'Returns True if the control handled it (the Web side then does not do the default action of the browser)
+	Function SendControlInputMessage(Ctrl As My.Sys.Forms.Control Ptr, ByVal MsgId As Integer, ByVal wParam As Integer, ByVal lParam As Integer, ByVal x As Integer = 0, ByVal y As Integer = 0, ByVal Shift As Integer = 0) As Boolean
+		If Ctrl = 0 Then Return False
+		Dim As Message msg
+		msg.Sender = Ctrl
+		msg.Msg = MsgId
+		msg.wParam = wParam
+		msg.lParam = lParam
+		DispatchControlMessage(Ctrl, msg)
+		Dim As Boolean bHandled = msg.Result <> 0 OrElse msg.Handled
+		Select Case MsgId
+		Case CM_KEYDOWN: If Ctrl->OnKeyDown Then Ctrl->OnKeyDown(*Ctrl->Designer, *Ctrl, wParam, lParam)
+		Case CM_KEYUP: If Ctrl->OnKeyUp Then Ctrl->OnKeyUp(*Ctrl->Designer, *Ctrl, wParam, lParam)
+		Case CM_CHAR: If Ctrl->OnKeyPress Then Ctrl->OnKeyPress(*Ctrl->Designer, *Ctrl, wParam)
+		Case CM_SETFOCUS: If Ctrl->OnGotFocus Then Ctrl->OnGotFocus(*Ctrl->Designer, *Ctrl)
+		Case CM_KILLFOCUS: If Ctrl->OnLostFocus Then Ctrl->OnLostFocus(*Ctrl->Designer, *Ctrl)
+		Case CM_MOUSEWHEEL: If Ctrl->OnMouseWheel Then Ctrl->OnMouseWheel(*Ctrl->Designer, *Ctrl, wParam, x, y, Shift)
+		End Select
+		Return bHandled
+	End Function
+#endif
+
 #ifdef __USE_JNI__
+	'A key of the view (mffActivity.setKeyEvent). action: 0 - down, 1 - up, 2 - a character (the soft keyboard or a key),
+	'3 - the view got the focus, 4 - lost it; key - the key code of Windows (VK_*) or the Unicode character, state: 1 - Shift, 2 - Ctrl, 4 - Alt
+	Sub mffActivity_onViewKey Alias AddToPackage(Package, mffActivity_onViewKey) (ByVal env1 As JNIEnv Ptr, This_ As jobject, v As jobject, action As jint, key As jint, state As jint) Export
+		Dim As Integer ID = CallIntMethod(v, "android/view/View", "getId", "()I")
+		Dim As My.Sys.Forms.Control Ptr Ctrl = Handles.Item(ID)
+		If Ctrl = 0 Then Exit Sub
+		Select Case action
+		Case 0: SendControlInputMessage(Ctrl, CM_KEYDOWN, key, state)
+		Case 1: SendControlInputMessage(Ctrl, CM_KEYUP, key, state)
+		Case 2: SendControlInputMessage(Ctrl, CM_CHAR, key, state)
+		Case 3
+			SendControlInputMessage(Ctrl, CM_SETFOCUS, 0, 0)
+			Ctrl->SetActiveInForm
+		Case 4: SendControlInputMessage(Ctrl, CM_KILLFOCUS, 0, 0)
+		End Select
+	End Sub
+
 	Sub onClick Alias AddToPackage(Package, mffActivity_onClick) (ByVal env As JNIEnv Ptr, This_ As jobject, v As jobject) Export
 		Dim As Integer ID = CallIntMethod(v, "android/view/View", "getId", "()I")
 		Dim As My.Sys.Forms.Control Ptr Ctrl = Handles.Item(ID)
@@ -4200,7 +4451,7 @@ End Namespace
 			Dim As Message msg
 			msg.Sender = Ctrl
 			msg.Msg = CM_CLICK
-			Ctrl->ProcessMessage(msg)
+			DispatchControlMessage(Ctrl, msg)
 			If (Not msg.Handled) AndAlso Ctrl->OnClick <> 0 Then Ctrl->OnClick(*Ctrl->Designer, *Ctrl)
 		End If
 	End Sub
@@ -4214,7 +4465,7 @@ End Namespace
 			msg.Sender = Ctrl
 			msg.Msg = CM_CHANGE
 			msg.wParam = position
-			Ctrl->ProcessMessage(msg)
+			DispatchControlMessage(Ctrl, msg)
 		End If
 	End Sub
 	
@@ -4225,7 +4476,7 @@ End Namespace
 			If Ctrl->Controls Then
 				Ctrl->RequestAlign
 			End If
-			If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, rRight - lLeft, bBottom - tTop)
+			If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, Ctrl->UnScaleX(rRight - lLeft), Ctrl->UnScaleY(bBottom - tTop))
 		End If
 	End Sub
 
@@ -4251,12 +4502,12 @@ End Namespace
 		Case 0, 2, 4
 			msg.Msg = CM_MOUSEMOVE
 			msg.wParam = -1
-			Ctrl->ProcessMessage(msg)
+			DispatchControlMessage(Ctrl, msg)
 			If action = 0 Then
 				msg.Handled = False
 				msg.Msg = CM_MOUSEDOWN
 				msg.wParam = 0
-				Ctrl->ProcessMessage(msg)
+				DispatchControlMessage(Ctrl, msg)
 				If Ctrl->OnMouseDown Then Ctrl->OnMouseDown(*Ctrl->Designer, *Ctrl, 0, ux, uy, 0)
 			ElseIf Ctrl->OnMouseMove Then
 				'4: a mouse over the view without a pressed button (-1 like Windows)
@@ -4265,12 +4516,60 @@ End Namespace
 		Case 1
 			msg.Msg = CM_MOUSEUP
 			msg.wParam = 0
-			Ctrl->ProcessMessage(msg)
+			DispatchControlMessage(Ctrl, msg)
 			If Ctrl->OnMouseUp Then Ctrl->OnMouseUp(*Ctrl->Designer, *Ctrl, 0, ux, uy, 0)
 		Case 3, 5
 			msg.Msg = CM_MOUSELEAVE
-			Ctrl->ProcessMessage(msg)
+			DispatchControlMessage(Ctrl, msg)
 			If Ctrl->OnMouseLeave Then Ctrl->OnMouseLeave(*Ctrl->Designer, *Ctrl)
+		Case 6, 7
+			'The right button (1 like Windows): the right button of a mouse or a long press (mffActivity.setTouchEvent),
+			'the context menu of the designer of the IDE opens on its release
+			msg.Msg = IIf(action = 6, CM_MOUSEDOWN, CM_MOUSEUP)
+			msg.wParam = 1
+			DispatchControlMessage(Ctrl, msg)
+			If action = 6 Then
+				If Ctrl->OnMouseDown Then Ctrl->OnMouseDown(*Ctrl->Designer, *Ctrl, 1, ux, uy, 0)
+			Else
+				If Ctrl->OnMouseUp Then Ctrl->OnMouseUp(*Ctrl->Designer, *Ctrl, 1, ux, uy, 0)
+			End If
+		Case 8, 9
+			'A notch of the mouse wheel (8 - up, 9 - down) like WM_MOUSEWHEEL of Windows: 1 - up, -1 - down
+			SendControlInputMessage(Ctrl, CM_MOUSEWHEEL, IIf(action = 8, 1, -1), msg.lParam, ux, uy)
+		Case 10, 11
+			'A notch of the horizontal mouse wheel (10 - left, 11 - right)
+			SendControlInputMessage(Ctrl, CM_MOUSEHWHEEL, IIf(action = 10, 1, -1), msg.lParam, ux, uy)
+		Case 12, 13
+			'A drag of a finger in a view which takes the text (12 - it begins, 13 - it moves; mffActivity.setTouchEvent):
+			'notches of the wheel like the ones of the code editor (3 lines, 3 characters of the font of the control), so the
+			'text follows the finger
+			Static As Integer DragX, DragY
+			Static As Double RestX, RestY
+			If action = 12 Then
+				DragX = x: DragY = y
+				RestX = 0: RestY = 0
+			Else
+				RestX += x - DragX: RestY += y - DragY
+				DragX = x: DragY = y
+				Dim As Double StepY = Max(1, Ctrl->ScaleY(Ctrl->Canvas.TextHeight("Wg")) * 3)
+				Dim As Double StepX = Max(1, Ctrl->ScaleX(Ctrl->Canvas.TextWidth("x")) * 3)
+				Do While RestY >= StepY
+					RestY -= StepY
+					SendControlInputMessage(Ctrl, CM_MOUSEWHEEL, 1, msg.lParam, ux, uy)
+				Loop
+				Do While RestY <= -StepY
+					RestY += StepY
+					SendControlInputMessage(Ctrl, CM_MOUSEWHEEL, -1, msg.lParam, ux, uy)
+				Loop
+				Do While RestX >= StepX
+					RestX -= StepX
+					SendControlInputMessage(Ctrl, CM_MOUSEHWHEEL, 1, msg.lParam, ux, uy)
+				Loop
+				Do While RestX <= -StepX
+					RestX += StepX
+					SendControlInputMessage(Ctrl, CM_MOUSEHWHEEL, -1, msg.lParam, ux, uy)
+				Loop
+			End If
 		End Select
 	End Sub
 #endif

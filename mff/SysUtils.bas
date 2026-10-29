@@ -206,7 +206,12 @@ End Namespace
 	Function GetIntField(obj As jobject, className As String, fieldName As String, typeName As String) As Integer
 		Return (*env)->GetIntField(env, obj, GetFieldID(className, fieldName, typeName))
 	End Function
-	
+
+	'The layout parameters of a view which is not in an AbsoluteLayout yet are null or of another class
+	Function IsAbsoluteLayoutParams(obj As jobject) As Boolean
+		Return obj <> 0 AndAlso (*env)->IsInstanceOf(env, obj, FindJNIClass("android/widget/AbsoluteLayout$LayoutParams")) <> 0
+	End Function
+
 	Function CallIntMethod(obj As jobject, className As String, methodName As String, typeName As String) As Integer
 		Return (*env)->CallIntMethod(env, obj, GetMethodID(className, methodName, typeName))
 	End Function
@@ -329,12 +334,44 @@ End Namespace
 		Return (*env)->CallIntMethod(env, Activity, ActivityMethodID("rangeGetValue", "(Landroid/view/View;)I"), Id)
 	End Function
 
+	'The z-order of the view among its siblings: 1 - over them (BringToFront), 0 - under them (SendToBack)
+	Sub ViewZOrder(Id As Any Ptr, ByVal Top As Integer)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("viewZOrder", "(Ljava/lang/Object;I)V"), Id, CLng(Top))
+	End Sub
+
+	'The title bar and the border of the designed form (the designer of the IDE) above and around its view
+	Sub FormDesignFrame(Id As Any Ptr, Title As String, ByVal CaptionHeight As Integer)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jstring jTitle = (*env)->NewStringUTF(env, Title)
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("formDesignFrame", "(Ljava/lang/Object;Ljava/lang/String;I)V"), Id, jTitle, CLng(CaptionHeight))
+		(*env)->DeleteLocalRef(env, jTitle)
+	End Sub
+
+	'ComboBoxEdit.ShowDropDown: a list with the items of the Spinner is shown in its place (mffActivity.listShowDropDown)
+	Sub ListShowDropDown(Id As Any Ptr, Value As Boolean)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("listShowDropDown", "(Landroid/view/View;Z)V"), Id, CUByte(IIf(Value, 1, 0)))
+	End Sub
+
 	'Titles are separated by Chr(10); clicking a tab raises CM_CHANGE with the tab index in wParam
 	Sub SetTabs(Id As Any Ptr, Titles As String)
 		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
 		Dim As jstring jText = (*env)->NewStringUTF(env, Titles)
 		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("tabsSet", "(Landroid/view/View;Ljava/lang/String;)V"), Id, jText)
 		(*env)->DeleteLocalRef(env, jText)
+	End Sub
+
+	'TabPosition: 0 - left, 1 - right, 2 - top, 3 - bottom; the row of the tabs is made again by the next SetTabs.
+	'An old mffActivity.java has no tabsSetPosition: its tabs stay at the top
+	Sub SetTabsPosition(Id As Any Ptr, ByVal Position As Integer)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jmethodID Method = ActivityMethodID("tabsSetPosition", "(Landroid/view/View;I)V")
+		If Method = 0 OrElse (*env)->ExceptionCheck(env) Then
+			(*env)->ExceptionClear(env)
+			Exit Sub
+		End If
+		(*env)->CallVoidMethod(env, Activity, Method, Id, CLng(Position))
 	End Sub
 
 	'WebView helpers
@@ -368,21 +405,50 @@ End Namespace
 		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("timerStop", "(J)V"), CLngInt(CInt(Id)))
 	End Sub
 	
-	'Table view: one text row per item (the cells are joined), single choice
+	'Table view: a row per item, its cells are separated by Chr(9) (the columns of TableSetColumns), single choice
 	Sub TableInit(Id As Any Ptr)
-		ListInitMode(Id, 0)
+		'The selected row is shown like the one of Windows (without the radio buttons of a single choice)
+		ListInitMode(Id, 3)
 	End Sub
-	
+
+	'Captions "" - no header row; the widths are in the units of the controls (mffActivity.tableSetColumns)
 	Sub TableSetColumns(Id As Any Ptr, Captions As String, Widths As String)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jstring jCaptions = (*env)->NewStringUTF(env, Captions), jWidths = (*env)->NewStringUTF(env, Widths)
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("tableSetColumns", "(Landroid/view/View;Ljava/lang/String;Ljava/lang/String;)V"), Id, jCaptions, jWidths)
+		(*env)->DeleteLocalRef(env, jCaptions)
+		(*env)->DeleteLocalRef(env, jWidths)
 	End Sub
-	
+
+	'The rectangle of the cell Row, Col (Left, Top, Right, Bottom: Long) in the pixels of the view of the table; 0 when the
+	'row is not shown
+	Sub TableCellRect(Id As Any Ptr, ByVal Row As Long, ByVal Col As Long, ByVal pRect As Any Ptr)
+		If pRect = 0 Then Exit Sub
+		Dim As Long Ptr r = pRect
+		r[0] = 0: r[1] = 0: r[2] = 0: r[3] = 0
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jstring jRect = (*env)->CallObjectMethod(env, Activity, ActivityMethodID("tableCellRect", "(Landroid/view/View;II)Ljava/lang/String;"), Id, Row, Col)
+		If jRect = 0 Then Exit Sub
+		Dim As ZString Ptr pText = (*env)->GetStringUTFChars(env, jRect, 0)
+		If pText Then
+			Dim As String sRect = *pText, sPart
+			(*env)->ReleaseStringUTFChars(env, jRect, pText)
+			For i As Integer = 0 To 3
+				Dim As Integer Pos1 = InStr(sRect & " ", " ")
+				r[i] = Val(Left(sRect, Pos1 - 1))
+				sRect = Mid(sRect, Pos1 + 1)
+			Next
+		End If
+		(*env)->DeleteLocalRef(env, jRect)
+	End Sub
+
 	Sub TableInsertRow(Id As Any Ptr, ByVal Index As Integer, Cells As String)
-		InsertSelectItem(Id, Index, Replace(Cells, Chr(9), "    "))
+		InsertSelectItem(Id, Index, Cells)
 	End Sub
-	
+
 	Sub TableSetRow(Id As Any Ptr, ByVal Index As Integer, Cells As String)
 		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
-		Dim As jstring jText = (*env)->NewStringUTF(env, Replace(Cells, Chr(9), "    "))
+		Dim As jstring jText = (*env)->NewStringUTF(env, Cells)
 		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("listSet", "(Landroid/view/View;ILjava/lang/String;)V"), Id, Index, jText)
 		(*env)->DeleteLocalRef(env, jText)
 	End Sub
@@ -416,6 +482,11 @@ End Namespace
 	Sub SetTouchEvent(Id As Any Ptr)
 		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
 		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("setTouchEvent", "(Landroid/view/View;)V"), Id)
+	End Sub
+
+	Sub SetKeyEvent(Id As Any Ptr, TextInput As Boolean)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("setKeyEvent", "(Landroid/view/View;Z)V"), Id, CUByte(IIf(TextInput, 1, 0)))
 	End Sub
 	
 	Sub CanvasBegin(Id As Any Ptr)
@@ -463,6 +534,11 @@ End Namespace
 		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasClosePath", "(Landroid/view/View;)V"), Id)
 	End Sub
 	
+	Sub CanvasClip(Id As Any Ptr)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasClip", "(Landroid/view/View;)V"), Id)
+	End Sub
+	
 	Sub CanvasFill(Id As Any Ptr, ByVal iColor As Integer, ByVal Alpha As Integer)
 		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
 		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasFill", "(Landroid/view/View;II)V"), Id, CLng(iColor), CLng(Alpha))
@@ -478,6 +554,11 @@ End Namespace
 	Sub CanvasFillRect(Id As Any Ptr, ByVal x As Double, ByVal y As Double, ByVal w As Double, ByVal h As Double, ByVal iColor As Integer, ByVal Alpha As Integer)
 		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
 		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasFillRect", "(Landroid/view/View;DDDDII)V"), Id, x, y, w, h, CLng(iColor), CLng(Alpha))
+	End Sub
+
+	Sub CanvasInvertRect(Id As Any Ptr, ByVal x As Double, ByVal y As Double, ByVal w As Double, ByVal h As Double)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("canvasInvertRect", "(Landroid/view/View;DDDD)V"), Id, x, y, w, h)
 	End Sub
 	
 	Sub CanvasSave(Id As Any Ptr)
@@ -531,6 +612,243 @@ End Namespace
 		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("buttonsSet", "(Landroid/view/View;Ljava/lang/String;)V"), Id, jText)
 		(*env)->DeleteLocalRef(env, jText)
 	End Sub
+	
+	Dim Shared As String ResourceSearchPaths
+	
+	'The text of a caption without the mnemonics of Windows ("&&" - "&")
+	Function RemoveMnemonic(ByRef Value As WString) As UString
+		Return Replace(Replace(Replace(Value, "&&", Chr(1)), "&", ""), Chr(1), "&")
+	End Function
+	
+	Function TabsStripHeight() As Integer
+		If env = 0 OrElse Activity = 0 Then Return 0
+		Return (*env)->CallIntMethod(env, Activity, ActivityMethodID("tabsStripHeight", "()I"))
+	End Function
+
+	Function MessageBox(Message As String, Caption As String, MessageType As Integer, ButtonsType As Integer) As Integer
+		If env = 0 OrElse Activity = 0 Then Return -1
+		Dim As jmethodID Method = ActivityMethodID("messageBox", "(Ljava/lang/String;Ljava/lang/String;II)I")
+		If Method = 0 OrElse (*env)->ExceptionCheck(env) Then
+			(*env)->ExceptionClear(env)
+			Return -1
+		End If
+		Dim As jstring jMessage = (*env)->NewStringUTF(env, Message), jCaption = (*env)->NewStringUTF(env, Caption)
+		Function = (*env)->CallIntMethod(env, Activity, Method, jMessage, jCaption, CLng(MessageType), CLng(ButtonsType))
+		(*env)->DeleteLocalRef(env, jCaption)
+		(*env)->DeleteLocalRef(env, jMessage)
+	End Function
+
+	Function FormTitleBarHeight() As Integer
+		If env = 0 OrElse Activity = 0 Then Return 0
+		Dim As jmethodID Method = ActivityMethodID("formTitleBarHeight", "()I")
+		If Method = 0 OrElse (*env)->ExceptionCheck(env) Then
+			(*env)->ExceptionClear(env)
+			Return 0
+		End If
+		Return (*env)->CallIntMethod(env, Activity, Method)
+	End Function
+
+	'The method of mffActivity, 0 - an older mffActivity.java has none (its exception is cleared)
+	Private Function OptionalActivityMethodID(methodName As String, typeName As String) As jmethodID
+		Dim As jmethodID Method = ActivityMethodID(methodName, typeName)
+		If Method = 0 OrElse (*env)->ExceptionCheck(env) Then
+			(*env)->ExceptionClear(env)
+			Return 0
+		End If
+		Return Method
+	End Function
+
+	'Printing: the pages are MffPage views of mffActivity.java (PrintDocument, PrintPreviewControl)
+	Function PageCreate(ByVal PageWidth As Integer, ByVal PageHeight As Integer) As Any Ptr
+		If env = 0 OrElse Activity = 0 Then Return 0
+		Dim As jmethodID Method = OptionalActivityMethodID("pageCreate", "(II)Landroid/view/View;")
+		If Method = 0 Then Return 0
+		Dim As jobject Page = (*env)->CallObjectMethod(env, Activity, Method, CLng(PageWidth), CLng(PageHeight))
+		If Page = 0 Then Return 0
+		'The page lives after the current native call (Print Preview paints it later)
+		Function = (*env)->NewGlobalRef(env, Page)
+		(*env)->DeleteLocalRef(env, Page)
+	End Function
+
+	Sub PageDelete(Page As Any Ptr)
+		If env = 0 OrElse Page = 0 Then Exit Sub
+		(*env)->DeleteGlobalRef(env, Page)
+	End Sub
+
+	Sub PageDraw(Id As Any Ptr, Page As Any Ptr, ByVal x As Integer, ByVal y As Integer, ByVal w As Integer, ByVal h As Integer)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 OrElse Page = 0 Then Exit Sub
+		Dim As jmethodID Method = OptionalActivityMethodID("pageDraw", "(Landroid/view/View;Landroid/view/View;IIII)V")
+		If Method = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, Method, Id, Page, CLng(x), CLng(y), CLng(w), CLng(h))
+	End Sub
+
+	Sub PrintPages(Pages As Any Ptr Ptr, ByVal Count As Integer, Title As String, ByVal PaperWidth As Integer, ByVal PaperHeight As Integer, ByVal Landscape As Boolean)
+		If env = 0 OrElse Activity = 0 OrElse Pages = 0 OrElse Count <= 0 Then Exit Sub
+		Dim As jmethodID Method = OptionalActivityMethodID("printPages", "([Landroid/view/View;Ljava/lang/String;IIZ)V")
+		If Method = 0 Then Exit Sub
+		Dim As jobjectArray jPages = (*env)->NewObjectArray(env, Count, (*env)->FindClass(env, "android/view/View"), 0)
+		If jPages = 0 Then Exit Sub
+		For i As Integer = 0 To Count - 1
+			(*env)->SetObjectArrayElement(env, jPages, i, Pages[i])
+		Next
+		Dim As jstring jTitle = (*env)->NewStringUTF(env, Title)
+		(*env)->CallVoidMethod(env, Activity, Method, jPages, jTitle, CLng(PaperWidth), CLng(PaperHeight), CUByte(IIf(Landscape, 1, 0)))
+		(*env)->DeleteLocalRef(env, jTitle)
+		(*env)->DeleteLocalRef(env, jPages)
+	End Sub
+
+	Function FormActivityShow(Id As Any Ptr, Title As String) As Boolean
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Return False
+		Dim As jmethodID Method = OptionalActivityMethodID("formActivityShow", "(Ljava/lang/Object;Ljava/lang/String;)Z")
+		If Method = 0 Then Return False
+		Dim As jstring jTitle = (*env)->NewStringUTF(env, Title)
+		Function = (*env)->CallBooleanMethod(env, Activity, Method, Id, jTitle) <> 0
+		(*env)->DeleteLocalRef(env, jTitle)
+	End Function
+
+	Sub FormActivityTitle(Id As Any Ptr, Title As String)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jmethodID Method = OptionalActivityMethodID("formActivityTitle", "(Ljava/lang/Object;Ljava/lang/String;)V")
+		If Method = 0 Then Exit Sub
+		Dim As jstring jTitle = (*env)->NewStringUTF(env, Title)
+		(*env)->CallVoidMethod(env, Activity, Method, Id, jTitle)
+		(*env)->DeleteLocalRef(env, jTitle)
+	End Sub
+
+	Sub FormActivityHide(Id As Any Ptr)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jmethodID Method = OptionalActivityMethodID("formActivityHide", "(Ljava/lang/Object;)V")
+		If Method Then (*env)->CallVoidMethod(env, Activity, Method, Id)
+	End Sub
+
+	Sub SetActivityDarkMode(ByVal Value As Boolean)
+		If env = 0 OrElse Activity = 0 Then Exit Sub
+		Dim As jmethodID Method = OptionalActivityMethodID("setDarkMode", "(Z)V")
+		If Method Then (*env)->CallVoidMethod(env, Activity, Method, CUByte(IIf(Value, 1, 0)))
+	End Sub
+
+	Function ActivityNightMode() As Boolean
+		If env = 0 OrElse Activity = 0 Then Return False
+		Dim As jmethodID Method = OptionalActivityMethodID("isNightMode", "()Z")
+		If Method = 0 Then Return False
+		Return (*env)->CallBooleanMethod(env, Activity, Method) <> 0
+	End Function
+
+	Sub RestartApplication()
+		If env = 0 OrElse Activity = 0 Then Exit Sub
+		Dim As jmethodID Method = OptionalActivityMethodID("restartApplication", "()V")
+		If Method Then (*env)->CallVoidMethod(env, Activity, Method)
+	End Sub
+
+	Function FormLargeScreen() As Boolean
+		If env = 0 OrElse Activity = 0 Then Return False
+		Dim As jmethodID Method = OptionalActivityMethodID("formLargeScreen", "()Z")
+		If Method = 0 Then Return False
+		Return (*env)->CallBooleanMethod(env, Activity, Method) <> 0
+	End Function
+
+	Sub FormAttach(Id As Any Ptr, Parent As Any Ptr)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 OrElse Parent = 0 Then Exit Sub
+		Dim As jmethodID Method = OptionalActivityMethodID("formAttach", "(Ljava/lang/Object;Ljava/lang/Object;)V")
+		If Method Then (*env)->CallVoidMethod(env, Activity, Method, Id, Parent)
+	End Sub
+
+	Function FormAttachTop(Id As Any Ptr, Parent As Any Ptr) As Integer
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 OrElse Parent = 0 Then Return -1
+		Dim As jmethodID Method = OptionalActivityMethodID("formAttachTop", "(Ljava/lang/Object;Ljava/lang/Object;)I")
+		If Method = 0 Then Return -1
+		Return (*env)->CallIntMethod(env, Activity, Method, Id, Parent)
+	End Function
+
+	Sub FormSetStyle(Id As Any Ptr, ByVal Style As Integer)
+		If env = 0 OrElse Activity = 0 Then Exit Sub
+		Dim As jmethodID Method = OptionalActivityMethodID("formSetStyle", "(Ljava/lang/Object;I)V")
+		If Method Then (*env)->CallVoidMethod(env, Activity, Method, Id, CLng(Style))
+	End Sub
+	
+	Sub FormSetOnTop(Id As Any Ptr, ByVal OnTop As Boolean)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jmethodID Method = OptionalActivityMethodID("formSetOnTop", "(Ljava/lang/Object;Z)V")
+		If Method Then (*env)->CallVoidMethod(env, Activity, Method, Id, CUByte(IIf(OnTop, 1, 0)))
+	End Sub
+	
+	Sub ActivityMinimize()
+		If env = 0 OrElse Activity = 0 Then Exit Sub
+		Dim As jmethodID Method = OptionalActivityMethodID("activityMinimize", "()V")
+		If Method Then (*env)->CallVoidMethod(env, Activity, Method)
+	End Sub
+	
+	Sub FormModalWait(Id As Any Ptr)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jmethodID Method = OptionalActivityMethodID("formModalWait", "(Ljava/lang/Object;)V")
+		If Method Then (*env)->CallVoidMethod(env, Activity, Method, Id)
+	End Sub
+
+	Sub FormModalEnd(Id As Any Ptr)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jmethodID Method = OptionalActivityMethodID("formModalEnd", "(Ljava/lang/Object;)V")
+		If Method Then (*env)->CallVoidMethod(env, Activity, Method, Id)
+	End Sub
+
+	Sub FormTitleBar(Id As Any Ptr, Title As String, ByVal Visibility As Integer)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jmethodID Method = ActivityMethodID("formTitleBar", "(Ljava/lang/Object;Ljava/lang/String;I)V")
+		If Method = 0 OrElse (*env)->ExceptionCheck(env) Then
+			(*env)->ExceptionClear(env)
+			Exit Sub
+		End If
+		Dim As jstring jTitle = (*env)->NewStringUTF(env, Title)
+		(*env)->CallVoidMethod(env, Activity, Method, Id, jTitle, CLng(Visibility))
+		(*env)->DeleteLocalRef(env, jTitle)
+	End Sub
+	
+	Function ButtonsContentWidth(Id As Any Ptr) As Integer
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Return -1
+		Dim As jmethodID Method = OptionalActivityMethodID("buttonsContentWidth", "(Landroid/view/View;)I")
+		If Method = 0 Then Return -1
+		Return (*env)->CallIntMethod(env, Activity, Method, Id)
+	End Function
+	
+	Function ButtonsItemLeft(Id As Any Ptr, ByVal Index As Integer) As Integer
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Return -1
+		Return (*env)->CallIntMethod(env, Activity, ActivityMethodID("buttonsItemLeft", "(Landroid/view/View;I)I"), Id, Index)
+	End Function
+	
+	Function ButtonsItemWidth(Id As Any Ptr, ByVal Index As Integer) As Integer
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Return -1
+		Dim As jmethodID Method = OptionalActivityMethodID("buttonsItemWidth", "(Landroid/view/View;I)I")
+		If Method = 0 Then Return -1
+		Return (*env)->CallIntMethod(env, Activity, Method, Id, Index)
+	End Function
+	
+	Sub AddResourceSearchPath(Path As String)
+		If Path = "" OrElse InStr(Chr(10) & ResourceSearchPaths & Chr(10), Chr(10) & Path & Chr(10)) > 0 Then Exit Sub
+		If ResourceSearchPaths <> "" Then ResourceSearchPaths &= Chr(10)
+		ResourceSearchPaths &= Path
+	End Sub
+	
+	Function FindResourceFile(ResName As String) As String
+		If ResName = "" Then Return ""
+		Dim As String AppDir = Environ("MFF_APPDIR")
+		Dim As String Paths = AppDir & "/Resources" & Chr(10) & AppDir & "/resources" & Chr(10) & ResourceSearchPaths
+		Dim As Integer StartPos = 1, EndPos, Fn
+		Do While StartPos <= Len(Paths)
+			EndPos = InStr(StartPos, Paths, Chr(10))
+			If EndPos = 0 Then EndPos = Len(Paths) + 1
+			Dim As String FileName = Mid(Paths, StartPos, EndPos - StartPos)
+			If FileName <> "" AndAlso FileName <> "/Resources" AndAlso FileName <> "/resources" Then
+				If Right(FileName, 1) <> "/" Then FileName &= "/"
+				FileName &= ResName & ".png"
+				Fn = FreeFile
+				If Open(FileName For Binary Access Read As #Fn) = 0 Then
+					Close #Fn
+					Return FileName
+				End If
+			End If
+			StartPos = EndPos + 1
+		Loop
+		Return ""
+	End Function
 
 	Sub LoadImage(Id As Any Ptr, Path As String, Center As Boolean)
 		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
@@ -538,7 +856,230 @@ End Namespace
 		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("imageLoad", "(Landroid/view/View;Ljava/lang/String;Z)V"), Id, jText, CUByte(IIf(Center <> 0, 1, 0)))
 		(*env)->DeleteLocalRef(env, jText)
 	End Sub
+
+	Function RegexCompile(Pattern As String, ByVal Flags As Long) As Long
+		If env = 0 OrElse Activity = 0 Then Return 0
+		Dim As jstring jPattern = (*env)->NewStringUTF(env, Pattern)
+		Function = (*env)->CallIntMethod(env, Activity, ActivityMethodID("regexCompile", "(Ljava/lang/String;I)I"), jPattern, Flags)
+		(*env)->DeleteLocalRef(env, jPattern)
+	End Function
+
+	'Copies a Java string into a new UTF-8 ZString (freed with Deallocate) and deletes the local reference; 0 for null
+	Private Function JStringToNewZString(jText As jstring) As ZString Ptr
+		If jText = 0 Then Return 0
+		Dim As ZString Ptr pChars = Cast(ZString Ptr, (*env)->GetStringUTFChars(env, jText, 0))
+		Dim As ZString Ptr Result = Allocate(Len(*pChars) + 1)
+		*Result = *pChars
+		(*env)->ReleaseStringUTFChars(env, jText, pChars)
+		(*env)->DeleteLocalRef(env, jText)
+		Return Result
+	End Function
+
+	Function RegexError() As ZString Ptr
+		If env = 0 OrElse Activity = 0 Then Return 0
+		Return JStringToNewZString((*env)->CallObjectMethod(env, Activity, ActivityMethodID("regexError", "()Ljava/lang/String;")))
+	End Function
+
+	Function ShowFileDialog(ByVal Mode As Long, Caption As String, InitialDir As String, FileName As String, Filter As String, ByVal FilterIndex As Long) As ZString Ptr
+		If env = 0 OrElse Activity = 0 Then Return 0
+		Dim As jstring jCaption = (*env)->NewStringUTF(env, Caption), jInitialDir = (*env)->NewStringUTF(env, InitialDir)
+		Dim As jstring jFileName = (*env)->NewStringUTF(env, FileName), jFilter = (*env)->NewStringUTF(env, Filter)
+		Function = JStringToNewZString((*env)->CallObjectMethod(env, Activity, ActivityMethodID("fileDialog", "(ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;I)Ljava/lang/String;"), _
+			Mode, jCaption, jInitialDir, jFileName, jFilter, FilterIndex))
+		(*env)->DeleteLocalRef(env, jFilter)
+		(*env)->DeleteLocalRef(env, jFileName)
+		(*env)->DeleteLocalRef(env, jInitialDir)
+		(*env)->DeleteLocalRef(env, jCaption)
+	End Function
+
+	Function ShowFontDialog(FontName As String, ByVal Size As Long, ByVal Style As Long, ByVal FontColor As Long) As ZString Ptr
+		If env = 0 OrElse Activity = 0 Then Return 0
+		Dim As jstring jName = (*env)->NewStringUTF(env, FontName)
+		Function = JStringToNewZString((*env)->CallObjectMethod(env, Activity, ActivityMethodID("fontDialog", "(Ljava/lang/String;III)Ljava/lang/String;"), jName, Size, Style, FontColor))
+		(*env)->DeleteLocalRef(env, jName)
+	End Function
+
+	Function ShowPopupMenu(Items As String, ByVal x As Long, ByVal y As Long) As Long
+		If env = 0 OrElse Activity = 0 Then Return -1
+		Dim As jstring jItems = (*env)->NewStringUTF(env, Items)
+		Function = (*env)->CallIntMethod(env, Activity, ActivityMethodID("popupMenu", "(Ljava/lang/String;II)I"), jItems, x, y)
+		(*env)->DeleteLocalRef(env, jItems)
+	End Function
+
+	Sub FileViewFill(ByVal Id As Any Ptr, Folder As String, Patterns As String, ByVal Multiple As Long)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		Dim As jstring jDir = (*env)->NewStringUTF(env, Folder), jPatterns = (*env)->NewStringUTF(env, Patterns)
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("fileViewFill", "(Landroid/view/View;Ljava/lang/String;Ljava/lang/String;Z)V"), Id, jDir, jPatterns, CUByte(IIf(Multiple <> 0, 1, 0)))
+		(*env)->DeleteLocalRef(env, jDir)
+		(*env)->DeleteLocalRef(env, jPatterns)
+	End Sub
+
+	Function FileViewState(ByVal Id As Any Ptr) As String
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Return ""
+		Dim As ZString Ptr pState = JStringToNewZString((*env)->CallObjectMethod(env, Activity, ActivityMethodID("fileViewState", "(Landroid/view/View;)Ljava/lang/String;"), Id))
+		If pState = 0 Then Return ""
+		Function = *pState
+		Deallocate pState
+	End Function
+	
+	Sub ClipboardSetText(Text As String)
+		If env = 0 OrElse Activity = 0 Then Exit Sub
+		Dim As jstring jText = (*env)->NewStringUTF(env, Text)
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("clipboardSetText", "(Ljava/lang/String;)V"), jText)
+		(*env)->DeleteLocalRef(env, jText)
+	End Sub
+	
+	Function ClipboardGetText() As ZString Ptr
+		If env = 0 OrElse Activity = 0 Then Return 0
+		Return JStringToNewZString((*env)->CallObjectMethod(env, Activity, ActivityMethodID("clipboardGetText", "()Ljava/lang/String;")))
+	End Function
+	
+	Function ShowColorDialog(Caption As String, ByVal ColorValue As Long) As Long
+		If env = 0 OrElse Activity = 0 Then Return -1
+		Dim As jstring jCaption = (*env)->NewStringUTF(env, Caption)
+		Function = (*env)->CallIntMethod(env, Activity, ActivityMethodID("colorDialog", "(Ljava/lang/String;I)I"), jCaption, ColorValue)
+		(*env)->DeleteLocalRef(env, jCaption)
+	End Function
+
+	Sub RegexFree(ByVal Id As Long)
+		If env = 0 OrElse Activity = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("regexFree", "(I)V"), Id)
+	End Sub
+
+	Function RegexExec(ByVal Id As Long, Subject As String, ByVal StartByte As Long, ByVal Offsets As Long Ptr, ByVal MaxGroups As Long) As Long
+		If env = 0 OrElse Activity = 0 OrElse MaxGroups < 1 Then Return 0
+		'The subject goes as bytes: NewStringUTF needs modified UTF-8 and the Java side counts the offsets in the same bytes
+		Dim As jbyteArray jSubject = (*env)->NewByteArray(env, Len(Subject))
+		If Len(Subject) Then (*env)->SetByteArrayRegion(env, jSubject, 0, Len(Subject), Cast(jbyte Ptr, StrPtr(Subject)))
+		Dim As jintArray jOffsets = (*env)->NewIntArray(env, MaxGroups * 2)
+		Dim As Long Count = (*env)->CallIntMethod(env, Activity, ActivityMethodID("regexExec", "(I[BI[I)I"), Id, jSubject, StartByte, jOffsets)
+		If Count > MaxGroups Then Count = MaxGroups
+		If Count > 0 Then (*env)->GetIntArrayRegion(env, jOffsets, 0, Count * 2, Cast(jint Ptr, Offsets))
+		(*env)->DeleteLocalRef(env, jOffsets)
+		(*env)->DeleteLocalRef(env, jSubject)
+		Return Count
+	End Function
 #elseif defined(__USE_WASM__)
+	Dim Shared As String ResourceSearchPaths
+	'Chr(10) & "Name=URL" & Chr(10) & ... of AddResourceFile
+	Dim Shared As String ResourceFiles
+
+	Sub AddResourceFile(ByRef RcFile As String)
+		Dim As Integer Fn = FreeFile
+		If Open(RcFile For Input As #Fn) <> 0 Then Exit Sub
+		If ResourceFiles = "" Then ResourceFiles = Chr(10)
+		'The files are relative to the folder of the .rc file
+		Dim As String sLine, Folder = Left(Replace(RcFile, "\", "/"), InStrRev(Replace(RcFile, "\", "/"), "/"))
+		Do Until EOF(Fn)
+			Line Input #Fn, sLine
+			sLine = Trim(sLine, Any !" \t\r")
+			Dim As Integer Pos1 = InStr(sLine, " "), Pos2 = InStr(sLine, """")
+			If Pos1 = 0 OrElse Pos2 = 0 Then Continue Do
+			'The pictures (PNG) and the icons (ICON, Form.Icon: FindIconFile)
+			Dim As String sType = UCase(Trim(Mid(sLine, Pos1, Pos2 - Pos1)))
+			If sType <> "PNG" AndAlso sType <> "ICON" Then Continue Do
+			Dim As String sName = Left(sLine, Pos1 - 1), sFile = Replace(Mid(sLine, Pos2 + 1, InStr(Pos2 + 1, sLine, """") - Pos2 - 1), "\", "/")
+			'The URL relative to the page like the folders of AddResourceSearchPath
+			Dim As String URL = Folder & sFile
+			Do While InStr(URL, "/../")
+				Dim As Integer PosUp = InStr(URL, "/../"), PosPrev = InStrRev(URL, "/", PosUp - 1)
+				URL = Left(URL, PosPrev) & Mid(URL, PosUp + 4)
+			Loop
+			If Left(URL, 2) = "./" Then URL = Mid(URL, 3)
+			If Left(URL, 1) = "/" Then URL = Mid(URL, 2)
+			If InStr(LCase(ResourceFiles), Chr(10) & LCase(sName) & "=") = 0 Then ResourceFiles &= sName & "=" & URL & Chr(10)
+		Loop
+		Close #Fn
+	End Sub
+
+	'The .rc files of the program, which its link puts into the files of the page (--preload-file): in the root and in
+	'its folders (src/VisualFBEditor.rc of the IDE), read once
+	Private Sub AddProgramResourceFiles
+		Static As Boolean Added
+		If Added Then Exit Sub
+		Added = True
+		'The folders first: Dir of the .rc files of a folder would end the Dir of the folders
+		Dim As String Folders = "/" & Chr(10), sName = Dir("/*", &h10)
+		Do While sName <> ""
+			If sName <> "." AndAlso sName <> ".." Then Folders &= "/" & sName & "/" & Chr(10)
+			sName = Dir()
+		Loop
+		Dim As Integer StartPos = 1, EndPos
+		Do While StartPos < Len(Folders)
+			EndPos = InStr(StartPos, Folders, Chr(10))
+			Dim As String Folder = Mid(Folders, StartPos, EndPos - StartPos)
+			Dim As String RcFiles, RcFile = Dir(Folder & "*.rc")
+			Do While RcFile <> ""
+				RcFiles &= RcFile & Chr(10)
+				RcFile = Dir()
+			Loop
+			Dim As Integer RcPos = 1, RcEnd
+			Do While RcPos < Len(RcFiles)
+				RcEnd = InStr(RcPos, RcFiles, Chr(10))
+				AddResourceFile Folder & Mid(RcFiles, RcPos, RcEnd - RcPos)
+				RcPos = RcEnd + 1
+			Loop
+			StartPos = EndPos + 1
+		Loop
+	End Sub
+
+	Function FindIconFile(ByRef ResName As String) As String
+		If ResName = "" Then Return ""
+		Dim As String URL = Replace(ResName, "\", "/")
+		'A file (Icon.LoadFromFile): relative to the page
+		If InStr(URL, "/") > 0 OrElse InStr(URL, ".") > 0 Then
+			If Left(URL, 2) = "./" Then URL = Mid(URL, 3)
+			If Left(URL, 1) = "/" Then URL = Mid(URL, 2)
+			Return URL
+		End If
+		AddProgramResourceFiles
+		Dim As String Result = "Resources/" & ResName & ".ico|Resources/" & ResName & ".png"
+		Dim As Integer Pos1 = InStr(LCase(ResourceFiles), Chr(10) & LCase(ResName) & "=")
+		If Pos1 > 0 Then
+			Pos1 += Len(ResName) + 2
+			Result = Mid(ResourceFiles, Pos1, InStr(Pos1, ResourceFiles, Chr(10)) - Pos1) & "|" & Result
+		End If
+		Return Result
+	End Function
+
+	'Web: the folders are URLs relative to the page (like Resources of the program)
+	Sub AddResourceSearchPath(Path As String)
+		Dim As String URL = Replace(Path, "\", "/")
+		If Left(URL, 2) = "./" Then URL = Mid(URL, 3)
+		If Left(URL, 1) = "/" Then URL = Mid(URL, 2)
+		If Right(URL, 1) = "/" Then URL = Left(URL, Len(URL) - 1)
+		If URL = "" OrElse InStr(Chr(10) & ResourceSearchPaths & Chr(10), Chr(10) & URL & Chr(10)) > 0 Then Exit Sub
+		If ResourceSearchPaths <> "" Then ResourceSearchPaths &= Chr(10)
+		ResourceSearchPaths &= URL
+	End Sub
+
+	'The text of a button, a label, ... without the & of the access keys of Windows ("&&" is "&")
+	Function RemoveMnemonic(ByRef Value As WString) As UString
+		Return Replace(Replace(Replace(Value, "&&", Chr(1)), "&", ""), Chr(1), "&")
+	End Function
+
+	'HtmlEscape of the text without the & of the access keys
+	Function HtmlMnemonic(ByVal Value As WString Ptr) As UString
+		If Value = 0 Then Return ""
+		Dim As UString sText = RemoveMnemonic(*Value)
+		Return HtmlEscape(sText.vptr)
+	End Function
+
+	'Web: the files can not be looked for before they are loaded: the URLs separated by "|" are tried one after
+	'another by the browser (SETBUTTONS of mff_lib.js), Resources of the program is the first one
+	Function FindResourceFile(ResName As String) As String
+		If ResName = "" Then Return ""
+		Dim As String Result = "Resources/" & ResName & ".png"
+		If ResourceSearchPaths <> "" Then Result &= "|" & Replace(ResourceSearchPaths, Chr(10), "/" & ResName & ".png|") & "/" & ResName & ".png"
+		'The file of the resource of a .rc file (AddResourceFile)
+		Dim As Integer Pos1 = InStr(LCase(ResourceFiles), Chr(10) & LCase(ResName) & "=")
+		If Pos1 > 0 Then
+			Pos1 += Len(ResName) + 2
+			Result &= "|" & Mid(ResourceFiles, Pos1, InStr(Pos1, ResourceFiles, Chr(10)) - Pos1)
+		End If
+		Return Result
+	End Function
+
 	Sub LoadURL(Id As Any Ptr, URL As String)
 		If Id Then SetAttribute(Id, "src", URL)
 	End Sub

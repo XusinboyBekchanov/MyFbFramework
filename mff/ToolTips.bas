@@ -7,7 +7,7 @@
 #include once "ToolTips.bi"
 
 Namespace My.Sys.Forms
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Sub ToolTips.HandleIsAllocated(ByRef Sender As Control)
 			With QToolTips(@Sender)
 				
@@ -53,7 +53,7 @@ Namespace My.Sys.Forms
 				SendMessage(FHandle, TTM_ADDTOOL, 0, Cast(LPARAM, @ti))
 			End If
 		End Sub
-	#else
+	#elseif defined(__USE_GTK__)
 		Function ToolTips.ActivateLink(label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean
 			Dim As ToolTips Ptr tt = user_data
 			If tt <> 0 Then
@@ -70,7 +70,7 @@ Namespace My.Sys.Forms
 			gtk_window_move(GTK_WINDOW(winTooltip), FLeft, FTop)
 			gtk_window_resize(GTK_WINDOW(winTooltip), 100, 25)
 			gtk_widget_show_all(winTooltip)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			Dim As TOOLINFO    ti
 			ZeroMemory(@ti, SizeOf(ti))
 			
@@ -105,7 +105,7 @@ Namespace My.Sys.Forms
 	Private Sub ToolTips.Hide
 		#ifdef __USE_GTK__
 			gtk_widget_hide(GTK_WIDGET(winTooltip))
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then
 				Dim As TOOLINFO    ti
 				ZeroMemory(@ti, SizeOf(ti))
@@ -142,7 +142,7 @@ Namespace My.Sys.Forms
 				#endif
 				gtk_container_add(GTK_CONTAINER(winTooltip), lblTooltip)
 				g_signal_connect(lblTooltip, "activate-link", G_CALLBACK(@ActivateLink), @This)
-			#else
+			#elseif defined(__USE_WINAPI__)
 				.RegisterClass "ToolTips", "tooltips_class32"
 				.Style        = WS_POPUP
 				.ExStyle      = 0 'WS_EX_TOPMOST
@@ -156,7 +156,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor ToolTips
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			'UnregisterClass "ToolTips", GetModuleHandle(NULL)
 		#endif
 	End Destructor

@@ -223,6 +223,10 @@ Namespace My.Sys.Forms
 				' The child added after Expand expands too
 				If FExpand Then gtk_tool_item_set_expand(GTK_TOOL_ITEM(Widget), True)
 			#endif
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'The buttons are views of Android / elements of the page: the child is a control of the toolbar over the
+			'gap of this button (CM_SIZE)
+			If Ctrl AndAlso Value AndAlso Value->Parent <> Ctrl Then Value->Parent = Ctrl
 		#endif
 	End Property
 	
@@ -366,6 +370,9 @@ Namespace My.Sys.Forms
 					info.fsState = Value
 					SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, FCommandID, Cast(LPARAM, @info))
 				End If
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				'tstChecked is the Checked of the button (the first checked button of a group: Buttons.Add)
+				If CBool(Value And tstChecked) <> FChecked Then Checked = CBool(Value And tstChecked)
 			#endif
 			'If Ctrl Then QControl(Ctrl).RecreateWnd
 		End If
@@ -659,9 +666,13 @@ Namespace My.Sys.Forms
 		End If
 		'End If
 		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Not Value Then FState = FState And Not tstChecked
 			If Ctrl Then
 				Dim As Message msg
 				msg.Msg = CM_ITEMSCHANGED
+				'A checked button of a group: the toolbar (palette) unchecks the other buttons of its group like
+				'TB_CHECKBUTTON of Windows (wParam 1, lParam - the button)
+				If Value AndAlso CBool(FStyle And tbsGroup) Then msg.wParam = 1: msg.lParam = Cast(Integer, @This)
 				Ctrl->ProcessMessage(msg)
 			End If
 		#endif
@@ -1170,6 +1181,18 @@ Namespace My.Sys.Forms
 			For i As Integer = 0 To Buttons.Count - 1
 				With *Buttons.Item(i)
 					Dim As String Flag
+					'A custom button with a control: a gap of the width of the control (6 and the width in pixels)
+					If .Style = tbsCustom AndAlso .Child <> 0 Then
+						If i > 0 Then Items &= Chr(10)
+						#ifdef __USE_JNI__
+							'7 - the gap takes the free width of the bar (Expand), the width of the control is its least one
+							Items &= IIf(.Expand, "7", "6") & ScaleX(.Child->Width)
+						#else
+							'Web: the width of the button (like on Windows), 7 - the gap takes the free width of the bar (Expand)
+							Items &= IIf(.Expand, "7", "6") & ScaleX(IIf(.Width > 0 AndAlso Not .Expand, .Width, .Child->Width))
+						#endif
+						Continue For
+					End If
 					If .Style And tbsSeparator Then
 						Flag = "3"
 					ElseIf Not .Visible Then
@@ -1183,25 +1206,127 @@ Namespace My.Sys.Forms
 					End If
 					If i > 0 Then Items &= Chr(10)
 					Items &= Flag & IIf(.Caption <> "", .Caption, IIf(.Hint <> "", .Hint, .Name))
+					'"Text\tImage\tOptions" (Web: and "\tHint"). The picture is the one of the resource name like
+					'Bitmap.LoadFromResourceName. Options: S - the caption is shown by the picture (like a toolbar with
+					'labels of Windows), D - an arrow of the drop-down menu, W - the whole button opens the menu
+					Dim As String Options
+					If .Caption <> "" Then Options &= "S"
+					If .Style And tbsWholeDropdown Then
+						Options &= "W"
+					ElseIf .Style And tbsDropDown Then
+						Options &= "D"
+					End If
+					Items &= Chr(9) & FindResourceFile(.ImageKey) & Chr(9) & Options
+					#ifndef __USE_JNI__
+						Items &= Chr(9) & IIf(.Hint <> "", .Hint, .Caption)
+					#endif
 				End With
 			Next
 			SetButtons(FHandle, ToUtf8(Items))
+			#ifdef __USE_WASM__
+				'The gaps are laid out now: the controls of the custom buttons are put over them (CM_SIZE)
+				Dim As Message msg
+				msg.Msg = CM_SIZE
+				ProcessMessage(msg)
+				'A band of a ReBar gets the width of the new buttons
+				If FParent AndAlso Cast(Control Ptr, FParent)->ClassName = "ReBar" Then Cast(Control Ptr, FParent)->RequestAlign
+			#endif
 		End Sub
 	#endif
 
 	Private Sub ToolBar.ProcessMessage(ByRef Message As Message)
 		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
-			If Message.Msg = CM_ITEMSCHANGED Then UpdateButtons: Message.Handled = True
+			If Message.Msg = CM_ITEMSCHANGED Then
+				'A button of a group was checked (ToolButton.Checked): the other ones of its group (the buttons with
+				'tbsGroup next to it) are unchecked
+				If Message.wParam = 1 AndAlso Message.lParam <> 0 Then
+					Dim As ToolButton Ptr PButton = Cast(ToolButton Ptr, Message.lParam), PItem
+					Dim As Integer ButtonIndex = Buttons.IndexOf(PButton), j
+					If ButtonIndex > -1 Then
+						For j = ButtonIndex - 1 To 0 Step -1
+							PItem = Buttons.Item(j)
+							If (PItem->Style And tbsGroup) = 0 Then Exit For
+							If PItem->Checked Then PItem->Checked = False
+						Next
+						For j = ButtonIndex + 1 To Buttons.Count - 1
+							PItem = Buttons.Item(j)
+							If (PItem->Style And tbsGroup) = 0 Then Exit For
+							If PItem->Checked Then PItem->Checked = False
+						Next
+					End If
+				End If
+				UpdateButtons
+				Message.Handled = True
+			End If
+			'The controls of the custom buttons are put over the gaps of their buttons (Web: CM_PAINT - the row of the
+			'buttons was shown or got another size, SETBUTTONS of mff_lib.js)
+			If Message.Msg = CM_SIZE OrElse Message.Msg = CM_PAINT Then
+				For i As Integer = 0 To Buttons.Count - 1
+					With *Buttons.Item(i)
+						If .Style = tbsCustom AndAlso .Child <> 0 Then
+							Dim As Integer x = ButtonsItemLeft(FHandle, i)
+							#ifdef __USE_JNI__
+								'the height of the bar: the Height of Windows is too low for the text of Android (it was cut), a
+								'Spinner and an EditText have their text in the middle like the buttons (mffActivity.buttonsSet)
+								'the width of the gap (Expand: the free width of the bar)
+								If x <> -1 Then
+									Dim As Integer w = ButtonsItemWidth(FHandle, i)
+									.Child->SetBounds UnScaleX(x), 0, IIf(w > 0, UnScaleX(w), .Child->Width), This.Height
+								End If
+							#else
+								'Web: the width of the gap (Expand), one line high in the middle of the bar (the Height of a
+								'ComboBox of Windows is the one with its list)
+								If x <> -1 Then
+									'(at least 20 pixels: a too low Height of a SearchBox or a TextBox is not usable)
+									Dim As Integer w = UnScaleX(ButtonsItemWidth(FHandle, i)), h = .Child->Height
+									If h < 20 Then h = 20
+									If h > 24 Then h = 24
+									If h > This.Height Then h = This.Height
+									.Child->SetBounds UnScaleX(x), Max(0, (This.Height - h) \ 2), IIf(w > 0, w, .Child->Width), h
+								End If
+							#endif
+						End If
+					End With
+				Next
+			End If
 			If Message.Msg = CM_CHANGE Then
 				Dim As Integer Index
 				#ifdef __USE_JNI__
-					Index = Message.wParam
+					'&h10000: the arrow of a drop-down button was pressed (mffActivity.buttonsSet)
+					Index = Message.wParam And &hFFFF
 				#else
 					Index = GetPosition(FHandle)
 				#endif
 				If Index >= 0 AndAlso Index < Buttons.Count Then
 					With *Buttons.Item(Index)
-						If .Style And tbsCheck Then .Checked = Not .Checked
+						#ifdef __USE_WASM__
+							'The arrow of a drop-down button (or the whole button, tbsWholeDropdown) was pressed (SETBUTTONS of
+							'mff_lib.js): its menu is shown under it, data-x and data-y are the pixels of the page
+							Dim As ZString Ptr pValue = GetAttribute(FHandle, "data-dropdown")
+							Dim As Boolean bDropDown = *pValue = "1"
+							FreePtr(pValue)
+							If bDropDown AndAlso .DropDownMenu.Count > 0 Then
+								Dim As Integer x, y
+								pValue = GetAttribute(FHandle, "data-x"): x = ValInt(*pValue): FreePtr(pValue)
+								pValue = GetAttribute(FHandle, "data-y"): y = ValInt(*pValue): FreePtr(pValue)
+								.DropDownMenu.Popup(x, y)
+								Message.Handled = True
+								Exit Sub
+							End If
+						#elseif defined(__USE_JNI__)
+							'The whole button (tbsWholeDropdown) or the arrow of a drop-down button shows its menu
+							If CBool((.Style And tbsWholeDropdown) = tbsWholeDropdown OrElse (Message.wParam And &h10000) <> 0) AndAlso .DropDownMenu.Count > 0 Then
+								.DropDownMenu.Popup(0, 0)
+								Message.Handled = True
+								Exit Sub
+							End If
+						#endif
+						'A button of a check group stays checked when it is pressed again (like on Windows)
+						If (.Style And tbsCheckGroup) = tbsCheckGroup Then
+							If Not .Checked Then .Checked = True
+						ElseIf .Style And tbsCheck Then
+							.Checked = Not .Checked
+						End If
 						If .OnClick Then .OnClick(*.Designer, *Buttons.Item(Index))
 					End With
 					If OnButtonClick Then OnButtonClick(*Designer, This, *Buttons.Item(Index))
@@ -1307,7 +1432,33 @@ Namespace My.Sys.Forms
 							iHotItem = SendMessage(FHandle, TB_GETHOTITEM, 0, 0)
 							For i As Integer = 0 To Buttons.Count - 1
 								If Buttons.Item(i)->Style = ToolButtonStyle.tbsSeparator Then
+									Dim As TBBUTTON tbb
 									SendMessage(FHandle, TB_GETITEMRECT, i, Cast(LPARAM, @rc))
+									If SendMessage(FHandle, TB_GETBUTTON, i, Cast(LPARAM, @tbb)) AndAlso (tbb.fsState And TBSTATE_WRAP) Then
+										'A wrapped separator (a vertical Wrapable toolbar like the Pin of the bottom panel) is a horizontal line
+										'in the gap under its row: its item rect is the row by the previous button and this gap (as high as the
+										'width of the separator) under it. Filling the whole rect would cut that button
+										'The theme draws it by the last button of its row too (where it was before the wrap): it is filled
+										For k As Integer = i - 1 To 0 Step -1
+											Dim As ..Rect rcPrev
+											If SendMessage(FHandle, TB_GETITEMRECT, k, Cast(LPARAM, @rcPrev)) AndAlso rcPrev.Right > rcPrev.Left Then
+												rcPrev.Left = rcPrev.Right
+												rcPrev.Right = rcPrev.Left + (rc.Right - rc.Left)
+												FillRect nmcd->hdc, @rcPrev, hbrBkgnd
+												Exit For
+											End If
+										Next k
+										Dim As ..Rect rcGap
+										GetClientRect FHandle, @rcGap
+										rcGap.Top = rc.Bottom - (rc.Right - rc.Left)
+										rcGap.Bottom = rc.Bottom
+										FillRect nmcd->hdc, @rcGap, hbrBkgnd
+										SelectObject(nmcd->hdc, SeparatorPen)
+										Dim As Integer iLineY = (rcGap.Top + rcGap.Bottom) \ 2 - 1 'the upper one of the two lines of the theme
+										MoveToEx nmcd->hdc, rcGap.Left + ScaleX(2), iLineY, 0
+										LineTo nmcd->hdc, rcGap.Right - ScaleX(2), iLineY
+										Continue For
+									End If
 									FillRect nmcd->hdc, @rc, hbrBkgnd
 									If rc.Left <> 0 Then
 										SelectObject(nmcd->hdc, SeparatorPen)
@@ -1382,6 +1533,13 @@ Namespace My.Sys.Forms
 			With QToolBar(Sender.Child)
 				#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 					.UpdateButtons
+				#endif
+				#ifdef __USE_JNI__
+					'The buttons are views of Android (32 dp with a picture): a lower wide toolbar would hide them
+					If .Height < 32 AndAlso .Width >= 64 Then
+						.Height = 32
+						If .Parent Then .Parent->RequestAlign
+					End If
 				#endif
 				#ifdef __USE_WINAPI__
 					If .ImagesList Then .ImagesList->ParentWindow = @Sender: If .ImagesList->Handle Then .Perform(TB_SETIMAGELIST,0,CInt(.ImagesList->Handle))
@@ -1472,6 +1630,11 @@ Namespace My.Sys.Forms
 			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
+			#ifdef __USE_JNI__
+				'The height of a button of Android with a picture (Windows sizes the toolbar itself): the height is known
+				'before the toolbar is shown, other controls are sized by it
+				.Height = 32
+			#endif
 			#ifdef __USE_WINAPI__
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.OnHandleIsDestroyed = @HandleIsDestroyed
@@ -1487,7 +1650,8 @@ Namespace My.Sys.Forms
 				.Width             = 121
 				#ifdef __USE_GTK__
 					.Height            = 30
-				#elseif defined(__USE_WINAPI__)
+				#elseif defined(__USE_WINAPI__) OrElse defined(__USE_WASM__)
+					'Web: the buttons (16 pixels pictures) are laid out by the browser, the toolbar does not size itself
 					.Height            = 26
 				#endif
 			#endif
@@ -1507,11 +1671,11 @@ Namespace My.Sys.Forms
 End Namespace
 
 #ifdef __EXPORT_PROCS__
-	Function ToolBarAddButtonWithImageIndex Alias "ToolBarAddButtonWithImageIndex" (tb As My.Sys.Forms.ToolBar Ptr, FStyle As ToolButtonStyle = My.Sys.Forms.tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As ToolButtonState = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr Export
+	Function ToolBarAddButtonWithImageIndex Alias "ToolBarAddButtonWithImageIndex" (tb As My.Sys.Forms.ToolBar Ptr, FStyle As My.Sys.Forms.ToolButtonStyle = My.Sys.Forms.tbsAutosize, FImageIndex As Integer = -1, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As My.Sys.Forms.ToolButtonState = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr Export
 		Return tb->Buttons.Add(FStyle, FImageIndex, Index, FClick, FKey, FCaption, FHint, FShowHint, FState)
 	End Function
 	
-	Function ToolBarAddButtonWithImageKey Alias "ToolBarAddButtonWithImageKey"(tb As My.Sys.Forms.ToolBar Ptr, FStyle As ToolButtonStyle = My.Sys.Forms.tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As ToolButtonState = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr Export
+	Function ToolBarAddButtonWithImageKey Alias "ToolBarAddButtonWithImageKey"(tb As My.Sys.Forms.ToolBar Ptr, FStyle As My.Sys.Forms.ToolButtonStyle = My.Sys.Forms.tbsAutosize, ByRef ImageKey As WString, Index As Integer = -1, FClick As Any Ptr = NULL, ByRef FKey As WString = "", ByRef FCaption As WString = "", ByRef FHint As WString = "", FShowHint As Boolean = False, FState As My.Sys.Forms.ToolButtonState = My.Sys.Forms.tstEnabled) As My.Sys.Forms.ToolButton Ptr Export
 		Return tb->Buttons.Add(FStyle, ImageKey, Index, FClick, FKey, FCaption, FHint, FShowHint, FState)
 	End Function
 	

@@ -348,6 +348,9 @@ Namespace My.Sys.Forms
 			If Parent Then Parent->UpdateReBar
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then SendMessage(Parent->Handle, RB_SHOWBAND, Index, Value)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If Child Then Child->Visible = Value
+			If Parent Then Parent->RequestAlign
 		#endif
 	End Property
 	
@@ -706,6 +709,105 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub ReBar.ProcessMessage(ByRef Message As Message)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'There is no native ReBar: the bands are put in rows, a band which does not fit begins a new row
+			If Message.Msg = CM_SIZE Then
+				Dim As Integer iLeft, iTop, RowHeight, BandWidth, BandHeight, iWidth = Message.wParam
+				#ifdef __USE_JNI__
+					'Android: the left, the top and the height of the rows (a band which does not fit in the last row goes
+					'into the first row above with the free width for it: the wider buttons of Android made more rows)
+					Dim As Integer iRows, RowLefts(Bands.Count), RowTops(Bands.Count), RowHeights(Bands.Count), iRow, BandRows(Bands.Count)
+				#endif
+				For i As Integer = 0 To Bands.Count - 1
+					With *Bands.Item(i)
+						If .Child = 0 Then Continue For
+						'The control of a hidden band is hidden too
+						If .Child->Visible <> .Visible Then .Child->Visible = .Visible
+						If Not .Visible Then Continue For
+						BandWidth = IIf(.MinWidth > 0, .MinWidth, .Child->Width)
+						#ifdef __USE_WASM__
+							'The buttons of a ToolBar are laid out by the browser: the band gets the width which they need
+							'(at least MinWidth: the buttons of the browser can be wider than the ones of Windows), a band
+							'which does not fit begins a new row
+							If .Child->Handle <> 0 Then
+								Dim As Integer ContentWidth = ElementContentWidth(.Child->Handle)
+								If ContentWidth > 0 Then
+									ContentWidth = UnScaleX(ContentWidth)
+									If .MinWidth > ContentWidth Then BandWidth = .MinWidth Else BandWidth = ContentWidth
+								End If
+							End If
+						#endif
+						#ifdef __USE_JNI__
+							'The buttons of Android are wider than the ones of Windows: the band of a ToolBar gets the width
+							'of its buttons (at least MinWidth), they were cut
+							If .Child->Handle <> 0 Then
+								Dim As Integer ContentWidth = ButtonsContentWidth(.Child->Handle)
+								If ContentWidth > 0 Then
+									'rounded up: the last button was in the overflow menu for the pixels lost
+									ContentWidth = UnScaleX(ContentWidth) + 1
+									If .MinWidth > ContentWidth Then BandWidth = .MinWidth Else BandWidth = ContentWidth
+								End If
+							End If
+						#endif
+						If BandWidth <= 0 Then BandWidth = 100
+						'The buttons of a ToolBar are views of the Web/Android side: their height is not known here
+						BandHeight = Max(.MinHeight, Max(.Child->Height, 36))
+						#ifdef __USE_JNI__
+							iRow = -1
+							If iRows > 0 AndAlso Not .Break Then
+								If RowLefts(iRows - 1) + BandWidth <= iWidth Then
+									iRow = iRows - 1
+								Else
+									'a row above which is high enough (its height and the ones under it stay)
+									For r As Integer = 0 To iRows - 2
+										If RowLefts(r) + BandWidth <= iWidth AndAlso BandHeight <= RowHeights(r) Then iRow = r: Exit For
+									Next
+								End If
+							End If
+							If iRow = -1 Then
+								iRow = iRows
+								RowTops(iRow) = 0
+							If iRows > 0 Then RowTops(iRow) = RowTops(iRows - 1) + RowHeights(iRows - 1)
+								RowLefts(iRow) = 0
+								RowHeights(iRow) = 0
+								iRows += 1
+							End If
+							.Child->SetBounds RowLefts(iRow), RowTops(iRow), Min(BandWidth, iWidth - RowLefts(iRow)), BandHeight
+							BandRows(i) = iRow
+							RowLefts(iRow) += BandWidth
+							If RowHeights(iRow) < BandHeight Then RowHeights(iRow) = BandHeight
+							iTop = RowTops(iRows - 1)
+							RowHeight = RowHeights(iRows - 1)
+						#else
+							If iLeft > 0 AndAlso (iLeft + BandWidth > iWidth OrElse .Break) Then
+								iLeft = 0
+								iTop += RowHeight
+								RowHeight = 0
+							End If
+							.Child->SetBounds iLeft, iTop, Min(BandWidth, iWidth - iLeft), BandHeight
+							iLeft += BandWidth
+							If RowHeight < BandHeight Then RowHeight = BandHeight
+						#endif
+					End With
+				Next
+				#ifdef __USE_JNI__
+					'The bands of a row have its height: the buttons of the toolbars in it are on one line (a lower band
+					'had them higher)
+					For i As Integer = 0 To Bands.Count - 1
+						With *Bands.Item(i)
+							If .Child = 0 OrElse Not .Visible Then Continue For
+							If .Child->Height <> RowHeights(BandRows(i)) Then .Child->SetBounds .Child->Left, RowTops(BandRows(i)), .Child->Width, RowHeights(BandRows(i))
+						End With
+					Next
+				#endif
+				If iTop + RowHeight > 0 AndAlso iTop + RowHeight <> This.Height Then
+					This.Height = iTop + RowHeight
+					If OnHeightChange Then OnHeightChange(*Designer, This)
+					If FParent Then QControl(FParent).RequestAlign
+				End If
+				Message.Handled = True
+			End If
+		#endif
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = Message.Event
 			#ifdef __USE_GTK4__
@@ -1292,7 +1394,7 @@ Namespace My.Sys.Forms
 	
 	Private Destructor ReBar
 		#ifdef __USE_WINAPI__
-			UnregisterClass "ReBar", GetModuleHandle(NULL)
+			'UnregisterClass "ReBar", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace

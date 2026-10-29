@@ -65,17 +65,22 @@ Namespace My.Sys.Drawing
 		End If
 		#ifdef __USE_WASM__
 			If QComponent(FParent).Handle Then
-				SetFont(QComponent(FParent).Handle, *FName & IIf(FBold, " Bold", "") & IIf(FItalic, " Italic", "") & " " & Str(FSize) & "px")
+				'The size is in points like on Windows; CSS: [italic] [bold] size family
+				SetFont(QComponent(FParent).Handle, IIf(FItalic, "italic ", "") & IIf(FBold, "bold ", "") & Str(FSize) & "pt '" & *FName & "', sans-serif")
 			End If
 		#elseif defined(__USE_JNI__)
-			'The font which is not set keeps the one of Android (DefaultFont is empty)
+			'The size of the font is the one of all the views (the sizes of Android are different for each kind of the
+			'views); the name of the default font keeps the typeface of Android (Tahoma is not on Android)
 			If FParent AndAlso *FParent Is My.Sys.ComponentModel.Component AndAlso QComponent(FParent).Handle AndAlso env AndAlso Activity Then
-				If FBold OrElse FItalic OrElse FUnderline OrElse FStrikeOut OrElse *FName <> DefaultFont.Name OrElse FSize <> DefaultFont.Size Then
-					Dim As jstring jName = (*env)->NewStringUTF(env, ToUtf8(*FName))
-					(*env)->CallVoidMethod(env, Activity, ActivityMethodID("textSetFont", "(Landroid/view/View;Ljava/lang/String;DIIII)V"), QComponent(FParent).Handle, jName, _
-						CDbl(IIf(FSize > 0, FParent->ScaleY(FSize * 96 / 72), 0)), CInt(FBold), CInt(FItalic), CInt(FUnderline), CInt(FStrikeOut))
-					(*env)->DeleteLocalRef(env, jName)
-				End If
+				Dim As Double dSize = IIf(FSize > 0, FParent->ScaleY(FSize * 96 / 72), 0)
+				'The views which mffActivity makes (tabs, buttons of toolbars, rows of lists) have the size of the default font
+				If FSize = DefaultFont.Size AndAlso dSize > 0 Then (*env)->CallVoidMethod(env, Activity, ActivityMethodID("textSetDefaultSize", "(D)V"), dSize)
+				Dim As String sName
+				If *FName <> DefaultFont.Name Then sName = ToUtf8(*FName)
+				Dim As jstring jName = (*env)->NewStringUTF(env, sName)
+				(*env)->CallVoidMethod(env, Activity, ActivityMethodID("textSetFont", "(Ljava/lang/Object;Ljava/lang/String;DIIII)V"), QComponent(FParent).Handle, jName, _
+					dSize, CInt(FBold), CInt(FItalic), CInt(FUnderline), CInt(FStrikeOut))
+				(*env)->DeleteLocalRef(env, jName)
 			End If
 		#else
 			#ifdef __USE_GTK__
@@ -104,7 +109,11 @@ Namespace My.Sys.Drawing
 							' In a layout or DPI pass the container is repainted once when the pass ends:
 							'a synchronous repaint per control is the most expensive part of the pass
 							SendMessage(QComponent(FParent).Handle, WM_SETFONT, CUInt(Handle), AlignLock = 0)
-							If AlignLock = 0 Then InvalidateRect Cast(Component Ptr, FParent)->Handle, 0, True
+							If AlignLock = 0 Then
+								InvalidateRect Cast(Component Ptr, FParent)->Handle, 0, True
+							Else
+								AlignAddWindow Cast(Component Ptr, FParent)->Handle
+							End If
 						End If
 					#endif
 				End If
@@ -184,6 +193,20 @@ Namespace My.Sys.Drawing
 						gColor.alpha = 1.0
 						gtk_widget_override_color(widget, GTK_STATE_FLAG_NORMAL, @gColor)
 					#endif
+				End If
+			#elseif defined(__USE_WASM__)
+				'The text color of the element (Control.CreateWnd sets it when the element is created later)
+				If FParent AndAlso QComponent(FParent).Handle Then
+					SetForeColor(QComponent(FParent).Handle, Value)
+				End If
+			#elseif defined(__USE_JNI__)
+				'The text color of a TextView (a Label, a LinkLabel, a Button...); the color of FreeBasic is BGR
+				If env AndAlso FParent AndAlso QComponent(FParent).Handle Then
+					Dim As jobject h = QComponent(FParent).Handle
+					If (*env)->IsInstanceOf(env, h, FindJNIClass("android/widget/TextView")) Then
+						Dim As Long ARGB = &hFF000000 Or ((Value And &hFF) Shl 16) Or (Value And &hFF00) Or ((Value Shr 16) And &hFF)
+						(*env)->CallVoidMethod(env, h, GetMethodID("android/widget/TextView", "setTextColor", "(I)V"), ARGB)
+					End If
 				End If
 			#endif
 		End Property

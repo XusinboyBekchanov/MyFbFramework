@@ -262,7 +262,16 @@ Namespace My.Sys.Forms
 						yCur = g_CurCursorPos.y
 				#endif
 					If This.Parent->ControlCount AndAlso i > 0 AndAlso SizeCtrl = This.Parent->Controls[i - 1] Then
-						This.Parent->UpdateLock
+						#ifdef __USE_WINAPI__
+							' One layout pass for the step: the moves do not paint, and when the pass ends
+							'only the places the moved windows left and took are painted (at once, so that
+							'the panels follow the mouse), not the whole parent with all its children
+							Dim As Integer iSavedAlignLock = AlignLock
+							AlignLock = iSavedAlignLock + 1
+							If iSavedAlignLock = 0 Then AlignClear
+						#else
+							This.Parent->UpdateLock
+						#endif
 						' The control and the splitter are moved at once: the right and the bottom control keep their
 						' right and bottom edge (with only the new size the edge moves until the parent aligns again)
 						Select Case Align
@@ -286,12 +295,17 @@ Namespace My.Sys.Forms
 						If OnMoving Then OnMoving(*Designer, This)
 						This.Parent->RequestAlign
 						#ifdef __USE_GTK__
-							If i > 0 Then This.Parent->Controls[i-1]->RequestAlign 
+							If i > 0 Then This.Parent->Controls[i-1]->RequestAlign
 							'#Else
 							'		This.Parent->RequestAlign
 						#endif
-						This.Parent->UpdateUnLock
-						This.Parent->Repaint
+						#ifdef __USE_WINAPI__
+							AlignLock = iSavedAlignLock
+							If iSavedAlignLock = 0 Then AlignRedraw This.Parent->Handle, True
+						#else
+							This.Parent->UpdateUnLock
+							This.Parent->Repaint
+						#endif
 						'This.Parent->Update
 						'Parent->Update
 					End If
@@ -461,7 +475,7 @@ Namespace My.Sys.Forms
 			WLet(FClassAncestor, "")
 			#ifdef __USE_WASM__
 				WLet(FClassAncestor, "div")
-				FElementStyle = "background-color: #ddd; touch-action: none;"
+				FElementStyle = "background-color: var(--mff-line, #ddd); touch-action: none;"
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "mff:Layout")
@@ -473,7 +487,7 @@ Namespace My.Sys.Forms
 	
 	Private Destructor Splitter
 		#ifdef __USE_WINAPI__
-			UnregisterClass "Splitter", GetModuleHandle(NULL)
+			'UnregisterClass "Splitter", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace

@@ -366,7 +366,7 @@ Private Constructor IniFile(ByRef FileName As WString = "")
 	If Trim(FileName) = "" Then
 		Dim As WString * 255 Tx
 		Dim As Integer L, i, k
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			L = GetModuleFileName(GetModuleHandle(NULL), Tx, 255)
 			Tx = Left(Tx, L)
 			For i = 0 To Len(Tx)

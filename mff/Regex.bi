@@ -42,6 +42,9 @@
 #define __MFF_REGEX_BI__
 
 #include once "UString.bi"
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#include once "SysUtils.bi"
+#endif
 
 Namespace My.Sys.Text
 

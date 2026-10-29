@@ -322,6 +322,10 @@ Namespace My.Sys.Forms
 			WLet(FClassName, "ScrollControl")
 			#ifdef __USE_WASM__
 				FElementStyle &= "overflow: auto;"
+			#elseif defined(__USE_JNI__)
+				'The children are scrolled like with the scroll bars of Windows: a drag, the mouse wheel
+				'(mffActivity.MffScrollLayout; an older mffActivity.java makes a layout which does not scroll)
+				WLet(FClassAncestor, "mff:ScrollLayout")
 			#endif
 			FHorizontalArrowChangeSize = 10
 			FVerticalArrowChangeSize = 10

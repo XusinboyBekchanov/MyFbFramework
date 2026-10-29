@@ -140,13 +140,11 @@ Namespace My.Sys.Forms
 
 		Dim As Integer clrBack, clrTick, clrText, clrMarker, clrTracker
 
-		#ifdef __USE_GTK__
-			' GTK has no SetDark: the dark theme of the application
-			Dim As Boolean bDark = g_darkModeEnabled
-		#elseif defined(__USE_WINAPI__)
+		#ifdef __USE_WINAPI__
 			Dim As Boolean bDark = FDarkMode
 		#else
-			Dim As Boolean bDark = False
+			' GTK, Android and Web have no SetDark: the dark mode of the application (SetDarkMode)
+			Dim As Boolean bDark = g_darkModeEnabled
 		#endif
 		If bDark Then
 			clrBack    = BGR(45, 45, 48)

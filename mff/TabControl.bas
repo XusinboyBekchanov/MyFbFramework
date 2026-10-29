@@ -201,6 +201,8 @@ Namespace My.Sys.Forms
 				gtk_label_set_text(GTK_LABEL(_Label), ToUtf8(Value))
 			End If
 		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'Control.CreateWnd sets Text = *FText: the caption is kept there too, otherwise the new page would clear it
+			If FText = 0 OrElse @Value <> FText Then WLet(FText, Value)
 			If FParent AndAlso *Base.Parent Is TabControl Then Cast(TabControl Ptr, FParent)->UpdateTabs
 		#elseif defined(__USE_WINAPI__)
 			Update
@@ -256,6 +258,9 @@ Namespace My.Sys.Forms
 			#endif
 		#elseif defined(__USE_WINAPI__)
 			Update
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'The picture of the tab (TabControl.UpdateTabs)
+			If FParent AndAlso *Base.Parent Is TabControl Then Cast(TabControl Ptr, FParent)->UpdateTabs
 		#endif
 	End Property
 	
@@ -437,7 +442,13 @@ Namespace My.Sys.Forms
 			Base.SetMargins 0, 0, 0, 0
 			Exit Sub
 		#elseif defined(__USE_JNI__)
-			Base.SetMargins 0, 48, 0, 0
+			'The pages are beside the row of the tabs at its side (mffActivity.tabsSet)
+			Select Case FTabPosition
+			Case 0: Base.SetMargins ItemWidth(-1) + 4, 0, 0, 0
+			Case 1: Base.SetMargins 0, 0, ItemWidth(-1) + 4, 0
+			Case 3: Base.SetMargins 0, 0, 0, ItemHeight(-1) + 4
+			Case Else: Base.SetMargins 0, ItemHeight(-1) + 4, 0, 0
+			End Select
 			Exit Sub
 		#endif
 		Select Case FTabPosition
@@ -493,6 +504,8 @@ Namespace My.Sys.Forms
 				If Not FMultiline Then ChangeStyle(TCS_MULTILINE, False)
 				If Not FTabStyle = tsOwnerDrawFixed Then ChangeStyle(TCS_OWNERDRAWFIXED, False)
 			End Select
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			UpdateTabs
 		#endif
 		SetMargins
 	End Property
@@ -628,6 +641,15 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Function TabControl.ItemHeight(Index As Integer) As Integer
+		#ifdef __USE_JNI__
+			'The row of the tabs has its height also without tabs
+			If Index = 0 AndAlso TabCount = 0 Then Index = -1
+			If Index = -1 Then
+				Dim As Integer iHeight = TabsStripHeight()
+				If iHeight > 0 AndAlso ydpi > 0 Then Return UnScaleY(iHeight) - 4
+				Return 28
+			End If
+		#endif
 		If Index >= 0 And Index < TabCount Then
 			#ifdef __USE_GTK__
 				#ifdef __USE_GTK4__
@@ -645,12 +667,34 @@ Namespace My.Sys.Forms
 				Dim As ..Rect R
 				Perform(TCM_GETITEMRECT, Index, CInt(@R))
 				Return UnScaleY(R.Bottom - R.Top)
+			#elseif defined(__USE_JNI__)
+				'The vertical tabs are turned: the height of a tab is the one of its text estimated
+				If FTabPosition = tpLeft OrElse FTabPosition = tpRight Then Return 24 + Len(Tabs[Index]->Caption) * 8
+				'The tabs are buttons of Android in the row at the top (mffActivity.tabsSet, its height in pixels)
+				Dim As Integer iHeight = TabsStripHeight()
+				If iHeight > 0 AndAlso ydpi > 0 Then Return UnScaleY(iHeight) - 4
+				Return 28
+			#elseif defined(__USE_WASM__)
+				'Web: the strip of the tabs is 26 pixels high with its border under it, the pages are at 27 (SETTABS of
+				'mff_lib.js): like on Windows the height of a tab and 4 is the top of the pages
+				Return 23
 			#endif
 		End If
 		Return 0
 	End Function
 	
 	Private Function TabControl.ItemWidth(Index As Integer) As Integer
+		#ifdef __USE_JNI__
+			'The vertical tabs are turned: their width is the one of the column of the tabs, also without tabs
+			If FTabPosition = tpLeft OrElse FTabPosition = tpRight Then
+				If Index = 0 AndAlso TabCount = 0 Then Index = -1
+				If Index = -1 OrElse (Index >= 0 And Index < TabCount) Then
+					Dim As Integer iWidth = TabsStripHeight()
+					If iWidth > 0 AndAlso xdpi > 0 Then Return UnScaleX(iWidth) - 4
+					Return 28
+				End If
+			End If
+		#endif
 		If Index >= 0 And Index < TabCount Then
 			#ifdef __USE_GTK__
 				#ifdef __USE_GTK4__
@@ -668,6 +712,14 @@ Namespace My.Sys.Forms
 				Dim As ..Rect R
 				Perform(TCM_GETITEMRECT, Index, CInt(@R))
 				Return UnScaleX(R.Right - R.Left)
+			#elseif defined(__USE_JNI__)
+				'The width of the button is not known here: the one of its text is estimated
+				Return 24 + Len(Tabs[Index]->Caption) * 8
+			#elseif defined(__USE_WASM__)
+				'Web: the vertical tabs are in a strip of 26 pixels with its border (SETTABS of mff_lib.js), a collapsed
+				'panel of the IDE has this width; the width of a tab at the top is the one of its text estimated
+				If FTabPosition = tpLeft OrElse FTabPosition = tpRight Then Return 26
+				Return 24 + Len(Tabs[Index]->Caption) * 7
 			#endif
 		End If
 		Return 0
@@ -782,10 +834,19 @@ Namespace My.Sys.Forms
 		
 		Private Sub TabControl.UpdateTabs()
 			If FHandle = 0 Then Exit Sub
+			#ifdef __USE_WASM__
+				'The place of the tab strip (SETTABS of mff_lib.js)
+				SetAttribute(FHandle, "data-tabpos", Str(FTabPosition))
+			#elseif defined(__USE_JNI__)
+				'The side of the row of the tabs (mffActivity.tabsSetPosition), before SetTabs makes it
+				SetTabsPosition(FHandle, FTabPosition)
+			#endif
 			Dim As UString Titles
 			For i As Integer = 0 To FTabCount - 1
 				If i > 0 Then Titles &= Chr(10)
 				Titles &= Tabs[i]->Caption
+				'"Caption\tx\tPicture": the close button and the picture of the tab (SETTABS of mff_lib.js, mffActivity.tabsSet)
+				Titles &= Chr(9) & IIf(ShowCloseButtons, "x", "") & Chr(9) & FindResourceFile(Tabs[i]->ImageKey)
 			Next i
 			SetTabs(FHandle, ToUtf8(Titles))
 			If FSelectedTabIndex >= FTabCount Then FSelectedTabIndex = FTabCount - 1
@@ -803,7 +864,24 @@ Namespace My.Sys.Forms
 				Dim As Integer NewIndex
 				#ifdef __USE_JNI__
 					NewIndex = Message.wParam
+					'The close button of the tab -1 - Index
+					If NewIndex < 0 Then
+						Dim As Integer CloseIndex = -1 - NewIndex
+						If CloseIndex < FTabCount AndAlso OnTabClose <> 0 Then OnTabClose(*Designer, This, Tabs[CloseIndex])
+						Message.Handled = True
+						Exit Sub
+					End If
 				#else
+					'The close button of a tab (SETTABS of mff_lib.js): data-close is its index
+					Dim As ZString Ptr pClose = GetAttribute(FHandle, "data-close")
+					Dim As Integer CloseIndex = IIf(pClose <> 0 AndAlso *pClose <> "", ValInt(*pClose), -1)
+					If pClose Then FreePtr(pClose)
+					If CloseIndex >= 0 Then
+						SetAttribute(FHandle, "data-close", "")
+						If CloseIndex < FTabCount AndAlso OnTabClose <> 0 Then OnTabClose(*Designer, This, Tabs[CloseIndex])
+						Message.Handled = True
+						Exit Sub
+					End If
 					NewIndex = GetPosition(FHandle)
 				#endif
 				If NewIndex <> FSelectedTabIndex Then
@@ -1278,7 +1356,8 @@ Namespace My.Sys.Forms
 		'If Index >= 0 And Index <= FTabCount -1 Then
 			FTabCount += 1
 			Tabs = _Reallocate(Tabs,FTabCount*SizeOf(TabPage Ptr))
-			For i = iIndex To FTabCount - 2
+			'From the end: moving forward would copy the same tab into all the next places
+			For i = FTabCount - 2 To iIndex Step -1
 				It = Tabs[i]
 				Tabs[i + 1] = It
 				SetTabPageIndex(It, i + 1)
@@ -1341,11 +1420,18 @@ Namespace My.Sys.Forms
 		'Return 0
 	End Function
 	
-	Private Sub TabControl.InsertTab(Index As Integer, ByRef tp As TabPage Ptr)
+	Private Sub TabControl.InsertTab(ByVal Index As Integer, ByRef tp As TabPage Ptr)
+		'The page is at Index in Tabs too, like in the tabs of GTK and Windows (and in UpdateTabs of the Web and Android)
+		If Index < 0 Then Index = 0
+		If Index > FTabCount Then Index = FTabCount
 		FTabCount += 1
 		'tp->TabPageControl = @This
 		Tabs = _Reallocate(Tabs, SizeOf(TabPage Ptr) * FTabCount)
-		Tabs[FTabCount - 1] = tp
+		For i As Integer = FTabCount - 2 To Index Step -1
+			Tabs[i + 1] = Tabs[i]
+			SetTabPageIndex(Tabs[i + 1], i + 1)
+		Next i
+		Tabs[Index] = tp
 		#ifdef __USE_GTK__
 			If widget Then
 				#ifndef __USE_GTK2__
@@ -1392,7 +1478,7 @@ Namespace My.Sys.Forms
 				If tp->Object Then Ti.lParam = Cast(LPARAM, tp->Object)
 				Ti.iImage = tp->ImageIndex
 				SendMessageW(FHandle, TCM_INSERTITEMW, Index, CInt(@Ti))
-				SetTabPageIndex(tp, FTabCount - 1)
+				SetTabPageIndex(tp, Index)
 				Ti.lParam = 0
 			End If
 			SetMargins
@@ -1501,7 +1587,7 @@ Namespace My.Sys.Forms
 				UpDownControl.Style = UpDownOrientation.udHorizontal
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "div")
-				FElementStyle = "border: 1px solid #aaa;"
+				FElementStyle = "border: 1px solid var(--mff-border, #aaa);"
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "mff:Layout")

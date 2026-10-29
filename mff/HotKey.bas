@@ -327,7 +327,7 @@ Namespace My.Sys.Forms
 	
 	Private Destructor HotKey
 		#ifdef __USE_WINAPI__
-			UnregisterClass "HotKey", GetModuleHandle(NULL)
+			'UnregisterClass "HotKey", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace

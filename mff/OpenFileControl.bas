@@ -15,12 +15,14 @@
 '###############################################################################
 
 #include once "OpenFileControl.bi"
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	#include once "win/objbase.bi"
+#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#include once "dir.bi"
 #endif
 
 Namespace My.Sys.Forms
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		' ---------------------------------------------------------------------
 		' Helpers (module private)
 		' ---------------------------------------------------------------------
@@ -121,6 +123,8 @@ Namespace My.Sys.Forms
 		End If
 		#ifdef __USE_GTK__
 			gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER (widget), FMultiSelect)
+		#elseif defined(__USE_WASM__)
+			FillFiles
 		#endif
 	End Property
 	
@@ -136,7 +140,7 @@ Namespace My.Sys.Forms
 					WLet(FInitialDir, WStr(*pDir))
 					g_free(pDir)
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim As WString Ptr p = OFC_GetDlgText(FHandle, CDM_GETFOLDERPATH)
 				If p Then
 					WLet(FInitialDir, *p)
@@ -156,6 +160,8 @@ Namespace My.Sys.Forms
 			#else
 				gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUtf8(*FInitialDir))
 			#endif
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			FillFiles
 		#endif
 	End Property
 	
@@ -165,7 +171,7 @@ Namespace My.Sys.Forms
 	
 	Private Property OpenFileControl.DefaultExt(ByRef Value As WString)
 		If @Value <> FDefaultExt Then WLet(FDefaultExt, Value)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FHandle Then OFC_Send(FHandle, CDM_SETDEFEXT, 0, Cast(LPARAM, FDefaultExt))
 		#endif
 	End Property
@@ -181,7 +187,7 @@ Namespace My.Sys.Forms
 						If WGet(FDefaultExt) <> "" Then WAdd FFileName, "." & *FDefaultExt
 					End If
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim As WString Ptr p = OFC_GetDlgText(FHandle, CDM_GETFILEPATH)
 				If p Then
 					WLet(FFileName, *p)
@@ -219,7 +225,7 @@ Namespace My.Sys.Forms
 				Else
 					WLet(FFileTitle, *FFileName)
 				End If
-			#else
+			#elseif defined(__USE_WINAPI__)
 				Dim As WString Ptr p = OFC_GetDlgText(FHandle, CDM_GETSPEC)
 				If p Then
 					WLet(FFileTitle, *p)
@@ -232,7 +238,7 @@ Namespace My.Sys.Forms
 	
 	Private Property OpenFileControl.FileTitle(ByRef Value As WString)
 		If @Value <> FFileTitle Then WLet(FFileTitle, Value)
-		#ifdef __USE_GTK__
+		#ifndef __USE_WINAPI__
 			FileName = InitialDir & "/" & *FFileTitle
 		#else
 			FileName = InitialDir & "\" & *FFileTitle
@@ -261,6 +267,8 @@ Namespace My.Sys.Forms
 				Next
 				If FFilterIndex <= FFilterCount Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FFilterIndex))
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			FillFiles
 		#endif
 	End Property
 	
@@ -281,10 +289,78 @@ Namespace My.Sys.Forms
 		FFilterIndex    = Value
 		#ifdef __USE_GTK__
 			If FFilterIndex <= FFilterCount Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FFilterIndex))
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			FillFiles
 		#endif
 	End Property
+
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		'The folders and the files of the patterns of the filter (FilterIndex) in the current folder: the file list of the
+		'file dialog (FileViewFill) in the element (Android: the view), its view buttons switch large icons and the list
+		Private Sub OpenFileControl.FillFiles()
+			If WGet(FInitialDir) = "" Then WLet(FInitialDir, CurDir)
+			If FHandle = 0 Then Exit Sub
+			Dim As String sPatterns = "*"
+			Dim As UString res()
+			Split WGet(FFilter), "|", res()
+			Dim As Integer Index = Max(1, FFilterIndex)
+			If UBound(res) >= Index * 2 - 1 Then sPatterns = ToUtf8(res(Index * 2 - 1))
+			FileViewFill(FHandle, ToUtf8(*FInitialDir), sPatterns, IIf(FMultiSelect, 1, 0))
+		End Sub
+
+		'A change of the file list: data-event "select" (the chosen files), "activate" (a double click on a file), "folder"
+		'(another folder); data-dir is the folder, data-files the chosen files separated with Chr(10)
+		Private Sub OpenFileControl.ProcessMessage(ByRef message As Message)
+			If message.Msg <> CM_CHANGE OrElse FHandle = 0 Then Base.ProcessMessage(message): Exit Sub
+			Dim As String sEvent
+			Dim As WString Ptr wDir, wFiles
+			#ifdef __USE_JNI__
+				'Android: the event, the folder and the files in the lines of FileViewState
+				Dim As String sState = FileViewState(FHandle), sDir
+				Dim As Integer Pos1 = InStr(sState, Chr(10)), Pos2 = InStr(Pos1 + 1, sState, Chr(10))
+				If Pos1 = 0 Then Base.ProcessMessage(message): Exit Sub
+				If Pos2 = 0 Then Pos2 = Len(sState) + 1
+				sEvent = .Left(sState, Pos1 - 1)
+				sDir = Mid(sState, Pos1 + 1, Pos2 - Pos1 - 1)
+				sState = Mid(sState, Pos2 + 1)
+				If sDir <> "" Then wDir = FromUtf8(StrPtr(sDir))
+				If sState <> "" Then wFiles = FromUtf8(StrPtr(sState))
+			#else
+				Dim As ZString Ptr pEvent = GetAttribute(FHandle, "data-event"), pDir = GetAttribute(FHandle, "data-dir"), pFiles = GetAttribute(FHandle, "data-files")
+				If pEvent Then sEvent = *pEvent
+				If pDir Then wDir = FromUtf8(pDir)
+				If pFiles Then wFiles = FromUtf8(pFiles)
+				FreePtr(pEvent): FreePtr(pDir): FreePtr(pFiles)
+			#endif
+			If wDir AndAlso *wDir <> "" Then WLet(FInitialDir, *wDir)
+			FileNames.Clear
+			If wFiles Then
+				Dim As Integer Pos1 = 1, Pos2
+				Do While Pos1 <= Len(*wFiles)
+					Pos2 = InStr(Pos1, *wFiles, WChr(10))
+					If Pos2 = 0 Then Pos2 = Len(*wFiles) + 1
+					If Pos2 > Pos1 Then FileNames.Add Mid(*wFiles, Pos1, Pos2 - Pos1)
+					Pos1 = Pos2 + 1
+				Loop
+			End If
+			WDeAllocate(wDir)
+			WDeAllocate(wFiles)
+			If FileNames.Count > 0 Then
+				WLet(FFileName, FileNames.Item(0))
+				WLet(FFileTitle, Mid(FileNames.Item(0), InStrRev(FileNames.Item(0), "/") + 1))
+			ElseIf sEvent = "folder" Then
+				WLet(FFileName, "")
+				WLet(FFileTitle, "")
+			End If
+			Select Case sEvent
+			Case "select": If OnSelectionChange Then OnSelectionChange(*Designer, This)
+			Case "activate": If OnFileActivate Then OnFileActivate(*Designer, This)
+			Case "folder": If OnFolderChange Then OnFolderChange(*Designer, This)
+			End Select
+		End Sub
+	#endif
 	
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Function OpenFileControl.HookListView(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Select Case uMsg
 			Case WM_NOTIFY
@@ -570,7 +646,7 @@ Namespace My.Sys.Forms
 	
 	' Thread procedure: owns ALL buffers it passes to GetOpenFileName.
 	Private Sub OpenFileControl.CreateWnd(Param As Any Ptr)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As OpenFileControl Ptr OpenDial = Param
 			Dim As WString Ptr pFile, pTitle, pFilter, pInit, pExt
 			Dim As WCHAR Ptr pch
@@ -583,7 +659,9 @@ Namespace My.Sys.Forms
 			Const FILE_CHARS = 32768
 			
 			If OpenDial = 0 Then Exit Sub
-			On Error Goto ErrorHandler
+			#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+				On Error Goto ErrorHandler
+			#endif
 			
 			' The shell folder view (SHCreateShellFolderView) requires COM in this thread.
 			hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED)
@@ -652,7 +730,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Sub OpenFileControl.CreateWnd
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If This.Parent <> 0 AndAlso This.Parent->Handle <> 0 Then
 				If FRunning <> 0 Then Exit Sub ' dialog thread is already alive
 				FHandle = 0
@@ -673,6 +751,14 @@ Namespace My.Sys.Forms
 					pApp->DoEvents
 				Loop
 			End If
+		#elseif defined(__USE_WASM__)
+			'Web: the control is an element with the file list of the file dialog (FillFiles), not a dialog of a thread
+			Base.CreateWnd
+			FillFiles
+		#elseif defined(__USE_JNI__)
+			'Android: the view with the file list (mffActivity.MffFileView, FillFiles), not a dialog of a thread
+			Base.CreateWnd
+			FillFiles
 		#endif
 	End Sub
 	
@@ -699,6 +785,11 @@ Namespace My.Sys.Forms
 			g_signal_connect(widget, "current-folder-changed", G_CALLBACK(@FileChooser_CurrentFolderChanged), @This)
 			g_signal_connect(widget, "file-activated", G_CALLBACK(@FileChooser_FileActivated), @This)
 			g_signal_connect(widget, "selection-changed", G_CALLBACK(@FileChooser_SelectionChanged), @This)
+		#elseif defined(__USE_JNI__)
+			'Android: the file list like the one of the Web (mffActivity.createView "FileView")
+			WLet(FClassAncestor, "mff:FileView")
+		#elseif defined(__USE_WASM__)
+			'Web: the file list is made with the element (CreateWnd)
 		#else
 			FThread  = 0
 			FRunning = 0
@@ -724,7 +815,7 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor OpenFileControl
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			' 1) Close the dialog and WAIT for the worker thread BEFORE freeing anything:
 			'    the thread and the window hooks still use this object (use-after-free).
 			If FRunning <> 0 Then
@@ -748,7 +839,7 @@ Namespace My.Sys.Forms
 				FThread = 0
 			End If
 			FHandle = 0
-		#else
+		#elseif defined(__USE_GTK__)
 			g_signal_handlers_disconnect_by_func(widget, G_CALLBACK(@FileChooser_CurrentFolderChanged), @This)
 			g_signal_handlers_disconnect_by_func(widget, G_CALLBACK(@FileChooser_FileActivated), @This)
 			g_signal_handlers_disconnect_by_func(widget, G_CALLBACK(@FileChooser_SelectionChanged), @This)

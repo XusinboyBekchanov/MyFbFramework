@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Emscripten-Generated Code</title>
+    <title></title>
     <style>
       .emscripten { padding-right: 0; margin-left: auto; margin-right: auto; display: block; }
       textarea.emscripten { font-family: monospace; width: 80%; }
@@ -183,7 +183,197 @@
 	box-shadow: 0 0 7px rgba(0, 0, 0, .6);
 }
 .outline {outline:1px dashed red}
-	  
+/* The page has no margins: the main form fills the browser window (fitMainForm of mff_lib.js) */
+body {margin: 0;}
+/* A form which is not the main one (Form.GetContent): the border of the client area and the title bar above it.
+   drop-shadow (not box-shadow): the shadow is around the title bar too */
+.mffdialog {border: 1px solid #5b7fae; border-top: none; border-radius: 0 0 6px 6px; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .35)); z-index: 1000;}
+/* A designed form (the designer of the IDE): its title bar is in the panel of the designer, the form is under it
+   (Win32CompatScreenPos of the IDE), its close button does nothing */
+.mffdialog.mffdesign {filter: none; z-index: auto; margin-top: 28px;}
+.mffdesign .mffclose {pointer-events: none;}
+/* The texts of the designed controls are not selected by the browser when they are moved */
+.mffdesign, .mffdesign * {user-select: none; -webkit-user-select: none;}
+.mffpopup {filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .35)); z-index: 1000;}
+/* The controls out of a form are not seen like on Windows (the Cancel button of Find under the form for Escape):
+   the title bar above it (.mffcaption) and the shadow at the sides stay, at the bottom it is cut (Find hides its row of
+   Replace with its height) */
+.mffdialog:not(.mffdesign) {clip-path: inset(-29px -20px 0 -20px);}
+.mffpopup {clip-path: inset(-20px -20px 0 -20px);}
+.mffcaption {position: absolute; left: -1px; right: -1px; top: -28px; height: 28px; box-sizing: border-box; display: flex; align-items: center;
+	padding: 0 4px 0 10px; background: linear-gradient(#f4f8fc, #dce7f3); border: 1px solid #5b7fae; border-bottom-color: #b9cbe0;
+	border-radius: 6px 6px 0 0; color: #1e3a5f; font-weight: bold; cursor: move;}
+/* The arrow of a ComboBoxEdit with an edit box (<input> with a <datalist>, mff.list of mff_lib.js) is always seen like
+   on Windows, the one of the browser is only under the mouse and not without items: a click on it shows the list */
+input.mffcombo {padding-right: 18px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0h8L4 5z' fill='%23444'/%3E%3C/svg%3E") no-repeat right 5px center;}
+input.mffcombo::-webkit-calendar-picker-indicator {display: none !important;}
+/* The buttons of a ToolBar have the font of the toolbar (a <button> has the one of the browser, Arial 13.3px) */
+.mffbuttons button {font: inherit;}
+.mffcaptionicon {flex: 0 0 auto; width: 16px; height: 16px; margin-right: 6px;}
+.mffcaptiontext {flex: 1 1 auto; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;}
+.mffclose {flex: 0 0 auto; width: 30px; height: 20px; line-height: 20px; text-align: center; border-radius: 4px; color: #44546a;
+	font-size: 12px; font-weight: normal; cursor: default;}
+.mffclose:hover {background: #e81123; color: #fff;}
+/* The minimize and maximize buttons before .mffclose (Form.GetContent): characters of the size and the place of the one
+   of .mffclose (its ink is 8 x 9 pixels): data-glyph min, max, restore (SETCAPTIONSTATE); the box of max is 9 x 9 in 13
+   pixels */
+.mffcaptionbutton {flex: 0 0 auto; width: 30px; height: 20px; line-height: 20px; text-align: center; border-radius: 4px; color: #44546a;
+	font-size: 12px; font-weight: normal; cursor: default;}
+.mffcaptionbutton[data-glyph="min"]::before {content: "\2500";}
+.mffcaptionbutton[data-glyph="max"]::before {content: "\2610"; font-size: 13px;}
+.mffcaptionbutton[data-glyph="restore"]::before {content: "\2750";}
+.mffcaptionbutton:hover {background-color: rgba(0, 0, 0, .1);}
+.mffcaptionbutton:active {background-color: rgba(0, 0, 0, .2);}
+.mffdesign .mffcaptionbutton {pointer-events: none;}
+.mffclose:active {background: #f1707a;}
+/* The views of a ListView (TABLESETVIEW of mff_lib.js): report - the rows of the table, the other ones - the first
+   cell of each item with its picture (.mffitemimage), the items one after another */
+.mffitemimage {width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;}
+.mfftable:not([data-view="report"]) thead {display: none;}
+.mfftable:not([data-view="report"]) tbody {display: flex; flex-wrap: wrap; align-content: flex-start; gap: 2px; padding: 4px;}
+.mfftable:not([data-view="report"]) tr {display: flex; border-radius: 3px;}
+.mfftable:not([data-view="report"]) tr:hover {outline: 1px solid #99c9ef;}
+.mfftable:not([data-view="report"]) td {display: none; border: none !important;}
+.mfftable:not([data-view="report"]) td:first-child {display: flex; align-items: center; overflow: hidden;}
+.mfftable[data-view="icon"] tr {width: 86px;}
+.mfftable[data-view="icon"] td:first-child {flex-direction: column; justify-content: flex-start; width: 100%; padding: 4px 2px !important;
+	white-space: normal !important; text-align: center; word-break: break-word;}
+.mfftable[data-view="icon"] .mffitemimage {width: 32px; height: 32px; margin: 0 0 4px 0;}
+.mfftable[data-view="tile"] tr {width: 200px;}
+.mfftable[data-view="tile"] .mffitemimage {width: 32px; height: 32px; margin-right: 6px;}
+.mfftable[data-view="smallicon"] tr, .mfftable[data-view="list"] tr {width: 180px;}
+.mfftable[data-view="list"] tbody {flex-direction: column; flex-wrap: wrap;}
+/* The file list of the file dialogs and of OpenFileControl (fileView of mff_lib.js) like the one of Windows: the view
+   "icon" - large icons in rows, "list" - small icons in columns; the selected items are light blue, gray without the
+   focus; the buttons of the views (viewButtons) */
+.mfffileview {display: flex; align-content: flex-start; overflow: auto; box-sizing: border-box; padding: 2px; background: #fff;
+	color: #000; border: 1px solid #a0a0a0; outline: none; cursor: default; user-select: none; -webkit-user-select: none;}
+.mfffileview[data-view="icon"] {flex-flow: row wrap;}
+.mfffileview[data-view="list"] {flex-flow: column wrap; overflow-y: hidden;}
+.mfffileitem {display: flex; align-items: center; box-sizing: border-box; border: 1px solid transparent; border-radius: 2px;}
+.mfffileitem:hover {background: #e5f3ff; border-color: #e5f3ff;}
+.mfffileitem.mffselected {background: #d9d9d9; border-color: #d9d9d9;}
+.mfffileview:focus .mfffileitem.mffselected {background: #cce8ff; border-color: #99d1ff;}
+.mfffileview[data-view="icon"] .mfffileitem {flex-direction: column; width: 84px; margin: 1px; padding: 3px 2px; text-align: center;}
+.mfffileview[data-view="icon"] .mfffileitem img {width: 48px; height: 48px; flex: none; margin-bottom: 2px;}
+.mfffileview[data-view="icon"] .mfffileitem span {max-width: 100%; line-height: 1.25; word-break: break-word; overflow: hidden;
+	display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;}
+.mfffileview[data-view="icon"] .mfffileitem.mffselected span {-webkit-line-clamp: unset;}
+.mfffileview[data-view="list"] .mfffileitem {width: 200px; height: 20px; margin-right: 4px; padding: 0 4px 0 2px;}
+.mfffileview[data-view="list"] .mfffileitem img {width: 16px; height: 16px; flex: none; margin-right: 4px;}
+.mfffileview[data-view="list"] .mfffileitem span {white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+.mffviewbutton {width: 26px; height: 23px; min-width: 0 !important; padding: 0 !important; display: inline-flex; align-items: center;
+	justify-content: center; flex: none; box-sizing: border-box; border: 1px solid transparent; border-radius: 2px; background: transparent;}
+.mffviewbutton:hover {background: #e5f3ff; border-color: #cce8ff;}
+.mffviewbutton[data-on] {background: #cce8ff; border-color: #99d1ff;}
+.mffviewbutton img {width: 16px; height: 16px;}
+/* OpenFileControl (FILEVIEWFILL): the buttons of the views at the right over the file list, which fills the control */
+.mfffileviewhost {position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: flex; flex-direction: column; background: Canvas;}
+.mfffileviewbar {display: flex; justify-content: flex-end; gap: 2px; padding: 0 0 2px 0; flex: none;}
+.mfffileviewhost > .mfffileview {flex: 1 1 auto; min-height: 0;}
+/* A ComboBox: its Height of Windows has the drop-down list too, the browser shows one line */
+select:not([size]):not([multiple]) {max-height: 24px;}
+/* The list of a ComboBoxEx with the pictures of its items (comboPopup of mff_lib.js) */
+.mffcombolist {position: fixed; z-index: 100000; max-height: 300px; overflow-y: auto; background: #fff; border: 1px solid #767676;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, .25); font: 8pt Tahoma, sans-serif; box-sizing: border-box;}
+.mffcomboitem {white-space: nowrap; padding: 1px 6px 1px 2px; line-height: 16px; cursor: default;}
+.mffcomboitem.mffselected {background: Highlight; color: HighlightText;}
+.mffcomboimage {display: inline-block; width: 16px; height: 16px; margin-right: 3px; vertical-align: middle;
+	background: no-repeat center / 16px 16px;}
+/* A button of a small width (the "..." of the Properties of the IDE) shows its text in the middle like on Windows */
+button {padding-left: 1px; padding-right: 1px;}
+/* The selected item of a table (tableFill, tableSelect of mff_lib.js): the cells of the row are highlighted; of the first
+   cell of a tree only the part from the picture on (not the indent and the sign of the node), and like on Windows of a
+   TreeView (table.mfftree) only the text */
+table[data-table] tr.mffselected td {background: Highlight; color: HighlightText;}
+table[data-table] tr.mffselected td.mffnode {background: transparent; color: inherit;}
+table[data-table] tr.mffselected .mffnodetext, .mffitem.mffselected .mffnodetext {background: Highlight; color: HighlightText;}
+table[data-table]:not(.mfftree) td.mffnode {overflow: hidden; padding-top: 0 !important; padding-bottom: 0 !important;}
+table[data-table]:not(.mfftree) .mffnodetext {display: inline-block;}
+table[data-table]:not(.mfftree) tr.mffselected .mffnodetext {padding-right: 1000px; margin-right: -1000px; box-shadow: 0 -6px 0 Highlight, 0 6px 0 Highlight;}
+.mffnodetext {padding: 1px 2px;}
+td.mffnode .mffitemimage {width: 16px; height: 16px; vertical-align: middle; margin-right: 0; padding-right: 2px;}
+table[data-table]:focus {outline: none;}
+/* The sign of a node with children (tableFill of mff_lib.js): the chevron of the trees of Windows, to the right when the
+   node is closed, down when it is open */
+.mfftoggle {display: inline-block; width: 16px; height: 16px; vertical-align: middle; position: relative; cursor: default;}
+.mfftoggle[data-state]::before {content: ""; position: absolute; left: 5px; top: 5px; width: 4px; height: 4px;
+	border-right: 1px solid #555; border-bottom: 1px solid #555; transform: rotate(-45deg);}
+.mfftoggle[data-state="open"]::before {left: 6px; top: 4px; transform: rotate(45deg);}
+.mfftoggle[data-state]:hover::before {border-color: #1c97ea;}
+/* TreeView: the dotted lines of the tree (treeLines of mff_lib.js) like TVS_HASLINES of Windows, they stop at the sign of
+   a node; the picture and the text of a node (tableFill of mff_lib.js) are one box of the same height on every row,
+   highlighted light blue with a border, gray without the focus */
+/* RichTextBox (RichTextBox.bas): a <div contenteditable> with the formatting of TextRTF, the frame and the scroll bars of a
+   multiline text box; the new lines of Text are kept */
+.mffrichtext {white-space: pre-wrap; overflow-wrap: break-word; overflow: auto; border: 1px solid #767676; padding: 2px; background: #fff;
+	color: #000; outline: none; cursor: text;}
+/* The dots are one pixel on, one off on the same grid of the page for all the lines (background-attachment: fixed):
+   the line of a level goes on from row to row and a horizontal line meets it without two dots side by side */
+.mfftreeline {position: absolute; width: 1px; pointer-events: none; background-attachment: fixed;
+	background-image: repeating-linear-gradient(to bottom, #a0a0a0 0, #a0a0a0 1px, transparent 1px, transparent 2px);}
+.mfftreeline.mfftreelineh {height: 1px; background-image: repeating-linear-gradient(to right, #a0a0a0 0, #a0a0a0 1px, transparent 1px, transparent 2px);}
+table.mfftree td.mffnode > * {vertical-align: middle;}
+table.mfftree .mffnodetext {display: inline-flex; align-items: center; height: 18px; box-sizing: border-box;
+	padding: 0 3px 0 1px; border: 1px solid transparent;}
+table.mfftree td.mffnode .mffitemimage {padding-right: 0; margin-right: 4px;}
+table.mfftree tr:not(.mffselected) .mffnodetext:hover {background: #e5f3ff; border-color: #e5f3ff;}
+table.mfftree tr.mffselected .mffnodetext {background: #d9d9d9; border-color: #d9d9d9; color: inherit;}
+table.mfftree:focus-within tr.mffselected .mffnodetext {background: #cce8ff; border-color: #99d1ff;}
+/* TreeView: a tree without the lines of a table (TreeView.bas) */
+table.mfftree td {border: none !important; padding-top: 1px !important; padding-bottom: 1px !important;}
+/* SearchBox (input of the type "search"): the magnifier at the left and the clear button at the right like on Windows,
+   the clear button is shown while there is text (not only under the mouse) */
+input[type="search"] {padding-left: 20px; border: 1px solid #767676; border-radius: 2px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Ccircle cx='6.5' cy='6.5' r='5' fill='none' stroke='%23ababe3' stroke-width='2'/%3E%3Ccircle cx='6.5' cy='6.5' r='5' fill='none' stroke='%235f5f5f' stroke-width='1'/%3E%3Cpath d='M10 10l5 5' stroke='%235f5f5f' stroke-width='2'/%3E%3C/svg%3E") no-repeat 3px center;}
+input[type="search"]::-webkit-search-cancel-button {-webkit-appearance: none; appearance: none; width: 12px; height: 12px; margin: 0 1px 0 4px; opacity: 1; pointer-events: auto; cursor: default;
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M2 2l8 8M10 2l-8 8' stroke='%235f5f5f' stroke-width='2'/%3E%3C/svg%3E") no-repeat center;}
+/* The tabs of TabControl (SETTABS of mff_lib.js): the selected one is joined to its page */
+.mfftab {background: #e6e6e6; color: #333; font: inherit; padding: 2px 8px; cursor: default; position: relative; top: 2px;}
+.mfftab:hover {background: #f2f2f2;}
+.mfftab.selected {background: #fff; color: #000; font-weight: bold; top: 0; padding-bottom: 4px; border-color: #888 !important; box-shadow: inset 0 2px 0 #0078d7;}
+/* The dark mode (App.DarkMode, SETPAGEDARKMODE of mff_lib.js): the controls of the browser are dark (color-scheme), the
+   colors of the inline styles of mff_lib.js are the variables here (their fallback is the light color), the rules of
+   this style sheet are overridden below */
+html.mffdark {color-scheme: dark;
+	--mff-window: #1e1e1e; --mff-text: #e0e0e0; --mff-face: #2d2d30; --mff-header: #333337; --mff-border: #555; --mff-grid: #444;
+	--mff-line: #3f3f46; --mff-gray: #a0a0a0; --mff-disabled: #6d6d6d; --mff-glyph: #c8c8c8; --mff-hover: #3e3e42; --mff-pressed: #505055;
+	--mff-hot: #094771; --mff-menu-hover: #3e3e42; --mff-frame: #3f5f86; --mff-caption: linear-gradient(#34383e, #2b2f34);
+	--mff-caption-line: #3f3f46; --mff-caption-text: #dce6f2; --mff-caption-button: #b8c4d4;}
+html.mffdark body {background: #252526; color: #e0e0e0;}
+html.mffdark a:link, html.mffdark a:visited {color: #4daafc;}
+html.mffdark .vetdialog.box {background: #252526;}
+html.mffdark .vetdialogbutton {outline-color: #555;}
+html.mffdark .vetdialogbutton:hover {background-color: #3e3e42;}
+html.mffdark .backgroundmenu {background: #2d2d30;}
+html.mffdark .mffdialog {border-color: #3f5f86;}
+html.mffdark .mffcaption {background: linear-gradient(#34383e, #2b2f34); border-color: #3f5f86; border-bottom-color: #3f3f46; color: #dce6f2;}
+html.mffdark .mffclose, html.mffdark .mffcaptionbutton {color: #b8c4d4;}
+html.mffdark .mffclose:hover {color: #fff;}
+html.mffdark .mffcaptionbutton:hover {background-color: rgba(255, 255, 255, .1);}
+html.mffdark .mffcaptionbutton:active {background-color: rgba(255, 255, 255, .2);}
+html.mffdark input.mffcombo {background: #1e1e1e url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0h8L4 5z' fill='%23c8c8c8'/%3E%3C/svg%3E") no-repeat right 5px center;}
+html.mffdark .mfftable:not([data-view="report"]) tr:hover {outline-color: #3a6ea5;}
+html.mffdark .mfffileview {background: #1e1e1e; color: #e0e0e0; border-color: #555;}
+html.mffdark .mfffileitem:hover, html.mffdark .mffviewbutton:hover {background: #2a2d2e; border-color: #2a2d2e;}
+html.mffdark .mfffileitem.mffselected {background: #3f3f46; border-color: #3f3f46;}
+html.mffdark .mfffileview:focus .mfffileitem.mffselected, html.mffdark .mffviewbutton[data-on] {background: #094771; border-color: #1c6bb0;}
+html.mffdark .mffcombolist {background: #1e1e1e; border-color: #555;}
+html.mffdark .mfftoggle[data-state]::before {border-color: #c8c8c8;}
+html.mffdark .mffrichtext {background: #1e1e1e; color: #e0e0e0; border-color: #555;}
+html.mffdark .mfftreeline {background-image: repeating-linear-gradient(to bottom, #6d6d6d 0, #6d6d6d 1px, transparent 1px, transparent 2px);}
+html.mffdark .mfftreeline.mfftreelineh {background-image: repeating-linear-gradient(to right, #6d6d6d 0, #6d6d6d 1px, transparent 1px, transparent 2px);}
+html.mffdark table.mfftree tr:not(.mffselected) .mffnodetext:hover {background: #2a2d2e; border-color: #2a2d2e;}
+html.mffdark table.mfftree tr.mffselected .mffnodetext {background: #3f3f46; border-color: #3f3f46;}
+html.mffdark table.mfftree:focus-within tr.mffselected .mffnodetext {background: #094771; border-color: #1c6bb0;}
+html.mffdark input[type="search"] {border-color: #555; background: #1e1e1e url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Ccircle cx='6.5' cy='6.5' r='5' fill='none' stroke='%23c8c8c8' stroke-width='1.5'/%3E%3Cpath d='M10 10l5 5' stroke='%23c8c8c8' stroke-width='2'/%3E%3C/svg%3E") no-repeat 3px center;}
+html.mffdark input[type="search"]::-webkit-search-cancel-button {background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M2 2l8 8M10 2l-8 8' stroke='%23c8c8c8' stroke-width='2'/%3E%3C/svg%3E") no-repeat center;}
+html.mffdark .mfftab {background: #2d2d30; color: #c8c8c8;}
+html.mffdark .mfftab:hover {background: #3e3e42;}
+html.mffdark .mfftab.selected {background: #1e1e1e; color: #fff; border-color: #555 !important;}
+html.mffdark .mffbuttons > button.mffflat:not(:disabled):hover {border-color: #6a6a6a !important; background: rgba(255, 255, 255, 0.08) !important;}
+html.mffdark .mffbuttons > button.mffflat:not(:disabled):active {background: rgba(255, 255, 255, 0.16) !important;}
+html.mffdark .mffbuttons > button.mffchecked {border-color: #3a6ea5 !important; background: rgba(0, 120, 215, 0.3) !important;}
+
     </style>
   </head>
   <body>
@@ -230,7 +420,9 @@
           return function(text) {
             if (arguments.length > 1) 
 				text = Array.prototype.slice.call(arguments).join(' ');
-			__fb_rtlib.console.write(text);
+			// a line of stdout without its "\n" (Print of a WString goes through wprintf, fb_ConsolePrintBufferWstrEx):
+			// the next line is not written after it
+			__fb_rtlib.console.write(text.replace(/\r$/, "") + "\n");
           };
         })(),
         printErr: function(text) {

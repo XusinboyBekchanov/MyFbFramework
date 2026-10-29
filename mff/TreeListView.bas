@@ -159,7 +159,7 @@ Namespace My.Sys.Forms
 				End If
 			End If
 		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
-			If Parent AndAlso Not FExpanded AndAlso QTreeListView(Parent).OnItemExpanding Then QTreeListView(Parent).OnItemExpanding(*(QTreeListView(Parent).Designer), QTreeListView(Parent), @This)
+			If Parent <> 0 AndAlso Not FExpanded AndAlso QTreeListView(Parent).OnItemExpanding <> 0 Then QTreeListView(Parent).OnItemExpanding(* (QTreeListView(Parent).Designer), QTreeListView(Parent), @This)
 		#endif
 		FExpanded = True
 		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
@@ -587,6 +587,9 @@ Namespace My.Sys.Forms
 				lvc.cx = ScaleX(FWidth)
 				ListView_SetColumn(Parent->Handle, Index, @lvc)
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'The header of the table gets the new width (the Value column of the Properties of the IDE, OnResize)
+			If Parent AndAlso Parent->Handle Then Cast(TreeListView Ptr, Parent)->UpdateColumns
 		#endif
 	End Sub
 	
@@ -962,13 +965,18 @@ Namespace My.Sys.Forms
 				If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0
 			#endif
 		End If
+		'The items of the deleted items are cleared in their destructors: the rows are updated once after all of them
+		'(the tree is not complete while they are deleted)
+		Static As Integer ClearDepth
+		ClearDepth += 1
 		For i As Integer = Count - 1 To 0 Step -1
 			If Cast(TreeListViewItem Ptr, FItems.Items[i])->FDynamic Then _Delete(Cast(TreeListViewItem Ptr, FItems.Items[i]))
 		Next i
+		ClearDepth -= 1
 		FItems.Clear
 		If ParentItem Then ParentItem->State = 0
 		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
-			If Parent Then Cast(TreeListView Ptr, Parent)->UpdateRows
+			If Parent AndAlso ClearDepth = 0 Then Cast(TreeListView Ptr, Parent)->UpdateRows
 		#endif
 	End Sub
 	
@@ -1588,14 +1596,20 @@ Namespace My.Sys.Forms
 					Dim As Boolean bChanged = (PItem <> FSelItem)
 					FSelItem = PItem
 					If OnItemClick Then OnItemClick(*Designer, This, PItem)
-					If bChanged AndAlso OnSelectedItemChanged Then OnSelectedItemChanged(*Designer, This, PItem)
-					'Web: a double click, Android: a tap opens or closes the item
+					If bChanged AndAlso OnSelectedItemChanged <> 0 Then OnSelectedItemChanged(*Designer, This, PItem)
+					'Web: a double click or a click on the sign of the item, Android: a tap opens or closes the item
 					#ifdef __USE_WASM__
-						If TableDblClick(FHandle) Then
-							If OnItemDblClick Then OnItemDblClick(*Designer, This, PItem)
+						Dim As ZString Ptr pEvent = GetAttribute(FHandle, "data-event")
+						Dim As Boolean bToggle = pEvent <> 0 AndAlso *pEvent = "toggle"
+						If pEvent Then FreePtr(pEvent)
+						If TableDblClick(FHandle) OrElse bToggle Then
+							If OnItemDblClick <> 0 AndAlso Not bToggle Then OnItemDblClick(*Designer, This, PItem)
 					#endif
 						If PItem->Nodes.Count > 0 Then
 							If PItem->IsExpanded Then PItem->Collapse Else PItem->Expand
+						#ifdef __USE_WASM__
+						ElseIf bToggle Then
+						#endif
 						ElseIf OnItemActivate Then
 							OnItemActivate(*Designer, This, PItem)
 						End If
@@ -2015,9 +2029,28 @@ Namespace My.Sys.Forms
 	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 		Private Function TreeListView.RowCells(Item As TreeListViewItem Ptr) As String
 			Dim As WString * 3 Sign = IIf(Item->Nodes.Count = 0, "  ", IIf(Item->IsExpanded, WChr(&H25BC) & " ", WChr(&H25BA) & " "))
-			Dim As String Cells = Space(Item->Indent * 4) & ToUtf8(Sign & Item->Text(0))
+			'Like on Windows the place of the sign of an item without nodes is the one of the state picture: there is no
+			'place without StateImages (the Events of the IDE)
+			If Item->Nodes.Count = 0 AndAlso StateImages = 0 Then Sign = ""
+			'Chr(9) separates the cells: a tab of a text is spaces
+			Dim As String Cells = Space(Item->Indent * 4) & Replace(ToUtf8(Sign & Item->Text(0)), Chr(9), "    ")
+			'The picture of the item by its key or its index (the resource name of the image list, ImageList.Add)
+			Dim As String ResName
+			If Images <> 0 Then
+				ResName = Item->ImageKey
+				If ResName = "" AndAlso Item->ImageIndex >= 0 AndAlso Item->ImageIndex < Images->Items.Count Then ResName = Images->Items.Item(Item->ImageIndex)->Text
+			End If
+			If ResName <> "" Then
+				#ifdef __USE_WASM__
+					'Chr(1) & URLs & Chr(1) before the text (tableFill of mff_lib.js)
+					Cells = Chr(1) & FindResourceFile(ResName) & Chr(1) & Cells
+				#else
+					'Chr(1) & path & Chr(1) after the indent and the sign (a picture in the text of the row of mffActivity)
+					Cells = Space(Item->Indent * 4) & Replace(ToUtf8(Sign), Chr(9), "    ") & Chr(1) & FindResourceFile(ResName) & Chr(1) & Replace(ToUtf8(Item->Text(0)), Chr(9), "    ")
+				#endif
+			End If
 			For i As Integer = 1 To Columns.Count - 1
-				Cells &= Chr(9) & ToUtf8(Item->Text(i))
+				Cells &= Chr(9) & Replace(ToUtf8(Item->Text(i)), Chr(9), "    ")
 			Next
 			Return Cells
 		End Function
@@ -2052,7 +2085,12 @@ Namespace My.Sys.Forms
 				Widths &= Str(Columns.Column(i)->Width)
 			Next
 			If FColumnHeaderHidden Then
-				TableSetColumns(FHandle, "", "")
+				'Android: the cells keep the widths of the columns without the header row
+				#ifdef __USE_JNI__
+					TableSetColumns(FHandle, "", Widths)
+				#else
+					TableSetColumns(FHandle, "", "")
+				#endif
 			Else
 				TableSetColumns(FHandle, Captions, Widths)
 			End If
@@ -2257,7 +2295,7 @@ Namespace My.Sys.Forms
 				WLet(FClassAncestor, WC_LISTVIEW)
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "table")
-				FElementStyle = "border: 1px solid #aaa; background: white;"
+				FElementStyle = "border: 1px solid var(--mff-border, #aaa); background: var(--mff-window, white);"
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "android/widget/ListView")
@@ -2273,7 +2311,7 @@ Namespace My.Sys.Forms
 		'Nodes.Clear
 		'Columns.Clear
 		#ifdef __USE_WINAPI__
-			UnregisterClass "TreeListView",GetModuleHandle(NULL)
+			'UnregisterClass "TreeListView",GetModuleHandle(NULL)
 		#elseif defined(__USE_GTK__)
 			If ColumnTypes Then _DeleteSquareBrackets( ColumnTypes)
 		#endif

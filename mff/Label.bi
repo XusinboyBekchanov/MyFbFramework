@@ -49,6 +49,10 @@ Namespace My.Sys.Forms
 		Declare Static Sub GraphicChange(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.GraphicType, Image As Any Ptr, ImageType As Integer)
 	Protected:
 		Declare Virtual Sub ChangeLabelStyle
+		#ifdef __USE_JNI__
+			'The gravity of the TextView: Alignment, CenterImage - in the middle of the height
+			Declare Sub SetGravity
+		#endif
 		Declare Virtual Sub CalculateSize(ByRef Size As My.Sys.Drawing.Size)
 		Declare Virtual Sub SetAutoSize
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)

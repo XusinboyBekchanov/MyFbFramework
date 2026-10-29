@@ -66,7 +66,7 @@ Namespace My.Sys.Forms
 	
 	Private Destructor UserControl
 		#ifdef __USE_WINAPI__
-			UnregisterClass "UserControl", GetModuleHandle(NULL)
+			'UnregisterClass "UserControl", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace

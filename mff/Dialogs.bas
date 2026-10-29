@@ -163,7 +163,7 @@ Private Property OpenFileDialog.Filter(ByRef Value As WString)
 	*FFilter = Value
 End Property
 
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	Private Function OpenFileDialog.Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
 		Dim As OpenFileDialog Ptr OpenDial
 		Select Case Msg
@@ -216,8 +216,33 @@ End Property
 	End Function
 #endif
 
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	'The file dialog of the Web (the virtual file system, a file of the device can be uploaded into it) or Android side.
+	'Mode: 0 - open, 1 - open several files, 2 - save, 3 - folder. Files gets the chosen paths
+	Private Function ExecuteFileDialog(ByVal Mode As Long, ByRef Caption As WString, ByRef InitialDir As WString, ByRef FileName As WString, ByRef Filter As WString, ByVal FilterIndex As Integer, ByRef Files As WStringList) As Boolean
+		Files.Clear
+		Dim As ZString Ptr pResult = ShowFileDialog(Mode, ToUtf8(Caption), ToUtf8(InitialDir), ToUtf8(FileName), ToUtf8(Filter), FilterIndex)
+		If pResult = 0 Then Return False
+		Dim As WString Ptr pText = FromUtf8(pResult)
+		Deallocate(pResult)
+		If pText = 0 Then Return False
+		'The paths are separated with Chr(10)
+		Dim As Integer Pos1 = 1, Pos2
+		Do While Pos1 <= Len(*pText)
+			Pos2 = InStr(Pos1, *pText, WChr(10))
+			If Pos2 = 0 Then Pos2 = Len(*pText) + 1
+			If Pos2 > Pos1 Then Files.Add Mid(*pText, Pos1, Pos2 - Pos1)
+			Pos1 = Pos2 + 1
+		Loop
+		WDeAllocate(pText)
+		Return Files.Count > 0
+	End Function
+#endif
+
 Private Function OpenFileDialog.Execute As Boolean
-	On Error Goto ErrorHandler
+	#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+		On Error Goto ErrorHandler
+	#endif
 	Dim bResult As Boolean
 	FileNames.Clear
 	#ifdef __USE_GTK__
@@ -278,6 +303,12 @@ Private Function OpenFileDialog.Execute As Boolean
 		#else
 			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		bResult = ExecuteFileDialog(IIf(FMultiSelect, 1, 0), *FCaption, *FInitialDir, *FFileName, *FFilter, FilterIndex, FileNames)
+		If bResult Then
+			This.FileName = FileNames.Item(0)
+			This.FileTitle = Mid(FileNames.Item(0), InStrRev(FileNames.Item(0), "/") + 1)
+		End If
 	#else
 		Dim cwsFile As WString  * (MAX_PATH +1) * 100
 		Dim dwFlags As DWORD = Cast(Integer, Options)
@@ -354,7 +385,7 @@ Private Function OpenFileDialog.Execute As Boolean
 End Function
 
 Private Constructor OpenFileDialog
-	#ifdef __USE_GTK__
+	#ifndef __USE_WINAPI__
 		
 	#else
 		Options.Include OFN_PATHMUSTEXIST
@@ -458,7 +489,7 @@ Private Property SaveFileDialog.Filter(ByRef Value As WString)
 	*FFilter = Value
 End Property
 
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	Private Function SaveFileDialog.Hook(FWindow As HWND, Msg As UINT, wParam As WPARAM, lParam As LPARAM) As UInteger
 		Static As My.Sys.Forms.Control Ptr Ctrl
 		Static As SaveFileDialog Ptr SaveDial
@@ -580,6 +611,10 @@ Private Function SaveFileDialog.Execute As Boolean
 		#else
 			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Dim As WStringList Files
+		bResult = ExecuteFileDialog(2, *FCaption, *FInitialDir, *FFileName, *FFilter, FilterIndex, Files)
+		If bResult Then This.FileName = Files.Item(0)
 	#else
 		Dim dwFlags As DWORD = Cast(Integer, Options)
 		Dim dwBufLen As DWORD
@@ -663,7 +698,7 @@ Private Constructor SaveFileDialog
 	WLet(FClassName, "SaveFileDialog")
 	Center        = True
 	'Control.Child = @This
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		Options.Include OFN_FILEMUSTEXIST
 		Options.Include OFN_PATHMUSTEXIST
 		Options.Include OFN_EXPLORER
@@ -748,6 +783,27 @@ Private Function FontDialog.Execute As Boolean
 			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif
 		Return bResult
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		'The result is "Name" & Chr(10) & Size & Chr(10) & Style (1 - bold, 2 - italic, 4 - underline, 8 - strikeout) & Chr(10) & Color
+		Dim As Long FontStyle = IIf(Font.Bold, 1, 0) Or IIf(Font.Italic, 2, 0) Or IIf(Font.Underline, 4, 0) Or IIf(Font.StrikeOut, 8, 0)
+		Dim As ZString Ptr pResult = ShowFontDialog(ToUtf8(Font.Name), Font.Size, FontStyle, Font.Color)
+		If pResult = 0 Then Return False
+		Dim As WString Ptr pText = FromUtf8(pResult)
+		Deallocate(pResult)
+		If pText = 0 Then Return False
+		Dim As Integer Pos1 = InStr(*pText, WChr(10)), Pos2 = InStr(Pos1 + 1, *pText, WChr(10)), Pos3 = InStr(Pos2 + 1, *pText, WChr(10))
+		If Pos1 > 0 AndAlso Pos2 > Pos1 AndAlso Pos3 > Pos2 Then
+			Font.Name = ..Left(*pText, Pos1 - 1)
+			Font.Size = Val(Mid(*pText, Pos1 + 1, Pos2 - Pos1 - 1))
+			FontStyle = Val(Mid(*pText, Pos2 + 1, Pos3 - Pos2 - 1))
+			Font.Bold = (FontStyle And 1) <> 0
+			Font.Italic = (FontStyle And 2) <> 0
+			Font.Underline = (FontStyle And 4) <> 0
+			Font.StrikeOut = (FontStyle And 8) <> 0
+			Font.Color = Val(Mid(*pText, Pos3 + 1))
+		End If
+		WDeAllocate(pText)
+		Return Pos3 > 0
 	#else
 		Dim As CHOOSEFONT CF
 		Dim As LOGFONT LGF
@@ -854,7 +910,7 @@ Private Property FolderBrowserDialog.Directory(ByRef Value As WString)
 	*FDirectory = Value
 End Property
 
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	Private Function FolderBrowserDialog.Hook(FWindow As HWND, uMsg As UINT, lParam As LPARAM, lpData As LPARAM) As Long
 		Dim As FolderBrowserDialog Ptr BrowseDial
 		Dim As My.Sys.Forms.Control Ptr Ctrl
@@ -907,6 +963,11 @@ Private Function FolderBrowserDialog.Execute As Boolean
 			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif
 		Return bResult
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Dim As WStringList Files
+		If ExecuteFileDialog(3, IIf(*FTitle <> "", *FTitle, *FCaption), *FInitialDir, *FDirectory, "", 1, Files) = False Then Return False
+		This.Directory = Files.Item(0)
+		Return True
 	#else
 		Dim BI    As BROWSEINFO
 		Dim pidl  As Any Ptr
@@ -990,7 +1051,7 @@ End Destructor
 	End Function
 #endif
 
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	Private Function ColorDialog.Hook(FWindow As HWND,Msg As UINT,wParam As WPARAM,lParam As LPARAM) As UInteger
 		Static As HBRUSH Brush
 		Select Case Msg
@@ -1081,6 +1142,11 @@ Private Function ColorDialog.Execute As Boolean
 			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif
 		Return bResult
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Dim As Long Result = ShowColorDialog(ToUtf8(*_Caption), This.Color)
+		If Result < 0 Then Return False
+		This.Color = Result
+		Return True
 	#else
 		Dim As CHOOSECOLOR CC
 		CC.lStructSize  = SizeOf(CC)
@@ -1112,7 +1178,7 @@ End Operator
 Private Constructor ColorDialog
 	WLet(_Caption, "Choose Color...")
 	WLet(FClassName, "ColorDialog")
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 		BackColor = GetSysColor(COLOR_BTNFACE)
 	#endif
 End Constructor

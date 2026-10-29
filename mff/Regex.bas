@@ -375,6 +375,83 @@ Namespace My.Sys.Text
 	End Function
 
 	'' -------------------------------------------------------------
+	'' Backend: Web / Android -- JavaScript RegExp (mff_lib.js) or
+	'' java.util.regex (mffActivity.java) through RegexCompile / RegexExec
+	'' of SysUtils. Offsets are UTF-8 byte offsets, like the GRegex backend.
+	'' -------------------------------------------------------------
+#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+
+	Private Sub Regex.FreeCompiled()
+		If _Compiled <> NULL Then
+			RegexFree(CLng(CInt(_Compiled)))
+			_Compiled = NULL
+		End If
+	End Sub
+
+	Private Sub Regex.Compile()
+		FreeCompiled()
+
+		Dim As Long flags = 0
+		If (_Options And reIgnoreCase)    Then flags Or= 1
+		If (_Options And reMultiline)     Then flags Or= 2
+		If (_Options And reDotMatchesAll) Then flags Or= 4
+		If (_Options And reExtended)      Then flags Or= 8
+
+		Dim As Long Id = RegexCompile(ToUtf8(_Pattern), flags)
+		If Id = 0 Then
+			_Valid = False
+			Dim As ZString Ptr Msg = RegexError()
+			If Msg Then
+				_LastError = "Regex compile error: " & *Msg
+				Deallocate(Msg)
+			Else
+				_LastError = "Regex compile error (unknown)"
+			End If
+		Else
+			_Compiled = Cast(Any Ptr, CInt(Id))
+			_Valid = True
+			_LastError = ""
+		End If
+	End Sub
+
+	Private Function Regex.EngineFindNext(ByRef Text As Const WString, ByVal StartAt As Integer, ByRef OutMatch As RegexMatch) As Boolean
+		OutMatch.Success = False
+		If _Valid = False OrElse _Compiled = NULL Then Return False
+
+		Dim As String subj8 = ToUtf8(*Cast(WString Ptr, @Text))
+		Dim As Long byteStart = CharIndexToUtf8ByteOffset(Text, StartAt)
+
+		'' Start and end byte offset of each group, -1 for a group that did not take part
+		Const MaxGroups = 64
+		Dim As Long Offsets(0 To MaxGroups * 2 - 1)
+		Dim As Long groupCount = RegexExec(CLng(CInt(_Compiled)), subj8, byteStart, @Offsets(0), MaxGroups)
+		If groupCount < 1 Then Return False
+
+		ReDim OutMatch.Groups(0 To groupCount - 1)
+
+		For i As Integer = 0 To groupCount - 1
+			Dim As Long sOff = Offsets(2 * i), eOff = Offsets(2 * i + 1)
+			If sOff < 0 Then
+				OutMatch.Groups(i).Index  = -1
+				OutMatch.Groups(i).Length = -1
+				OutMatch.Groups(i).Value  = ""
+			Else
+				Dim As Integer cStart = Utf8ByteLenToCharIndex(subj8, sOff)
+				Dim As Integer cEnd   = Utf8ByteLenToCharIndex(subj8, eOff)
+				OutMatch.Groups(i).Index  = cStart
+				OutMatch.Groups(i).Length = cEnd - cStart
+				OutMatch.Groups(i).Value  = Mid(Text, cStart + 1, cEnd - cStart)
+			End If
+		Next
+
+		OutMatch.Success = True
+		OutMatch.Value  = OutMatch.Groups(0).Value
+		OutMatch.Index  = OutMatch.Groups(0).Index
+		OutMatch.Length = OutMatch.Groups(0).Length
+		Return True
+	End Function
+
+	'' -------------------------------------------------------------
 	'' Backend: Linux native -- GLib's GRegex (mff already links GTK/GLib
 	'' on Linux via __USE_GTK__, so this adds no new dependency there).
 	'' -------------------------------------------------------------
