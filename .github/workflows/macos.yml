@@ -1,7 +1,8 @@
 name: macos
 
 # The macOS version (AppKit, -d __USE_COCOA__): the C code of the examples is made by fbc on Linux, the Mac builds it
-# with the host mff/Cocoa/mffCocoa.m, runs it and saves its windows (MFF_SNAPSHOT) as the artifact "macos-snapshots"
+# with the host mff/Cocoa/mffCocoa.m, runs it and saves its windows (MFF_SNAPSHOT) as the artifact "macos-snapshots".
+# The errors of a step are shown as annotations too (their text can be read without signing in)
 on:
   workflow_dispatch:
   push:
@@ -19,21 +20,26 @@ jobs:
 
       - name: Install FreeBASIC 1.10.1
         run: |
-          wget -q -O fb.tar.xz "https://sourceforge.net/projects/fbc/files/FreeBASIC-1.10.1/Binaries-Linux/FreeBASIC-1.10.1-ubuntu-22.04-x86_64.tar.xz/download"
+          set -e
+          wget -q -O fb.tar.xz "https://downloads.sourceforge.net/project/fbc/FreeBASIC-1.10.1/Binaries-Linux/FreeBASIC-1.10.1-ubuntu-22.04-x86_64.tar.xz"
           tar xf fb.tar.xz
           cd FreeBASIC-1.10.1-ubuntu-22.04-x86_64 && sudo ./install.sh -i
+          fbc -version
 
-      # fbc 1.10.1 has no headers of the C runtime of macOS on arm64: fbc of the sources of FreeBASIC has them
-      - name: Build fbc
-        run: |
-          git clone --depth 1 https://github.com/freebasic/fbc.git "$RUNNER_TEMP/fbc"
-          make -C "$RUNNER_TEMP/fbc" compiler -j4
+      # fbc 1.10.1 makes the C code for darwin-aarch64, the headers of the C runtime of macOS on arm64 are the ones
+      # of the sources of FreeBASIC
+      - name: Headers of fbc
+        run: git clone --depth 1 https://github.com/freebasic/fbc.git "$RUNNER_TEMP/fbc"
 
       - name: C code for macOS
         run: |
           mkdir -p build
           for f in examples/Hello.bas examples/WebAndroid/ControlsDemo.bas; do
-            "$RUNNER_TEMP/fbc/bin/fbc" -target darwin-aarch64 -gen gcc -r -d __USE_COCOA__ -i . "$f"
+            if ! fbc -target darwin-aarch64 -gen gcc -r -d __USE_COCOA__ -i "$RUNNER_TEMP/fbc/inc" -i . "$f" > fbc.log 2>&1; then
+              cat fbc.log
+              grep -v "warning" fbc.log | head -n 20 | sed 's/^/::error::/'
+              exit 1
+            fi
             mv "${f%.bas}.c" build/
           done
 
@@ -57,19 +63,30 @@ jobs:
       - name: Build the runtime of FreeBASIC
         run: |
           git clone --depth 1 https://github.com/freebasic/fbc.git "$RUNNER_TEMP/fbc"
-          make -C "$RUNNER_TEMP/fbc" rtlib -j4
+          if ! make -C "$RUNNER_TEMP/fbc" rtlib -j4 > make.log 2>&1; then
+            cat make.log
+            grep -i "error" make.log | head -n 20 | sed 's/^/::error::/'
+            exit 1
+          fi
           ls "$RUNNER_TEMP"/fbc/lib/freebasic/*
 
       - name: Build
         run: |
-          sh mff/Cocoa/build.sh build/Hello.c build/Hello "$RUNNER_TEMP/fbc"
-          sh mff/Cocoa/build.sh build/ControlsDemo.c build/ControlsDemo "$RUNNER_TEMP/fbc"
+          for p in Hello ControlsDemo; do
+            if ! sh mff/Cocoa/build.sh build/$p.c build/$p "$RUNNER_TEMP/fbc" > build.log 2>&1; then
+              cat build.log
+              grep -E "error|Undefined|undefined|ld:" build.log | head -n 30 | sed 's/^/::error::/'
+              exit 1
+            fi
+          done
 
-      # The windows are saved after 2 seconds; Hello clicks its button then and saves the message box too
+      # The windows are saved after 2 seconds; the button is clicked then and the windows (a message box too) are
+      # saved again
       - name: Run
         run: |
-          MFF_SNAPSHOT=build/Hello MFF_CLICK="Click me!" ./build/Hello
-          MFF_SNAPSHOT=build/ControlsDemo MFF_CLICK="Ичидаги тугма" ./build/ControlsDemo
+          MFF_SNAPSHOT=build/Hello MFF_CLICK="Click me!" ./build/Hello > run.log 2>&1 || { cat run.log; sed 's/^/::error::/' run.log | head -n 20; exit 1; }
+          MFF_SNAPSHOT=build/ControlsDemo MFF_CLICK="Ичидаги тугма" ./build/ControlsDemo > run.log 2>&1 || { cat run.log; sed 's/^/::error::/' run.log | head -n 20; exit 1; }
+          ls build/*.png | sed 's/^/::notice::/'
 
       - uses: actions/upload-artifact@v4
         if: always()
