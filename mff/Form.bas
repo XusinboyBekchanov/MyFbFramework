@@ -459,6 +459,8 @@ Namespace My.Sys.Forms
 		#ifdef __USE_JNI__
 			'None: without the action bar (the main form, a form in its own activity); a dialog form is shown by the next Show
 			ApplyAndroidStyle
+		#elseif defined(__USE_APPLE__)
+			If FHandle Then mffFormSetBorder(FHandle, Value)
 		#endif
 		#ifdef __USE_GTK__
 			Select Case Value
@@ -763,6 +765,15 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property Form.WindowState(Value As WindowStates)
+		#ifdef __USE_APPLE__
+			If Value = WindowStates.wsHide Then
+				Hide
+			Else
+				FWindowState = Value
+				If FHandle Then mffFormSetState(FHandle, IIf(Value = WindowStates.wsMinimized, 1, IIf(Value = WindowStates.wsMaximized, 2, 0)))
+			End If
+			Exit Property
+		#endif
 		#ifdef __USE_WASM__
 			'Web: a form with a title bar fills the page (maximized), only its title bar stays at the bottom left of the
 			'page (minimized), it gets its bounds back (normal); the main form is the page
@@ -1946,6 +1957,15 @@ Namespace My.Sys.Forms
 				'A hidden form (Hide, CloseForm with Action 3) is shown again
 				SetVisible(FHandle, True)
 			End If
+		#elseif defined(__USE_APPLE__)
+			'The window is made with the views of the controls (CreateWnd), then it is shown (ShowModal waits after OnShow)
+			If FHandle = 0 Then CreateWnd
+			If FHandle = 0 Then Exit Sub
+			FVisible = True
+			mffFormSetBorder(FHandle, FBorderStyle)
+			If FWindowState = WindowStates.wsMinimized OrElse FWindowState = WindowStates.wsMaximized Then mffFormSetState(FHandle, IIf(FWindowState = WindowStates.wsMinimized, 1, 2))
+			mffFormShow(FHandle, 0)
+			RequestAlign
 		#elseif defined(__USE_JNI__)
 			'A Form which is not the Activity is a layout (a second form, the form of the designer of the IDE): it was made
 			'hidden (View.GONE) and is shown like a control (View.VISIBLE)
@@ -2141,6 +2161,12 @@ Namespace My.Sys.Forms
 				This.Show
 				If FHandle <> 0 AndAlso FVisible Then FormModalWait(FHandle)
 				FInShowModal = False
+			#elseif defined(__USE_APPLE__)
+				'The host runs a modal loop for the shown window until Hide (CloseForm) of the form
+				InShowModal = True
+				This.Show
+				If FHandle <> 0 AndAlso FVisible Then mffFormShow(FHandle, 1)
+				InShowModal = False
 			#endif
 			Function = ModalResult
 		End Function
@@ -2185,6 +2211,13 @@ Namespace My.Sys.Forms
 				FormTitleBar(FHandle, ToUtf8(*FText), 0)
 				FormActivityHide(FHandle)
 				If FInShowModal Then FormModalEnd(FHandle)
+			End If
+		#elseif defined(__USE_APPLE__)
+			'The window is hidden (a waiting ShowModal returns)
+			If FHandle AndAlso FVisible Then
+				If OnHide Then OnHide(*Designer, This)
+				FVisible = False
+				mffFormHide(FHandle)
 			End If
 		#endif
 	End Sub
@@ -2291,6 +2324,25 @@ Namespace My.Sys.Forms
 			Dim As Integer Action = 1
 			If OnClose Then OnClose(*Designer, This, Action)
 			If Action <> 0 Then Hide
+		#elseif defined(__USE_APPLE__)
+			'Action: 0 - the form stays, 1 - it is closed (the main form ends the program), 2 - minimized, 3 - hidden
+			If FDesignMode Then Exit Sub
+			Dim As Integer Action = 1
+			If OnClose Then OnClose(*Designer, This, Action)
+			Select Case Action
+			Case 0
+			Case 1
+				If FMainForm Then
+					Hide
+					mffAppTerminate()
+				Else
+					Hide
+				End If
+			Case 2
+				WindowState = WindowStates.wsMinimized
+			Case 3
+				Hide
+			End Select
 		#endif
 	End Sub
 	
@@ -2408,6 +2460,13 @@ Namespace My.Sys.Forms
 		End With
 	End Sub
 	
+	#ifdef __USE_APPLE__
+		'The close button of the window (mffOnClose of Control.bas)
+		Private Sub FormAppleClose(Ctrl As Any Ptr)
+			If Ctrl Then Cast(Form Ptr, Ctrl)->CloseForm
+		End Sub
+	#endif
+	
 	Private Constructor Form
 		#ifdef __USE_GTK__
 			ImageWidget = gtk_image_new()
@@ -2454,6 +2513,8 @@ Namespace My.Sys.Forms
 			xdpi = 0
 			ydpi = 0
 			This.RegisterClass "Form"
+		#elseif defined(__USE_APPLE__)
+			FormCloseProc = @FormAppleClose
 		#endif
 		Text = "Form"
 		FBorderStyle   = 3

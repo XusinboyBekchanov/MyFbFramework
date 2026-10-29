@@ -49,7 +49,7 @@ Namespace My.Sys.Forms
 		FNewIndex         As Integer
 		FSelected         As Boolean
 		Declare Virtual Sub UpdateListHeight
-		#if defined(__USE_WINAPI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WINAPI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
 		#ifdef __USE_WINAPI__

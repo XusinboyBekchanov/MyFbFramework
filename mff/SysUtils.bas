@@ -1144,6 +1144,63 @@ End Namespace
 	End Sub
 #endif
 
+#ifdef __USE_APPLE__
+	Sub mffReadViewText(Id As Any Ptr, ByRef Value As WString Ptr)
+		Dim As ZString Ptr pUtf8 = IIf(Id, mffViewGetText(Id), 0)
+		If pUtf8 = 0 Then
+			WLet(Value, "")
+			Return
+		End If
+		Dim As WString Ptr pWide = FromUtf8(pUtf8)
+		Deallocate(pUtf8)
+		If pWide = 0 Then
+			WLet(Value, "")
+		Else
+			WLet(Value, *pWide)
+			WDeAllocate(pWide)
+		End If
+	End Sub
+	
+	Sub ListInit(Id As Any Ptr)
+	End Sub
+	
+	Sub AddSelectItem(Id As Any Ptr, Text As String)
+		If Id Then mffListInsert(Id, -1, Text)
+	End Sub
+	
+	Sub InsertSelectItem(Id As Any Ptr, ByVal Index As Integer, Text As String)
+		If Id Then mffListInsert(Id, Index, Text)
+	End Sub
+	
+	Sub RemoveSelectItem(Id As Any Ptr, ByVal Index As Integer)
+		If Id Then mffListRemove(Id, Index)
+	End Sub
+	
+	Sub ClearSelectItems(Id As Any Ptr)
+		If Id Then mffListClear(Id)
+	End Sub
+	
+	Function GetSelectedIndex(Id As Any Ptr) As Integer
+		Return IIf(Id, mffListGetIndex(Id), -1)
+	End Function
+	
+	Sub SetSelectedIndex(Id As Any Ptr, Value As Integer)
+		If Id Then mffListSetIndex(Id, Value)
+	End Sub
+	
+	Sub SetRange(Id As Any Ptr, ByVal MinValue As Integer, ByVal MaxValue As Integer)
+		If Id Then mffRangeSet(Id, MinValue, MaxValue)
+	End Sub
+	
+	Sub SetPosition(Id As Any Ptr, ByVal Value As Integer)
+		If Id Then mffPositionSet(Id, Value)
+	End Sub
+	
+	Function GetPosition(Id As Any Ptr) As Integer
+		Return IIf(Id, mffPositionGet(Id), 0)
+	End Function
+#endif
+
 '#ifdef GetMN
 Private Function GetMessageName(Message As Integer) As String
 	Select Case Message

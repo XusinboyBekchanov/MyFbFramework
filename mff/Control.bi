@@ -447,7 +447,7 @@ Namespace My.Sys.Forms
 			FAnchoredBottom As Integer
 			FAnchoredParentWidth As Integer
 			FAnchoredParentHeight As Integer
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				FPainting As Boolean
 			#endif
 			#ifdef __USE_WASM__
@@ -456,7 +456,7 @@ Namespace My.Sys.Forms
 				FElementHeight As Integer = -1
 			#endif
 		Protected:
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				'The control gets the CM_MOUSE* messages (and CM_MOUSEWHEEL) also without OnMouse* events (Chart)
 				FMouseEvents As Boolean
 				'The control gets the CM_KEYDOWN, CM_KEYUP, CM_CHAR, CM_SETFOCUS and CM_KILLFOCUS messages also without
@@ -772,8 +772,8 @@ Namespace My.Sys.Forms
 			Declare Sub Invalidate(ByVal iRect As Any Ptr = 0, ByVal bErase As Boolean = True)
 			'Forces the control to invalidate its client area and immediately redraw itself and any child controls (Windows, Linux).
 			Declare Sub Repaint
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
-				'Paints the canvas of the control now (Web, Android): sends CM_PAINT and raises OnPaint
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+				'Paints the canvas of the control now (Web, Android, macOS, iOS): sends CM_PAINT and raises OnPaint
 				Declare Sub PaintCanvas()
 			#endif
 			'Causes the control to redraw the invalidated regions within its client area (Windows, Linux).
@@ -915,7 +915,7 @@ End Namespace
 	Declare Sub ControlFreeWnd Alias "ControlFreeWnd"(Ctrl As My.Sys.Forms.Control Ptr)
 #endif
 
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	'All the messages of the Web/Android side go to the controls through DispatchControlMessage. A program can watch
 	'them before the control (VisualFBEditor: the designer): ControlMessageHook returns True if it handled the message
 	Dim Shared ControlMessageHook As Function(ByVal Ctrl As My.Sys.Forms.Control Ptr, ByRef msg As Message) As Boolean

@@ -1,0 +1,79 @@
+name: macos
+
+# The macOS version (AppKit, -d __USE_COCOA__): the C code of the examples is made by fbc on Linux, the Mac builds it
+# with the host mff/Cocoa/mffCocoa.m, runs it and saves its windows (MFF_SNAPSHOT) as the artifact "macos-snapshots"
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'mff/**'
+      - 'examples/Hello.bas'
+      - 'examples/WebAndroid/ControlsDemo.bas'
+      - '.github/workflows/macos.yml'
+
+jobs:
+  c-code:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install FreeBASIC 1.10.1
+        run: |
+          wget -q -O fb.tar.xz "https://sourceforge.net/projects/fbc/files/FreeBASIC-1.10.1/Binaries-Linux/FreeBASIC-1.10.1-ubuntu-22.04-x86_64.tar.xz/download"
+          tar xf fb.tar.xz
+          cd FreeBASIC-1.10.1-ubuntu-22.04-x86_64 && sudo ./install.sh -i
+
+      # fbc 1.10.1 has no headers of the C runtime of macOS on arm64: fbc of the sources of FreeBASIC has them
+      - name: Build fbc
+        run: |
+          git clone --depth 1 https://github.com/freebasic/fbc.git "$RUNNER_TEMP/fbc"
+          make -C "$RUNNER_TEMP/fbc" compiler -j4
+
+      - name: C code for macOS
+        run: |
+          mkdir -p build
+          for f in examples/Hello.bas examples/WebAndroid/ControlsDemo.bas; do
+            "$RUNNER_TEMP/fbc/bin/fbc" -target darwin-aarch64 -gen gcc -r -d __USE_COCOA__ -i . "$f"
+            mv "${f%.bas}.c" build/
+          done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-c-code
+          path: build
+          retention-days: 3
+
+  macos:
+    needs: c-code
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: macos-c-code
+          path: build
+
+      - name: Build the runtime of FreeBASIC
+        run: |
+          git clone --depth 1 https://github.com/freebasic/fbc.git "$RUNNER_TEMP/fbc"
+          make -C "$RUNNER_TEMP/fbc" rtlib -j4
+          ls "$RUNNER_TEMP"/fbc/lib/freebasic/*
+
+      - name: Build
+        run: |
+          sh mff/Cocoa/build.sh build/Hello.c build/Hello "$RUNNER_TEMP/fbc"
+          sh mff/Cocoa/build.sh build/ControlsDemo.c build/ControlsDemo "$RUNNER_TEMP/fbc"
+
+      # The windows are saved after 2 seconds; Hello clicks its button then and saves the message box too
+      - name: Run
+        run: |
+          MFF_SNAPSHOT=build/Hello MFF_CLICK="Click me!" ./build/Hello
+          MFF_SNAPSHOT=build/ControlsDemo MFF_CLICK="Ичидаги тугма" ./build/ControlsDemo
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: macos-snapshots
+          path: build/*.png
+          retention-days: 3

@@ -229,6 +229,9 @@ Namespace My.Sys.Forms
 					'.mffcombo of mff.html: the arrow of the list
 					FClass = IIf(FStyle <= cbDropDown, "mffcombo", "")
 				End If
+			#elseif defined(__USE_APPLE__)
+				'With an edit box (cbSimple, cbDropDown) NSComboBox / a text field with a list, without it a pop-up button
+				If *FClassName = "ComboBoxEdit" Then WLet(FClassAncestor, IIf(FStyle <= cbDropDown, "mff:ComboBox", ""))
 			#endif
 		End If
 	End Property
@@ -291,7 +294,7 @@ Namespace My.Sys.Forms
 			If widget Then FItemIndex = gtk_combo_box_get_active (GTK_COMBO_BOX(widget))
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then FItemIndex = Perform(CB_GETCURSEL, 0, 0)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then FItemIndex = GetSelectedIndex(FHandle)
 		#endif
 		Return FItemIndex
@@ -304,7 +307,7 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(CB_SETCURSEL, FItemIndex, 0)
 			If OnChange Then OnChange(*Designer, This)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then
 				SetSelectedIndex(FHandle, Value)
 				If OnChange Then OnChange(*Designer, This)
@@ -325,6 +328,8 @@ Namespace My.Sys.Forms
 			#elseif defined(__USE_WASM__)
 				'The text typed in the edit box
 				If FHandle Then ReadElementValue(FHandle, FText)
+			#elseif defined(__USE_APPLE__)
+				If FHandle Then mffReadViewText(FHandle, FText)
 			#else
 				'If This.ItemIndex > -1 Then
 				'	FText = This.Item(This.ItemIndex)
@@ -365,6 +370,10 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WASM__)
 			If FHandle Then
 				If FStyle <= cbDropDown Then SetStringValue(FHandle, ToUtf8(*FText)) Else SetSelectedIndex(FHandle, IndexOf(*FText))
+			End If
+		#elseif defined(__USE_APPLE__)
+			If FHandle Then
+				If FStyle <= cbDropDown Then mffViewSetText(FHandle, ToUtf8(*FText)) Else SetSelectedIndex(FHandle, IndexOf(*FText))
 			End If
 		#endif
 	End Property
@@ -453,7 +462,7 @@ Namespace My.Sys.Forms
 				Perform(CB_ADDSTRING, 0, CInt(@FItem))
 				UpdateListHeight
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then InsertSelectItem(FHandle, FNewIndex, ToUtf8(FItem))
 		#endif
 	End Sub
@@ -469,7 +478,7 @@ Namespace My.Sys.Forms
 				Perform(CB_DELETESTRING, FIndex, 0)
 				UpdateListHeight
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then RemoveSelectItem(FHandle, FIndex)
 		#endif
 	End Sub
@@ -488,7 +497,7 @@ Namespace My.Sys.Forms
 				Perform(CB_INSERTSTRING, FIndex, CInt(@FItem))
 				UpdateListHeight
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then InsertSelectItem(FHandle, FIndex, ToUtf8(FItem))
 		#endif
 	End Sub
@@ -534,7 +543,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	#if defined(__USE_WINAPI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WINAPI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Sub ComboBoxEdit.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QComboBoxEdit(Sender.Child)
@@ -545,7 +554,7 @@ Namespace My.Sys.Forms
 							Next
 						End If
 					#endif
-					#ifdef __USE_JNI__
+					#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 						ListInit(.FHandle)
 						For i As Integer = 0 To .Items.Count - 1
 							AddSelectItem(.FHandle, ToUtf8(.Items.Item(i)))
@@ -661,10 +670,10 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub ComboBoxEdit.ProcessMessage(ByRef Message As Message)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Message.Msg = CM_CHANGE Then
 				Dim As Boolean IsTextBox
-				#ifdef __USE_JNI__
+				#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					FItemIndex = Message.wParam
 					IsTextBox = FStyle <= cbDropDown
 				#else
@@ -827,7 +836,7 @@ Namespace My.Sys.Forms
 			#endif
 		#elseif defined(__USE_WINAPI__)
 			Perform(CB_RESETCONTENT, 0, 0)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then ClearSelectItems(FHandle)
 		#endif
 	End Sub
@@ -955,6 +964,9 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "android/widget/Spinner")
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_APPLE__)
+				WLet(FClassAncestor, IIf(FStyle <= cbDropDown, "mff:ComboBox", ""))
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.Width          = 121

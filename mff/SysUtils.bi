@@ -17,6 +17,13 @@
 	#ifndef __USE_WASM__
 		#define __USE_WASM__
 	#endif
+#elseif defined(__USE_COCOA__) OrElse defined(__USE_UIKIT__)
+	'macOS (AppKit, -d __USE_COCOA__) and iOS (UIKit, -d __USE_UIKIT__): the views are made by the Objective-C host
+	'(mff/Cocoa/mffCocoa.m, mff/UIKit/mffUIKit.m), which the program is linked with.
+	'__USE_APPLE__ marks the code which both of them share (the C functions of the host, mff/Apple/mffApple.h)
+	#ifndef __USE_APPLE__
+		#define __USE_APPLE__
+	#endif
 #elseif Not defined(__USE_WASM__)
 	#if Not defined(__FB_WIN32__)
 		#ifndef __USE_GTK__
@@ -72,6 +79,10 @@
 	#include once "jni.bi"
 	#define max(a, b) IIf((a) > (b), (a), (b))
 	#define min(a, b) IIf((a) < (b), (a), (b))
+#elseif defined(__USE_APPLE__)
+	#define Max(a, b) IIf((a) > (b), (a), (b))
+	#define Min(a, b) IIf((a) < (b), (a), (b))
+	#include once "Apple/mffApple.bi"
 #elseif defined(__USE_WASM__)
 	#define Max(a, b) IIf((a) > (b), (a), (b))
 	#define Min(a, b) IIf((a) < (b), (a), (b))
@@ -252,6 +263,22 @@
 #endif
 #include once "UString.bi"
 #include once "Integer.bi"
+#ifdef __USE_APPLE__
+	'The text of the view (mffViewGetText) into Value
+	Declare Sub mffReadViewText(Id As Any Ptr, ByRef Value As WString Ptr)
+	'The items of the lists (ListControl, ComboBoxEdit) with the names of the Web and Android versions
+	Declare Sub ListInit(Id As Any Ptr)
+	Declare Sub AddSelectItem(Id As Any Ptr, Text As String)
+	Declare Sub InsertSelectItem(Id As Any Ptr, ByVal Index As Integer, Text As String)
+	Declare Sub RemoveSelectItem(Id As Any Ptr, ByVal Index As Integer)
+	Declare Sub ClearSelectItems(Id As Any Ptr)
+	Declare Function GetSelectedIndex(Id As Any Ptr) As Integer
+	Declare Sub SetSelectedIndex(Id As Any Ptr, Value As Integer)
+	'The range and the position of a TrackBar with the names of the Web and Android versions
+	Declare Sub SetRange(Id As Any Ptr, ByVal MinValue As Integer, ByVal MaxValue As Integer)
+	Declare Sub SetPosition(Id As Any Ptr, ByVal Value As Integer)
+	Declare Function GetPosition(Id As Any Ptr) As Integer
+#endif
 #ifdef __USE_WASM__
 	Declare Function SendHTTPRequest(url As String, method As String, data As String) As ZString Ptr
 	Declare Function HtmlEscape(ByVal Value As WString Ptr) As UString
@@ -302,8 +329,8 @@ Const HELP_SETPOPUP_POS = &Hd
 
 '#DEFINE __AUTOMATE_CREATE_CHILDS__
 
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
-	'Messages sent from the Web/Android side to Control.ProcessMessage
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+	'Messages sent from the Web/Android/Apple side to Control.ProcessMessage
 	#define CM_CHANGE      40030
 	#define CM_CLICK       40031
 	'The control paints its canvas (Control.PaintCanvas): OnPaint and the drawing of the control
@@ -335,6 +362,8 @@ Const HELP_SETPOPUP_POS = &Hd
 	#define MffPoint(x, y) ((CLng(y) Shl 16) Or (CLng(x) And &hFFFF))
 	#define MffPointX(lParam) CShort((lParam) And &hFFFF)
 	#define MffPointY(lParam) CShort(((lParam) Shr 16) And &hFFFF)
+#endif
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 	'Regular expressions of Regex.bas: JavaScript RegExp on the Web, java.util.regex on Android.
 	'Flags: 1 - ignore case, 2 - multiline, 4 - dot matches all, 8 - extended. Returns the id of the pattern, 0 on an error
 	Declare Function RegexCompile(Pattern As String, ByVal Flags As Long) As Long

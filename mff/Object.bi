@@ -27,6 +27,9 @@ Namespace My.Sys
 			layoutwidget    As GtkWidget Ptr
 		#elseif defined(__USE_JNI__)
 			layoutview      As jobject
+		#elseif defined(__USE_APPLE__)
+			'The view which hosts the child controls (the content view of a window, of an NSBox, ...)
+			layoutview      As Any Ptr
 		#elseif defined(__USE_WINAPI__)
 			Accelerator        As HACCEL
 		#endif

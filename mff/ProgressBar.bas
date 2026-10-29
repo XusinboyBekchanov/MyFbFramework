@@ -58,6 +58,8 @@ Namespace My.Sys.Forms
 		If (FMinValue <> AMin) Or (FMaxValue <> AMax) Then
 			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 				If FHandle Then ..SetRange(FHandle, AMin, AMax)
+			#elseif defined(__USE_APPLE__)
+				If FHandle Then mffRangeSet(FHandle, AMin, AMax)
 			#elseif defined(__USE_WINAPI__)
 				If Handle Then
 					If FMode32 Then
@@ -140,6 +142,8 @@ Namespace My.Sys.Forms
 			FPosition = FMinValue + (FMaxValue - FMinValue) * gtk_progress_bar_get_fraction(gtk_progress_bar(widget))
 		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 			If FHandle Then FPosition = GetPosition(FHandle)
+		#elseif defined(__USE_APPLE__)
+			If FHandle Then FPosition = mffPositionGet(FHandle)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then
 				If FMode32 Then
@@ -161,6 +165,8 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 			If FHandle Then SetPosition(FHandle, Value)
+		#elseif defined(__USE_APPLE__)
+			If FHandle Then mffPositionSet(FHandle, Value)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(PBM_SETPOS, Value, 0)
 		#endif
@@ -255,7 +261,10 @@ Namespace My.Sys.Forms
 		Private Sub ProgressBar.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With  QProgressBar(Sender.Child)
-					#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+					#ifdef __USE_APPLE__
+						mffRangeSet(.FHandle, .FMinValue, .FMaxValue)
+						mffPositionSet(.FHandle, .FPosition)
+					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 						..SetRange(.FHandle, .FMinValue, .FMaxValue)
 						SetPosition(.FHandle, .FPosition)
 						#ifdef __USE_WASM__
@@ -353,7 +362,7 @@ Namespace My.Sys.Forms
 			Else
 				Position = Position + FStep
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Position = Min(Position + FStep, FMaxValue)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(PBM_STEPIT, 0, 0)
@@ -367,7 +376,7 @@ Namespace My.Sys.Forms
 			Else
 				Position = Position + Delta
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Position = Max(Min(Position + Delta, FMaxValue), FMinValue)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then  Perform(PBM_DELTAPOS, Delta, 0)
@@ -381,7 +390,7 @@ Namespace My.Sys.Forms
 	Private Constructor ProgressBar
 		#ifdef __USE_GTK__
 			widget = gtk_progress_bar_new()
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			FMode32 = True
 		#else
 			Dim As INITCOMMONCONTROLSEX ICC
@@ -407,6 +416,9 @@ Namespace My.Sys.Forms
 				.Height            = 17
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "mff:ProgressBar")
+				.OnHandleIsAllocated = @HandleIsAllocated
+				.Height            = 17
+			#elseif defined(__USE_APPLE__)
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.Height            = 17
 			#elseif Not defined(__USE_GTK__)

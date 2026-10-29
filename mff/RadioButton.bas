@@ -142,6 +142,8 @@ Namespace My.Sys.Forms
 				FChecked = (*env)->CallBooleanMethod(env, FHandle, GetMethodID(*FClassAncestor, "isChecked", "()Z"))
 			#elseif defined(__USE_WASM__)
 				FChecked = GetChecked(Trim(Str(FHandle)) & "radio")
+			#elseif defined(__USE_APPLE__)
+				FChecked = mffViewGetChecked(FHandle) <> 0
 			#endif
 		End If
 		Return FChecked
@@ -180,6 +182,15 @@ Namespace My.Sys.Forms
 				End If
 			#elseif defined(__USE_WASM__)
 				SetChecked(Trim(Str(FHandle)) & "radio", Value)
+			#elseif defined(__USE_APPLE__)
+				mffViewSetChecked(FHandle, IIf(Value, 1, 0))
+				If FChecked AndAlso FParent <> 0 Then
+					For i As Integer = 0 To This.Parent->ControlCount - 1
+						If This.Parent->Controls[i] <> @This AndAlso *This.Parent->Controls[i] Is RadioButton Then
+							Cast(RadioButton Ptr, This.Parent->Controls[i])->Checked = False
+						End If
+					Next
+				End If
 			#endif
 		End If
 	End Property
@@ -200,6 +211,11 @@ Namespace My.Sys.Forms
 			With QRadioButton(@Sender)
 				If .FChecked Then SetChecked(Trim(Str(.FHandle)) & "radio", True)
 			End With
+		#elseif defined(__USE_APPLE__)
+			'Checked set before the view (a form before Show)
+			With QRadioButton(@Sender)
+				If .FChecked Then mffViewSetChecked(.FHandle, 1)
+			End With
 		#endif
 	End Sub
 	
@@ -219,6 +235,14 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub RadioButton.ProcessMessage(ByRef Message As Message)
+		#ifdef __USE_APPLE__
+			'The radio buttons of the same parent are a group (the other ones are unchecked by Checked)
+			If Message.Msg = CM_CLICK Then
+				Checked = True
+				If OnClick Then OnClick(*Designer, This)
+				Message.Handled = True
+			End If
+		#endif
 		#ifdef __USE_JNI__
 			If Message.Msg = CM_CLICK Then
 				Checked = True

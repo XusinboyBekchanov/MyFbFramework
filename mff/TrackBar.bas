@@ -88,7 +88,7 @@ Namespace My.Sys.Forms
 		If APosition > AMax Then APosition = AMax
 		If FMinValue <> AMin Then
 			FMinValue = AMin
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				If FHandle Then ..SetRange(FHandle, FMinValue, FMaxValue)
 			#elseif defined(__USE_WINAPI__)
 				If Handle Then Perform(TBM_SETRANGEMIN, 1, AMin)
@@ -96,7 +96,7 @@ Namespace My.Sys.Forms
 		End If
 		If FMaxValue <> AMax Then
 			FMaxValue = AMax
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				If FHandle Then ..SetRange(FHandle, FMinValue, FMaxValue)
 			#elseif defined(__USE_WINAPI__)
 				If Handle Then Perform(TBM_SETRANGEMAX, 1, AMax)
@@ -104,7 +104,7 @@ Namespace My.Sys.Forms
 		End If
 		If FPosition <> APosition Then
 			FPosition = APosition
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				If FHandle Then SetPosition(FHandle, APosition)
 			#elseif defined(__USE_WINAPI__)
 				If Handle Then Perform(TBM_SETPOS, 1, APosition)
@@ -125,7 +125,7 @@ Namespace My.Sys.Forms
 				gtk_range_set_range(gtk_range(widget), Value, FMaxValue)
 			End If
 			TickStyle = FTickStyle
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then ..SetRange(FHandle, FMinValue, FMaxValue)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(TBM_SETRANGEMIN, 1, Value)
@@ -142,7 +142,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If FMinValue < Value Then gtk_range_set_range(GTK_RANGE(widget), FMinValue, Value)
 			TickStyle = FTickStyle
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then ..SetRange(FHandle, FMinValue, FMaxValue)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(TBM_SETRANGEMAX, 1, Value)
@@ -153,7 +153,7 @@ Namespace My.Sys.Forms
 	Private Property TrackBar.Position As Integer
 		#ifdef __USE_GTK__
 			FPosition = gtk_range_get_value(GTK_RANGE(widget))
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then FPosition = GetPosition(FHandle)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then FPosition = Perform(TBM_GETPOS, 0, 0)
@@ -165,7 +165,7 @@ Namespace My.Sys.Forms
 		FPosition = Value
 		#ifdef __USE_GTK__
 			gtk_range_set_value(GTK_RANGE(widget), CDbl(Value))
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then SetPosition(FHandle, FPosition)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(TBM_SETPOS, True, FPosition)
@@ -442,7 +442,7 @@ Namespace My.Sys.Forms
 		
 		Private Sub TrackBar.WndProc(ByRef Message As Message)
 		End Sub
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Sub TrackBar.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QTrackBar(Sender.Child)
@@ -461,9 +461,9 @@ Namespace My.Sys.Forms
 	#endif
 
 	Private Sub TrackBar.ProcessMessage(ByRef Message As Message)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Message.Msg = CM_CHANGE Then
-				#ifdef __USE_JNI__
+				#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					FPosition = Message.wParam
 				#else
 					FPosition = GetPosition(FHandle)
@@ -557,6 +557,8 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "mff:SeekBar")
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_APPLE__)
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			WLet(FClassName, "TrackBar")

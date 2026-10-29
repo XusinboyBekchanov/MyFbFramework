@@ -46,7 +46,7 @@ Namespace My.Sys.ComponentModel
 			FHandle         As jobject
 		#elseif defined(__USE_WINAPI__)
 			FHandle         As HWND
-		#elseif defined(__USE_WASM__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 			FHandle         As Any Ptr
 		#endif
 		Declare Sub FreeWidget()
@@ -81,7 +81,7 @@ Namespace My.Sys.ComponentModel
 			Declare Property Handle(Value As HWND)
 			Declare Property LayoutHandle As HWND
 			Declare Property LayoutHandle(Value As HWND)
-		#elseif defined(__USE_WASM__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 			'Gets the window handle that the control is bound to (Windows, Linux, Android, Web).
 			Declare Property Handle As Any Ptr
 			Declare Property Handle(Value As Any Ptr)
@@ -149,7 +149,7 @@ Private Type Message
 		lParamLo As Integer
 		lParamHi As Integer
 		Captured As Any Ptr
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'The handle of the control (code written for Windows reads it)
 		hWnd     As Any Ptr
 		Msg      As Integer
@@ -327,7 +327,7 @@ Private Enum Keys
 		F22 = GDK_KEY_F22
 		F23 = GDK_KEY_F23
 		F24 = GDK_KEY_F24
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'The key codes of Windows (CM_KEYDOWN of the Web / Android side); the masks are the state of the CM_KEY* messages
 		Key_Esc = &h1B
 		Key_Left = &h25
@@ -530,6 +530,11 @@ Declare Sub ComponentSetBounds Alias "ComponentSetBounds"(Ctrl As My.Sys.Compone
 	'Set by TimerComponent, called by the ONTIMER export of Form.bas (always exported, even without TimerComponent)
 	'(Not Common Shared: WebAssembly does not support common symbols, clang crashes)
 	Extern TimerComponentProc As Sub(Id As Integer)
+#elseif defined(__USE_APPLE__)
+	'Set by TimerComponent, called by mffOnTimer of Control.bas (the host always calls it, even without TimerComponent)
+	Extern TimerComponentProc As Sub(Id As Integer)
+	'Set by Form, called by mffOnClose of Control.bas (the close button of a window): Form.CloseForm
+	Extern FormCloseProc As Sub(Ctrl As Any Ptr)
 #endif
 
 #ifndef __USE_MAKE__

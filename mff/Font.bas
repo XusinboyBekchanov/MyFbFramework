@@ -68,6 +68,13 @@ Namespace My.Sys.Drawing
 				'The size is in points like on Windows; CSS: [italic] [bold] size family
 				SetFont(QComponent(FParent).Handle, IIf(FItalic, "italic ", "") & IIf(FBold, "bold ", "") & Str(FSize) & "pt '" & *FName & "', sans-serif")
 			End If
+		#elseif defined(__USE_APPLE__)
+			If FParent AndAlso *FParent Is My.Sys.ComponentModel.Component AndAlso QComponent(FParent).Handle Then
+				'The name of the default font is the font of the system ("")
+				Dim As String sName
+				If *FName <> DefaultFont.Name Then sName = ToUtf8(*FName)
+				mffViewSetFont(QComponent(FParent).Handle, sName, FSize, IIf(FBold, 1, 0) Or IIf(FItalic, 2, 0) Or IIf(FUnderline, 4, 0) Or IIf(FStrikeOut, 8, 0))
+			End If
 		#elseif defined(__USE_JNI__)
 			'The size of the font is the one of all the views (the sizes of Android are different for each kind of the
 			'views); the name of the default font keeps the typeface of Android (Tahoma is not on Android)
@@ -199,6 +206,8 @@ Namespace My.Sys.Drawing
 				If FParent AndAlso QComponent(FParent).Handle Then
 					SetForeColor(QComponent(FParent).Handle, Value)
 				End If
+			#elseif defined(__USE_APPLE__)
+				If FParent AndAlso QComponent(FParent).Handle Then mffViewSetForeColor(QComponent(FParent).Handle, Value)
 			#elseif defined(__USE_JNI__)
 				'The text color of a TextView (a Label, a LinkLabel, a Button...); the color of FreeBasic is BGR
 				If env AndAlso FParent AndAlso QComponent(FParent).Handle Then
@@ -316,7 +325,7 @@ Namespace My.Sys.Drawing
 		#ifdef __FB_WIN32__
 			If *FName = "" Then WLet(FName, "Tahoma")
 			If FSize = 0 Then FSize = 8
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		#else
 			If *FName = "" Then WLet(FName, "Ubuntu")
 			If FSize = 0 Then FSize = 11
@@ -352,6 +361,10 @@ Namespace My.Sys.Drawing
 	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 		DefaultFont.Name = "Tahoma"
 		DefaultFont.Size = 8
+	#elseif defined(__USE_APPLE__)
+		'The font of the system (San Francisco): 10 points of Windows are the 13 points of the controls of macOS
+		DefaultFont.Name = "System"
+		DefaultFont.Size = 10
 	#else
 		DefaultFont.Name = "Ubuntu"
 		DefaultFont.Size = 11

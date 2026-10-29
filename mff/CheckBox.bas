@@ -140,6 +140,8 @@ Namespace My.Sys.Forms
 				FChecked = (*env)->CallBooleanMethod(env, FHandle, GetMethodID(*FClassAncestor, "isChecked", "()Z"))
 			#elseif defined(__USE_WASM__)
 				FChecked = GetChecked(Trim(Str(FHandle)) & "checkbox")
+			#elseif defined(__USE_APPLE__)
+				FChecked = mffViewGetChecked(FHandle) <> 0
 			#endif
 		End If
 		Return FChecked
@@ -160,6 +162,8 @@ Namespace My.Sys.Forms
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setChecked", "(Z)V"), _Abs(Value))
 			#elseif defined(__USE_WASM__)
 				SetChecked(Trim(Str(FHandle)) & "checkbox", Value)
+			#elseif defined(__USE_APPLE__)
+				mffViewSetChecked(FHandle, IIf(Value, 1, 0))
 			#endif
 		End If
 	End Property
@@ -179,6 +183,11 @@ Namespace My.Sys.Forms
 			'Checked set before the element (a form before Show)
 			With QCheckBox(@Sender)
 				If .FChecked Then SetChecked(Trim(Str(.FHandle)) & "checkbox", True)
+			End With
+		#elseif defined(__USE_APPLE__)
+			'Checked set before the view (a form before Show)
+			With QCheckBox(@Sender)
+				If .FChecked Then mffViewSetChecked(.FHandle, 1)
 			End With
 		#endif
 	End Sub
@@ -200,6 +209,14 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub CheckBox.ProcessMessage(ByRef Message As Message)
+		#ifdef __USE_APPLE__
+			'The button of the host changed its state before the click
+			If Message.Msg = CM_CLICK Then
+				FChecked = mffViewGetChecked(FHandle) <> 0
+				If OnClick Then OnClick(*Designer, This)
+				Message.Handled = True
+			End If
+		#endif
 		#ifdef __USE_JNI__
 			If Message.Msg = CM_CLICK Then
 				FChecked = (*env)->CallBooleanMethod(env, FHandle, GetMethodID(*FClassAncestor, "isChecked", "()Z"))

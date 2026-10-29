@@ -309,7 +309,7 @@ Namespace My.Sys.Forms
 					FItemIndex = Perform(LB_GETCURSEL, 0, 0)
 				End If
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then
 				FItemIndex = GetSelectedIndex(FHandle)
 			End If
@@ -338,7 +338,7 @@ Namespace My.Sys.Forms
 					Perform(LB_SETCURSEL,FItemIndex,0)
 				End If
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then
 				SetSelectedIndex(FHandle, Value)
 			End If
@@ -474,7 +474,7 @@ Namespace My.Sys.Forms
 			gtk_list_store_set(ListStore, @iter, 0, ToUtf8(FItem), -1)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then FNewIndex = Perform(LB_ADDSTRING, 0, CInt(@FItem))
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then InsertSelectItem(FHandle, FNewIndex, ToUtf8(FItem))
 		#endif
 	End Sub
@@ -487,7 +487,7 @@ Namespace My.Sys.Forms
 			gtk_list_store_remove(ListStore, @iter)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(LB_DELETESTRING, FIndex, 0)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then RemoveSelectItem(FHandle, FIndex)
 		#endif
 	End Sub
@@ -505,7 +505,7 @@ Namespace My.Sys.Forms
 			gtk_list_store_set (ListStore, @iter, 0, ToUtf8(FItem), -1)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then FNewIndex = Perform(LB_INSERTSTRING, FIndex, CInt(@FItem))
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then InsertSelectItem(FHandle, FIndex, ToUtf8(FItem))
 		#endif
 	End Sub
@@ -516,7 +516,7 @@ Namespace My.Sys.Forms
 			gtk_list_store_clear(ListStore)
 		#elseif defined(__USE_WINAPI__)
 			Perform(LB_RESETCONTENT,0,0)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then ClearSelectItems(FHandle)
 		#endif
 	End Sub
@@ -532,11 +532,11 @@ Namespace My.Sys.Forms
 		Return Items.IndexOfObject(Obj)
 	End Function
 	
-	#if defined(__USE_WINAPI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WINAPI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Sub ListControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QListControl(Sender.Child)
-					#ifdef __USE_JNI__
+					#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 						ListInit(.FHandle)
 						For i As Integer = 0 To .Items.Count - 1
 							AddSelectItem(.FHandle, ToUtf8(.Items.Item(i)))
@@ -591,9 +591,9 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub ListControl.ProcessMessage(ByRef Message As Message)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Message.Msg = CM_CHANGE Then
-				#ifdef __USE_JNI__
+				#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					FItemIndex = Message.wParam
 				#else
 					FItemIndex = GetSelectedIndex(FHandle)
@@ -770,6 +770,9 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "android/widget/ListView")
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_APPLE__)
+				WLet(FClassAncestor, "")
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			.Width       = 121

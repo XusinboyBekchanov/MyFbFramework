@@ -8,6 +8,9 @@
 
 #ifdef __USE_WASM__
 	Dim TimerComponentProc As Sub(Id As Integer)
+#elseif defined(__USE_APPLE__)
+	Dim TimerComponentProc As Sub(Id As Integer)
+	Dim FormCloseProc As Sub(Ctrl As Any Ptr)
 #endif
 
 Namespace My.Sys.ComponentModel
@@ -28,7 +31,7 @@ Namespace My.Sys.ComponentModel
 				Case "layoutwidget": Return layoutwidget
 				Case "overlaywidget": Return overlaywidget
 				Case "eventboxwidget": Return eventboxwidget
-				#elseif defined(__USE_WINAPI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				#elseif defined(__USE_WINAPI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				'Web: the handle is the address of the control (the id of its element), Android: the view; the designer of the
 				'IDE reads it (SetParent of the designed form into its panel, Win32Compat.bi)
 				Case "handle": Return @FHandle
@@ -220,6 +223,22 @@ Namespace My.Sys.ComponentModel
 			Private Property Component.LayoutHandle(Value As Any Ptr)
 				FHandle = Value
 			End Property
+		#elseif defined(__USE_APPLE__)
+			Private Property Component.Handle As Any Ptr
+				Return FHandle
+			End Property
+			
+			Private Property Component.Handle(Value As Any Ptr)
+				FHandle = Value
+			End Property
+			
+			Private Property Component.LayoutHandle As Any Ptr
+				Return IIf(layoutview, layoutview, FHandle)
+			End Property
+			
+			Private Property Component.LayoutHandle(Value As Any Ptr)
+				layoutview = Value
+			End Property
 		#endif
 	#endif
 	
@@ -388,6 +407,10 @@ Namespace My.Sys.ComponentModel
 '				Dim As jfieldID TopField = (*env)->GetFieldID(env, class_MarginLayoutParams, "topMargin", "I")
 '				(*env)->SetIntField(env, MarginLayoutParams, TopField, FTop)
 				(*env)->CallVoidMethod(env, FHandle, setLayoutParams, LayoutParams)
+			#elseif defined(__USE_APPLE__)
+				'The bounds are the ones of Move like Android (the host reports a resized window with mffOnResize)
+				FLeft = iLeft: FTop = iTop: FWidth = iWidth: FHeight = iHeight
+				If FHandle Then mffViewSetBounds(FHandle, FLeft, FTop, FWidth, FHeight)
 			#endif
 		End Sub
 	#endif

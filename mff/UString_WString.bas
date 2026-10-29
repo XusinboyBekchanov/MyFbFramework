@@ -2089,7 +2089,7 @@ End Function
 	End Function
 #endif
 
-#if (Not defined(__USE_JNI__)) AndAlso (Not defined(__USE_WASM__))
+#if (Not defined(__USE_JNI__)) AndAlso (Not defined(__USE_WASM__)) AndAlso (Not defined(__USE_APPLE__))
 	Private Function FileExists (ByRef FileName As UString) As Boolean
 		#ifdef __USE_GTK__
 			If *FileName.vptr <> "" AndAlso g_file_test(ToUtf8(*FileName.vptr), G_FILE_TEST_EXISTS) Then

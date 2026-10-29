@@ -166,7 +166,7 @@ Namespace My
 								Exit For
 							End If
 						Next i
-					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 						#ifdef APP_TITLE
 							WLet(FTitle, APP_TITLE)
 						#else
@@ -510,12 +510,17 @@ Namespace My
 				MouseY = msg.pt.Y
 				If OnMouseMove Then OnMouseMove(MouseX, MouseY)
 			Wend
+		#elseif defined(__USE_APPLE__)
+			'The run loop of the host (NSApplication, UIApplicationMain) calls the controls through the mffOn* functions
+			mffAppRun()
 		#endif
 	End Sub
 	
 	Private Sub Application.Terminate
 		#ifdef __USE_WINAPI__
 			PostQuitMessage(0)
+		#elseif defined(__USE_APPLE__)
+			mffAppTerminate()
 		#endif
 		End 1
 	End Sub
@@ -541,6 +546,8 @@ Namespace My
 				'main form is not created yet, e.g. a splash form is shown): later DoEvents runs in the events of the page,
 				'which can not wait
 				If MainForm = 0 OrElse MainForm->Handle = 0 Then PageSleep(1)
+			#elseif defined(__USE_APPLE__)
+				mffAppDoEvents()
 			#endif
 		End Sub
 	#endif
@@ -1071,6 +1078,9 @@ Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As
 	#elseif defined(__USE_JNI__)
 		'An AlertDialog of mffActivity.messageBox waits for the button (a nested message loop) and gives the MessageResult
 		Result = MessageBox(ToUtf8(MsgStr), ToUtf8(*FCaption), MsgType, ButtonsType)
+	#elseif defined(__USE_APPLE__)
+		'NSAlert / UIAlertController waits for the button (a modal loop) and gives the MessageResult
+		Result = mffMessageBox(ToUtf8(MsgStr), ToUtf8(*FCaption), MsgType, ButtonsType)
 	#endif
 	'Do
 	'    App.DoEvents

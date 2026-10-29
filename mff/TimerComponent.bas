@@ -6,7 +6,7 @@
 
 #include once "TimerComponent.bi"
 
-#if defined(__USE_WASM__)
+#if defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 	Declare Sub TimerComponent_OnTimer(Id As Integer)
 #endif
 
@@ -76,6 +76,12 @@ Namespace My.Sys.Forms
 				Else
 					StopTimer(@This)
 				End If
+			#elseif defined(__USE_APPLE__)
+				If FEnabled Then
+					mffTimerStart(@This, FInterval)
+				Else
+					mffTimerStop(@This)
+				End If
 			#elseif defined(__USE_WINAPI__)
 				If FEnabled Then
 					ID = SetTimer(NULL, 0, Interval, @TimerProc)
@@ -100,6 +106,8 @@ Namespace My.Sys.Forms
 				If ID Then KillTimer NULL, ID
 			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 				StopTimer(@This)
+			#elseif defined(__USE_APPLE__)
+				mffTimerStop(@This)
 			#endif
 			ID = 0
 			If FInterval > 0 Then
@@ -107,6 +115,8 @@ Namespace My.Sys.Forms
 					ID = g_timeout_add(Interval, Cast(GSourceFunc, @TimerProc), Cast(gpointer, @This))
 				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 					StartTimer(@This, FInterval)
+				#elseif defined(__USE_APPLE__)
+					mffTimerStart(@This, FInterval)
 				#elseif defined(__USE_WINAPI__)
 					ID = SetTimer(NULL, 0, Interval, @TimerProc)
 				#endif
@@ -123,7 +133,7 @@ Namespace My.Sys.Forms
 		Interval = 10
 		WLet(FClassName, "TimerComponent")
 		FEnabled = False
-		#if defined(__USE_WASM__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 			TimerComponentProc = @TimerComponent_OnTimer
 		#endif
 	End Constructor
@@ -132,12 +142,14 @@ Namespace My.Sys.Forms
 		Enabled = False
 		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 			StopTimer(@This)
+		#elseif defined(__USE_APPLE__)
+			mffTimerStop(@This)
 		#endif
 	End Destructor
 End Namespace
 
-#if defined(__USE_WASM__)
-	'Called by the ONTIMER export of Form.bas (setInterval of StartTimer, mff_lib.js)
+#if defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
+	'Called by the ONTIMER export of Form.bas (Web), mffOnTimer of Control.bas (macOS, iOS) (setInterval of StartTimer, mff_lib.js)
 	Sub TimerComponent_OnTimer(Id As Integer)
 		If Id > 0 Then
 			Dim As My.Sys.Forms.TimerComponent Ptr tmr = Cast(Any Ptr, Id)

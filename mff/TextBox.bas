@@ -297,6 +297,15 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_JNI__)
 			If FHandle Then (*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/TextView", "setSingleLine", "(Z)V"), CUByte(IIf(FMultiline, 0, 1)))
+		#elseif defined(__USE_APPLE__)
+			'A multiline text box is another view (NSTextView, UITextView): the kind is chosen when the view is made
+			If *FClassName = "TextBox" Then
+				WLet(FClassAncestor, IIf(FMultiline, "mff:TextArea", ""))
+				If FHandle Then
+					FreeWnd
+					CreateWnd
+				End If
+			End If
 		#endif
 	End Property
 	
@@ -392,6 +401,10 @@ Namespace My.Sys.Forms
 			ReadElementValue(@This, FText)
 			If FText = 0 Then Return ""
 			Return *FText
+		#elseif defined(__USE_APPLE__)
+			If FHandle Then mffReadViewText(FHandle, FText)
+			If FText = 0 Then Return ""
+			Return *FText
 		#else
 			Return Base.Text
 		#endif
@@ -430,6 +443,8 @@ Namespace My.Sys.Forms
 			If FHandle Then
 				SetStringValue(@This, ToUtf8(Value))
 			End If
+		#elseif defined(__USE_APPLE__)
+			If FHandle Then mffViewSetText(FHandle, ToUtf8(Value))
 		#endif
 	End Property
 	
@@ -475,8 +490,12 @@ Namespace My.Sys.Forms
 			FText_.Resize Len(*FText)
 			*FText_.m_Data = *FText
 			Return FText_
-		#elseif defined(__USE_WASM__)
-			ReadElementValue(@This, FText)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
+			#ifdef __USE_APPLE__
+				If FHandle Then mffReadViewText(FHandle, FText)
+			#else
+				ReadElementValue(@This, FText)
+			#endif
 			FText_.Resize Len(*FText)
 			*FText_.m_Data = *FText
 			Return FText_
@@ -522,6 +541,8 @@ Namespace My.Sys.Forms
 			If Owner->FHandle Then
 				SetStringValue(Owner, ToUtf8(Sender))
 			End If
+		#elseif defined(__USE_APPLE__)
+			If Owner->FHandle Then mffViewSetText(Owner->FHandle, ToUtf8(Sender))
 		#endif
 	End Sub
 	
@@ -580,6 +601,8 @@ Namespace My.Sys.Forms
 			If Handle Then Perform(EM_SETREADONLY, FReadOnly, 0)
 		#elseif defined(__USE_WASM__)
 			If FHandle Then SetReadOnly(FHandle, FReadOnly)
+		#elseif defined(__USE_APPLE__)
+			If FHandle Then mffViewSetReadOnly(FHandle, FReadOnly)
 		#endif
 	End Property
 	
@@ -894,6 +917,14 @@ Namespace My.Sys.Forms
 			If FHandle Then
 				SendMessage(FHandle, EM_GETSEL, CInt(@iSelStart), CInt(@iSelEnd))
 			End If
+		#elseif defined(__USE_APPLE__)
+			If FHandle Then
+				iSelStart = mffTextGetSelection(FHandle, 0)
+				iSelEnd = iSelStart + mffTextGetSelection(FHandle, 1)
+			Else
+				iSelStart = FSelStart
+				iSelEnd = FSelEnd
+			End If
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
 				iSelStart = (*env)->CallIntMethod(env, FHandle, GetMethodID(*FClassAncestor, "getSelectionStart", "()I"))
@@ -968,6 +999,13 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			If FHandle Then
 				SendMessage(FHandle, EM_SETSEL, iSelStart, iSelEnd)
+			Else
+				FSelStart = iSelStart
+				FSelEnd = iSelEnd
+			End If
+		#elseif defined(__USE_APPLE__)
+			If FHandle Then
+				mffTextSetSelection(FHandle, iSelStart, iSelEnd - iSelStart)
 			Else
 				FSelStart = iSelStart
 				FSelEnd = iSelEnd
@@ -1424,6 +1462,9 @@ Namespace My.Sys.Forms
 						If .FMultiline Then .Multiline = True
 					#elseif defined(__USE_WASM__)
 						If .FReadOnly Then SetReadOnly(.FHandle, True)
+					#elseif defined(__USE_APPLE__)
+						If .FReadOnly Then mffViewSetReadOnly(.FHandle, True)
+						If .FMasked Then mffTextSetPassword(.FHandle, True)
 					#endif
 				End With
 			End If
@@ -1431,7 +1472,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub TextBox.ProcessMessage(ByRef message As Message)
-		#ifdef __USE_WASM__
+		#if defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 			If message.Msg = CM_CHANGE Then
 				If OnChange Then OnChange(*Designer, This)
 				message.Handled = True
@@ -1890,6 +1931,8 @@ Namespace My.Sys.Forms
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "input")
 				FType = "text"
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_APPLE__)
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			WLet(FClassName, "TextBox")

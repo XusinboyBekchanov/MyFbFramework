@@ -291,6 +291,8 @@ Namespace My.Sys.Forms
 					Return widget AndAlso gtk_widget_is_focus(widget)
 				#elseif defined(__USE_WINAPI__)
 					Return GetFocus = FHandle
+				#elseif defined(__USE_APPLE__)
+					Return FHandle <> 0 AndAlso mffViewHasFocus(FHandle) <> 0
 				#else
 					Return False
 				#endif
@@ -497,6 +499,8 @@ Namespace My.Sys.Forms
 						SetWindowTextW FHandle, FText
 						'End If
 					End If
+				#elseif defined(__USE_APPLE__)
+					If FHandle Then mffViewSetText(FHandle, ToUtf8(Value))
 				#endif
 			End Property
 		#endif
@@ -523,6 +527,8 @@ Namespace My.Sys.Forms
 							AllocateHint
 						End If
 					End If
+				#elseif defined(__USE_APPLE__)
+					If FHandle AndAlso FShowHint Then mffViewSetHint(FHandle, ToUtf8(Value))
 				#endif
 			End Property
 		#endif
@@ -619,6 +625,10 @@ Namespace My.Sys.Forms
 					'The client element (the pages of TabControl are under its tabs)
 					Dim As Integer iClient = IIf(FHandle <> 0, GetClientSize(FHandle, 0), -1)
 					FClientWidth = IIf(iClient > 0, UnScaleX(iClient), This.Width)
+				#elseif defined(__USE_APPLE__)
+					'The layout view (the content view of a window is without its title bar)
+					Dim As Integer iClient = IIf(FHandle <> 0, mffViewClientSize(FHandle, 0), -1)
+					FClientWidth = IIf(iClient > 0, iClient, This.Width)
 				#else
 					FClientWidth = This.Width
 				#endif
@@ -680,6 +690,9 @@ Namespace My.Sys.Forms
 					'The client element (the pages of TabControl are under its tabs)
 					Dim As Integer iClient = IIf(FHandle <> 0, GetClientSize(FHandle, 1), -1)
 					FClientHeight = IIf(iClient > 0, UnScaleY(iClient), This.Height)
+				#elseif defined(__USE_APPLE__)
+					Dim As Integer iClient = IIf(FHandle <> 0, mffViewClientSize(FHandle, 1), -1)
+					FClientHeight = IIf(iClient > 0, iClient, This.Height)
 				#else
 					FClientHeight = This.Height
 				#endif
@@ -772,6 +785,9 @@ Namespace My.Sys.Forms
 					End If
 				#elseif defined(__USE_JNI__)
 					ApplyBackColor
+				#elseif defined(__USE_APPLE__)
+					'The default color keeps the look of the view of the system (and its dark appearance)
+					If FHandle Then mffViewSetBackColor(FHandle, IIf(Value = FDefaultBackColor, -1, Value))
 				#endif
 				Invalidate
 			End Property
@@ -801,6 +817,8 @@ Namespace My.Sys.Forms
 					Else
 						FElementStyle = FElementStyle & "color: rgb(" & GetRed(Value) & ", " & GetGreen(Value) & ", " & GetBlue(Value) & ");"
 					End If
+				#elseif defined(__USE_APPLE__)
+					If FHandle Then mffViewSetForeColor(FHandle, Value)
 				#endif
 				Invalidate
 			End Property
@@ -962,6 +980,8 @@ Namespace My.Sys.Forms
 				If widget Then gtk_widget_set_sensitive(widget, FEnabled)
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then EnableWindow FHandle, FEnabled
+			#elseif defined(__USE_APPLE__)
+				If FHandle Then mffViewSetEnabled(FHandle, FEnabled)
 			#endif
 		End Property
 		
@@ -1043,6 +1063,10 @@ Namespace My.Sys.Forms
 					If env AndAlso FHandle AndAlso (*env)->IsInstanceOf(env, FHandle, FindJNIClass("android/view/View")) Then
 						(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/view/View", "setVisibility", "(I)V"), IIf(Value, 0, 8))
 					End If
+				#elseif defined(__USE_APPLE__)
+					'A Form is shown by Form.Show (its window), the other controls are views in their parent
+					If FHandle = 0 AndAlso CInt(Value) AndAlso *FClassName <> "Form" Then CreateWnd
+					If FHandle AndAlso *FClassName <> "Form" Then mffViewSetVisible(FHandle, Value)
 				#endif
 			End If
 		End Property
@@ -1365,8 +1389,38 @@ Namespace My.Sys.Forms
 				If OnMouseLeave <> 0 OrElse bMouseEvents Then SetMouseLeaveEvent(FHandle)
 				If OnMouseWheel <> 0 OrElse bMouseEvents Then SetMouseWheelEvent(FHandle)
 				If OnDestroy Then SetUnloadEvent(FHandle)
+			#elseif defined(__USE_APPLE__)
+				'The view exists already (the parent made the views of its controls)
+				If FHandle Then Exit Sub
+				'The parent has no view yet: it makes the views of its controls when it gets its own one
+				If FParent AndAlso FParent->Handle = 0 Then Exit Sub
+				'Only a form is a window: a control without a parent is made with its parent
+				If FParent = 0 AndAlso *FClassName <> "Form" Then Exit Sub
+				'The kind of the view of the host is the class name of the control ("CommandButton", "Label", ...) or the one
+				'of FClassAncestor "mff:Kind" (a TextBox with Multiline is a "TextArea"); an unknown kind is a plain view which
+				'hosts the child controls and draws the Canvas of the control
+				Dim As String sKind = *FClassAncestor
+				If Mid(sKind, 1, 4) = "mff:" Then sKind = Mid(sKind, 5) Else sKind = *FClassName
+				FHandle = mffViewCreate(sKind, @This)
+				If FHandle = 0 Then Exit Sub
+				layoutview = mffViewLayout(FHandle)
+				If FParent Then mffViewAddChild(FParent->Handle, FHandle)
+				Select Case FStartPosition
+				Case 1, 4 ' CenterScreen, CenterParent
+					If FStartPosition = 4 AndAlso FParent Then
+						FLeft = FParent->Left + (FParent->Width - FWidth) \ 2: FTop = FParent->Top + (FParent->Height - FHeight) \ 2
+					Else
+						FLeft = (mffScreenSize(0) - FWidth) \ 2: FTop = (mffScreenSize(1) - FHeight) \ 2
+					End If
+				Case 2, 3 ' WindowsDefaultLocation, WindowsDefaultBounds
+					FLeft = 100: FTop = 100
+					If FStartPosition = 3 Then FWidth = 350: FHeight = 300
+				End Select
+				mffViewSetBounds(FHandle, FLeft, FTop, FWidth, FHeight)
+				If FText AndAlso *FText <> "" Then mffViewSetText(FHandle, ToUtf8(*FText))
+				If FHint AndAlso FShowHint Then mffViewSetHint(FHandle, ToUtf8(*FHint))
 			#endif
-			#if defined(__USE_WINAPI__) OrElse defined(__USE_JNI__) OrElse defined(__USE_WASM__)
+			#if defined(__USE_WINAPI__) OrElse defined(__USE_JNI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 				If FHandle Then
 					#ifdef __USE_WINAPI__
 						If GetWindowLongPtr(FHandle, GWLP_USERDATA) = 0 Then
@@ -1468,6 +1522,16 @@ Namespace My.Sys.Forms
 						End If
 						'Font.Color set before the element was created (0, black, is the color of the page anyway)
 						If This.Font.Color <> 0 Then SetForeColor(FHandle, This.Font.Color)
+					#elseif defined(__USE_APPLE__)
+						'The default font keeps the font of the system of the view
+						If This.Font.Name <> DefaultFont.Name OrElse This.Font.Size <> DefaultFont.Size OrElse This.Font.Bold OrElse This.Font.Italic OrElse This.Font.Underline OrElse This.Font.StrikeOut Then
+							Dim As String sFontName
+							If This.Font.Name <> DefaultFont.Name Then sFontName = ToUtf8(This.Font.Name)
+							mffViewSetFont(FHandle, sFontName, This.Font.Size, IIf(Font.Bold, 1, 0) Or IIf(Font.Italic, 2, 0) Or IIf(Font.Underline, 4, 0) Or IIf(Font.StrikeOut, 8, 0))
+						End If
+						'The colors set before the view was made (the default ones keep the look of the system)
+						If FBackColor <> FDefaultBackColor Then mffViewSetBackColor(FHandle, FBackColor)
+						If This.Font.Color <> 0 Then mffViewSetForeColor(FHandle, This.Font.Color)
 					#endif
 					If FParent Then
 						FAnchoredParentWidth = Cast(Control Ptr, FParent)->Width
@@ -1526,6 +1590,9 @@ Namespace My.Sys.Forms
 							SetVisible(FHandle, False)
 						End If
 						PaintCanvas
+					#elseif defined(__USE_APPLE__)
+						'A Form is shown by Form.Show; a control hidden before its view was made (a page of a TabControl, ...)
+						If *FClassName <> "Form" AndAlso FVisible = False Then mffViewSetVisible(FHandle, False)
 					#endif
 				Else
 					'Print ClassName, GetErrorString(GetLastError, , True)
@@ -1595,6 +1662,17 @@ Namespace My.Sys.Forms
 					If OnHandleIsDestroyed Then OnHandleIsDestroyed(This)
 					DeleteElement(FHandle)
 					FHandle = 0
+				End If
+			#elseif defined(__USE_APPLE__)
+				'The views of the children are released first; the host does not call the control any more
+				If FHandle Then
+					If OnHandleIsDestroyed Then OnHandleIsDestroyed(This)
+					For i As Integer = 0 To ControlCount - 1
+						Controls[i]->FreeWnd
+					Next
+					mffViewFree(FHandle)
+					FHandle = 0
+					layoutview = 0
 				End If
 			#endif
 		End Sub
@@ -3933,7 +4011,7 @@ Namespace My.Sys.Forms
 						InvalidateRect(FHandle, Cast(Rect Ptr, iRect), bErase)
 					End If
 				End If
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				Repaint
 			#endif
 		End Sub
@@ -3954,10 +4032,25 @@ Namespace My.Sys.Forms
 				ElseIf FHandle Then
 					CanvasRepaint(FHandle)
 				End If
+			#elseif defined(__USE_APPLE__)
+				If FHandle Then mffViewRepaint(FHandle)
 			#endif
 		End Sub
 		
 
+		#ifdef __USE_APPLE__
+			'The host paints the view (drawRect): CM_PAINT and OnPaint draw on the Canvas of the control
+			Private Sub Control.PaintCanvas()
+				If FHandle = 0 OrElse FPainting Then Exit Sub
+				FPainting = True
+				Dim As Message msg
+				msg.Sender = @This
+				msg.Msg = CM_PAINT
+				DispatchControlMessage(@This, msg)
+				If (Not msg.Handled) AndAlso OnPaint <> 0 Then OnPaint(*Designer, This, Canvas)
+				FPainting = False
+			End Sub
+		#endif
 		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 			Private Sub Control.PaintCanvas()
 				If FHandle = 0 OrElse FPainting Then Exit Sub
@@ -4010,6 +4103,8 @@ Namespace My.Sys.Forms
 				If FHandle Then ElementSetFocus(FHandle)
 			#elseif defined(__USE_JNI__)
 				If env <> 0 AndAlso FHandle <> 0 Then (*env)->CallBooleanMethod(env, IIf(layoutview, layoutview, FHandle), GetMethodID("android/view/View", "requestFocus", "()Z"))
+			#elseif defined(__USE_APPLE__)
+				If FHandle Then mffViewSetFocus(FHandle)
 			#endif
 		End Sub
 		
@@ -4033,6 +4128,8 @@ Namespace My.Sys.Forms
 			#elseif defined(__USE_JNI__)
 				'The last child of the layout is drawn over the others (the dots of the designer over the form)
 				If FHandle Then ViewZOrder(FHandle, 1)
+			#elseif defined(__USE_APPLE__)
+				If FHandle AndAlso *FClassName <> "Form" Then mffViewZOrder(FHandle, 1)
 			#endif
 		End Sub
 		
@@ -4062,6 +4159,8 @@ Namespace My.Sys.Forms
 				If FHandle Then ElementZOrder(FHandle, 0)
 			#elseif defined(__USE_JNI__)
 				If FHandle Then ViewZOrder(FHandle, 0)
+			#elseif defined(__USE_APPLE__)
+				If FHandle AndAlso *FClassName <> "Form" Then mffViewZOrder(FHandle, 0)
 			#endif
 		End Sub
 		
@@ -4391,7 +4490,7 @@ Namespace My.Sys.Forms
 	#endif
 End Namespace
 
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	Sub DispatchControlMessage(ByVal Ctrl As My.Sys.Forms.Control Ptr, ByRef msg As Message)
 		If Ctrl = 0 Then Exit Sub
 		If msg.hWnd = 0 Then msg.hWnd = Ctrl->Handle
@@ -4424,6 +4523,115 @@ End Namespace
 		End Select
 		Return bHandled
 	End Function
+#endif
+
+#ifdef __USE_APPLE__
+	'The events of the views of the host (Apple/mffApple.h): Ctrl is the Control Ptr given to mffViewCreate.
+	'The coordinates are the points of the view from its top left corner; Shift: 1 - Shift, 2 - Ctrl (Command on macOS), 4 - Alt
+	Sub mffOnClick Cdecl Alias "mffOnClick"(ByVal Ctrl As My.Sys.Forms.Control Ptr) Export
+		If Ctrl = 0 Then Exit Sub
+		Dim As Message msg
+		msg.Sender = Ctrl
+		msg.Msg = CM_CLICK
+		DispatchControlMessage(Ctrl, msg)
+		If (Not msg.Handled) AndAlso Ctrl->OnClick <> 0 Then Ctrl->OnClick(*Ctrl->Designer, *Ctrl)
+	End Sub
+	
+	'The text, the check state, the chosen item or the position of the view changed (wParam: the new index or position)
+	Sub mffOnChange Cdecl Alias "mffOnChange"(ByVal Ctrl As My.Sys.Forms.Control Ptr, ByVal wParam As Long) Export
+		If Ctrl = 0 Then Exit Sub
+		Dim As Message msg
+		msg.Sender = Ctrl
+		msg.Msg = CM_CHANGE
+		msg.wParam = wParam
+		DispatchControlMessage(Ctrl, msg)
+	End Sub
+	
+	Sub mffOnDblClick Cdecl Alias "mffOnDblClick"(ByVal Ctrl As My.Sys.Forms.Control Ptr) Export
+		If Ctrl AndAlso Ctrl->OnDblClick Then Ctrl->OnDblClick(*Ctrl->Designer, *Ctrl)
+	End Sub
+	
+	'Action: 0 - a button went down, 1 - up, 2 - the mouse moved (Button -1: no button is pressed), 3 - it left the view,
+	'4 - the wheel turned (Button: 1 - up, -1 - down), 5 - the horizontal wheel. Button: 0 - left, 1 - right, 2 - middle
+	Sub mffOnMouse Cdecl Alias "mffOnMouse"(ByVal Ctrl As My.Sys.Forms.Control Ptr, ByVal Action As Long, ByVal Button As Long, ByVal x As Long, ByVal y As Long, ByVal Shift As Long) Export
+		If Ctrl = 0 Then Exit Sub
+		Dim As Message msg
+		msg.Sender = Ctrl
+		msg.lParam = MffPoint(x, y)
+		msg.wParam = Button
+		Select Case Action
+		Case 0
+			msg.Msg = CM_MOUSEDOWN
+			DispatchControlMessage(Ctrl, msg)
+			If Ctrl->OnMouseDown Then Ctrl->OnMouseDown(*Ctrl->Designer, *Ctrl, Button, x, y, Shift)
+		Case 1
+			msg.Msg = CM_MOUSEUP
+			DispatchControlMessage(Ctrl, msg)
+			If Ctrl->OnMouseUp Then Ctrl->OnMouseUp(*Ctrl->Designer, *Ctrl, Button, x, y, Shift)
+			'The context menu of the control opens on the release of the right button like on Windows
+			If Button = 1 AndAlso (Not msg.Handled) AndAlso Ctrl->ContextMenu <> 0 Then Ctrl->ContextMenu->Popup(x, y)
+		Case 2
+			msg.Msg = CM_MOUSEMOVE
+			DispatchControlMessage(Ctrl, msg)
+			If Ctrl->OnMouseMove Then Ctrl->OnMouseMove(*Ctrl->Designer, *Ctrl, Button, x, y, Shift)
+		Case 3
+			msg.Msg = CM_MOUSELEAVE
+			DispatchControlMessage(Ctrl, msg)
+			If Ctrl->OnMouseLeave Then Ctrl->OnMouseLeave(*Ctrl->Designer, *Ctrl)
+		Case 4
+			SendControlInputMessage(Ctrl, CM_MOUSEWHEEL, Button, msg.lParam, x, y, Shift)
+		Case 5
+			SendControlInputMessage(Ctrl, CM_MOUSEHWHEEL, Button, msg.lParam, x, y, Shift)
+		End Select
+	End Sub
+	
+	'Action: 0 - a key went down, 1 - up (Key: the key code of Windows, VK_*), 2 - a character (Key: the Unicode
+	'character), 3 - the view got the focus, 4 - it lost the focus. Returns 1 if the control handled the key (the view
+	'does not do its own action then)
+	Function mffOnKey Cdecl Alias "mffOnKey"(ByVal Ctrl As My.Sys.Forms.Control Ptr, ByVal Action As Long, ByVal Key As Long, ByVal Shift As Long) As Long Export
+		If Ctrl = 0 Then Return 0
+		Select Case Action
+		Case 0: Return IIf(SendControlInputMessage(Ctrl, CM_KEYDOWN, Key, Shift), 1, 0)
+		Case 1: Return IIf(SendControlInputMessage(Ctrl, CM_KEYUP, Key, Shift), 1, 0)
+		Case 2: Return IIf(SendControlInputMessage(Ctrl, CM_CHAR, Key, Shift), 1, 0)
+		Case 3
+			SendControlInputMessage(Ctrl, CM_SETFOCUS, 0, 0)
+		Case 4: SendControlInputMessage(Ctrl, CM_KILLFOCUS, 0, 0)
+		End Select
+		Return 0
+	End Function
+	
+	'The user resized the window (the outer frame of a Form) or the layout of the host gave the view a new size
+	Sub mffOnResize Cdecl Alias "mffOnResize"(ByVal Ctrl As My.Sys.Forms.Control Ptr, ByVal NewWidth As Long, ByVal NewHeight As Long) Export
+		If Ctrl = 0 Then Exit Sub
+		If Ctrl->Width <> NewWidth OrElse Ctrl->Height <> NewHeight Then
+			Ctrl->Width = NewWidth
+			Ctrl->Height = NewHeight
+		End If
+		Ctrl->RequestAlign
+		If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, Ctrl->Width, Ctrl->Height)
+	End Sub
+	
+	'The user moved the window of a Form (the top left corner of its outer frame on the screen)
+	Sub mffOnMove Cdecl Alias "mffOnMove"(ByVal Ctrl As My.Sys.Forms.Control Ptr, ByVal x As Long, ByVal y As Long) Export
+		If Ctrl = 0 Then Exit Sub
+		If Ctrl->Left <> x Then Ctrl->Left = x
+		If Ctrl->Top <> y Then Ctrl->Top = y
+	End Sub
+	
+	'The close button of the window of a Form: the form decides (OnClose, Form.CloseForm), the host does not close it
+	Sub mffOnClose Cdecl Alias "mffOnClose"(ByVal Ctrl As My.Sys.Forms.Control Ptr) Export
+		If Ctrl AndAlso FormCloseProc Then FormCloseProc(Ctrl)
+	End Sub
+	
+	Sub mffOnTimer Cdecl Alias "mffOnTimer"(ByVal Id As Any Ptr) Export
+		If Id AndAlso TimerComponentProc Then TimerComponentProc(CInt(Id))
+	End Sub
+	
+	'The host draws the view (drawRect): the Canvas of the control draws on the current context of the host
+	Sub mffOnPaint Cdecl Alias "mffOnPaint"(ByVal Ctrl As My.Sys.Forms.Control Ptr) Export
+		If Ctrl Then Ctrl->PaintCanvas
+	End Sub
 #endif
 
 #ifdef __USE_JNI__
