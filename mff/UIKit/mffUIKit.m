@@ -492,6 +492,8 @@ void *mffViewLayout(void *view) { return view; }
 
 void mffViewAddChild(void *parent, void *child) {
 	UIView *p = mffView(parent), *c = mffView(child);
+	/* A form goes on the screen only with mffFormShow: the owner is not its container */
+	if ([c isKindOfClass:[MffView class]] && ((MffView *)c).mffIsForm) return;
 	if (p && c && c.superview != p) [p addSubview:c];
 }
 
