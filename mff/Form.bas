@@ -1964,6 +1964,7 @@ Namespace My.Sys.Forms
 			FVisible = True
 			mffFormSetBorder(FHandle, FBorderStyle)
 			If FWindowState = WindowStates.wsMinimized OrElse FWindowState = WindowStates.wsMaximized Then mffFormSetState(FHandle, IIf(FWindowState = WindowStates.wsMinimized, 1, 2))
+			If FMainForm AndAlso FMenu <> 0 Then MenuBarShow(FMenu)
 			mffFormShow(FHandle, 0)
 			RequestAlign
 		#elseif defined(__USE_JNI__)

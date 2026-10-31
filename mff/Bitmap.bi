@@ -63,7 +63,7 @@ Namespace My.Sys.Drawing
 		#elseif defined(__USE_WINAPI__)
 			Handle       As HBITMAP
 			pImage As GpImage Ptr
-		#elseif defined(__USE_WASM__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 			Handle       As UString
 		#else
 			Handle       As Any Ptr

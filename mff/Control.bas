@@ -1401,6 +1401,8 @@ Namespace My.Sys.Forms
 				'hosts the child controls and draws the Canvas of the control
 				Dim As String sKind = *FClassAncestor
 				If Mid(sKind, 1, 4) = "mff:" Then sKind = Mid(sKind, 5) Else sKind = *FClassName
+				'A designed form is a plain view in the panel of the designer of the IDE, not a window
+				If FDesignMode AndAlso sKind = "Form" Then sKind = "DesignedForm"
 				FHandle = mffViewCreate(sKind, @This)
 				If FHandle = 0 Then Exit Sub
 				layoutview = mffViewLayout(FHandle)
@@ -3678,7 +3680,7 @@ Namespace My.Sys.Forms
 			If iClientHeight = -1 Then iClientHeight = ClientHeight
 			'If ClassName = "ScrollControl" Then iClientWidth = Width: iClientHeight = Height
 			If iClientWidth <= 0 OrElse iClientHeight <= 0 Then Exit Sub
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				Scope
 					Dim As Message msg
 					msg.Msg = CM_SIZE
@@ -4038,20 +4040,7 @@ Namespace My.Sys.Forms
 		End Sub
 		
 
-		#ifdef __USE_APPLE__
-			'The host paints the view (drawRect): CM_PAINT and OnPaint draw on the Canvas of the control
-			Private Sub Control.PaintCanvas()
-				If FHandle = 0 OrElse FPainting Then Exit Sub
-				FPainting = True
-				Dim As Message msg
-				msg.Sender = @This
-				msg.Msg = CM_PAINT
-				DispatchControlMessage(@This, msg)
-				If (Not msg.Handled) AndAlso OnPaint <> 0 Then OnPaint(*Designer, This, Canvas)
-				FPainting = False
-			End Sub
-		#endif
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Private Sub Control.PaintCanvas()
 				If FHandle = 0 OrElse FPainting Then Exit Sub
 				FPainting = True

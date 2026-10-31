@@ -348,7 +348,7 @@ Namespace My.Sys.Forms
 			If Parent Then Parent->UpdateReBar
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle AndAlso Index <> - 1 Then SendMessage(Parent->Handle, RB_SHOWBAND, Index, Value)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Child Then Child->Visible = Value
 			If Parent Then Parent->RequestAlign
 		#endif
@@ -709,7 +709,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub ReBar.ProcessMessage(ByRef Message As Message)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'There is no native ReBar: the bands are put in rows, a band which does not fit begins a new row
 			If Message.Msg = CM_SIZE Then
 				Dim As Integer iLeft, iTop, RowHeight, BandWidth, BandHeight, iWidth = Message.wParam

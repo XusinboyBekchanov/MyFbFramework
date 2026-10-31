@@ -10,7 +10,7 @@
 
 #include once "PageSetupDialog.bi"
 
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	'The papers of the list: the kind and the size in millimeters (portrait)
 	Dim Shared As PrinterPaperSize PageSetupPapers(6) = {PrinterPaperSize.ppsA4, PrinterPaperSize.ppsA3, PrinterPaperSize.ppsLetter, _
 		PrinterPaperSize.ppsLEGALr, PrinterPaperSize.ppsTABLOID, PrinterPaperSize.ppsEXECUTIVE, PrinterPaperSize.ppsSTATEMENT}
@@ -291,7 +291,7 @@ Private Function PageSetupDialog.Execute() As Boolean
 			End If
 			Return True
 		End If
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Static As My.Sys.Forms.PageSetupForm Ptr frm
 		If frm = 0 Then frm = _New(My.Sys.Forms.PageSetupForm)
 		If frm = 0 OrElse pApp = 0 OrElse pApp->MainForm = 0 Then Return False

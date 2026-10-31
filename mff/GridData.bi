@@ -416,7 +416,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub WNDPROC(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'The items are shown as a table view with a row per visible item (Web, Android)
 			FSelItem As GridDataItem Ptr
 			FRowItems(Any) As GridDataItem Ptr
@@ -458,7 +458,7 @@ Namespace My.Sys.Forms
 		GroupHeaderImages As ImageList Ptr
 
 		'Initializes grid structure.
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'Shows the visible items and the columns again (Web, Android)
 			Declare Sub UpdateRows()
 			Declare Sub UpdateColumns()

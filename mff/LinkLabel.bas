@@ -53,7 +53,7 @@ Namespace My.Sys.Forms
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			gtk_label_set_markup_with_mnemonic(GTK_LABEL(widget), ToUtf8(Replace(Value, "&", "_")))
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then SetInnerHTML(FHandle, ToUtf8(Value))
 		#endif
 	End Property
@@ -69,7 +69,7 @@ Namespace My.Sys.Forms
 		
 		Private Sub LinkLabel.WndProc(ByRef Message As Message)
 		End Sub
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Sub LinkLabel.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QLinkLabel(Sender.Child)

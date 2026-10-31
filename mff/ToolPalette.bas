@@ -115,7 +115,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			gtk_tool_item_group_set_label(GTK_TOOL_ITEM_GROUP(Widget), ToUtf8(Value))
 		#endif
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Ctrl Then
 				Dim As Message msg
 				msg.Msg = CM_ITEMSCHANGED
@@ -154,7 +154,7 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		#endif
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Ctrl Then
 				Dim As Message msg
 				msg.Msg = CM_ITEMSCHANGED
@@ -288,7 +288,7 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		#endif
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent AndAlso Cast(ToolGroup Ptr, Parent)->Ctrl Then
 				Dim As Message msg
 				msg.Msg = CM_ITEMSCHANGED
@@ -327,7 +327,7 @@ Namespace My.Sys.Forms
 				End With
 			#endif
 		End If
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent AndAlso Cast(ToolGroup Ptr, Parent)->Ctrl Then
 				Dim As Message msg
 				msg.Msg = CM_ITEMSCHANGED
@@ -352,7 +352,7 @@ Namespace My.Sys.Forms
 			_Delete( @QToolButton(FButtons.Items[i]))
 		Next i
 		FButtons.Clear
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent AndAlso Cast(ToolGroup Ptr, Parent)->Ctrl Then
 				Dim As Message msg
 				msg.Msg = CM_ITEMSCHANGED
@@ -443,7 +443,7 @@ Namespace My.Sys.Forms
 				SendMessage(Parent->Handle, TB_ADDBUTTONS, 1, CInt(@TB))
 			End If
 		#endif
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then
 				Dim As Message msg
 				msg.Msg = CM_ITEMSCHANGED
@@ -460,7 +460,7 @@ Namespace My.Sys.Forms
 				SendMessage(Parent->Parent->Handle, TB_DELETEBUTTON, Index, 0)
 			#endif
 		End If
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then
 				Dim As Message msg
 				msg.Msg = CM_ITEMSCHANGED
@@ -485,7 +485,7 @@ Namespace My.Sys.Forms
 			_Delete( @QToolGroup(FGroups.Items[i]))
 		Next i
 		FGroups.Clear
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then
 				Dim As Message msg
 				msg.Msg = CM_ITEMSCHANGED
@@ -742,7 +742,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Sub ToolPalette.UpdateItems()
 			If FHandle = 0 Then Exit Sub
 			Dim As UString Items
@@ -785,7 +785,7 @@ Namespace My.Sys.Forms
 	#endif
 
 	Private Sub ToolPalette.ProcessMessage(ByRef Message As Message)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Select Case Message.Msg
 			Case CM_ITEMSCHANGED
 				'A button of a group was checked (ToolButton.Checked): the other ones of its group (the buttons with
@@ -816,7 +816,7 @@ Namespace My.Sys.Forms
 				Message.Handled = True
 			Case CM_CHANGE
 				Dim As Integer Index
-				#ifdef __USE_JNI__
+				#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					Index = Message.wParam
 				#else
 					Index = GetPosition(FHandle)
@@ -1048,7 +1048,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Sub ToolPalette.HandleIsAllocated(ByRef Sender As Control)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Sender.Child Then QToolPalette(Sender.Child).UpdateItems
 		#endif
 		#ifdef __USE_WINAPI__
@@ -1165,7 +1165,7 @@ Namespace My.Sys.Forms
 			FButtonHeight   = 16
 			Groups.Parent  = @This
 			FEnabled = True
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			#ifdef __USE_WINAPI__

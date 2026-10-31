@@ -372,7 +372,7 @@ Namespace My.Sys.Forms
 				FDefaultBackColor = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
 				WLet(FClassAncestor, "Static")
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				'A container (div / AbsoluteLayout) with the picture as the background
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif

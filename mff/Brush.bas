@@ -111,7 +111,7 @@ Namespace My.Sys.Drawing
 			If (FHandle <> 0) AndAlso (FHandle <> hbrBkgnd) Then DeleteObject(FHandle)
 			FHandle = Value
 		End Property
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Property Brush.Handle As Any Ptr
 			Return @This
 		End Property

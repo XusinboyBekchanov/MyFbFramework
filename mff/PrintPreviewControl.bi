@@ -23,7 +23,7 @@ Namespace My.Sys.Forms
 			Declare Static Function DrawingArea_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
 			Declare Static Function DrawingArea_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
 			Declare Sub DrawPage(cr As cairo_t Ptr)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'The place of the page bigger than the control (the mouse wheel; Android: a drag)
 			FScrollX As Integer
 			FScrollY As Integer

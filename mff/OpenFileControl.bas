@@ -17,7 +17,7 @@
 #include once "OpenFileControl.bi"
 #ifdef __USE_WINAPI__
 	#include once "win/objbase.bi"
-#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	#include once "dir.bi"
 #endif
 
@@ -160,7 +160,7 @@ Namespace My.Sys.Forms
 			#else
 				gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER (widget), ToUtf8(*FInitialDir))
 			#endif
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			FillFiles
 		#endif
 	End Property
@@ -267,7 +267,7 @@ Namespace My.Sys.Forms
 				Next
 				If FFilterIndex <= FFilterCount Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FFilterIndex))
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			FillFiles
 		#endif
 	End Property
@@ -289,12 +289,12 @@ Namespace My.Sys.Forms
 		FFilterIndex    = Value
 		#ifdef __USE_GTK__
 			If FFilterIndex <= FFilterCount Then gtk_file_chooser_set_filter(GTK_FILE_CHOOSER (widget), filefilter(FFilterIndex))
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			FillFiles
 		#endif
 	End Property
 
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'The folders and the files of the patterns of the filter (FilterIndex) in the current folder: the file list of the
 		'file dialog (FileViewFill) in the element (Android: the view), its view buttons switch large icons and the list
 		Private Sub OpenFileControl.FillFiles()
@@ -788,7 +788,7 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_JNI__)
 			'Android: the file list like the one of the Web (mffActivity.createView "FileView")
 			WLet(FClassAncestor, "mff:FileView")
-		#elseif defined(__USE_WASM__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 			'Web: the file list is made with the element (CreateWnd)
 		#else
 			FThread  = 0

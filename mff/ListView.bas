@@ -219,7 +219,7 @@ Namespace My.Sys.Forms
 					lvi.cchTextMax = Len(*FText)
 					ListView_SetItem(Parent->Handle, @lvi)
 				End If
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				If Parent->Handle AndAlso Index >= 0 Then TableSetRow(Parent->Handle, Index, Cast(ListView Ptr, Parent)->RowCells(@This))
 			#endif
 		End If
@@ -419,7 +419,7 @@ Namespace My.Sys.Forms
 					lvi.iImage     = FImageIndex
 					ListView_SetItem(Parent->Handle, @lvi)
 				End If
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				'The row gets the picture (ListView.RowCells): ListItems.Add sets the key after the row is added
 				If Parent AndAlso Parent->Handle AndAlso Index >= 0 Then TableSetRow(Parent->Handle, Index, Cast(ListView Ptr, Parent)->RowCells(@This))
 			#endif
@@ -521,7 +521,7 @@ Namespace My.Sys.Forms
 				lvc.cx = ScaleX(FWidth)
 				ListView_SetColumn(Parent->Handle, Index, @lvc)
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'The header of the table gets the new width (the Value column of the Properties of the IDE, OnResize)
 			If Parent AndAlso Parent->Handle Then Cast(ListView Ptr, Parent)->UpdateColumns
 		#endif
@@ -686,7 +686,7 @@ Namespace My.Sys.Forms
 		If Parent Then
 			#ifdef __USE_WINAPI__
 				If Parent->Handle Then ListView_InsertItem(Parent->Handle, @lvi)
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				If Parent->Handle Then TableInsertRow(Parent->Handle, IIf(iSortStyle <> SortStyle.ssNone OrElse Index <> -1, i, -1), Replace(ToUtf8(FCaption), Chr(9), "    "))
 			#endif
 			PItem->Parent = Parent
@@ -746,7 +746,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then
 				ListView_DeleteItem(Parent->Handle, Index)
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent AndAlso Parent->Handle Then TableRemoveRow(Parent->Handle, Index)
 		#endif
 		_Delete(Cast(ListViewItem Ptr, FItems.Items[Index]))
@@ -798,7 +798,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso GTK_LIST_STORE(ListViewGetModel(Parent->Handle)) Then gtk_list_store_clear(GTK_LIST_STORE(ListViewGetModel(Parent->Handle)))
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent AndAlso Parent->Handle Then TableClear(Parent->Handle)
 		#endif
 		For i As Integer = Count -1 To 0 Step -1
@@ -947,7 +947,7 @@ Namespace My.Sys.Forms
 				If Parent->Handle Then
 					ListView_InsertColumn(Parent->Handle, PColumn->Index, @lvc)
 				End If
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				Cast(ListView Ptr, Parent)->UpdateColumns
 			#endif
 		End If
@@ -983,7 +983,7 @@ Namespace My.Sys.Forms
 					ListView_SetColumnWidth(Parent->Handle, Index, ScaleX(iWidth))
 				End If
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then
 				PColumn->Parent = Parent
 				Cast(ListView Ptr, Parent)->UpdateColumns
@@ -997,7 +997,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then
 				SendMessage Parent->Handle, LVM_DELETECOLUMN, Cast(WPARAM, Index), 0
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then Cast(ListView Ptr, Parent)->UpdateColumns
 		#endif
 	End Sub
@@ -1340,7 +1340,7 @@ Namespace My.Sys.Forms
 			If Handle Then
 				Return ListView_GetNextItem(Handle, -1, LVNI_SELECTED)
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Handle Then Return TableGetIndex(Handle)
 		#endif
 		Return -1
@@ -1367,7 +1367,7 @@ Namespace My.Sys.Forms
 				ListView_SetItemState(Handle, Value, LVIS_FOCUSED Or LVIS_SELECTED, LVNI_SELECTED Or LVNI_FOCUSED)
 				ListView_EnsureVisible(Handle, Value, True)
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Handle Then TableSetIndex(Handle, Value)
 		#endif
 	End Property
@@ -1444,10 +1444,10 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub ListView.ProcessMessage(ByRef Message As Message)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Message.Msg = CM_CHANGE Then
 				Dim As Integer ItemIndex
-				#ifdef __USE_JNI__
+				#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					ItemIndex = Message.wParam
 				#else
 					ItemIndex = TableGetIndex(FHandle)
@@ -1809,11 +1809,11 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Function ListView.RowCells(Item As ListViewItem Ptr) As String
 			'Chr(9) separates the cells: a tab of a text (the indent of a line of the results of Find) is spaces
 			Dim As String Cells = Replace(ToUtf8(Item->Text(0)), Chr(9), "    ")
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				'The picture of the item (like Bitmap.LoadFromResourceName: the resource name is the key of the image list):
 				'Chr(1) & path & Chr(1) before the text of the first cell (TableSetView, the row of mffActivity)
 				If (Images <> 0 OrElse SmallImages <> 0) AndAlso Item->ImageKey <> "" Then

@@ -191,7 +191,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				Size.Width = Canvas.TextWidth(*FText)
 				Size.Height = Canvas.TextHeight(*FText)
-			#elseif defined(__USE_JNI__) OrElse defined(__USE_WASM__)
+			#elseif defined(__USE_JNI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 				
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then

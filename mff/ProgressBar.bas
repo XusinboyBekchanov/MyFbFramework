@@ -56,7 +56,7 @@ Namespace My.Sys.Forms
 		If AMax < AMin Then Exit Sub
 		If Not CInt(FMode32) And ((AMin < 0) Or (AMin > 85535) Or (AMax < 0) Or (AMax > 85535)) Then Exit Sub
 		If (FMinValue <> AMin) Or (FMaxValue <> AMax) Then
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				If FHandle Then ..SetRange(FHandle, AMin, AMax)
 			#elseif defined(__USE_APPLE__)
 				If FHandle Then mffRangeSet(FHandle, AMin, AMax)
@@ -140,7 +140,7 @@ Namespace My.Sys.Forms
 	Private Property ProgressBar.Position As Integer
 		#ifdef __USE_GTK__
 			FPosition = FMinValue + (FMaxValue - FMinValue) * gtk_progress_bar_get_fraction(gtk_progress_bar(widget))
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then FPosition = GetPosition(FHandle)
 		#elseif defined(__USE_APPLE__)
 			If FHandle Then FPosition = mffPositionGet(FHandle)
@@ -163,7 +163,7 @@ Namespace My.Sys.Forms
 			If FMaxValue <> FMinValue Then
 				gtk_progress_bar_set_fraction(gtk_progress_bar(widget), FPosition / (FMaxValue - FMinValue))
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then SetPosition(FHandle, Value)
 		#elseif defined(__USE_APPLE__)
 			If FHandle Then mffPositionSet(FHandle, Value)
@@ -264,7 +264,7 @@ Namespace My.Sys.Forms
 					#ifdef __USE_APPLE__
 						mffRangeSet(.FHandle, .FMinValue, .FMaxValue)
 						mffPositionSet(.FHandle, .FPosition)
-					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 						..SetRange(.FHandle, .FMinValue, .FMaxValue)
 						SetPosition(.FHandle, .FPosition)
 						#ifdef __USE_WASM__

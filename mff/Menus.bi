@@ -148,7 +148,7 @@ Namespace My.Sys.Forms
 				Declare Static Sub ModelCheckUpdate(action As GObject Ptr, pspec As GParamSpec Ptr, user_data As Any Ptr)
 				Declare Static Sub ModelActionActivate(action As GSimpleAction Ptr, parameter As GVariant Ptr, user_data As Any Ptr)
 			#endif
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'A checkable item changes Checked itself when it is chosen (like the check menu item of GTK)
 			FCheckable As Boolean
 		#endif
@@ -313,7 +313,7 @@ Namespace My.Sys.Forms
 			Declare Property Handle As GtkWidget Ptr
 			'Native OS menu handle (HMENU)
 			Declare Property Handle(value As GtkWidget Ptr)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'The menu itself (code written for the handles of Windows finds the menu with it)
 			Declare Property Handle As Any Ptr
 		#endif
@@ -417,7 +417,7 @@ Namespace My.Sys.Forms
 		'Reference to owner form
 		Declare Property ParentWindow(value As Component Ptr)
 		Declare Sub Popup(x As Integer, y As Integer, MSG As Message Ptr = 0)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'Shows the menu at x, y and waits for the choice (Popup clicks it): the chosen item, 0 - nothing was chosen
 			Declare Function ShowMenuModal(x As Integer, y As Integer) As MenuItem Ptr
 		#endif
@@ -453,7 +453,10 @@ End Namespace
 	Declare Sub MenuRemove Alias "MenuRemove"(ParentMenu As My.Sys.Forms.Menu Ptr, PMenuItem As My.Sys.Forms.MenuItem Ptr)
 #endif
 
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#ifdef __USE_APPLE__
+	Declare Sub MenuBarShow(ByVal pMenu As My.Sys.Forms.Menu Ptr)
+#endif
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	'Shows the items of the item of a menu (a MainMenu) as a popup menu (ShowPopupMenu) and returns the chosen item,
 	'the item itself if it has no items, 0 if nothing was chosen. x, y - the place of the popup menu (the pixels of the page)
 	Declare Function MenuItemShowItems(ByVal pItem As My.Sys.Forms.MenuItem Ptr, ByVal x As Long = 0, ByVal y As Long = 0) As My.Sys.Forms.MenuItem Ptr

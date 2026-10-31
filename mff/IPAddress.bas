@@ -60,7 +60,7 @@ Namespace My.Sys.Forms
 			Next
 		#elseif defined(__USE_WINAPI__)
 			SendMessage FHandle, IPM_CLEARADDRESS, 0, 0
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then SetStringValue(FHandle, "")
 		#endif
 	End Sub
@@ -82,7 +82,7 @@ Namespace My.Sys.Forms
 			If FText = 0 Then Return "" Else Return *FText
 		#elseif defined(__USE_WINAPI__)
 			Return Base.Text
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then ReadElementValue(FHandle, FText)
 			If FText = 0 Then Return "" Else Return *FText
 		#endif
@@ -111,7 +111,7 @@ Namespace My.Sys.Forms
 			Erase res
 			#ifdef __USE_WINAPI__
 				SendMessage FHandle, IPM_SETADDRESS, 0, MAKEIPADDRESS(Addresses(0), Addresses(1), Addresses(2), Addresses(3))
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				If FHandle Then SetStringValue(FHandle, Addresses(0) & "." & Addresses(1) & "." & Addresses(2) & "." & Addresses(3))
 			#endif
 		End If
@@ -156,7 +156,7 @@ Namespace My.Sys.Forms
 			End If
 			Return Message.Result
 		End Function
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Sub IPAddress.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QIPAddress(Sender.Child)

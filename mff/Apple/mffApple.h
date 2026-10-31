@@ -20,6 +20,7 @@ extern "C" {
    controls and draws the Canvas of the control. */
 void *mffViewCreate(const char *kind, void *ctrl);
 void mffViewFree(void *view);
+void *mffViewControl(void *view);
 void *mffViewLayout(void *view);
 void mffViewAddChild(void *parent, void *child);
 /* Points from the top left corner of the parent (of the main screen for a Form: its outer frame) */
@@ -82,6 +83,58 @@ void mffTimerStop(void *id);
 void mffClipboardSetText(const char *text);
 char *mffClipboardGetText(void);
 void mffOpenURL(const char *url);
+void mffMenuBarSet(const char *items);
+
+/* See Apple/mffApple.bi */
+void mffListSetChecked(void *Id, int Index, int Value);
+int mffListGetChecked(void *Id, int Index);
+void mffTabsSet(void *Id, const char *Titles);
+void mffTabsSetPosition(void *Id, int Position);
+int mffTabsStripHeight(void);
+void mffButtonsSet(void *Id, const char *Items);
+int mffButtonsItem(void *Id, int Index, int What);
+int mffViewFittingWidth(void *Id);
+void mffWebLoadURL(void *Id, const char *URL);
+void mffWebLoadHTML(void *Id, const char *HTML);
+void mffWebAction(void *Id, int Action);
+void mffViewLoadImage(void *Id, const char *Path, int Center);
+int mffPopupMenu(const char *Items, int x, int y);
+char *mffFileDialog(int Mode, const char *Caption, const char *InitialDir, const char *FileName, const char *Filter, int FilterIndex);
+char *mffFontDialog(const char *FontName, int Size, int Style, int FontColor);
+int mffColorDialog(const char *Caption, int ColorValue);
+int mffRegexCompile(const char *Pattern, int Flags);
+char *mffRegexError(void);
+void mffRegexFree(int Id);
+int mffRegexExec(int Id, const char *Subject, int StartByte, int *Offsets, int MaxGroups);
+void mffTableInit(void *Id);
+void mffTableSetView(void *Id, const char *ViewName);
+void mffTableSetColumns(void *Id, const char *Captions, const char *Widths);
+void mffTableInsertRow(void *Id, int Index, const char *Cells);
+void mffTableSetRow(void *Id, int Index, const char *Cells);
+void mffTableCellRect(void *Id, int Row, int Col, void *pRect);
+int mffTableDblClick(void);
+void mffCanvasBegin(void *Id);
+void mffCanvasEnd(void *Id);
+void mffCanvasNewPath(void);
+void mffCanvasMoveTo(double x, double y);
+void mffCanvasLineTo(double x, double y);
+void mffCanvasCurveTo(double x1, double y1, double x2, double y2, double x3, double y3);
+void mffCanvasArc(double cx, double cy, double r, double a1, double a2, int Negative);
+void mffCanvasRectPath(double x, double y, double w, double h);
+void mffCanvasClosePath(void);
+void mffCanvasClip(void);
+void mffCanvasFill(int iColor, int Alpha);
+void mffCanvasStroke(int iColor, int Alpha, double LineWidth, const char *Dash);
+void mffCanvasFillRect(double x, double y, double w, double h, int iColor, int Alpha);
+void mffCanvasInvertRect(double x, double y, double w, double h);
+void mffCanvasRotate(double x, double y, double Angle);
+void mffCanvasSave(void);
+void mffCanvasRestore(void);
+void mffCanvasText(double x, double y, const char *Text, int iColor, int iBkColor, const char *FontName, double FontSize, int Bold, int Italic);
+int mffCanvasTextWidth(const char *Text, const char *FontName, double FontSize, int Bold, int Italic);
+int mffCanvasTextHeight(const char *FontName, double FontSize, int Bold, int Italic);
+int mffCanvasGetPixel(double x, double y);
+void mffCanvasImage(const char *Path, double x, double y, double w, double h, int Alpha);
 
 /* The events: implemented by the FreeBASIC side (Control.bas) */
 void mffOnClick(void *ctrl);
@@ -98,6 +151,8 @@ void mffOnMove(void *ctrl, int x, int y);
 void mffOnClose(void *ctrl);
 void mffOnTimer(void *id);
 void mffOnPaint(void *ctrl);
+/* An item of the bar of the menu: the index of its line of mffMenuBarSet */
+void mffOnMenu(int index);
 
 #ifdef __cplusplus
 }

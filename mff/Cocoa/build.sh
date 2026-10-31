@@ -26,7 +26,7 @@ clang -c -O1 -w -fno-strict-aliasing -fwrapv -fno-math-errno -fno-exceptions -fn
 clang -c -O1 -fobjc-arc -Wall "$DIR/mffCocoa.m" -o "$OUT.mff.o"
 RT0=""
 [ -f "$LIB/fbrt0.o" ] && RT0="$LIB/fbrt0.o"
-clang -o "$OUT" $RT0 "$OUT.o" "$OUT.mff.o" -L"$LIB" -lfbmt -lpthread -lm -lncurses -framework Cocoa
+clang -o "$OUT" $RT0 "$OUT.o" "$OUT.mff.o" -L"$LIB" -lfbmt -lpthread -lm -lncurses -framework Cocoa -framework WebKit
 rm -f "$OUT.o" "$OUT.mff.o"
 
 # The bundle: a program of the Dock with its menu and its windows in front

@@ -154,7 +154,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle AndAlso GridGetModel(Parent->Handle) Then
 				gtk_list_store_set(GTK_LIST_STORE(GridGetModel(Parent->Handle)), @TreeIter, ColumnIndex + 3, ToUtf8(Value), -1)
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent->Handle Then
 				Dim As Integer RowIndex = Cast(Grid Ptr, Parent)->Rows.IndexOf(@This)
 				If RowIndex >= 0 Then TableSetRow(Parent->Handle, RowIndex, Cast(Grid Ptr, Parent)->RowCells(@This))
@@ -963,7 +963,7 @@ Namespace My.Sys.Forms
 				End If
 			#elseif defined(__USE_WINAPI__)
 				If Parent->Handle> 0 AndAlso IsLastItem Then SendMessage(Parent->Handle, LVM_SETITEMCOUNT, FItems.Count, LVSICF_NOINVALIDATEALL)
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				If Parent->Handle Then TableInsertRow(Parent->Handle, Index, Cast(Grid Ptr, Parent)->RowCells(PItem))
 			#endif
 			Return PItem
@@ -1045,7 +1045,7 @@ Namespace My.Sys.Forms
 				ListView_DeleteItem(Parent->Handle, Index)
 			End If
 			Cast(Grid Ptr, Parent)->Repaint
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent AndAlso Parent->Handle Then TableRemoveRow(Parent->Handle, Index)
 		#endif
 		FItems.Remove Index
@@ -1060,7 +1060,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso GTK_LIST_STORE(GridGetModel(Parent->Handle)) Then gtk_list_store_clear(GTK_LIST_STORE(GridGetModel(Parent->Handle)))
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent AndAlso Parent->Handle Then TableClear(Parent->Handle)
 		#endif
 		For i As Integer = Count -1 To 0 Step -1
@@ -1219,7 +1219,7 @@ Namespace My.Sys.Forms
 					
 				#elseif defined(__USE_WINAPI__)
 					ListView_InsertColumn(Parent->Handle, PColumn->Index, @lvc)
-				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					Cast(Grid Ptr, Parent)->UpdateColumns
 				#endif
 			End If
@@ -1636,7 +1636,7 @@ Namespace My.Sys.Forms
 			If Handle Then
 				Return ListView_GetNextItem(Handle, -1, LVNI_SELECTED)
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Handle Then Return TableGetIndex(Handle)
 		#endif
 		Return -1
@@ -1661,7 +1661,7 @@ Namespace My.Sys.Forms
 				FRow = Value
 				FCol = 0
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Handle Then TableSetIndex(Handle, Value)
 			FRow = Value
 			FCol = 0
@@ -1757,7 +1757,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Function Grid.RowCells(Row As GridRow Ptr) As String
 			Dim As String sRow
 			For i As Integer = 0 To Columns.Count - 1
@@ -1780,10 +1780,10 @@ Namespace My.Sys.Forms
 	#endif
 
 	Private Sub Grid.ProcessMessage(ByRef Message As Message)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Message.Msg = CM_CHANGE Then
 				Dim As Integer RowIndex
-				#ifdef __USE_JNI__
+				#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					RowIndex = Message.wParam
 				#else
 					RowIndex = TableGetIndex(FHandle)
@@ -2344,7 +2344,7 @@ Namespace My.Sys.Forms
 		Private Sub Grid.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QGrid(Sender.Child)
-					#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+					#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 						TableInit(.FHandle)
 						.UpdateColumns
 						For i As Integer = 0 To .Rows.Count - 1

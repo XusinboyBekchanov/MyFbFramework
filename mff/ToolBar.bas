@@ -187,7 +187,7 @@ Namespace My.Sys.Forms
 				End If
 			#endif
 		End If
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Ctrl Then
 				Dim As Message msg
 				msg.Msg = CM_ITEMSCHANGED
@@ -223,7 +223,7 @@ Namespace My.Sys.Forms
 				' The child added after Expand expands too
 				If FExpand Then gtk_tool_item_set_expand(GTK_TOOL_ITEM(Widget), True)
 			#endif
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'The buttons are views of Android / elements of the page: the child is a control of the toolbar over the
 			'gap of this button (CM_SIZE)
 			If Ctrl AndAlso Value AndAlso Value->Parent <> Ctrl Then Value->Parent = Ctrl
@@ -335,7 +335,7 @@ Namespace My.Sys.Forms
 			#endif
 			'If Ctrl AndAlso Ctrl->Handle Then QControl(Ctrl).RecreateWnd
 		End If
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Ctrl Then
 				Dim As Message msg
 				msg.Msg = CM_ITEMSCHANGED
@@ -370,7 +370,7 @@ Namespace My.Sys.Forms
 					info.fsState = Value
 					SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, FCommandID, Cast(LPARAM, @info))
 				End If
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				'tstChecked is the Checked of the button (the first checked button of a group: Buttons.Add)
 				If CBool(Value And tstChecked) <> FChecked Then Checked = CBool(Value And tstChecked)
 			#endif
@@ -579,7 +579,7 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		End If
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Ctrl Then
 				Dim As Message msg
 				msg.Msg = CM_ITEMSCHANGED
@@ -606,7 +606,7 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		'End If
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Ctrl Then
 				Dim As Message msg
 				msg.Msg = CM_ITEMSCHANGED
@@ -665,7 +665,7 @@ Namespace My.Sys.Forms
 			FState = FState Or tstChecked
 		End If
 		'End If
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Not Value Then FState = FState And Not tstChecked
 			If Ctrl Then
 				Dim As Message msg
@@ -878,7 +878,7 @@ Namespace My.Sys.Forms
 				End If
 			End If
 		#endif
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then Cast(ToolBar Ptr, Parent)->UpdateButtons
 		#endif
 		Return PButton
@@ -927,7 +927,7 @@ Namespace My.Sys.Forms
 				End If
 			End If
 		#endif
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then Cast(ToolBar Ptr, Parent)->UpdateButtons
 		#endif
 		Return PButton
@@ -940,7 +940,7 @@ Namespace My.Sys.Forms
 				SendMessage(Parent->Handle, TB_DELETEBUTTON,Index,0)
 			#endif
 		End If
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then Cast(ToolBar Ptr, Parent)->UpdateButtons
 		#endif
 	End Sub
@@ -961,7 +961,7 @@ Namespace My.Sys.Forms
 			If QToolButton(FButtons.Items[i]).FDynamic Then _Delete( @QToolButton(FButtons.Items[i]))
 		Next i
 		FButtons.Clear
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then Cast(ToolBar Ptr, Parent)->UpdateButtons
 		#endif
 	End Sub
@@ -1174,7 +1174,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Sub ToolBar.UpdateButtons()
 			If FHandle = 0 Then Exit Sub
 			Dim As UString Items
@@ -1235,7 +1235,7 @@ Namespace My.Sys.Forms
 	#endif
 
 	Private Sub ToolBar.ProcessMessage(ByRef Message As Message)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Message.Msg = CM_ITEMSCHANGED Then
 				'A button of a group was checked (ToolButton.Checked): the other ones of its group (the buttons with
 				'tbsGroup next to it) are unchecked
@@ -1291,7 +1291,7 @@ Namespace My.Sys.Forms
 			End If
 			If Message.Msg = CM_CHANGE Then
 				Dim As Integer Index
-				#ifdef __USE_JNI__
+				#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					'&h10000: the arrow of a drop-down button was pressed (mffActivity.buttonsSet)
 					Index = Message.wParam And &hFFFF
 				#else
@@ -1531,7 +1531,7 @@ Namespace My.Sys.Forms
 	Private Sub ToolBar.HandleIsAllocated(ByRef Sender As Control)
 		If Sender.Child Then
 			With QToolBar(Sender.Child)
-				#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					.UpdateButtons
 				#endif
 				#ifdef __USE_JNI__
@@ -1627,7 +1627,7 @@ Namespace My.Sys.Forms
 			FBitmapHeight   = 16
 			Buttons.Parent  = This
 			FEnabled = True
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			#ifdef __USE_JNI__

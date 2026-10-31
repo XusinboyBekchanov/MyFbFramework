@@ -220,7 +220,7 @@ Namespace My.Sys.Forms
 			Dim As cairo_t Ptr cr
 			Dim As PangoContext Ptr pcontext
 			Dim As PangoLayout Ptr layout
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'The canvas of the control while it paints (CM_PAINT)
 			Dim As Any Ptr cr
 		#endif
@@ -234,7 +234,7 @@ Namespace My.Sys.Forms
 			Declare Static Function OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
 			Declare Static Function OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
 			Declare Static Sub OnSizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)

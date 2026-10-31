@@ -358,7 +358,7 @@ Namespace My.Sys.Drawing
 	#ifdef __FB_WIN32__
 		DefaultFont.Name = "Tahoma"
 		DefaultFont.Size = 8
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		DefaultFont.Name = "Tahoma"
 		DefaultFont.Size = 8
 	#elseif defined(__USE_APPLE__)

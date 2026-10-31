@@ -103,7 +103,7 @@ Namespace My.Sys.Drawing
 			Declare Operator Let(Value As HBRUSH)
 			Declare Property Handle As HBRUSH
 			Declare Property Handle(Value As HBRUSH)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'The brush itself: drawing code written for the handles of Windows takes the color from it
 			Declare Property Handle As Any Ptr
 		#endif

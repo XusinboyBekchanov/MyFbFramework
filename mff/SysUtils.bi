@@ -83,6 +83,7 @@
 	#define Max(a, b) IIf((a) > (b), (a), (b))
 	#define Min(a, b) IIf((a) < (b), (a), (b))
 	#include once "Apple/mffApple.bi"
+	#define NULL 0
 #elseif defined(__USE_WASM__)
 	#define Max(a, b) IIf((a) > (b), (a), (b))
 	#define Min(a, b) IIf((a) < (b), (a), (b))
@@ -278,6 +279,81 @@
 	Declare Sub SetRange(Id As Any Ptr, ByVal MinValue As Integer, ByVal MaxValue As Integer)
 	Declare Sub SetPosition(Id As Any Ptr, ByVal Value As Integer)
 	Declare Function GetPosition(Id As Any Ptr) As Integer
+	'The names of the Web and Android versions, which the controls share: the host functions of Apple/mffApple.bi
+	Declare Sub StartTimer(Id As Any Ptr, ByVal Interval As Integer)
+	Declare Sub StopTimer(Id As Any Ptr)
+	'Not made on macOS and iOS yet: the file list of an OpenFileControl, the pages of a print preview
+	Declare Sub FileViewFill(ByVal Id As Any Ptr, sDir As String, Patterns As String, ByVal Multiple As Long)
+	Declare Function GetAttribute(Id As Any Ptr, AttrName As String) As ZString Ptr
+	Declare Sub FreePtr(ByVal Ptr_ As Any Ptr)
+	Declare Sub PageDraw(Id As Any Ptr, Page As Any Ptr, ByVal x As Integer, ByVal y As Integer, ByVal w As Integer, ByVal h As Integer)
+	Declare Sub ReadElementValue(Id As Any Ptr, ByRef Value As WString Ptr)
+	Declare Sub SetStringValue(Id As Any Ptr, Value As String)
+	Declare Sub SetInnerHTML(Id As Any Ptr, Value As String)
+	Declare Sub SetAttribute(Id As Any Ptr, AttrName As String, Value As String)
+	Declare Sub SetItemChecked(Id As Any Ptr, ByVal Index As Integer, Value As Boolean)
+	Declare Function GetItemChecked(Id As Any Ptr, ByVal Index As Integer) As Boolean
+	Declare Sub SetTabs(Id As Any Ptr, Titles As String)
+	Declare Sub SetTabsPosition(Id As Any Ptr, ByVal Position As Integer)
+	Declare Function TabsStripHeight() As Integer
+	Declare Sub SetButtons(Id As Any Ptr, Items As String)
+	Declare Function ButtonsItemLeft(Id As Any Ptr, ByVal Index As Integer) As Integer
+	Declare Function ButtonsItemWidth(Id As Any Ptr, ByVal Index As Integer) As Integer
+	Declare Function ButtonsContentWidth(Id As Any Ptr) As Integer
+	Declare Function ElementContentWidth(Id As Any Ptr) As Integer
+	Declare Sub LoadURL(Id As Any Ptr, URL As String)
+	Declare Sub LoadHTML(Id As Any Ptr, HTML As String)
+	Declare Sub WebAction(Id As Any Ptr, ByVal Action As Integer)
+	Declare Sub LoadImage(Id As Any Ptr, Path As String, Center As Boolean)
+	Declare Sub AddResourceSearchPath(Path As String)
+	'The pictures of a .rc file: they are found in the folders of AddResourceSearchPath
+	Declare Sub AddResourceFile(ByRef RcFile As String)
+	Declare Function FindResourceFile(ResName As String) As String
+	Declare Function RemoveMnemonic(ByRef Value As WString) As UString
+	Declare Sub ClipboardSetText(Text As String)
+	Declare Function ClipboardGetText() As ZString Ptr
+	Declare Function ShowPopupMenu(Items As String, ByVal x As Long, ByVal y As Long) As Long
+	Declare Function ShowFileDialog(ByVal Mode As Long, Caption As String, InitialDir As String, FileName As String, Filter As String, ByVal FilterIndex As Long) As ZString Ptr
+	Declare Function ShowFontDialog(FontName As String, ByVal Size As Long, ByVal Style As Long, ByVal FontColor As Long) As ZString Ptr
+	Declare Function ShowColorDialog(Caption As String, ByVal ColorValue As Long) As Long
+	Declare Function RegexCompile(Pattern As String, ByVal Flags As Long) As Long
+	Declare Function RegexError() As ZString Ptr
+	Declare Sub RegexFree(ByVal Id As Long)
+	Declare Function RegexExec(ByVal Id As Long, Subject As String, ByVal StartByte As Long, ByVal Offsets As Long Ptr, ByVal MaxGroups As Long) As Long
+	Declare Sub TableInit(Id As Any Ptr)
+	Declare Sub TableSetView(Id As Any Ptr, ViewName As String)
+	Declare Sub TableSetColumns(Id As Any Ptr, Captions As String, Widths As String)
+	Declare Sub TableInsertRow(Id As Any Ptr, ByVal Index As Integer, Cells As String)
+	Declare Sub TableSetRow(Id As Any Ptr, ByVal Index As Integer, Cells As String)
+	Declare Sub TableRemoveRow(Id As Any Ptr, ByVal Index As Integer)
+	Declare Sub TableClear(Id As Any Ptr)
+	Declare Sub TableSetIndex(Id As Any Ptr, ByVal Index As Integer)
+	Declare Function TableGetIndex(Id As Any Ptr) As Integer
+	Declare Sub TableCellRect(Id As Any Ptr, ByVal Row As Long, ByVal Col As Long, ByVal pRect As Any Ptr)
+	Declare Function TableDblClick(Id As Any Ptr) As Boolean
+	Declare Sub CanvasBegin(Id As Any Ptr)
+	Declare Sub CanvasEnd(Id As Any Ptr)
+	Declare Sub CanvasRepaint(Id As Any Ptr)
+	Declare Sub CanvasNewPath(Id As Any Ptr)
+	Declare Sub CanvasMoveTo(Id As Any Ptr, ByVal x As Double, ByVal y As Double)
+	Declare Sub CanvasLineTo(Id As Any Ptr, ByVal x As Double, ByVal y As Double)
+	Declare Sub CanvasCurveTo(Id As Any Ptr, ByVal x1 As Double, ByVal y1 As Double, ByVal x2 As Double, ByVal y2 As Double, ByVal x3 As Double, ByVal y3 As Double)
+	Declare Sub CanvasArc(Id As Any Ptr, ByVal cx As Double, ByVal cy As Double, ByVal r As Double, ByVal a1 As Double, ByVal a2 As Double, ByVal Negative As Integer = 0)
+	Declare Sub CanvasRectPath(Id As Any Ptr, ByVal x As Double, ByVal y As Double, ByVal w As Double, ByVal h As Double)
+	Declare Sub CanvasClosePath(Id As Any Ptr)
+	Declare Sub CanvasClip(Id As Any Ptr)
+	Declare Sub CanvasFill(Id As Any Ptr, ByVal iColor As Integer, ByVal Alpha As Integer)
+	Declare Sub CanvasStroke(Id As Any Ptr, ByVal iColor As Integer, ByVal Alpha As Integer, ByVal LineWidth As Double, Dash As String)
+	Declare Sub CanvasFillRect(Id As Any Ptr, ByVal x As Double, ByVal y As Double, ByVal w As Double, ByVal h As Double, ByVal iColor As Integer, ByVal Alpha As Integer)
+	Declare Sub CanvasInvertRect(Id As Any Ptr, ByVal x As Double, ByVal y As Double, ByVal w As Double, ByVal h As Double)
+	Declare Sub CanvasRotate(Id As Any Ptr, ByVal x As Double, ByVal y As Double, ByVal Angle As Double)
+	Declare Sub CanvasSave(Id As Any Ptr)
+	Declare Sub CanvasRestore(Id As Any Ptr)
+	Declare Sub CanvasText(Id As Any Ptr, ByVal x As Double, ByVal y As Double, Text As String, ByVal iColor As Integer, ByVal iBkColor As Integer, FontName As String, ByVal FontSize As Double, ByVal Bold As Integer, ByVal Italic As Integer)
+	Declare Function CanvasTextWidth(Id As Any Ptr, Text As String, FontName As String, ByVal FontSize As Double, ByVal Bold As Integer, ByVal Italic As Integer) As Integer
+	Declare Function CanvasTextHeight(Id As Any Ptr, FontName As String, ByVal FontSize As Double, ByVal Bold As Integer, ByVal Italic As Integer) As Integer
+	Declare Function CanvasGetPixel(Id As Any Ptr, ByVal x As Double, ByVal y As Double) As Integer
+	Declare Sub CanvasImage(Id As Any Ptr, Path As String, ByVal x As Double, ByVal y As Double, ByVal w As Double, ByVal h As Double, ByVal Alpha As Integer)
 #endif
 #ifdef __USE_WASM__
 	Declare Function SendHTTPRequest(url As String, method As String, data As String) As ZString Ptr

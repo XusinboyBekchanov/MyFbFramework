@@ -133,7 +133,7 @@ Namespace My.Sys.Forms
 			'Checks if the window handle has been created
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Function GetChildTabControl(ParentHwnd As HWND, X As Integer, Y As Integer) As TabControl Ptr
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#elseif defined(__USE_GTK__)
@@ -203,7 +203,7 @@ Namespace My.Sys.Forms
 		Declare Function InsertTab(Index As Integer, ByRef Caption As WString, AObject As Any Ptr = 0) As TabPage Ptr
 		Declare Sub InsertTab(Index As Integer, ByRef tTab As TabPage Ptr)
 		Declare Sub ReorderTab(ByVal tp As TabPage Ptr, Index As Integer, bNoActivate As Boolean = False)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'Rebuilds the tab strip (the captions of the pages) and shows the selected page
 			Declare Sub UpdateTabs()
 		#endif
@@ -217,7 +217,7 @@ Namespace My.Sys.Forms
 		OnTabAdded     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, Page As TabPage Ptr, NewIndex As Integer)
 		OnTabRemoved   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, Page As TabPage Ptr, FromIndex As Integer)
 		OnTabReordered As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, Page As TabPage Ptr, NewIndex As Integer)
-		#if defined(__USE_JNI__) OrElse defined(__USE_WASM__)
+		#if defined(__USE_JNI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 			'Android and Web: the tabs have a close button (set before the tabs are shown); its tap raises OnTabClose
 			ShowCloseButtons As Boolean
 			OnTabClose     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, Page As TabPage Ptr)

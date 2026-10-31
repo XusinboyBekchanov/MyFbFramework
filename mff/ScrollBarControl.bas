@@ -108,7 +108,7 @@ Namespace My.Sys.Forms
 			#else
 				gtk_range_set_range(GTK_RANGE(widget), FMin, FMax)
 			#endif
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then ..SetRange(FHandle, FMin, FMax)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(SBM_SETRANGE, FMin, FMax)
@@ -127,7 +127,7 @@ Namespace My.Sys.Forms
 			#else
 				gtk_range_set_range(GTK_RANGE(widget), FMin, FMax)
 			#endif
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then ..SetRange(FHandle, FMin, FMax)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(SBM_SETRANGE, FMin, FMax)
@@ -141,7 +141,7 @@ Namespace My.Sys.Forms
 			#else
 				FPosition = gtk_range_get_value(GTK_RANGE(widget))
 			#endif
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then FPosition = GetPosition(FHandle)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then FPosition = Perform(SBM_GETPOS, 0, 0)
@@ -157,7 +157,7 @@ Namespace My.Sys.Forms
 			#else
 				gtk_range_set_value(GTK_RANGE(widget), CDbl(Value))
 			#endif
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then SetPosition(FHandle, FPosition)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(SBM_SETPOS, FPosition, True)
@@ -222,7 +222,7 @@ Namespace My.Sys.Forms
 		
 		Private Sub ScrollBarControl.WndProc(ByRef Message As Message)
 		End Sub
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Sub ScrollBarControl.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QScrollBarControl(Sender.Child)
@@ -242,9 +242,9 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub ScrollBarControl.ProcessMessage(ByRef Message As Message)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Message.Msg = CM_CHANGE Then
-				#ifdef __USE_JNI__
+				#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					FPosition = Message.wParam
 				#else
 					FPosition = GetPosition(FHandle)

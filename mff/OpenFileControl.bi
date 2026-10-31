@@ -25,7 +25,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub FileChooser_FileActivated(chooser As GtkFileChooser Ptr, user_data As Any Ptr)
 			Declare Static Sub FileChooser_SelectionChanged(chooser As GtkFileChooser Ptr, user_data As Any Ptr)
 			Dim As GtkFileFilter Ptr filefilter(Any)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'Web, Android: the file list of the file dialog (FileViewFill) with the files of the current folder (the file
 			'system of the page, of the device) in the views "Large icons" and "List"
 			Declare Sub FillFiles()
@@ -96,7 +96,7 @@ Namespace My.Sys.Forms
 		Declare Static Sub CreateWnd(Param As Any Ptr)
 		'Initializes native window handle
 		Declare Sub CreateWnd
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'The changes of the file list (CM_CHANGE of FileViewFill): OnSelectionChange, OnFileActivate, OnFolderChange
 			Declare Virtual Sub ProcessMessage(ByRef message As Message)
 		#endif

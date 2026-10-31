@@ -108,7 +108,7 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 		FExpanded = False
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then Cast(TreeListView Ptr, Parent)->UpdateRows
 		#endif
 	End Sub
@@ -158,11 +158,11 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent <> 0 AndAlso Not FExpanded AndAlso QTreeListView(Parent).OnItemExpanding <> 0 Then QTreeListView(Parent).OnItemExpanding(* (QTreeListView(Parent).Designer), QTreeListView(Parent), @This)
 		#endif
 		FExpanded = True
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then Cast(TreeListView Ptr, Parent)->UpdateRows
 		#endif
 	End Sub
@@ -202,7 +202,7 @@ Namespace My.Sys.Forms
 				If ItemIndex = -1 Then Exit Sub
 				ListView_SetItemState(Parent->Handle, ItemIndex, LVIS_FOCUSED Or LVIS_SELECTED, LVNI_SELECTED Or LVNI_FOCUSED)
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then Cast(TreeListView Ptr, Parent)->SelectedItem = @This
 		#endif
 	End Sub
@@ -237,7 +237,7 @@ Namespace My.Sys.Forms
 					lvi.cchTextMax = Len(*FText)
 					ListView_SetItem(Parent->Handle, @lvi)
 				End If
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				Cast(TreeListView Ptr, Parent)->UpdateRows
 			#endif
 		End If
@@ -587,7 +587,7 @@ Namespace My.Sys.Forms
 				lvc.cx = ScaleX(FWidth)
 				ListView_SetColumn(Parent->Handle, Index, @lvc)
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'The header of the table gets the new width (the Value column of the Properties of the IDE, OnResize)
 			If Parent AndAlso Parent->Handle Then Cast(TreeListView Ptr, Parent)->UpdateColumns
 		#endif
@@ -835,7 +835,7 @@ Namespace My.Sys.Forms
 				.Handle = Cast(LPARAM, PItem)
 			#endif
 		End With
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then Cast(TreeListView Ptr, Parent)->UpdateRows
 		#endif
 		Return PItem
@@ -921,7 +921,7 @@ Namespace My.Sys.Forms
 		If Count < 1 OrElse Index < 0 OrElse Index > Count - 1 Then Exit Sub
 		If Cast(TreeListViewItem Ptr, FItems.Items[Index])->FDynamic Then _Delete( Cast(TreeListViewItem Ptr, FItems.Items[Index]))
 		FItems.Remove Index
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then Cast(TreeListView Ptr, Parent)->UpdateRows
 		#endif
 	End Sub
@@ -975,7 +975,7 @@ Namespace My.Sys.Forms
 		ClearDepth -= 1
 		FItems.Clear
 		If ParentItem Then ParentItem->State = 0
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent AndAlso ClearDepth = 0 Then Cast(TreeListView Ptr, Parent)->UpdateRows
 		#endif
 	End Sub
@@ -1124,7 +1124,7 @@ Namespace My.Sys.Forms
 				If Parent->Handle Then
 					ListView_InsertColumn(Parent->Handle, PColumn->Index, @lvc)
 				End If
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				Cast(TreeListView Ptr, Parent)->UpdateColumns
 			#endif
 		End If
@@ -1169,7 +1169,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then
 				SendMessage Parent->Handle, LVM_DELETECOLUMN, Cast(WPARAM, Index), 0
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then Cast(TreeListView Ptr, Parent)->UpdateColumns
 		#endif
 	End Sub
@@ -1396,7 +1396,7 @@ Namespace My.Sys.Forms
 				Dim As Integer item = ListView_GetNextItem(Handle, -1, LVNI_SELECTED)
 				If item <> -1 Then Return GetTreeListViewItem(item)
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Return FSelItem
 		#endif
 		Return 0
@@ -1413,7 +1413,7 @@ Namespace My.Sys.Forms
 			If Handle Then
 				Return ListView_GetNextItem(Handle, -1, LVNI_SELECTED)
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			For i As Integer = 0 To UBound(FRowItems)
 				If FRowItems(i) = FSelItem Then Return i
 			Next
@@ -1436,14 +1436,14 @@ Namespace My.Sys.Forms
 				ListView_SetItemState(Handle, Value, LVIS_FOCUSED Or LVIS_SELECTED, LVNI_SELECTED Or LVNI_FOCUSED)
 				ListView_EnsureVisible(Handle, Value, True)
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Value >= 0 AndAlso Value <= UBound(FRowItems) Then FSelItem = FRowItems(Value) Else FSelItem = 0
 			If Handle Then TableSetIndex(Handle, IIf(FSelItem, Value, -1))
 		#endif
 	End Property
 	
 	Private Property TreeListView.SelectedItem(Value As TreeListViewItem Ptr)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			FSelItem = Value
 			Dim As TreeListViewItem Ptr PItem = IIf(Value, Value->ParentItem, 0)
 			While PItem
@@ -1583,10 +1583,10 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub TreeListView.ProcessMessage(ByRef Message As Message)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Message.Msg = CM_CHANGE Then
 				Dim As Integer RowIndex
-				#ifdef __USE_JNI__
+				#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					RowIndex = Message.wParam
 				#else
 					RowIndex = TableGetIndex(FHandle)
@@ -2026,7 +2026,7 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Function TreeListView.RowCells(Item As TreeListViewItem Ptr) As String
 			Dim As WString * 3 Sign = IIf(Item->Nodes.Count = 0, "  ", IIf(Item->IsExpanded, WChr(&H25BC) & " ", WChr(&H25BA) & " "))
 			'Like on Windows the place of the sign of an item without nodes is the one of the state picture: there is no

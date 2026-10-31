@@ -62,7 +62,7 @@ Namespace My.Sys.Forms
 		FIsDisposed         As Boolean
 		FChecked            As Boolean
 		FBold               As Boolean
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			FExpanded       As Boolean
 		#endif
 	Protected:
@@ -145,7 +145,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 			Declare Sub SendToAllChildItems(ByVal hNode As HTREEITEM, tvMessage As Long)
 			Declare Sub CreateNodes(PNode As TreeNode Ptr)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			#ifdef __USE_WASM__
 				Declare Virtual Function GetContent() As UString
 				Declare Function CreateNodes(PNodes As TreeNode Ptr) As UString
@@ -159,7 +159,7 @@ Namespace My.Sys.Forms
 		#endif
 		Declare Virtual Sub ProcessMessage(ByRef Message As Message)
 	Public:
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'Shows the visible nodes again (after a change of the nodes)
 			Declare Sub UpdateRows()
 		#endif

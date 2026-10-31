@@ -249,7 +249,7 @@ Namespace My.Sys.Forms
 		
 		Private Sub MonthCalendar.WndProc(ByRef Message As Message)
 		End Sub
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Sub MonthCalendar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QMonthCalendar(Sender.Child)
@@ -264,9 +264,9 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub MonthCalendar.ProcessMessage(ByRef Message As Message)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Message.Msg = CM_CHANGE Then
-				#ifdef __USE_JNI__
+				#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					Dim As Integer YMD = Message.wParam
 					FSelectedDate = DateSerial(YMD \ 10000, (YMD \ 100) Mod 100, YMD Mod 100)
 				#else

@@ -28,7 +28,7 @@ Namespace My.Sys.Forms
 		FDoubleTemp    As Integer
 		FBooleanTemp    As Integer
 		FHandleIsAllocated As Boolean
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Declare Static Sub UpDownControl_Changing(ByRef Designer As My.Sys.Object, ByRef Sender As UpDown, Value As Integer, Direction As Integer)
 		#endif
 		#ifndef __USE_GTK__

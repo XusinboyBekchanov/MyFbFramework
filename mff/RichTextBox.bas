@@ -1456,7 +1456,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'The text of an RTF: Html - with the formatting as HTML (\b, \i, \ul, \strike, their ends \b0, \i0, \ulnone, \strike0;
 		'a group {} keeps its formatting inside it), otherwise only the text. \par and \line are new lines, \tab a tab,
 		'\'hh and \uN characters; the groups of \* and of the tables of fonts and colors are left out
@@ -1980,7 +1980,7 @@ Namespace My.Sys.Forms
 			.FHideSelection    = False
 			FTabIndex          = -1
 			FTabStop           = True
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				.Multiline = True
 			#endif
 			#ifdef __USE_WASM__

@@ -122,7 +122,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Sub PrintPreviewControl.SetScrollsInfo
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'The place of the page stays in the new size (PaintControl)
 			If Document = 0 Then Exit Sub
 			FScrollX = Max(0, Min(FScrollX, Document->PrinterSettings.PrintableWidth * FZoom / 100 + 20 - ClientWidth))
@@ -234,7 +234,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'Web: the recorded page (an offscreen canvas, PrintDocument.Repaint) scaled by Zoom on gray like the other systems,
 		'in the middle when it is smaller than the control, moved by the mouse wheel when it is bigger.
 		'Android: the page is an MffPage (a Picture), it is moved by a drag
@@ -337,7 +337,7 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub PrintPreviewControl.ProcessMessage(ByRef Message As Message)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Select Case Message.Msg
 			Case CM_PAINT
 				PaintControl
@@ -673,7 +673,7 @@ Namespace My.Sys.Forms
 				FDefaultBackColor = .BackColor
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.DoubleBuffered = True
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				'The mouse wheel (Android: a drag) moves the page (ProcessMessage)
 				FMouseEvents = True
 			#endif

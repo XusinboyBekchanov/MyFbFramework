@@ -5,7 +5,9 @@
  * The functions are described in Apple/mffApple.h.
  */
 #import <Cocoa/Cocoa.h>
+#import <WebKit/WebKit.h>
 #import <objc/runtime.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,6 +17,10 @@ static char kMffCtrlKey;
 /* The host sets the frame of a window (no mffOnResize then) / the user moved or resized it (mffOnResize, mffOnMove:
    the bounds which the control sets meanwhile are the ones of the window already) */
 static BOOL mffSettingFrame, mffInWindowEvent;
+/* The program changes the selection (the events are for the changes of the user); a double click on a row of a table */
+static BOOL mffSilent;
+static int mffDblClick, mffPopupResult = -1;
+static char kMffTableKey, kMffChecksKey;
 
 /* The Control Ptr of the FreeBASIC side which gets the events of the object */
 static void mffSetCtrl(id obj, void *ctrl) {
@@ -115,6 +121,8 @@ static void mffEnsureApp(void) {
 	NSTrackingArea *trackingArea;
 }
 @property (nonatomic, strong) NSColor *mffBackColor;
+@property (nonatomic, strong) NSImage *mffImage;
+@property (nonatomic) BOOL mffImageCenter;
 @end
 
 @implementation MffView
@@ -132,6 +140,12 @@ static void mffEnsureApp(void) {
 		[self.mffBackColor setFill];
 		/* The dirty rectangle can be larger than the view */
 		NSRectFill(NSIntersectionRect(r, [self bounds]));
+	}
+	if (self.mffImage) {
+		NSSize s = [self.mffImage size];
+		NSRect b = [self bounds];
+		NSRect to = self.mffImageCenter ? NSMakeRect((b.size.width - s.width) / 2, (b.size.height - s.height) / 2, s.width, s.height) : b;
+		[self.mffImage drawInRect:to fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:1 respectFlipped:YES hints:nil];
 	}
 	void *ctrl = mffGetCtrl(self);
 	if (ctrl) mffOnPaint(ctrl);
@@ -216,6 +230,25 @@ static MffTarget *mffTarget(void) {
 	return t;
 }
 
+/* The checked rows of a CheckedListBox (nil - a list without check boxes) */
+static NSMutableIndexSet *mffChecks(id table) {
+	NSMutableIndexSet *s = objc_getAssociatedObject(table, &kMffChecksKey);
+	if (!s) {
+		s = [NSMutableIndexSet indexSet];
+		objc_setAssociatedObject(table, &kMffChecksKey, s, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+	}
+	return s;
+}
+
+/* The text of a cell without Chr(1) picture Chr(1) */
+static NSString *mffCellText(NSString *s) {
+	if ([s hasPrefix:@"\x01"]) {
+		NSRange end = [s rangeOfString:@"\x01" options:0 range:NSMakeRange(1, [s length] - 1)];
+		if (end.location != NSNotFound) return [s substringFromIndex:end.location + 1];
+	}
+	return s;
+}
+
 /* The items of a list (NSTableView of a ListControl) */
 static char kMffItemsKey;
 static NSMutableArray<NSString *> *mffItems(id table) {
@@ -284,18 +317,56 @@ static NSMutableArray<NSString *> *mffItems(id table) {
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)t { return [mffItems(t) count]; }
 - (id)tableView:(NSTableView *)t objectValueForTableColumn:(NSTableColumn *)c row:(NSInteger)row {
 	NSArray *a = mffItems(t);
-	return row < (NSInteger)[a count] ? a[row] : @"";
+	if (row >= (NSInteger)[a count]) return @"";
+	id item = a[row];
+	if ([item isKindOfClass:[NSArray class]]) {
+		NSUInteger i = [[t tableColumns] indexOfObject:c];
+		return i < [item count] ? mffCellText(item[i]) : @"";
+	}
+	if (objc_getAssociatedObject(t, &kMffChecksKey)) return [([mffChecks(t) containsIndex:row] ? @"\u2611 " : @"\u2610 ") stringByAppendingString:item];
+	return item;
 }
 - (void)tableViewSelectionDidChange:(NSNotification *)n {
+	if (mffSilent) return;
 	NSTableView *t = [n object];
 	NSView *v = [t enclosingScrollView];
 	void *ctrl = v ? mffGetCtrl(v) : NULL;
 	if (ctrl) mffOnChange(ctrl, (int)[t selectedRow]);
 }
+/* A click on a row of a CheckedListBox changes its check box */
+- (void)tableClick:(NSTableView *)t {
+	NSInteger row = [t clickedRow];
+	if (row < 0 || !objc_getAssociatedObject(t, &kMffChecksKey)) return;
+	if ([mffChecks(t) containsIndex:row]) [mffChecks(t) removeIndex:row]; else [mffChecks(t) addIndex:row];
+	[t reloadData];
+	void *ctrl = mffGetCtrl([t enclosingScrollView]);
+	if (ctrl) mffOnChange(ctrl, (int)row);
+}
+- (void)tabsClick:(NSSegmentedControl *)s {
+	void *ctrl = mffGetCtrl([s superview]);
+	if (ctrl) mffOnChange(ctrl, (int)[s selectedSegment]);
+}
+- (void)buttonsClick:(NSButton *)b {
+	void *ctrl = mffGetCtrl([b superview]);
+	if (ctrl) mffOnChange(ctrl, (int)[b tag]);
+}
+- (void)popupChosen:(NSMenuItem *)m {
+	mffPopupResult = (int)[m tag];
+}
+- (void)menuBarChosen:(NSMenuItem *)m {
+	mffOnMenu((int)[m tag]);
+}
 - (void)tableDoubleClick:(NSTableView *)t {
 	NSView *v = [t enclosingScrollView];
 	void *ctrl = v ? mffGetCtrl(v) : NULL;
-	if (ctrl) mffOnDblClick(ctrl);
+	if (!ctrl) return;
+	/* ListView, TreeView: the double click is a change with TableDblClick */
+	if (objc_getAssociatedObject(t, &kMffTableKey)) {
+		mffDblClick = 1;
+		mffOnChange(ctrl, (int)[t clickedRow]);
+		mffDblClick = 0;
+	}
+	mffOnDblClick(ctrl);
 }
 - (void)timerFired:(NSTimer *)t {
 	mffOnTimer([[t userInfo] pointerValue]);
@@ -329,6 +400,58 @@ static NSTextView *mffTextView(void *view) {
 	if ([v isKindOfClass:[NSScrollView class]] && [[(NSScrollView *)v documentView] isKindOfClass:[NSTextView class]]) return [(NSScrollView *)v documentView];
 	return nil;
 }
+
+/* A GroupBox: the coordinates of its controls are from the top left corner of its frame like on Windows (the content
+   view of NSBox is smaller than the box by the title and the margins) */
+@interface MffGroupView : MffView
+@property (nonatomic, copy) NSString *mffTitle;
+@end
+
+@implementation MffGroupView
+- (void)drawRect:(NSRect)r {
+	/* First: the color of the view is under the frame */
+	[super drawRect:r];
+	NSDictionary *a = @{NSFontAttributeName: [NSFont systemFontOfSize:[NSFont smallSystemFontSize]], NSForegroundColorAttributeName: [NSColor labelColor]};
+	NSSize s = self.mffTitle ? [self.mffTitle sizeWithAttributes:a] : NSZeroSize;
+	NSRect box = NSInsetRect(NSMakeRect(0, s.height / 2, [self bounds].size.width, [self bounds].size.height - s.height / 2), 0.5, 0.5);
+	[[NSColor separatorColor] setStroke];
+	[[NSBezierPath bezierPathWithRoundedRect:box xRadius:5 yRadius:5] stroke];
+	if ([self.mffTitle length]) {
+		[(self.mffBackColor ?: [NSColor windowBackgroundColor]) setFill];
+		NSRectFill(NSMakeRect(8, 0, s.width + 6, s.height));
+		[self.mffTitle drawAtPoint:NSMakePoint(11, 0) withAttributes:a];
+	}
+}
+@end
+
+/* A TabControl: the strip of its tabs, the pages are its child controls */
+@interface MffTabsView : MffView
+@property (nonatomic, strong) NSSegmentedControl *segments;
+@property (nonatomic) int tabPosition;
+- (void)layoutStrip;
+@end
+
+@implementation MffTabsView
+- (void)layoutStrip {
+	/* 3 - at the bottom; NSSegmentedControl has no vertical form: the tabs on the left and on the right are at the top */
+	NSRect b = [self bounds];
+	CGFloat h = mffTabsStripHeight();
+	[self.segments setFrame:NSMakeRect(0, self.tabPosition == 3 ? b.size.height - h : 0, b.size.width, h)];
+}
+- (void)setFrameSize:(NSSize)s {
+	[super setFrameSize:s];
+	[self layoutStrip];
+}
+@end
+
+/* A ToolBar, a ToolPalette: its row of buttons */
+@interface MffButtonsView : MffView
+@property (nonatomic, strong) NSMutableArray *buttons;
+@property (nonatomic) CGFloat contentWidth;
+@end
+
+@implementation MffButtonsView
+@end
 
 void *mffViewCreate(const char *kind, void *ctrl) {
 	mffEnsureApp();
@@ -375,13 +498,24 @@ void *mffViewCreate(const char *kind, void *ctrl) {
 		[s setDocumentView:tv];
 		obj = s;
 	} else if ([k isEqualToString:@"GroupBox"]) {
-		NSBox *b = [[NSBox alloc] initWithFrame:r];
-		[b setTitle:@""];
-		MffView *content = [[MffView alloc] initWithFrame:NSZeroRect];
-		mffSetCtrl(content, ctrl);
-		[b setContentView:content];
-		obj = b;
-	} else if ([k isEqualToString:@"ListControl"] || [k isEqualToString:@"CheckedListBox"]) {
+		obj = [[MffGroupView alloc] initWithFrame:r];
+	} else if ([k isEqualToString:@"TabControl"]) {
+		MffTabsView *v = [[MffTabsView alloc] initWithFrame:r];
+		v.segments = [[NSSegmentedControl alloc] initWithFrame:NSZeroRect];
+		[v.segments setTrackingMode:NSSegmentSwitchTrackingSelectOne];
+		[v.segments setSegmentStyle:NSSegmentStyleTexturedSquare];
+		[v.segments setTarget:t];
+		[v.segments setAction:@selector(tabsClick:)];
+		[v addSubview:v.segments];
+		[v layoutStrip];
+		obj = v;
+	} else if ([k isEqualToString:@"ToolBar"] || [k isEqualToString:@"ToolPalette"]) {
+		MffButtonsView *v = [[MffButtonsView alloc] initWithFrame:r];
+		v.buttons = [NSMutableArray array];
+		obj = v;
+	} else if ([k isEqualToString:@"WebBrowser"]) {
+		obj = [[WKWebView alloc] initWithFrame:r configuration:[[WKWebViewConfiguration alloc] init]];
+	} else if ([k isEqualToString:@"ListControl"] || [k isEqualToString:@"CheckedListBox"] || [k isEqualToString:@"ListView"] || [k isEqualToString:@"TreeView"] || [k isEqualToString:@"TreeListView"] || [k isEqualToString:@"GridData"] || [k isEqualToString:@"Grid"]) {
 		NSScrollView *s = [[NSScrollView alloc] initWithFrame:r];
 		[s setHasVerticalScroller:YES];
 		[s setBorderType:NSBezelBorder];
@@ -395,6 +529,10 @@ void *mffViewCreate(const char *kind, void *ctrl) {
 		[tv setDelegate:t];
 		[tv setTarget:t];
 		[tv setDoubleAction:@selector(tableDoubleClick:)];
+		if ([k isEqualToString:@"CheckedListBox"]) {
+			(void)mffChecks(tv);
+			[tv setAction:@selector(tableClick:)];
+		}
 		[s setDocumentView:tv];
 		obj = s;
 	} else if ([k isEqualToString:@"ComboBoxEdit"] || [k isEqualToString:@"ComboBoxEx"]) {
@@ -442,6 +580,10 @@ void mffViewFree(void *view) {
 	}
 }
 
+void *mffViewControl(void *view) {
+	return view ? mffGetCtrl(mffObj(view)) : NULL;
+}
+
 void *mffViewLayout(void *view) {
 	id o = mffObj(view);
 	if ([o isKindOfClass:[NSWindow class]]) return (__bridge void *)[(NSWindow *)o contentView];
@@ -486,7 +628,7 @@ void mffViewSetText(void *view, const char *text) {
 	NSString *s = mffStr(text);
 	if ([o isKindOfClass:[NSWindow class]]) [(NSWindow *)o setTitle:s];
 	else if ([o isKindOfClass:[NSButton class]] && ![o isKindOfClass:[NSPopUpButton class]]) [(NSButton *)o setTitle:mffNoMnemonic(s)];
-	else if ([o isKindOfClass:[NSBox class]]) [(NSBox *)o setTitle:mffNoMnemonic(s)];
+	else if ([o isKindOfClass:[MffGroupView class]]) { ((MffGroupView *)o).mffTitle = mffNoMnemonic(s); [(NSView *)o setNeedsDisplay:YES]; }
 	else if ([o isKindOfClass:[NSTextField class]]) [(NSTextField *)o setStringValue:[(NSTextField *)o isEditable] ? s : mffNoMnemonic(s)];
 	else if (mffTextView(view)) [mffTextView(view) setString:s];
 }
@@ -496,7 +638,7 @@ char *mffViewGetText(void *view) {
 	if ([o isKindOfClass:[NSWindow class]]) return mffDup([(NSWindow *)o title]);
 	if ([o isKindOfClass:[NSPopUpButton class]]) return mffDup([(NSPopUpButton *)o titleOfSelectedItem]);
 	if ([o isKindOfClass:[NSButton class]]) return mffDup([(NSButton *)o title]);
-	if ([o isKindOfClass:[NSBox class]]) return mffDup([(NSBox *)o title]);
+	if ([o isKindOfClass:[MffGroupView class]]) return mffDup(((MffGroupView *)o).mffTitle);
 	if ([o isKindOfClass:[NSTextField class]]) return mffDup([(NSTextField *)o stringValue]);
 	if (mffTextView(view)) return mffDup([mffTextView(view) string]);
 	return mffDup(@"");
@@ -717,8 +859,14 @@ void mffListSetIndex(void *view, int index) {
 	id o = mffObj(view);
 	NSTableView *t = mffTable(view);
 	if (t) {
-		if (index < 0) [t deselectAll:nil];
-		else { [t selectRowIndexes:[NSIndexSet indexSetWithIndex:index] byExtendingSelection:NO]; [t scrollRowToVisible:index]; }
+		if (index < 0) { mffSilent = YES; [t deselectAll:nil]; mffSilent = NO; }
+		else {
+			/* Like the messages of Windows: only a change of the user raises the event */
+			mffSilent = YES;
+			[t selectRowIndexes:[NSIndexSet indexSetWithIndex:index] byExtendingSelection:NO];
+			mffSilent = NO;
+			[t scrollRowToVisible:index];
+		}
 	} else if ([o isKindOfClass:[NSPopUpButton class]]) [(NSPopUpButton *)o selectItemAtIndex:index];
 	else if ([o isKindOfClass:[NSComboBox class]]) {
 		if (index < 0) [(NSComboBox *)o deselectItemAtIndex:[(NSComboBox *)o indexOfSelectedItem]];
@@ -734,12 +882,14 @@ void mffRangeSet(void *view, int minValue, int maxValue) {
 
 void mffPositionSet(void *view, int value) {
 	id o = mffObj(view);
-	if ([o isKindOfClass:[NSProgressIndicator class]]) [(NSProgressIndicator *)o setDoubleValue:value];
+	if ([o isKindOfClass:[MffTabsView class]]) { if (value >= 0 && value < [((MffTabsView *)o).segments segmentCount]) [((MffTabsView *)o).segments setSelectedSegment:value]; }
+	else if ([o isKindOfClass:[NSProgressIndicator class]]) [(NSProgressIndicator *)o setDoubleValue:value];
 	else if ([o isKindOfClass:[NSSlider class]]) [(NSSlider *)o setIntValue:value];
 }
 
 int mffPositionGet(void *view) {
 	id o = mffObj(view);
+	if ([o isKindOfClass:[MffTabsView class]]) return (int)[((MffTabsView *)o).segments selectedSegment];
 	if ([o isKindOfClass:[NSProgressIndicator class]]) return (int)[(NSProgressIndicator *)o doubleValue];
 	if ([o isKindOfClass:[NSSlider class]]) return [(NSSlider *)o intValue];
 	return 0;
@@ -798,7 +948,7 @@ int mffScreenSize(int vertical) {
 }
 
 /* The test of a program without a screen recording (CI): MFF_SNAPSHOT=Name saves the windows as Name_1.png, ...
-   two seconds after the start; MFF_CLICK=Caption clicks the button with that caption then, and the windows (a
+   two seconds (MFF_SNAPSHOT_DELAY) after the start; MFF_CLICK=Caption clicks the button with that caption then, and the windows (a
    message box too) are saved again as Name_2_*.png; then the program ends */
 static void mffSnapshot(NSString *base, int step) {
 	int n = 0;
@@ -828,7 +978,8 @@ static void mffStartSnapshotTest(void) {
 	NSString *base = mffStr(snap);
 	NSString *click = mffStr(getenv("MFF_CLICK"));
 	__block int step = 0;
-	NSTimer *tm = [NSTimer timerWithTimeInterval:2.0 repeats:YES block:^(NSTimer *t) {
+	const char *delay = getenv("MFF_SNAPSHOT_DELAY");
+	NSTimer *tm = [NSTimer timerWithTimeInterval:(delay && atof(delay) > 0) ? atof(delay) : 2.0 repeats:YES block:^(NSTimer *t) {
 		step++;
 		mffSnapshot(base, step);
 		if (step == 1 && [click length]) {
@@ -886,8 +1037,11 @@ int mffAppDarkMode(void) {
 int mffMessageBox(const char *msg, const char *caption, int messageType, int buttonsType) {
 	mffEnsureApp();
 	NSAlert *a = [[NSAlert alloc] init];
-	[a setMessageText:mffStr(caption)];
+	/* A message box always has a title: App.Title can be empty */
+	[a setMessageText:(caption && *caption) ? mffStr(caption) : [[NSProcessInfo processInfo] processName]];
 	[a setInformativeText:mffStr(msg)];
+	/* A program without a bundle would have the icon of a folder */
+	if (messageType != 1 && messageType != 3) [a setIcon:[NSImage imageNamed:NSImageNameInfo]];
 	[a setAlertStyle:messageType == 3 ? NSAlertStyleCritical : (messageType == 1 ? NSAlertStyleWarning : NSAlertStyleInformational)];
 	/* The results of the buttons in their order (MessageResult) */
 	int results[3] = {4, 1, 1};
@@ -934,4 +1088,578 @@ char *mffClipboardGetText(void) {
 void mffOpenURL(const char *url) {
 	NSURL *u = [NSURL URLWithString:mffStr(url)];
 	if (u) [[NSWorkspace sharedWorkspace] openURL:u];
+}
+
+/* ---- CheckedListBox, tables ---- */
+
+void mffListSetChecked(void *view, int index, int value) {
+	NSTableView *t = mffTable(view);
+	if (!t || index < 0) return;
+	if (value) [mffChecks(t) addIndex:index]; else [mffChecks(t) removeIndex:index];
+	[t reloadData];
+}
+
+int mffListGetChecked(void *view, int index) {
+	NSTableView *t = mffTable(view);
+	return (t && index >= 0 && [mffChecks(t) containsIndex:index]) ? 1 : 0;
+}
+
+void mffTableInit(void *view) {
+	NSTableView *t = mffTable(view);
+	if (t) objc_setAssociatedObject(t, &kMffTableKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+void mffTableSetView(void *view, const char *viewName) {
+	/* The rows of a table are the only view of a ListView here */
+	(void)view; (void)viewName;
+}
+
+void mffTableSetColumns(void *view, const char *captions, const char *widths) {
+	NSTableView *t = mffTable(view);
+	if (!t) return;
+	NSArray *caps = [mffStr(captions) componentsSeparatedByString:@"\n"];
+	NSArray *wids = [mffStr(widths) componentsSeparatedByString:@"\n"];
+	while ([[t tableColumns] count]) [t removeTableColumn:[[t tableColumns] lastObject]];
+	for (NSUInteger i = 0; i < [caps count]; i++) {
+		NSTableColumn *c = [[NSTableColumn alloc] initWithIdentifier:[NSString stringWithFormat:@"%lu", (unsigned long)i]];
+		[[c headerCell] setStringValue:caps[i]];
+		if (i < [wids count] && [wids[i] intValue] > 0) [c setWidth:[wids[i] intValue]];
+		[c setResizingMask:NSTableColumnUserResizingMask];
+		[t addTableColumn:c];
+	}
+	[t setHeaderView:[[NSTableHeaderView alloc] init]];
+	[t setColumnAutoresizingStyle:NSTableViewNoColumnAutoresizing];
+	[[t enclosingScrollView] tile];
+	[t reloadData];
+}
+
+void mffTableInsertRow(void *view, int index, const char *cells) {
+	NSTableView *t = mffTable(view);
+	if (!t) return;
+	NSMutableArray *a = mffItems(t);
+	NSArray *row = [mffStr(cells) componentsSeparatedByString:@"\t"];
+	if (index < 0 || index > (int)[a count]) [a addObject:row]; else [a insertObject:row atIndex:index];
+	mffSilent = YES;
+	[t reloadData];
+	mffSilent = NO;
+}
+
+void mffTableSetRow(void *view, int index, const char *cells) {
+	NSTableView *t = mffTable(view);
+	if (!t) return;
+	NSMutableArray *a = mffItems(t);
+	if (index < 0 || index >= (int)[a count]) return;
+	a[index] = [mffStr(cells) componentsSeparatedByString:@"\t"];
+	[t reloadData];
+}
+
+void mffTableCellRect(void *view, int row, int col, void *pRect) {
+	NSTableView *t = mffTable(view);
+	int *r = pRect;
+	if (!t || !r) return;
+	NSRect f = NSZeroRect;
+	if (row >= 0 && row < [t numberOfRows] && col >= 0 && col < [t numberOfColumns]) f = [t frameOfCellAtColumn:col row:row];
+	r[0] = (int)NSMinX(f); r[1] = (int)NSMinY(f); r[2] = (int)NSMaxX(f); r[3] = (int)NSMaxY(f);
+}
+
+int mffTableDblClick(void) {
+	return mffDblClick;
+}
+
+/* ---- TabControl: the strip of the tabs in the view ---- */
+
+void mffTabsSet(void *view, const char *titles) {
+	id o = mffObj(view);
+	if (![o isKindOfClass:[MffTabsView class]]) return;
+	NSSegmentedControl *seg = ((MffTabsView *)o).segments;
+	NSInteger selected = [seg selectedSegment];
+	NSArray *lines = [mffStr(titles) length] ? [mffStr(titles) componentsSeparatedByString:@"\n"] : @[];
+	[seg setSegmentCount:[lines count]];
+	for (NSUInteger i = 0; i < [lines count]; i++) {
+		NSArray *f = [lines[i] componentsSeparatedByString:@"\t"];
+		[seg setLabel:mffNoMnemonic(f[0]) forSegment:i];
+		NSImage *img = ([f count] > 2 && [f[2] length]) ? [[NSImage alloc] initWithContentsOfFile:f[2]] : nil;
+		[seg setImage:img forSegment:i];
+		[seg setWidth:0 forSegment:i];
+	}
+	if (selected >= 0 && selected < (NSInteger)[lines count]) [seg setSelectedSegment:selected];
+	[seg sizeToFit];
+	[(MffTabsView *)o layoutStrip];
+}
+
+void mffTabsSetPosition(void *view, int position) {
+	id o = mffObj(view);
+	if ([o isKindOfClass:[MffTabsView class]]) {
+		((MffTabsView *)o).tabPosition = position;
+		[(MffTabsView *)o layoutStrip];
+	}
+}
+
+int mffTabsStripHeight(void) {
+	return 28;
+}
+
+/* ---- ToolBar, ToolPalette: a row of buttons, which goes on in the next row ---- */
+
+void mffButtonsSet(void *view, const char *items) {
+	id o = mffObj(view);
+	if (![o isKindOfClass:[MffButtonsView class]]) return;
+	MffButtonsView *v = o;
+	for (id b in v.buttons) if ([b isKindOfClass:[NSView class]]) [(NSView *)b removeFromSuperview];
+	[v.buttons removeAllObjects];
+	NSArray *lines = [mffStr(items) length] ? [mffStr(items) componentsSeparatedByString:@"\n"] : @[];
+	CGFloat x = 0, y = 0, rowHeight = 0, width = [v bounds].size.width, right = 0;
+	for (NSUInteger i = 0; i < [lines count]; i++) {
+		NSArray *f = [lines[i] componentsSeparatedByString:@"\t"];
+		NSString *first = f[0];
+		unichar flag = [first length] ? [first characterAtIndex:0] : '0';
+		if (flag == '4' || flag == '3') {
+			[v.buttons addObject:[NSNull null]];
+			if (flag == '3') x += 8;
+			continue;
+		}
+		NSString *text = [first length] > 1 ? mffNoMnemonic([first substringFromIndex:1]) : @"";
+		NSString *options = [f count] > 2 ? f[2] : @"";
+		NSImage *img = ([f count] > 1 && [f[1] length]) ? [[NSImage alloc] initWithContentsOfFile:f[1]] : nil;
+		NSButton *b = [[NSButton alloc] initWithFrame:NSZeroRect];
+		[b setBordered:NO];
+		[b setButtonType:flag == '2' ? NSButtonTypePushOnPushOff : NSButtonTypeMomentaryChange];
+		if (flag == '2') [b setState:NSControlStateValueOn];
+		[b setEnabled:flag != '1'];
+		if (img) {
+			[b setImage:img];
+			[b setImagePosition:[options rangeOfString:@"S"].location != NSNotFound ? NSImageLeft : NSImageOnly];
+		}
+		[b setTitle:(!img || [options rangeOfString:@"S"].location != NSNotFound) ? text : @""];
+		if ([f count] > 3 && [f[3] length]) [b setToolTip:f[3]];
+		[b setTag:i];
+		[b setTarget:mffTarget()];
+		[b setAction:@selector(buttonsClick:)];
+		[b sizeToFit];
+		NSSize s = [b frame].size;
+		s.width = MAX(s.width + 6, 24);
+		s.height = MAX(s.height + 4, 24);
+		if (x > 0 && width > 0 && x + s.width > width) { x = 0; y += rowHeight; rowHeight = 0; }
+		[b setFrame:NSMakeRect(x, y, s.width, s.height)];
+		[v addSubview:b];
+		[v.buttons addObject:b];
+		x += s.width;
+		right = MAX(right, x);
+		rowHeight = MAX(rowHeight, s.height);
+	}
+	v.contentWidth = right;
+}
+
+int mffButtonsItem(void *view, int index, int what) {
+	id o = mffObj(view);
+	if (![o isKindOfClass:[MffButtonsView class]]) return -1;
+	MffButtonsView *v = o;
+	if (index < 0) return (int)v.contentWidth;
+	if (index >= (int)[v.buttons count] || ![v.buttons[index] isKindOfClass:[NSView class]]) return -1;
+	NSRect f = [(NSView *)v.buttons[index] frame];
+	return (int)(what ? f.size.width : f.origin.x);
+}
+
+int mffViewFittingWidth(void *view) {
+	NSView *v = mffView(view);
+	return v ? (int)[v fittingSize].width : 0;
+}
+
+/* ---- WebBrowser, pictures ---- */
+
+void mffWebLoadURL(void *view, const char *url) {
+	id o = mffObj(view);
+	NSURL *u = [NSURL URLWithString:mffStr(url)];
+	if ([o isKindOfClass:[WKWebView class]] && u) [(WKWebView *)o loadRequest:[NSURLRequest requestWithURL:u]];
+}
+
+void mffWebLoadHTML(void *view, const char *html) {
+	id o = mffObj(view);
+	if ([o isKindOfClass:[WKWebView class]]) [(WKWebView *)o loadHTMLString:mffStr(html) baseURL:nil];
+}
+
+void mffWebAction(void *view, int action) {
+	id o = mffObj(view);
+	if (![o isKindOfClass:[WKWebView class]]) return;
+	WKWebView *w = o;
+	switch (action) {
+	case 0: [w goBack]; break;
+	case 1: [w goForward]; break;
+	case 2: [w reload]; break;
+	case 3: [w stopLoading]; break;
+	}
+}
+
+void mffViewLoadImage(void *view, const char *path, int center) {
+	id o = mffObj(view);
+	if (![o isKindOfClass:[MffView class]]) return;
+	((MffView *)o).mffImage = [[NSImage alloc] initWithContentsOfFile:mffStr(path)];
+	((MffView *)o).mffImageCenter = center != 0;
+	[(NSView *)o setNeedsDisplay:YES];
+}
+
+/* ---- Menus ---- */
+
+/* The lines "Level Tab Enabled Tab Checked Tab Caption" (the caption can begin with Chr(1) picture Chr(1) and end with
+   Tab shortcut). The tag of an item is the index of its line */
+static NSMenu *mffBuildMenu(const char *items, SEL action) {
+	NSMenu *root = [[NSMenu alloc] init];
+	[root setAutoenablesItems:NO];
+	NSMutableArray<NSMenu *> *stack = [NSMutableArray arrayWithObject:root];
+	NSMenuItem *last = nil;
+	NSArray *lines = [mffStr(items) componentsSeparatedByString:@"\n"];
+	for (NSUInteger i = 0; i < [lines count]; i++) {
+		NSArray *f = [lines[i] componentsSeparatedByString:@"\t"];
+		if ([f count] < 4) continue;
+		int level = [f[0] intValue];
+		while ((int)[stack count] - 1 > level) [stack removeLastObject];
+		if ((int)[stack count] - 1 < level && last) {
+			NSMenu *sub = [[NSMenu alloc] initWithTitle:[last title]];
+			[sub setAutoenablesItems:NO];
+			[last setSubmenu:sub];
+			[stack addObject:sub];
+		}
+		NSString *caption = f[3];
+		NSImage *img = nil;
+		if ([caption hasPrefix:@"\x01"]) {
+			NSRange end = [caption rangeOfString:@"\x01" options:0 range:NSMakeRange(1, [caption length] - 1)];
+			if (end.location != NSNotFound) {
+				img = [[NSImage alloc] initWithContentsOfFile:[caption substringWithRange:NSMakeRange(1, end.location - 1)]];
+				caption = [caption substringFromIndex:end.location + 1];
+			}
+		}
+		if ([caption isEqualToString:@"-"]) {
+			[[stack lastObject] addItem:[NSMenuItem separatorItem]];
+			last = nil;
+			continue;
+		}
+		NSMenuItem *mi = [[NSMenuItem alloc] initWithTitle:mffNoMnemonic(caption) action:action keyEquivalent:@""];
+		[mi setTarget:mffTarget()];
+		[mi setTag:i];
+		[mi setEnabled:[f[1] intValue] != 0];
+		[mi setState:[f[2] intValue] ? NSControlStateValueOn : NSControlStateValueOff];
+		if (img) { [img setSize:NSMakeSize(16, 16)]; [mi setImage:img]; }
+		/* The shortcut after the caption: Ctrl is the Command key of the Mac */
+		if ([f count] > 4) {
+			NSString *keys = [f[4] uppercaseString];
+			NSString *key = [[keys componentsSeparatedByString:@"+"] lastObject];
+			if ([key length] == 1) {
+				NSEventModifierFlags mask = 0;
+				if ([keys rangeOfString:@"CTRL"].location != NSNotFound) mask |= NSEventModifierFlagCommand;
+				if ([keys rangeOfString:@"SHIFT"].location != NSNotFound) mask |= NSEventModifierFlagShift;
+				if ([keys rangeOfString:@"ALT"].location != NSNotFound) mask |= NSEventModifierFlagOption;
+				if (mask) { [mi setKeyEquivalent:[key lowercaseString]]; [mi setKeyEquivalentModifierMask:mask]; }
+			}
+		}
+		[[stack lastObject] addItem:mi];
+		last = mi;
+	}
+	return root;
+}
+
+int mffPopupMenu(const char *items, int x, int y) {
+	(void)x; (void)y;
+	mffEnsureApp();
+	NSMenu *m = mffBuildMenu(items, @selector(popupChosen:));
+	mffPopupResult = -1;
+	[m popUpMenuPositioningItem:nil atLocation:[NSEvent mouseLocation] inView:nil];
+	return mffPopupResult;
+}
+
+void mffMenuBarSet(const char *items) {
+	mffEnsureApp();
+	NSMenu *bar = [NSApp mainMenu];
+	while ([bar numberOfItems] > 1) [bar removeItemAtIndex:1];
+	NSMenu *m = mffBuildMenu(items, @selector(menuBarChosen:));
+	while ([m numberOfItems]) {
+		NSMenuItem *mi = [m itemAtIndex:0];
+		[m removeItemAtIndex:0];
+		if ([mi isSeparatorItem]) continue;
+		/* An item of the bar only opens a menu: an item without items is the only item of its menu */
+		if (![mi submenu]) {
+			NSMenu *sub = [[NSMenu alloc] initWithTitle:[mi title]];
+			NSMenuItem *only = [[NSMenuItem alloc] initWithTitle:[mi title] action:@selector(menuBarChosen:) keyEquivalent:@""];
+			[only setTarget:mffTarget()];
+			[only setTag:[mi tag]];
+			[sub addItem:only];
+			[mi setAction:NULL];
+			[mi setSubmenu:sub];
+		}
+		[bar addItem:mi];
+	}
+}
+
+/* ---- Dialogs ---- */
+
+/* "Text files|*.txt;*.log|All files|*.*": the extensions of the filter FilterIndex (from 1), nil - all the files */
+static NSArray *mffFilterTypes(NSString *filter, int index) {
+	NSArray *parts = [filter componentsSeparatedByString:@"|"];
+	NSUInteger i = (index > 0 ? index - 1 : 0) * 2 + 1;
+	if (i >= [parts count]) return nil;
+	NSMutableArray *types = [NSMutableArray array];
+	for (NSString *p in [parts[i] componentsSeparatedByString:@";"]) {
+		NSString *e = [[p stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] pathExtension];
+		if ([e isEqualToString:@"*"] || ![e length]) return nil;
+		[types addObject:e];
+	}
+	return types;
+}
+
+char *mffFileDialog(int mode, const char *caption, const char *initialDir, const char *fileName, const char *filter, int filterIndex) {
+	mffEnsureApp();
+	NSSavePanel *panel;
+	if (mode == 2) {
+		panel = [NSSavePanel savePanel];
+	} else {
+		NSOpenPanel *open = [NSOpenPanel openPanel];
+		[open setAllowsMultipleSelection:mode == 1];
+		[open setCanChooseDirectories:mode == 3];
+		[open setCanChooseFiles:mode != 3];
+		panel = open;
+	}
+	if (caption && *caption) [panel setMessage:mffStr(caption)];
+	if (initialDir && *initialDir) [panel setDirectoryURL:[NSURL fileURLWithPath:mffStr(initialDir)]];
+	if (fileName && *fileName) [panel setNameFieldStringValue:[mffStr(fileName) lastPathComponent]];
+	if (mode != 3) {
+		NSArray *types = mffFilterTypes(mffStr(filter), filterIndex);
+		#pragma clang diagnostic push
+		#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+		if (types) [panel setAllowedFileTypes:types];
+		#pragma clang diagnostic pop
+	}
+	if ([panel runModal] != NSModalResponseOK) return NULL;
+	if (mode == 2) return mffDup([[panel URL] path]);
+	NSMutableArray *paths = [NSMutableArray array];
+	for (NSURL *u in [(NSOpenPanel *)panel URLs]) [paths addObject:[u path]];
+	return mffDup([paths componentsJoinedByString:@"\n"]);
+}
+
+/* A message box with the list of the font families and the size: NSFontPanel is not modal */
+char *mffFontDialog(const char *fontName, int size, int style, int fontColor) {
+	mffEnsureApp();
+	NSAlert *a = [[NSAlert alloc] init];
+	[a setMessageText:@"Font"];
+	[a addButtonWithTitle:@"OK"];
+	[a addButtonWithTitle:@"Cancel"];
+	NSView *box = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 280, 28)];
+	NSPopUpButton *names = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(0, 0, 210, 26) pullsDown:NO];
+	[names addItemsWithTitles:[[NSFontManager sharedFontManager] availableFontFamilies]];
+	if (fontName && *fontName) [names selectItemWithTitle:mffStr(fontName)];
+	NSTextField *sizeField = [[NSTextField alloc] initWithFrame:NSMakeRect(220, 2, 60, 22)];
+	[sizeField setIntValue:size > 0 ? size : 10];
+	[box addSubview:names];
+	[box addSubview:sizeField];
+	[a setAccessoryView:box];
+	if ([a runModal] != NSAlertFirstButtonReturn) return NULL;
+	return mffDup([NSString stringWithFormat:@"%@\n%d\n%d\n%d", [names titleOfSelectedItem], [sizeField intValue], style, fontColor]);
+}
+
+/* NSColorPanel is not modal: the modal loop runs until the panel is closed */
+int mffColorDialog(const char *caption, int colorValue) {
+	mffEnsureApp();
+	NSColorPanel *p = [NSColorPanel sharedColorPanel];
+	if (caption && *caption) [p setTitle:mffStr(caption)];
+	if (colorValue >= 0) [p setColor:mffColor(colorValue)];
+	id token = [[NSNotificationCenter defaultCenter] addObserverForName:NSWindowWillCloseNotification object:p queue:nil usingBlock:^(NSNotification *n) {
+		[NSApp stopModal];
+	}];
+	[p makeKeyAndOrderFront:nil];
+	[NSApp runModalForWindow:p];
+	[[NSNotificationCenter defaultCenter] removeObserver:token];
+	NSColor *c = [[p color] colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
+	if (!c) return -1;
+	return ((int)lround([c redComponent] * 255)) | ((int)lround([c greenComponent] * 255) << 8) | ((int)lround([c blueComponent] * 255) << 16);
+}
+
+/* ---- Regular expressions ---- */
+
+static NSMutableDictionary<NSNumber *, NSRegularExpression *> *mffRegexes;
+static NSString *mffRegexLastError;
+static int mffRegexNext;
+
+int mffRegexCompile(const char *pattern, int flags) {
+	NSRegularExpressionOptions o = 0;
+	if (flags & 1) o |= NSRegularExpressionCaseInsensitive;
+	if (flags & 2) o |= NSRegularExpressionAnchorsMatchLines;
+	if (flags & 4) o |= NSRegularExpressionDotMatchesLineSeparators;
+	if (flags & 8) o |= NSRegularExpressionAllowCommentsAndWhitespace;
+	NSError *err = nil;
+	NSRegularExpression *r = [NSRegularExpression regularExpressionWithPattern:mffStr(pattern) options:o error:&err];
+	if (!r) {
+		mffRegexLastError = [err localizedDescription];
+		return 0;
+	}
+	if (!mffRegexes) mffRegexes = [NSMutableDictionary dictionary];
+	mffRegexes[@(++mffRegexNext)] = r;
+	return mffRegexNext;
+}
+
+char *mffRegexError(void) {
+	return mffDup(mffRegexLastError ?: @"");
+}
+
+void mffRegexFree(int id_) {
+	[mffRegexes removeObjectForKey:@(id_)];
+}
+
+/* The offsets are the ones of the bytes of UTF-8 like in the other versions */
+int mffRegexExec(int id_, const char *subject, int startByte, int *offsets, int maxGroups) {
+	NSRegularExpression *r = mffRegexes[@(id_)];
+	if (!r || !subject) return 0;
+	NSString *s = [NSString stringWithUTF8String:subject];
+	if (!s) return 0;
+	NSString *head = [[NSString alloc] initWithBytes:subject length:startByte encoding:NSUTF8StringEncoding];
+	NSUInteger start = head ? [head length] : 0;
+	NSTextCheckingResult *m = [r firstMatchInString:s options:0 range:NSMakeRange(start, [s length] - start)];
+	if (!m) return 0;
+	int count = (int)[m numberOfRanges];
+	for (int i = 0; i < count && i < maxGroups; i++) {
+		NSRange g = [m rangeAtIndex:i];
+		if (g.location == NSNotFound) {
+			offsets[i * 2] = -1;
+			offsets[i * 2 + 1] = -1;
+		} else {
+			offsets[i * 2] = (int)[[s substringToIndex:g.location] lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+			offsets[i * 2 + 1] = offsets[i * 2] + (int)[[s substringWithRange:g] lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+		}
+	}
+	return count;
+}
+
+/* ---- Canvas: draws on the current graphics context, the path works like the one of cairo ---- */
+
+static NSBezierPath *mffPath;
+static NSView *mffLockedView;
+
+static NSBezierPath *mffCurrentPath(void) {
+	if (!mffPath) mffPath = [NSBezierPath bezierPath];
+	return mffPath;
+}
+
+static NSColor *mffColorAlpha(int color, int alpha) {
+	return [mffColor(color < 0 ? 0 : color) colorWithAlphaComponent:alpha / 255.0];
+}
+
+void mffCanvasBegin(void *id_) {
+	mffPath = nil;
+	if ([NSGraphicsContext currentContext] || !id_) return;
+	/* Out of the drawing of the view */
+	NSView *v = (__bridge NSView *)mffViewLayout(id_);
+	if ([v isKindOfClass:[NSView class]] && [v lockFocusIfCanDraw]) mffLockedView = v;
+}
+
+void mffCanvasEnd(void *id_) {
+	(void)id_;
+	if (mffLockedView) {
+		[[NSGraphicsContext currentContext] flushGraphics];
+		[mffLockedView unlockFocus];
+		mffLockedView = nil;
+	}
+}
+
+void mffCanvasNewPath(void) { mffPath = nil; }
+void mffCanvasMoveTo(double x, double y) { [mffCurrentPath() moveToPoint:NSMakePoint(x, y)]; }
+void mffCanvasLineTo(double x, double y) {
+	NSBezierPath *p = mffCurrentPath();
+	if ([p isEmpty]) [p moveToPoint:NSMakePoint(x, y)]; else [p lineToPoint:NSMakePoint(x, y)];
+}
+void mffCanvasCurveTo(double x1, double y1, double x2, double y2, double x3, double y3) {
+	NSBezierPath *p = mffCurrentPath();
+	if ([p isEmpty]) [p moveToPoint:NSMakePoint(x1, y1)];
+	[p curveToPoint:NSMakePoint(x3, y3) controlPoint1:NSMakePoint(x1, y1) controlPoint2:NSMakePoint(x2, y2)];
+}
+void mffCanvasArc(double cx, double cy, double r, double a1, double a2, int negative) {
+	[mffCurrentPath() appendBezierPathWithArcWithCenter:NSMakePoint(cx, cy) radius:r startAngle:a1 * 180.0 / M_PI endAngle:a2 * 180.0 / M_PI clockwise:negative != 0];
+}
+void mffCanvasRectPath(double x, double y, double w, double h) { [mffCurrentPath() appendBezierPathWithRect:NSMakeRect(x, y, w, h)]; }
+void mffCanvasClosePath(void) { if (![mffCurrentPath() isEmpty]) [mffCurrentPath() closePath]; }
+void mffCanvasClip(void) {
+	if (![NSGraphicsContext currentContext]) return;
+	[mffCurrentPath() addClip];
+	mffPath = nil;
+}
+void mffCanvasFill(int color, int alpha) {
+	if (![NSGraphicsContext currentContext]) return;
+	[mffColorAlpha(color, alpha) setFill];
+	[mffCurrentPath() fill];
+}
+void mffCanvasStroke(int color, int alpha, double lineWidth, const char *dash) {
+	if (![NSGraphicsContext currentContext]) return;
+	NSBezierPath *p = mffCurrentPath();
+	[mffColorAlpha(color, alpha) setStroke];
+	[p setLineWidth:lineWidth];
+	NSArray *parts = (dash && *dash) ? [mffStr(dash) componentsSeparatedByString:@","] : @[];
+	CGFloat pattern[8];
+	NSInteger n = 0;
+	for (NSString *s in parts) if (n < 8) pattern[n++] = [s doubleValue];
+	[p setLineDash:n ? pattern : NULL count:n phase:0];
+	[p stroke];
+}
+void mffCanvasFillRect(double x, double y, double w, double h, int color, int alpha) {
+	if (![NSGraphicsContext currentContext]) return;
+	[mffColorAlpha(color, alpha) setFill];
+	[NSBezierPath fillRect:NSMakeRect(x, y, w, h)];
+}
+void mffCanvasInvertRect(double x, double y, double w, double h) {
+	NSGraphicsContext *g = [NSGraphicsContext currentContext];
+	if (!g) return;
+	CGContextRef c = [g CGContext];
+	CGContextSaveGState(c);
+	CGContextSetBlendMode(c, kCGBlendModeDifference);
+	CGContextSetRGBFillColor(c, 1, 1, 1, 1);
+	CGContextFillRect(c, CGRectMake(x, y, w, h));
+	CGContextRestoreGState(c);
+}
+void mffCanvasRotate(double x, double y, double angle) {
+	if (![NSGraphicsContext currentContext]) return;
+	NSAffineTransform *t = [NSAffineTransform transform];
+	[t translateXBy:x yBy:y];
+	/* The view is flipped: counterclockwise on the screen */
+	[t rotateByDegrees:-angle];
+	[t translateXBy:-x yBy:-y];
+	[t concat];
+}
+void mffCanvasSave(void) { if ([NSGraphicsContext currentContext]) [NSGraphicsContext saveGraphicsState]; }
+void mffCanvasRestore(void) { if ([NSGraphicsContext currentContext]) [NSGraphicsContext restoreGraphicsState]; }
+
+/* FontSize is in the points of the view */
+static NSFont *mffCanvasFont(const char *name, double size, int bold, int italic) {
+	CGFloat sz = size > 0 ? size : [NSFont systemFontSize];
+	NSFont *f = (name && *name && strcmp(name, "System")) ? [NSFont fontWithName:mffStr(name) size:sz] : nil;
+	if (!f) f = [NSFont systemFontOfSize:sz];
+	NSFontManager *m = [NSFontManager sharedFontManager];
+	if (bold) f = [m convertFont:f toHaveTrait:NSBoldFontMask];
+	if (italic) f = [m convertFont:f toHaveTrait:NSItalicFontMask];
+	return f;
+}
+
+void mffCanvasText(double x, double y, const char *text, int color, int bkColor, const char *fontName, double fontSize, int bold, int italic) {
+	if (![NSGraphicsContext currentContext]) return;
+	NSMutableDictionary *a = [NSMutableDictionary dictionary];
+	a[NSFontAttributeName] = mffCanvasFont(fontName, fontSize, bold, italic);
+	a[NSForegroundColorAttributeName] = mffColor(color < 0 ? 0 : color);
+	if (bkColor >= 0) a[NSBackgroundColorAttributeName] = mffColor(bkColor);
+	[mffStr(text) drawAtPoint:NSMakePoint(x, y) withAttributes:a];
+}
+
+int mffCanvasTextWidth(const char *text, const char *fontName, double fontSize, int bold, int italic) {
+	return (int)ceil([mffStr(text) sizeWithAttributes:@{NSFontAttributeName: mffCanvasFont(fontName, fontSize, bold, italic)}].width);
+}
+
+int mffCanvasTextHeight(const char *fontName, double fontSize, int bold, int italic) {
+	return (int)ceil([@"Wg" sizeWithAttributes:@{NSFontAttributeName: mffCanvasFont(fontName, fontSize, bold, italic)}].height);
+}
+
+/* The pixels of the view can not be read while it draws */
+int mffCanvasGetPixel(double x, double y) {
+	(void)x; (void)y;
+	return -1;
+}
+
+void mffCanvasImage(const char *path, double x, double y, double w, double h, int alpha) {
+	if (![NSGraphicsContext currentContext] || !path || !*path) return;
+	NSImage *img = [[NSImage alloc] initWithContentsOfFile:mffStr(path)];
+	if (!img) return;
+	NSSize s = [img size];
+	[img drawInRect:NSMakeRect(x, y, w > 0 ? w : s.width, h > 0 ? h : s.height) fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:alpha / 255.0 respectFlipped:YES hints:nil];
 }

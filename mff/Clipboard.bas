@@ -45,7 +45,7 @@ Namespace My.Sys
 	Private Sub ClipboardType.SetAsText(ByRef Value As WString)
 		#ifdef __USE_GTK__
 			gtk_clipboard_set_text(FClipboard, ToUtf8(Value), -1)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			ClipboardSetText(ToUtf8(Value))
 		#else
 			Dim pchData As WString Ptr
@@ -78,7 +78,7 @@ Namespace My.Sys
    	         Else
     	            WLet(FText, "")
      	       End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Dim As ZString Ptr pUtf8 = ClipboardGetText()
 			Dim As WString Ptr pWide = IIf(pUtf8, FromUtf8(pUtf8), 0)
 			If pUtf8 Then Deallocate(pUtf8)

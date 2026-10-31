@@ -200,7 +200,7 @@ Namespace My.Sys.Forms
 			If GTK_IS_LABEL(_Label) Then
 				gtk_label_set_text(GTK_LABEL(_Label), ToUtf8(Value))
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'Control.CreateWnd sets Text = *FText: the caption is kept there too, otherwise the new page would clear it
 			If FText = 0 OrElse @Value <> FText Then WLet(FText, Value)
 			If FParent AndAlso *Base.Parent Is TabControl Then Cast(TabControl Ptr, FParent)->UpdateTabs
@@ -258,7 +258,7 @@ Namespace My.Sys.Forms
 			#endif
 		#elseif defined(__USE_WINAPI__)
 			Update
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'The picture of the tab (TabControl.UpdateTabs)
 			If FParent AndAlso *Base.Parent Is TabControl Then Cast(TabControl Ptr, FParent)->UpdateTabs
 		#endif
@@ -324,7 +324,7 @@ Namespace My.Sys.Forms
 			Base.Style = WS_CHILD Or DS_SETFOREGROUND
 			This.OnHandleIsAllocated = @HandleIsAllocated
 			This.RegisterClass "TabPage", "Panel"
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Align = DockStyle.alClient
 		#endif
 	End Constructor
@@ -403,7 +403,7 @@ Namespace My.Sys.Forms
 			Return gtk_notebook_get_current_page(GTK_NOTEBOOK(widget))
 		#elseif defined(__USE_WINAPI__)
 			Return Perform(TCM_GETCURSEL,0,0)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Return FSelectedTabIndex
 		#endif
 	End Property
@@ -426,7 +426,7 @@ Namespace My.Sys.Forms
 				RequestAlign
 				If OnSelChange Then OnSelChange(*Designer, This, Id)
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			For i As Integer = 0 To FTabCount - 1
 				Tabs[i]->Visible = (i = FSelectedTabIndex)
 			Next i
@@ -504,7 +504,7 @@ Namespace My.Sys.Forms
 				If Not FMultiline Then ChangeStyle(TCS_MULTILINE, False)
 				If Not FTabStyle = tsOwnerDrawFixed Then ChangeStyle(TCS_OWNERDRAWFIXED, False)
 			End Select
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			UpdateTabs
 		#endif
 		SetMargins
@@ -818,7 +818,7 @@ Namespace My.Sys.Forms
 			End If
 			Return CallWindowProc(GetProp(hDlg, "@@@@Proc"), hDlg, uMsg, wParam, lParam)
 		End Function
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Sub TabControl.WndProc(ByRef Message As Message)
 		End Sub
 		
@@ -859,10 +859,10 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub TabControl.ProcessMessage(ByRef Message As Message)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Message.Msg = CM_CHANGE Then
 				Dim As Integer NewIndex
-				#ifdef __USE_JNI__
+				#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					NewIndex = Message.wParam
 					'The close button of the tab -1 - Index
 					If NewIndex < 0 Then
@@ -1151,7 +1151,7 @@ Namespace My.Sys.Forms
 				Ti.lParam = 0
 			End If
 			SetMargins
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			SetMargins
 		#endif
 		This.Add(tp)
@@ -1161,7 +1161,7 @@ Namespace My.Sys.Forms
 		#else
 			tp->Visible = FTabCount = 1
 		#endif
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			UpdateTabs
 		#endif
 		If OnTabAdded Then OnTabAdded(*Designer, This, Tabs[FTabCount - 1], FTabCount - 1)
@@ -1246,12 +1246,12 @@ Namespace My.Sys.Forms
 			End If
 			SetMargins
 			tp->Visible = FTabCount = 1
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			SetMargins
 			tp->Visible = FTabCount = 1
 		#endif
 		This.Add(Tabs[FTabCount - 1])
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			UpdateTabs
 		#endif
 		If OnTabAdded Then OnTabAdded(*Designer, This, Tabs[FTabCount - 1], FTabCount - 1)
@@ -1329,7 +1329,7 @@ Namespace My.Sys.Forms
 				SelectedTabIndex = Index + 1
 			End If
 			If FTabCount = 0 Then SetMargins
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				UpdateTabs
 			#endif
 			If OnTabRemoved Then OnTabRemoved(*Designer, This, Prev, Index)
@@ -1401,7 +1401,7 @@ Namespace My.Sys.Forms
 				Perform(TCM_INSERTITEM, iIndex, CInt(@Ti))
 				SetTabPageIndex(tp, iIndex)
 				Ti.lParam = 0
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			#endif
 			SetMargins
 			This.Add(tp)
@@ -1411,7 +1411,7 @@ Namespace My.Sys.Forms
 			#else
 				tp->Visible = FTabCount = 1
 			#endif
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				UpdateTabs
 			#endif
 			If OnTabAdded Then OnTabAdded(*Designer, This, tp, iIndex)
@@ -1483,12 +1483,12 @@ Namespace My.Sys.Forms
 			End If
 			SetMargins
 			tp->Visible = FTabCount = 1
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			SetMargins
 			tp->Visible = FTabCount = 1
 		#endif
 		This.Add(Tabs[Index])
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			UpdateTabs
 		#endif
 		If OnTabAdded Then OnTabAdded(*Designer, This, Tabs[Index], Index)

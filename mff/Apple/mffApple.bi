@@ -18,6 +18,8 @@ Extern "C"
 	Declare Function mffViewCreate(ByVal Kind As Const ZString Ptr, ByVal Ctrl As Any Ptr) As Any Ptr
 	'Removes the view from its parent (closes the window of a Form) and releases it
 	Declare Sub mffViewFree(ByVal Id As Any Ptr)
+	'The Control Ptr of the view, 0 if it is not a view of a control
+	Declare Function mffViewControl(ByVal Id As Any Ptr) As Any Ptr
 	'The view which hosts the child controls (the content view of a window or of a group box), View itself if it has none
 	Declare Function mffViewLayout(ByVal Id As Any Ptr) As Any Ptr
 	'Puts Child into the layout view of Parent (mffViewLayout)
@@ -90,4 +92,70 @@ Extern "C"
 	Declare Sub mffClipboardSetText(ByVal Text As Const ZString Ptr)
 	Declare Function mffClipboardGetText() As ZString Ptr
 	Declare Sub mffOpenURL(ByVal URL As Const ZString Ptr)
+	'The bar of the menu of the program: the lines of mffPopupMenu, the host calls mffOnMenu with the index of the line
+	Declare Sub mffMenuBarSet(ByVal Items As Const ZString Ptr)
+
+	'ListControl with check boxes (CheckedListBox)
+	Declare Sub mffListSetChecked(ByVal Id As Any Ptr, ByVal Index As Long, ByVal Value As Long)
+	Declare Function mffListGetChecked(ByVal Id As Any Ptr, ByVal Index As Long) As Long
+	'TabControl: the tabs are "Caption Tab x Tab Picture" separated by Chr(10), a click raises mffOnChange with the index, the
+	'close button of a tab with -1 - Index; the selected tab is mffPositionSet. Position: 0 - left, 1 - right, 2 - top, 3 - bottom
+	Declare Sub mffTabsSet(ByVal Id As Any Ptr, ByVal Titles As Const ZString Ptr)
+	Declare Sub mffTabsSetPosition(ByVal Id As Any Ptr, ByVal Position As Long)
+	Declare Function mffTabsStripHeight() As Long
+	'ToolBar, ToolPalette: the buttons are "FlagText Tab Image Tab Options Tab Hint" separated by Chr(10); Flag: 0 - button,
+	'1 - disabled, 2 - checked, 3 - separator, 4 - hidden. A click raises mffOnChange with the index.
+	'mffButtonsItem: What 0 - the left of the item, 1 - its width (Index -1: the width of all), -1 if there is none
+	Declare Sub mffButtonsSet(ByVal Id As Any Ptr, ByVal Items As Const ZString Ptr)
+	Declare Function mffButtonsItem(ByVal Id As Any Ptr, ByVal Index As Long, ByVal What As Long) As Long
+	Declare Function mffViewFittingWidth(ByVal Id As Any Ptr) As Long
+	'WebBrowser (WKWebView). Action: 0 - back, 1 - forward, 2 - reload, 3 - stop
+	Declare Sub mffWebLoadURL(ByVal Id As Any Ptr, ByVal URL As Const ZString Ptr)
+	Declare Sub mffWebLoadHTML(ByVal Id As Any Ptr, ByVal HTML As Const ZString Ptr)
+	Declare Sub mffWebAction(ByVal Id As Any Ptr, ByVal Action As Long)
+	'ImageBox, Picture: a picture file stretched or centered
+	Declare Sub mffViewLoadImage(ByVal Id As Any Ptr, ByVal Path As Const ZString Ptr, ByVal Center As Long)
+	'The lines "Level Tab Enabled Tab Checked Tab Image Tab Caption": returns the index of the chosen line, -1 - none; x, y on the key window
+	Declare Function mffPopupMenu(ByVal Items As Const ZString Ptr, ByVal x As Long, ByVal y As Long) As Long
+	'Mode: 0 - open, 1 - open several files, 2 - save, 3 - folder; returns the paths separated with Chr(10), 0 - cancelled
+	Declare Function mffFileDialog(ByVal Mode As Long, ByVal Caption As Const ZString Ptr, ByVal InitialDir As Const ZString Ptr, ByVal FileName As Const ZString Ptr, ByVal Filter As Const ZString Ptr, ByVal FilterIndex As Long) As ZString Ptr
+	Declare Function mffFontDialog(ByVal FontName As Const ZString Ptr, ByVal Size As Long, ByVal Style As Long, ByVal FontColor As Long) As ZString Ptr
+	Declare Function mffColorDialog(ByVal Caption As Const ZString Ptr, ByVal ColorValue As Long) As Long
+	'NSRegularExpression: Flags 1 - ignore case, 2 - multiline, 4 - dot matches all, 8 - extended
+	Declare Function mffRegexCompile(ByVal Pattern As Const ZString Ptr, ByVal Flags As Long) As Long
+	Declare Function mffRegexError() As ZString Ptr
+	Declare Sub mffRegexFree(ByVal Id As Long)
+	Declare Function mffRegexExec(ByVal Id As Long, ByVal Subject As Const ZString Ptr, ByVal StartByte As Long, ByVal Offsets As Long Ptr, ByVal MaxGroups As Long) As Long
+	'ListView, TreeView, Grid: Cells are separated by Chr(9), captions and widths of the columns by Chr(10), the first cell
+	'can begin with Chr(1) & the picture & Chr(1); a click raises mffOnChange with the row. The rows are removed with mffListRemove
+	Declare Sub mffTableInit(ByVal Id As Any Ptr)
+	Declare Sub mffTableSetView(ByVal Id As Any Ptr, ByVal ViewName As Const ZString Ptr)
+	Declare Sub mffTableSetColumns(ByVal Id As Any Ptr, ByVal Captions As Const ZString Ptr, ByVal Widths As Const ZString Ptr)
+	Declare Sub mffTableInsertRow(ByVal Id As Any Ptr, ByVal Index As Long, ByVal Cells As Const ZString Ptr)
+	Declare Sub mffTableSetRow(ByVal Id As Any Ptr, ByVal Index As Long, ByVal Cells As Const ZString Ptr)
+	Declare Sub mffTableCellRect(ByVal Id As Any Ptr, ByVal Row As Long, ByVal Col As Long, ByVal pRect As Any Ptr)
+	Declare Function mffTableDblClick() As Long
+	'The Canvas draws on the view in its mffOnPaint (or on the view of mffCanvasBegin out of it)
+	Declare Sub mffCanvasBegin(ByVal Id As Any Ptr)
+	Declare Sub mffCanvasEnd(ByVal Id As Any Ptr)
+	Declare Sub mffCanvasNewPath()
+	Declare Sub mffCanvasMoveTo(ByVal x As Double, ByVal y As Double)
+	Declare Sub mffCanvasLineTo(ByVal x As Double, ByVal y As Double)
+	Declare Sub mffCanvasCurveTo(ByVal x1 As Double, ByVal y1 As Double, ByVal x2 As Double, ByVal y2 As Double, ByVal x3 As Double, ByVal y3 As Double)
+	Declare Sub mffCanvasArc(ByVal cx As Double, ByVal cy As Double, ByVal r As Double, ByVal a1 As Double, ByVal a2 As Double, ByVal Negative As Long)
+	Declare Sub mffCanvasRectPath(ByVal x As Double, ByVal y As Double, ByVal w As Double, ByVal h As Double)
+	Declare Sub mffCanvasClosePath()
+	Declare Sub mffCanvasClip()
+	Declare Sub mffCanvasFill(ByVal iColor As Long, ByVal Alpha As Long)
+	Declare Sub mffCanvasStroke(ByVal iColor As Long, ByVal Alpha As Long, ByVal LineWidth As Double, ByVal Dash As Const ZString Ptr)
+	Declare Sub mffCanvasFillRect(ByVal x As Double, ByVal y As Double, ByVal w As Double, ByVal h As Double, ByVal iColor As Long, ByVal Alpha As Long)
+	Declare Sub mffCanvasInvertRect(ByVal x As Double, ByVal y As Double, ByVal w As Double, ByVal h As Double)
+	Declare Sub mffCanvasRotate(ByVal x As Double, ByVal y As Double, ByVal Angle As Double)
+	Declare Sub mffCanvasSave()
+	Declare Sub mffCanvasRestore()
+	Declare Sub mffCanvasText(ByVal x As Double, ByVal y As Double, ByVal Text As Const ZString Ptr, ByVal iColor As Long, ByVal iBkColor As Long, ByVal FontName As Const ZString Ptr, ByVal FontSize As Double, ByVal Bold As Long, ByVal Italic As Long)
+	Declare Function mffCanvasTextWidth(ByVal Text As Const ZString Ptr, ByVal FontName As Const ZString Ptr, ByVal FontSize As Double, ByVal Bold As Long, ByVal Italic As Long) As Long
+	Declare Function mffCanvasTextHeight(ByVal FontName As Const ZString Ptr, ByVal FontSize As Double, ByVal Bold As Long, ByVal Italic As Long) As Long
+	Declare Function mffCanvasGetPixel(ByVal x As Double, ByVal y As Double) As Long
+	Declare Sub mffCanvasImage(ByVal Path As Const ZString Ptr, ByVal x As Double, ByVal y As Double, ByVal w As Double, ByVal h As Double, ByVal Alpha As Long)
 End Extern

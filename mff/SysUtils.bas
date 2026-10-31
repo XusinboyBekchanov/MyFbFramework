@@ -1199,6 +1199,314 @@ End Namespace
 	Function GetPosition(Id As Any Ptr) As Integer
 		Return IIf(Id, mffPositionGet(Id), 0)
 	End Function
+	
+	Sub FileViewFill(ByVal Id As Any Ptr, sDir As String, Patterns As String, ByVal Multiple As Long)
+	End Sub
+
+	Function GetAttribute(Id As Any Ptr, AttrName As String) As ZString Ptr
+		Return 0
+	End Function
+
+	Sub FreePtr(ByVal Ptr_ As Any Ptr)
+		If Ptr_ Then Deallocate(Ptr_)
+	End Sub
+
+	Sub PageDraw(Id As Any Ptr, Page As Any Ptr, ByVal x As Integer, ByVal y As Integer, ByVal w As Integer, ByVal h As Integer)
+	End Sub
+
+	Sub StartTimer(Id As Any Ptr, ByVal Interval As Integer)
+		mffTimerStart(Id, Interval)
+	End Sub
+	
+	Sub StopTimer(Id As Any Ptr)
+		mffTimerStop(Id)
+	End Sub
+	
+	Sub ReadElementValue(Id As Any Ptr, ByRef Value As WString Ptr)
+		mffReadViewText(Id, Value)
+	End Sub
+	
+	Sub SetStringValue(Id As Any Ptr, Value As String)
+		If Id Then mffViewSetText(Id, Value)
+	End Sub
+	
+	Sub SetInnerHTML(Id As Any Ptr, Value As String)
+		'The content of the elements of the Web
+	End Sub
+	
+	Sub SetAttribute(Id As Any Ptr, AttrName As String, Value As String)
+		'The attributes of the elements of the Web
+	End Sub
+	
+	Sub SetItemChecked(Id As Any Ptr, ByVal Index As Integer, Value As Boolean)
+		If Id Then mffListSetChecked(Id, Index, IIf(Value, 1, 0))
+	End Sub
+	
+	Function GetItemChecked(Id As Any Ptr, ByVal Index As Integer) As Boolean
+		Return IIf(Id, mffListGetChecked(Id, Index) <> 0, False)
+	End Function
+	
+	Sub SetTabs(Id As Any Ptr, Titles As String)
+		If Id Then mffTabsSet(Id, Titles)
+	End Sub
+	
+	Sub SetTabsPosition(Id As Any Ptr, ByVal Position As Integer)
+		If Id Then mffTabsSetPosition(Id, Position)
+	End Sub
+	
+	Function TabsStripHeight() As Integer
+		Return mffTabsStripHeight()
+	End Function
+	
+	Sub SetButtons(Id As Any Ptr, Items As String)
+		If Id Then mffButtonsSet(Id, Items)
+	End Sub
+	
+	Function ButtonsItemLeft(Id As Any Ptr, ByVal Index As Integer) As Integer
+		Return IIf(Id, mffButtonsItem(Id, Index, 0), -1)
+	End Function
+	
+	Function ButtonsItemWidth(Id As Any Ptr, ByVal Index As Integer) As Integer
+		Return IIf(Id, mffButtonsItem(Id, Index, 1), -1)
+	End Function
+	
+	Function ButtonsContentWidth(Id As Any Ptr) As Integer
+		Return IIf(Id, mffButtonsItem(Id, -1, 1), -1)
+	End Function
+	
+	Function ElementContentWidth(Id As Any Ptr) As Integer
+		Return IIf(Id, mffViewFittingWidth(Id), 0)
+	End Function
+	
+	Sub LoadURL(Id As Any Ptr, URL As String)
+		If Id Then mffWebLoadURL(Id, URL)
+	End Sub
+	
+	Sub LoadHTML(Id As Any Ptr, HTML As String)
+		If Id Then mffWebLoadHTML(Id, HTML)
+	End Sub
+	
+	Sub WebAction(Id As Any Ptr, ByVal Action As Integer)
+		If Id Then mffWebAction(Id, Action)
+	End Sub
+	
+	Sub LoadImage(Id As Any Ptr, Path As String, Center As Boolean)
+		If Id Then mffViewLoadImage(Id, Path, IIf(Center, 1, 0))
+	End Sub
+	
+	Sub ClipboardSetText(Text As String)
+		mffClipboardSetText(Text)
+	End Sub
+	
+	Function ClipboardGetText() As ZString Ptr
+		Return mffClipboardGetText()
+	End Function
+	
+	Function ShowPopupMenu(Items As String, ByVal x As Long, ByVal y As Long) As Long
+		Return mffPopupMenu(Items, x, y)
+	End Function
+	
+	Function ShowFileDialog(ByVal Mode As Long, Caption As String, InitialDir As String, FileName As String, Filter As String, ByVal FilterIndex As Long) As ZString Ptr
+		Return mffFileDialog(Mode, Caption, InitialDir, FileName, Filter, FilterIndex)
+	End Function
+	
+	Function ShowFontDialog(FontName As String, ByVal Size As Long, ByVal Style As Long, ByVal FontColor As Long) As ZString Ptr
+		Return mffFontDialog(FontName, Size, Style, FontColor)
+	End Function
+	
+	Function ShowColorDialog(Caption As String, ByVal ColorValue As Long) As Long
+		Return mffColorDialog(Caption, ColorValue)
+	End Function
+	
+	Function RegexCompile(Pattern As String, ByVal Flags As Long) As Long
+		Return mffRegexCompile(Pattern, Flags)
+	End Function
+	
+	Function RegexError() As ZString Ptr
+		Return mffRegexError()
+	End Function
+	
+	Sub RegexFree(ByVal Id As Long)
+		mffRegexFree(Id)
+	End Sub
+	
+	Function RegexExec(ByVal Id As Long, Subject As String, ByVal StartByte As Long, ByVal Offsets As Long Ptr, ByVal MaxGroups As Long) As Long
+		Return mffRegexExec(Id, Subject, StartByte, Offsets, MaxGroups)
+	End Function
+	
+	Sub TableInit(Id As Any Ptr)
+		If Id Then mffTableInit(Id)
+	End Sub
+	
+	Sub TableSetView(Id As Any Ptr, ViewName As String)
+		If Id Then mffTableSetView(Id, ViewName)
+	End Sub
+	
+	Sub TableSetColumns(Id As Any Ptr, Captions As String, Widths As String)
+		If Id Then mffTableSetColumns(Id, Captions, Widths)
+	End Sub
+	
+	Sub TableInsertRow(Id As Any Ptr, ByVal Index As Integer, Cells As String)
+		If Id Then mffTableInsertRow(Id, Index, Cells)
+	End Sub
+	
+	Sub TableSetRow(Id As Any Ptr, ByVal Index As Integer, Cells As String)
+		If Id Then mffTableSetRow(Id, Index, Cells)
+	End Sub
+	
+	Sub TableRemoveRow(Id As Any Ptr, ByVal Index As Integer)
+		If Id Then mffListRemove(Id, Index)
+	End Sub
+	
+	Sub TableClear(Id As Any Ptr)
+		If Id Then mffListClear(Id)
+	End Sub
+	
+	Sub TableSetIndex(Id As Any Ptr, ByVal Index As Integer)
+		If Id Then mffListSetIndex(Id, Index)
+	End Sub
+	
+	Function TableGetIndex(Id As Any Ptr) As Integer
+		Return IIf(Id, mffListGetIndex(Id), -1)
+	End Function
+	
+	Sub TableCellRect(Id As Any Ptr, ByVal Row As Long, ByVal Col As Long, ByVal pRect As Any Ptr)
+		If Id Then mffTableCellRect(Id, Row, Col, pRect)
+	End Sub
+	
+	Function TableDblClick(Id As Any Ptr) As Boolean
+		Return mffTableDblClick() <> 0
+	End Function
+	
+	Sub CanvasBegin(Id As Any Ptr)
+		mffCanvasBegin(Id)
+	End Sub
+	
+	Sub CanvasEnd(Id As Any Ptr)
+		mffCanvasEnd(Id)
+	End Sub
+	
+	Sub CanvasRepaint(Id As Any Ptr)
+		If Id Then mffViewRepaint(Id)
+	End Sub
+	
+	Sub CanvasNewPath(Id As Any Ptr)
+		mffCanvasNewPath()
+	End Sub
+	
+	Sub CanvasMoveTo(Id As Any Ptr, ByVal x As Double, ByVal y As Double)
+		mffCanvasMoveTo(x, y)
+	End Sub
+	
+	Sub CanvasLineTo(Id As Any Ptr, ByVal x As Double, ByVal y As Double)
+		mffCanvasLineTo(x, y)
+	End Sub
+	
+	Sub CanvasCurveTo(Id As Any Ptr, ByVal x1 As Double, ByVal y1 As Double, ByVal x2 As Double, ByVal y2 As Double, ByVal x3 As Double, ByVal y3 As Double)
+		mffCanvasCurveTo(x1, y1, x2, y2, x3, y3)
+	End Sub
+	
+	Sub CanvasArc(Id As Any Ptr, ByVal cx As Double, ByVal cy As Double, ByVal r As Double, ByVal a1 As Double, ByVal a2 As Double, ByVal Negative As Integer)
+		mffCanvasArc(cx, cy, r, a1, a2, Negative)
+	End Sub
+	
+	Sub CanvasRectPath(Id As Any Ptr, ByVal x As Double, ByVal y As Double, ByVal w As Double, ByVal h As Double)
+		mffCanvasRectPath(x, y, w, h)
+	End Sub
+	
+	Sub CanvasClosePath(Id As Any Ptr)
+		mffCanvasClosePath()
+	End Sub
+	
+	Sub CanvasClip(Id As Any Ptr)
+		mffCanvasClip()
+	End Sub
+	
+	Sub CanvasFill(Id As Any Ptr, ByVal iColor As Integer, ByVal Alpha As Integer)
+		mffCanvasFill(iColor, Alpha)
+	End Sub
+	
+	Sub CanvasStroke(Id As Any Ptr, ByVal iColor As Integer, ByVal Alpha As Integer, ByVal LineWidth As Double, Dash As String)
+		mffCanvasStroke(iColor, Alpha, LineWidth, Dash)
+	End Sub
+	
+	Sub CanvasFillRect(Id As Any Ptr, ByVal x As Double, ByVal y As Double, ByVal w As Double, ByVal h As Double, ByVal iColor As Integer, ByVal Alpha As Integer)
+		mffCanvasFillRect(x, y, w, h, iColor, Alpha)
+	End Sub
+	
+	Sub CanvasInvertRect(Id As Any Ptr, ByVal x As Double, ByVal y As Double, ByVal w As Double, ByVal h As Double)
+		mffCanvasInvertRect(x, y, w, h)
+	End Sub
+	
+	Sub CanvasRotate(Id As Any Ptr, ByVal x As Double, ByVal y As Double, ByVal Angle As Double)
+		mffCanvasRotate(x, y, Angle)
+	End Sub
+	
+	Sub CanvasSave(Id As Any Ptr)
+		mffCanvasSave()
+	End Sub
+	
+	Sub CanvasRestore(Id As Any Ptr)
+		mffCanvasRestore()
+	End Sub
+	
+	Sub CanvasText(Id As Any Ptr, ByVal x As Double, ByVal y As Double, Text As String, ByVal iColor As Integer, ByVal iBkColor As Integer, FontName As String, ByVal FontSize As Double, ByVal Bold As Integer, ByVal Italic As Integer)
+		mffCanvasText(x, y, Text, iColor, iBkColor, FontName, FontSize, Bold, Italic)
+	End Sub
+	
+	Function CanvasTextWidth(Id As Any Ptr, Text As String, FontName As String, ByVal FontSize As Double, ByVal Bold As Integer, ByVal Italic As Integer) As Integer
+		Return mffCanvasTextWidth(Text, FontName, FontSize, Bold, Italic)
+	End Function
+	
+	Function CanvasTextHeight(Id As Any Ptr, FontName As String, ByVal FontSize As Double, ByVal Bold As Integer, ByVal Italic As Integer) As Integer
+		Return mffCanvasTextHeight(FontName, FontSize, Bold, Italic)
+	End Function
+	
+	Function CanvasGetPixel(Id As Any Ptr, ByVal x As Double, ByVal y As Double) As Integer
+		Return mffCanvasGetPixel(x, y)
+	End Function
+	
+	Sub CanvasImage(Id As Any Ptr, Path As String, ByVal x As Double, ByVal y As Double, ByVal w As Double, ByVal h As Double, ByVal Alpha As Integer)
+		mffCanvasImage(Path, x, y, w, h, Alpha)
+	End Sub
+	
+	Dim Shared As String ResourceSearchPaths
+
+	Sub AddResourceSearchPath(Path As String)
+		If Path = "" OrElse InStr(Chr(10) & ResourceSearchPaths & Chr(10), Chr(10) & Path & Chr(10)) > 0 Then Exit Sub
+		If ResourceSearchPaths <> "" Then ResourceSearchPaths &= Chr(10)
+		ResourceSearchPaths &= Path
+	End Sub
+
+	Sub AddResourceFile(ByRef RcFile As String)
+	End Sub
+	
+	'The picture ResName.png in the Resources of the program (of its bundle too) or in a folder of AddResourceSearchPath
+	Function FindResourceFile(ResName As String) As String
+		If ResName = "" Then Return ""
+		Dim As String AppDir = ExePath
+		Dim As String Paths = AppDir & "/Resources" & Chr(10) & AppDir & "/../Resources" & Chr(10) & AppDir & "/resources" & Chr(10) & ResourceSearchPaths
+		Dim As Integer StartPos = 1, EndPos, Fn
+		Do While StartPos <= Len(Paths)
+			EndPos = InStr(StartPos, Paths, Chr(10))
+			If EndPos = 0 Then EndPos = Len(Paths) + 1
+			Dim As String FileName = Mid(Paths, StartPos, EndPos - StartPos)
+			If FileName <> "" Then
+				FileName &= "/" & ResName & ".png"
+				Fn = FreeFile
+				If Open(FileName For Binary Access Read As #Fn) = 0 Then
+					Close #Fn
+					Return FileName
+				End If
+			End If
+			StartPos = EndPos + 1
+		Loop
+		Return ""
+	End Function
+
+	Function RemoveMnemonic(ByRef Value As WString) As UString
+		Return Replace(Replace(Replace(Value, "&&", Chr(1)), "&", ""), Chr(1), "&")
+	End Function
 #endif
 
 '#ifdef GetMN

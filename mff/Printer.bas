@@ -592,7 +592,7 @@ Namespace My.Sys.ComponentModel
 			For i As Integer = 0 To PaperSizes.Count - 1
 				If PaperSizes.Item(i)->RawKind = m_PageSize Then Return PaperSizes.Item(i)->Width
 			Next
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				'Web and Android: the papers of Page Setup (PageSetupDialog.Execute), there is no list of the printer
 				Select Case m_PageSize
 				Case PrinterPaperSize.ppsA3: Return 2970
@@ -613,7 +613,7 @@ Namespace My.Sys.ComponentModel
 			For i As Integer = 0 To PaperSizes.Count - 1
 				If PaperSizes.Item(i)->RawKind = m_PageSize Then Return PaperSizes.Item(i)->Height
 			Next
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				Select Case m_PageSize
 				Case PrinterPaperSize.ppsA3: Return 4200
 				Case PrinterPaperSize.ppsLetter: Return 2794
@@ -1054,7 +1054,7 @@ Namespace My.Sys.ComponentModel
 			' Освобождаем выделенную память
 			'_Deallocate((paperIDs))
 			_Deallocate((paperNames))
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'Web and Android: there is no list of the printer (the printer is chosen in the print dialog of the browser or
 			'of the system when the document is printed): the papers of Page Setup, in tenths of a millimeter
 			Dim As PrinterPaperSize Kinds(6) = {PrinterPaperSize.ppsA4, PrinterPaperSize.ppsA3, PrinterPaperSize.ppsLetter, _
@@ -1909,7 +1909,7 @@ Namespace My.Sys.ComponentModel
 	Private Constructor Printer
 		Canvas.Ctrl = @This
 		WLet(FClassName, "Printer")
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'Web and Android: A4 like PageSetupDialog (the first paper of the list is Letter)
 			m_PageSize = PrinterPaperSize.ppsA4
 		#endif

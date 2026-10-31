@@ -281,7 +281,7 @@ Namespace My.Sys.Forms
 		Declare Constructor
 		Declare Destructor
 		'Raised when any toolbar button is clicked
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'Shows the buttons again (Web, Android)
 			Declare Sub UpdateButtons()
 		#endif

@@ -1238,7 +1238,7 @@ Namespace My.Sys.Forms
 					CheckMenuItem(Owner->Handle, VisibleMenuIndex, MF_BYPOSITION Or FCheck(FChecked))
 				End If
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'Web and Android: the popup menu is made when it is shown (PopupMenuAddItems), with this value
 			FChecked = value
 		#endif
@@ -1657,7 +1657,7 @@ Namespace My.Sys.Forms
 		FVisible    = True
 		FEnabled    = True
 		FChecked    = False
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			FCheckable = Checkable
 		#endif
 		#ifdef __MFF_MENU_MODEL__
@@ -1741,7 +1741,7 @@ Namespace My.Sys.Forms
 		#else
 			FImage.Graphic = @This
 			FImage.Changed = @BitmapChanged
-			#ifdef __USE_WASM__
+			#if defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 				FImage.Handle = ""
 			#else
 				FImage.Handle = 0
@@ -1859,7 +1859,7 @@ Namespace My.Sys.Forms
 			Widget = value
 			MenuWidget_Watch Widget, FWatchedWidget
 		End Property
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Property Menu.Handle As Any Ptr
 			Return @This
 		End Property
@@ -2646,13 +2646,13 @@ Namespace My.Sys.Forms
 			If FParentWindow AndAlso FParentWindow->Handle Then
 				TrackPopupMenuEx(This.FHandle, 0, x, y, FParentWindow->Handle, 0)
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Dim As MenuItem Ptr mi = ShowMenuModal(x, y)
 			If mi Then MenuItemChoose mi
 		#endif
 	End Sub
 
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'The items as the lines of ShowPopupMenu (SysUtils.bi); Items gets the items in the same order
 		Private Sub PopupMenuAddItems(ByVal Count As Integer, ByVal pMenu As Menu Ptr, ByVal pParentItem As MenuItem Ptr, ByVal Level As Integer, ByRef sItems As UString, Items() As MenuItem Ptr)
 			For i As Integer = 0 To Count - 1
@@ -2723,7 +2723,24 @@ Namespace My.Sys.Forms
 	End Destructor
 End Namespace
 
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#ifdef __USE_APPLE__
+	Dim Shared As My.Sys.Forms.MenuItem Ptr MenuBarItems(Any)
+
+	'The items of the MainMenu of the main form are the bar of the menu of macOS
+	Sub MenuBarShow(ByVal pMenu As My.Sys.Forms.Menu Ptr)
+		If pMenu = 0 Then Exit Sub
+		Dim As UString sItems
+		Erase MenuBarItems
+		My.Sys.Forms.PopupMenuAddItems pMenu->Count, pMenu, 0, 0, sItems, MenuBarItems()
+		mffMenuBarSet(ToUtf8(sItems))
+	End Sub
+
+	Sub mffOnMenu Cdecl Alias "mffOnMenu"(ByVal Index As Long) Export
+		If Index >= 0 AndAlso Index <= UBound(MenuBarItems) Then MenuItemChoose MenuBarItems(Index)
+	End Sub
+#endif
+
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	Function MenuItemShowItems(ByVal pItem As My.Sys.Forms.MenuItem Ptr, ByVal x As Long = 0, ByVal y As Long = 0) As My.Sys.Forms.MenuItem Ptr
 		If pItem = 0 OrElse pItem->Count = 0 Then Return pItem
 		Dim As UString sItems

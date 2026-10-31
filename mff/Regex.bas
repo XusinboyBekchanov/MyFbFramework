@@ -379,7 +379,7 @@ Namespace My.Sys.Text
 	'' java.util.regex (mffActivity.java) through RegexCompile / RegexExec
 	'' of SysUtils. Offsets are UTF-8 byte offsets, like the GRegex backend.
 	'' -------------------------------------------------------------
-#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 
 	Private Sub Regex.FreeCompiled()
 		If _Compiled <> NULL Then

@@ -611,7 +611,7 @@ Namespace My.Sys.Forms
 		
 		layoutRect.Width = lWidth * nScale: layoutRect.Height = Height * nScale
 		
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'The canvas measures one line: the lines of the text (the tooltips) one under the other
 			Dim As Double LineHeight = CanvasTextHeight(cr, ToUtf8(oFont.Name), ScaleY(IIf(oFont.Size > 0, oFont.Size, 9) * 96 / 72), oFont.Bold, oFont.Italic)
 			Dim As Integer LineStart = 1, LineEnd, LineLen, LineCount
@@ -730,7 +730,7 @@ Namespace My.Sys.Forms
 		layoutRect.X = X: layoutRect.Y = Y
 		layoutRect.Width = lWidth: layoutRect.Height = Height
 		
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Dim As Double TextW = CanvasTextWidth(cr, ToUtf8(text), ToUtf8(oFont.Name), ScaleY(IIf(oFont.Size > 0, oFont.Size, 9) * 96 / 72), oFont.Bold, oFont.Italic)
 			Dim As Double TextH = CanvasTextHeight(cr, ToUtf8(oFont.Name), ScaleY(IIf(oFont.Size > 0, oFont.Size, 9) * 96 / 72), oFont.Bold, oFont.Italic)
 			Select Case HAlign
@@ -789,7 +789,7 @@ Namespace My.Sys.Forms
 	Private Function Chart.GetWindowsDPI() As Double
 		#ifdef __USE_GTK__
 			Return 1#
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'The pixels of the canvas are the pixels of the screen: the scale of the form, like LOGPIXELSY / 96 of Windows
 			Return IIf(ydpi > 0, ydpi, 1#)
 		#elseif defined(__USE_WINAPI__)
@@ -848,7 +848,7 @@ Namespace My.Sys.Forms
 			bResult = cairo_in_fill(cr1, X, Y)
 			cairo_destroy(cr1)
 			Return bResult
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Return mcairo_in_fill(hPath, X, Y)
 		#elseif defined(__USE_WINAPI__)
 			Dim lResult As Long
@@ -1081,7 +1081,7 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			RedrawWindow(FHandle, NULL, NULL, RDW_INVALIDATE)
 			UpdateWindow FHandle
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Repaint
 		#endif
 	End Sub
@@ -1208,7 +1208,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Return ShiftColor(RGBColor, clWhite, Opacity / 100 * 255)
 			'Return ((Cast(ULong, Opacity / 100 * 255) Shl 24) + (Cast(ULong, Abs(GetRed(RGBColor))) Shl 16) + (Cast(ULong, Abs(GetGreen(RGBColor))) Shl 8) + (Cast(ULong, Abs(GetBlue(RGBColor)))))
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Return ShiftColor(RGBColor, clWhite, Opacity / 100 * 255)
 			'Return ((Cast(ULong, Opacity / 100 * 255) Shl 24) + (Cast(ULong, Abs(GetRed(RGBColor))) Shl 16) + (Cast(ULong, Abs(GetGreen(RGBColor))) Shl 8) + (Cast(ULong, Abs(GetBlue(RGBColor)))))
 		#elseif defined(__USE_WINAPI__)
@@ -1504,7 +1504,7 @@ Namespace My.Sys.Forms
 								If m_Serie(i).hPath(k) <> 0 Then cairo_path_destroy m_Serie(i).hPath(k)
 							Next
 						End If
-					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 						Dim k As Long
 						If UBound(m_Serie(i).hPath) >= 0 Then
 							For k = 0 To UBound(m_Serie(i).hPath)
@@ -1571,7 +1571,7 @@ Namespace My.Sys.Forms
 								cairo_close_path(cr)
 
 								m_Serie(i).hPath(p) = cairo_copy_path(cr)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								mcairo_new_path(cr)
 								If m_ChartStyle = CS_Donut Then
 									mcairo_move_to(cr, Left_ + Min / 2, Top_ + Min / 2)
@@ -1604,7 +1604,7 @@ Namespace My.Sys.Forms
 							#ifdef __USE_GTK__
 								cairo_set_source_rgba(cr, GetRedD(lColor), GetGreenD(lColor), GetBlueD(lColor), m_FillOpacity / 100)
 								cairo_fill(cr)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								mcairo_set_source_rgba(cr, GetRedD(lColor), GetGreenD(lColor), GetBlueD(lColor), m_FillOpacity / 100)
 								mcairo_fill(cr)
 							#elseif defined(__USE_WINAPI__)
@@ -1631,7 +1631,7 @@ Namespace My.Sys.Forms
 									cairo_set_line_width(cr, HotPenW)
 									cairo_append_path(cr, m_Serie(i).hPath(p))
 									cairo_stroke(cr)
-								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 									mcairo_set_source_rgb(cr, GetRedD(RGBtoARGB(m_Serie(i).SerieColor, 100)), GetGreenD(RGBtoARGB(m_Serie(i).SerieColor, 100)), GetBlueD(RGBtoARGB(m_Serie(i).SerieColor, 100)))
 									mcairo_set_line_width(cr, HotPenW)
 									mcairo_append_path(cr, m_Serie(i).hPath(p))
@@ -1648,7 +1648,7 @@ Namespace My.Sys.Forms
 								#ifdef __USE_GTK__
 									cairo_set_source_rgb(cr, GetRedD(m_SeparatorLineColor), GetGreenD(m_SeparatorLineColor), GetBlueD(m_SeparatorLineColor))
 									cairo_set_line_width(cr, m_SeparatorLineWidth * nScale)
-								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 									mcairo_set_source_rgb(cr, GetRedD(m_SeparatorLineColor), GetGreenD(m_SeparatorLineColor), GetBlueD(m_SeparatorLineColor))
 									mcairo_set_line_width(cr, m_SeparatorLineWidth * nScale)
 								#elseif defined(__USE_WINAPI__)
@@ -1666,7 +1666,7 @@ Namespace My.Sys.Forms
 									cairo_move_to(cr, sx, sy)
 									cairo_line_to(cr, ex, ey)
 									cairo_stroke(cr)
-								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 									mcairo_move_to(cr, sx, sy)
 									mcairo_line_to(cr, ex, ey)
 									mcairo_stroke(cr)
@@ -1751,7 +1751,7 @@ Namespace My.Sys.Forms
 									cairo_set_source_rgb(cr, GetRedD(m_Serie(i).SerieColor), GetGreenD(m_Serie(i).SerieColor), GetBlueD(m_Serie(i).SerieColor))
 									cairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
 									cairo_fill(cr)
-								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 									mcairo_set_source_rgb(cr, GetRedD(m_Serie(i).SerieColor), GetGreenD(m_Serie(i).SerieColor), GetBlueD(m_Serie(i).SerieColor))
 									mcairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
 									mcairo_fill(cr)
@@ -1782,7 +1782,7 @@ Namespace My.Sys.Forms
 									cairo_set_source_rgb(cr, GetRedD(m_Serie(i).SerieColor), GetGreenD(m_Serie(i).SerieColor), GetBlueD(m_Serie(i).SerieColor))
 									cairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
 									cairo_fill(cr)
-								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 									mcairo_set_source_rgb(cr, GetRedD(m_Serie(i).SerieColor), GetGreenD(m_Serie(i).SerieColor), GetBlueD(m_Serie(i).SerieColor))
 									mcairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
 									mcairo_fill(cr)
@@ -1971,7 +1971,7 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						If m_Item(i).hPath <> 0 Then cairo_path_destroy m_Item(i).hPath
 						cairo_new_path(cr)
-					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 						If m_Item(i).hPath <> 0 Then mcairo_path_destroy m_Item(i).hPath
 						mcairo_new_path(cr)
 					#elseif defined(__USE_WINAPI__)
@@ -1988,7 +1988,7 @@ Namespace My.Sys.Forms
 							GdipAddPathArc m_Item(i).hPath, Left_, Top_, Min, Min, LastAngle, Angle
 							GdipAddPathArc m_Item(i).hPath, Left_ + DonutSize, Top_ + DonutSize, Min - DonutSize * 2, Min - DonutSize * 2, LastAngle + Angle, -Angle
 						#endif
-						#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+						#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 							mcairo_move_to(cr, Left_ + Min / 2, Top_ + Min / 2)
 							mcairo_arc(cr, Left_ + Min / 2, Top_ + Min / 2, Min / 2, LastAngle * (G_PI / 180), LastAngle * (G_PI / 180) + Angle * (G_PI / 180))
 							mcairo_arc_negative(cr, Left_ + DonutSize + (Min - DonutSize * 2) / 2, Top_ + DonutSize + (Min - DonutSize * 2) / 2, (Min - DonutSize * 2) / 2, LastAngle * (G_PI / 180) + Angle * (G_PI / 180), LastAngle * (G_PI / 180))
@@ -2000,14 +2000,14 @@ Namespace My.Sys.Forms
 						#elseif defined(__USE_WINAPI__)
 							GdipAddPathPie m_Item(i).hPath, Left_, Top_, Min, Min, LastAngle, Angle
 						#endif
-						#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+						#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 							mcairo_move_to(cr, Left_ + Min / 2, Top_ + Min / 2)
 							mcairo_arc(cr, Left_ + Min / 2, Top_ + Min / 2, Min / 2, LastAngle * (G_PI / 180), LastAngle * (G_PI / 180) + Angle * (G_PI / 180))
 						#endif
 					End If
 					#ifdef __USE_GTK__
 						m_Item(i).hPath = cairo_copy_path(cr)
-					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 						m_Item(i).hPath = mcairo_copy_path(cr)
 					#endif
 					
@@ -2034,7 +2034,7 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						cairo_set_source_rgba(cr, GetRedD(lColor), GetGreenD(lColor), GetBlueD(lColor), m_FillOpacity / 100)
 						cairo_fill(cr)
-					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 						mcairo_set_source_rgba(cr, GetRedD(lColor), GetGreenD(lColor), GetBlueD(lColor), m_FillOpacity / 100)
 						mcairo_fill(cr)
 					#elseif defined(__USE_WINAPI__)
@@ -2051,7 +2051,7 @@ Namespace My.Sys.Forms
 							cairo_set_line_width(cr, HotPenW)
 							cairo_append_path(cr, m_Item(i).hPath)
 							cairo_stroke(cr)
-						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 							mcairo_set_source_rgb(cr, GetRedD(RGBtoARGB(m_Item(i).ItemColor, 100)), GetGreenD(RGBtoARGB(m_Item(i).ItemColor, 100)), GetBlueD(RGBtoARGB(m_Item(i).ItemColor, 100)))
 							mcairo_set_line_width(cr, HotPenW)
 							mcairo_append_path(cr, m_Item(i).hPath)
@@ -2089,7 +2089,7 @@ Namespace My.Sys.Forms
 							cairo_set_source_rgb(cr, GetRedD(m_SeparatorLineColor), GetGreenD(m_SeparatorLineColor), GetBlueD(m_SeparatorLineColor))
 							cairo_set_line_width (cr, m_SeparatorLineWidth * nScale)
 							'?m_SeparatorLineWidth
-						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 							mcairo_set_source_rgb(cr, GetRedD(m_SeparatorLineColor), GetGreenD(m_SeparatorLineColor), GetBlueD(m_SeparatorLineColor))
 							mcairo_set_line_width (cr, m_SeparatorLineWidth * nScale)
 							'?m_SeparatorLineWidth
@@ -2118,7 +2118,7 @@ Namespace My.Sys.Forms
 							cairo_move_to(cr, Left_, Top_)
 							cairo_line_to(cr, CX, CY)
 							cairo_stroke(cr)
-						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 							mcairo_move_to(cr, Left_, Top_)
 							mcairo_line_to(cr, CX, CY)
 							mcairo_stroke(cr)
@@ -2162,7 +2162,7 @@ Namespace My.Sys.Forms
 								Var BrushColor = RGBtoARGB(m_Item(i).ItemColor, 50), BrushAlpha = 0.5
 								Var PenColor = RGBtoARGB(m_Item(i).ItemColor, 50), PenAlpha = 1
 								cairo_set_line_width(cr, 1 * nScale)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								Var BrushColor = RGBtoARGB(m_Item(i).ItemColor, 50), BrushAlpha = 0.5
 								Var PenColor = RGBtoARGB(m_Item(i).ItemColor, 50), PenAlpha = 1
 								mcairo_set_line_width(cr, 1 * nScale)
@@ -2190,7 +2190,7 @@ Namespace My.Sys.Forms
 									cairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), BrushAlpha)
 									cairo_rectangle(cr, Left_, lTop, TextWidth, TextHeight)
 									cairo_fill(cr)
-								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 									mcairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), BrushAlpha)
 									mcairo_rectangle(cr, Left_, lTop, TextWidth, TextHeight)
 									mcairo_fill(cr)
@@ -2211,7 +2211,7 @@ Namespace My.Sys.Forms
 									cairo_move_to(cr, Left_, Top_)
 									cairo_line_to(cr, CX, CY)
 									cairo_stroke(cr)
-								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 									mcairo_set_source_rgba(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor), PenAlpha)
 									mcairo_move_to(cr, Left_, Top_)
 									mcairo_line_to(cr, CX, CY)
@@ -2226,7 +2226,7 @@ Namespace My.Sys.Forms
 									cairo_move_to(cr, CX, CY)
 									cairo_line_to(cr, Left_, Top_)
 									cairo_stroke(cr)
-								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 									mcairo_set_source_rgba(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor), PenAlpha)
 									mcairo_move_to(cr, CX, CY)
 									mcairo_line_to(cr, Left_, Top_)
@@ -2253,7 +2253,7 @@ Namespace My.Sys.Forms
 									cairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), BrushAlpha)
 									cairo_rectangle(cr, Left_, lTop, TextWidth, TextHeight)
 									cairo_fill(cr)
-								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 									mcairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), BrushAlpha)
 									mcairo_rectangle(cr, Left_, lTop, TextWidth, TextHeight)
 									mcairo_fill(cr)
@@ -2271,7 +2271,7 @@ Namespace My.Sys.Forms
 									cairo_move_to(cr, Left_, Top_)
 									cairo_line_to(cr, CX, CY)
 									cairo_stroke(cr)
-								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 									mcairo_set_source_rgba(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor), PenAlpha)
 									mcairo_move_to(cr, Left_, Top_)
 									mcairo_line_to(cr, CX, CY)
@@ -2286,7 +2286,7 @@ Namespace My.Sys.Forms
 									cairo_move_to(cr, CX, CY)
 									cairo_line_to(cr, Left_, Top_)
 									cairo_stroke(cr)
-								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 									mcairo_set_source_rgba(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor), PenAlpha)
 									mcairo_move_to(cr, CX, CY)
 									mcairo_line_to(cr, Left_, Top_)
@@ -2362,7 +2362,7 @@ Namespace My.Sys.Forms
 										cairo_set_source_rgba(cr, GetRedD(m_Item(i).ItemColor), GetGreenD(m_Item(i).ItemColor), GetBlueD(m_Item(i).ItemColor), 1)
 										cairo_arc(cr, .Left + (m_Item(i).TextHeight / 2) / 2 - 0.5, .Top + m_Item(i).TextHeight / 4 + (m_Item(i).TextHeight / 2) / 2 - 0.5, m_Item(i).TextHeight / 2 / 2 - 0.5, 0, 2 * G_PI)
 										cairo_fill(cr)
-									#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+									#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 										mcairo_new_path(cr)
 										mcairo_set_source_rgba(cr, GetRedD(m_Item(i).ItemColor), GetGreenD(m_Item(i).ItemColor), GetBlueD(m_Item(i).ItemColor), 1)
 										mcairo_arc(cr, .Left + (m_Item(i).TextHeight / 2) / 2 - 0.5, .Top + m_Item(i).TextHeight / 4 + (m_Item(i).TextHeight / 2) / 2 - 0.5, m_Item(i).TextHeight / 2 / 2 - 0.5, 0, 2 * G_PI)
@@ -2403,7 +2403,7 @@ Namespace My.Sys.Forms
 									cairo_set_source_rgba(cr, GetRedD(m_Item(i).ItemColor), GetGreenD(m_Item(i).ItemColor), GetBlueD(m_Item(i).ItemColor), 1)
 									cairo_arc(cr, .Left + (m_Item(i).TextHeight / 2) / 2 - 0.5, .Top + m_Item(i).TextHeight / 4 + (m_Item(i).TextHeight / 2) / 2 - 0.5, m_Item(i).TextHeight / 2 / 2, 0, 2 * G_PI)
 									cairo_fill(cr)
-								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 									mcairo_new_path(cr)
 									mcairo_set_source_rgba(cr, GetRedD(m_Item(i).ItemColor), GetGreenD(m_Item(i).ItemColor), GetBlueD(m_Item(i).ItemColor), 1)
 									mcairo_arc(cr, .Left + (m_Item(i).TextHeight / 2) / 2 - 0.5, .Top + m_Item(i).TextHeight / 4 + (m_Item(i).TextHeight / 2) / 2 - 0.5, m_Item(i).TextHeight / 2 / 2, 0, 2 * G_PI)
@@ -2641,7 +2641,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				Var PenColor = RGBtoARGB(m_LinesColor, 100)
 				cairo_set_line_width(cr, mPenWidth)
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				Var PenColor = RGBtoARGB(m_LinesColor, 100)
 				mcairo_set_line_width(cr, mPenWidth)
 			#elseif defined(__USE_WINAPI__)
@@ -2662,7 +2662,7 @@ Namespace My.Sys.Forms
 						cairo_move_to(cr, MarginLeft, YY)
 						cairo_line_to(cr, This.ClientWidth - MarginRight - mPenWidth, YY)
 						cairo_stroke(cr)
-					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 						mcairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
 						mcairo_move_to(cr, MarginLeft, YY)
 						mcairo_line_to(cr, This.ClientWidth - MarginRight - mPenWidth, YY)
@@ -2689,7 +2689,7 @@ Namespace My.Sys.Forms
 						cairo_move_to(cr, XX, TopHeader)
 						cairo_line_to(cr, XX, TopHeader + mHeight + 4 * nScale)
 						cairo_stroke(cr)
-					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 						mcairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
 						mcairo_move_to(cr, XX, TopHeader)
 						mcairo_line_to(cr, XX, TopHeader + mHeight + 4 * nScale)
@@ -2726,7 +2726,7 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						cairo_new_path(cr)
 						If True Then
-					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 						mcairo_new_path(cr)
 						If True Then
 					#elseif defined(__USE_WINAPI__)
@@ -2738,7 +2738,7 @@ Namespace My.Sys.Forms
 							'cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
 							cairo_move_to cr, MarginLeft, ZeroPoint
 							'cairo_line_to cr, MarginLeft, ZeroPoint
-						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 							'mcairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
 							mcairo_move_to cr, MarginLeft, ZeroPoint
 							'mcairo_line_to cr, MarginLeft, ZeroPoint
@@ -2766,7 +2766,7 @@ Namespace My.Sys.Forms
 									End If
 									cairo_curve_to cr, m_Serie(i).PT(l - 1).x, m_Serie(i).PT(l - 1).y, (m_Serie(i).PT(l).x + m_Serie(i).PT(l - 1).x) / 2, Y, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
 								Next
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								'mcairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
 								mcairo_line_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
 								For l As Integer = 1 To UBound(m_Serie(i).PT)
@@ -2797,7 +2797,7 @@ Namespace My.Sys.Forms
 									cairo_line_to cr, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
 								Next
 								'cairo_stroke(cr)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								'mcairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
 								mcairo_line_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
 								For l As Integer = 1 To UBound(m_Serie(i).PT)
@@ -2813,7 +2813,7 @@ Namespace My.Sys.Forms
 							'cairo_move_to(cr, MarginLeft + mWidth - mPenWidth, ZeroPoint)
 							cairo_line_to(cr, MarginLeft + mWidth - mPenWidth, ZeroPoint)
 							'cairo_stroke(cr)
-						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 							'mcairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
 							'mcairo_move_to(cr, MarginLeft + mWidth - mPenWidth, ZeroPoint)
 							mcairo_line_to(cr, MarginLeft + mWidth - mPenWidth, ZeroPoint)
@@ -2832,7 +2832,7 @@ Namespace My.Sys.Forms
 							End With
 							#ifdef __USE_GTK__
 								BrushColor = RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								BrushColor = RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity)
 							#elseif defined(__USE_WINAPI__)
 								GdipCreateLineBrushFromRectWithAngleI Cast(GpRect Ptr, @RectL_), RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity), RGBtoARGB(m_Serie(i).SerieColor, 10), 90, 0, WrapModeTileFlipXY, Cast(GpLineGradient Ptr Ptr, @hBrush)
@@ -2840,7 +2840,7 @@ Namespace My.Sys.Forms
 						Else
 							#ifdef __USE_GTK__
 								BrushColor = RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								BrushColor = RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity)
 							#elseif defined(__USE_WINAPI__)
 								GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity), Cast(GpSolidFill Ptr Ptr, @hBrush)
@@ -2853,7 +2853,7 @@ Namespace My.Sys.Forms
 							cairo_fill(cr)
 							
 							cairo_new_path(cr)
-						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 							mcairo_close_path(cr)
 							mcairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), m_FillOpacity / 100)
 							mcairo_fill(cr)
@@ -2874,7 +2874,7 @@ Namespace My.Sys.Forms
 					Var PenColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
 					cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
 					cairo_set_line_width(cr, LW)
-				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					Var PenColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
 					mcairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
 					mcairo_set_line_width(cr, LW)
@@ -2902,7 +2902,7 @@ Namespace My.Sys.Forms
 							cairo_curve_to cr, m_Serie(i).PT(l - 1).x, m_Serie(i).PT(l - 1).y, (m_Serie(i).PT(l).x + m_Serie(i).PT(l - 1).x) / 2, Y, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
 						Next
 						cairo_stroke(cr)
-					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 						mcairo_move_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
 						For l As Integer = 1 To UBound(m_Serie(i).PT)
 							Dim As Single Y
@@ -2932,7 +2932,7 @@ Namespace My.Sys.Forms
 							cairo_line_to cr, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
 						Next
 						cairo_stroke(cr)
-					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 						mcairo_move_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
 						For l As Integer = 1 To UBound(m_Serie(i).PT)
 							mcairo_line_to cr, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
@@ -2985,7 +2985,7 @@ Namespace My.Sys.Forms
 								cairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
 								cairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
 								cairo_fill(cr)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
 								mcairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
 								mcairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
@@ -3027,7 +3027,7 @@ Namespace My.Sys.Forms
 								cairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
 								cairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
 								cairo_fill(cr)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
 								mcairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
 								mcairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
@@ -3074,7 +3074,7 @@ Namespace My.Sys.Forms
 						#ifdef __USE_GTK__
 							Var PenColor = RGBtoARGB(m_LinesColor, 100)
 							cairo_set_line_width(cr, mPenWidth)
-						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 							Var PenColor = RGBtoARGB(m_LinesColor, 100)
 							mcairo_set_line_width(cr, mPenWidth)
 						#elseif defined(__USE_WINAPI__)
@@ -3086,7 +3086,7 @@ Namespace My.Sys.Forms
 							cairo_move_to(cr, XX, TopHeader)
 							cairo_line_to(cr, XX, TopHeader + mHeight + 4 * nScale)
 							cairo_stroke(cr)
-						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 							mcairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
 							mcairo_move_to(cr, XX, TopHeader)
 							mcairo_line_to(cr, XX, TopHeader + mHeight + 4 * nScale)
@@ -3104,7 +3104,7 @@ Namespace My.Sys.Forms
 							cairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), 0.5)
 							cairo_arc(cr, m_Serie(i).PT(j).x - PTSZ * 2 + PTSZ * 4 / 2 - 0.5, m_Serie(i).PT(j).y - PTSZ * 2 + PTSZ * 4 / 2 - 0.5, PTSZ * 4 / 2, 0, 2 * G_PI)
 							cairo_fill(cr)
-						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 							Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 50)
 							mcairo_new_path(cr)
 							mcairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), 0.5)
@@ -3122,7 +3122,7 @@ Namespace My.Sys.Forms
 						cairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
 						cairo_arc(cr, m_Serie(i).PT(j).x - PTSZ + PTSZ * 2 / 2 - 0.5, m_Serie(i).PT(j).y - PTSZ + PTSZ * 2 / 2 - 0.5, PTSZ * 2 / 2, 0, 2 * G_PI)
 						cairo_fill(cr)
-					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 						Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
 						mcairo_new_path(cr)
 						mcairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
@@ -3141,7 +3141,7 @@ Namespace My.Sys.Forms
 						cairo_set_source_rgba(cr, GetRedD(BrushColor1), GetGreenD(BrushColor1), GetBlueD(BrushColor1), (100 - m_FillOpacity) / 100)
 						cairo_arc(cr, m_Serie(i).PT(j).x - PTSZ + PTSZ * 2 / 2 - 0.5, m_Serie(i).PT(j).y - PTSZ + PTSZ * 2 / 2 - 0.5, PTSZ * 2 / 2, 0, 2 * G_PI)
 						cairo_stroke(cr)
-					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 						Var BrushColor1 = RGBtoARGB(FBackColor, 100 - m_FillOpacity)
 						mcairo_new_path(cr)
 						mcairo_set_line_width(cr, mPenWidth)
@@ -3411,7 +3411,7 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					Var PenColor = RGBtoARGB(m_LinesColor, 100)
 					cairo_set_line_width(cr, mPenWidth)
-				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					Var PenColor = RGBtoARGB(m_LinesColor, 100)
 					mcairo_set_line_width(cr, mPenWidth)
 				#elseif defined(__USE_WINAPI__)
@@ -3431,7 +3431,7 @@ Namespace My.Sys.Forms
 							cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
 							cairo_move_to(cr, MarginLeft, YY)
 							cairo_line_to(cr, This.ClientWidth - MarginRight - mPenWidth, YY)
-						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 							mcairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
 							mcairo_move_to(cr, MarginLeft, YY)
 							mcairo_line_to(cr, This.ClientWidth - MarginRight - mPenWidth, YY)
@@ -3456,7 +3456,7 @@ Namespace My.Sys.Forms
 							cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
 							cairo_move_to(cr, XX, TopHeader)
 							cairo_line_to(cr, XX, TopHeader + mHeight + 4 * nScale)
-						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 							mcairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
 							mcairo_move_to(cr, XX, TopHeader)
 							mcairo_line_to(cr, XX, TopHeader + mHeight + 4 * nScale)
@@ -3563,7 +3563,7 @@ Namespace My.Sys.Forms
 							#ifdef __USE_GTK__
 								PenColor = RGBtoARGB(lColor, 100)
 								cairo_set_line_width(cr, LW * 2)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								PenColor = RGBtoARGB(lColor, 100)
 								mcairo_set_line_width(cr, LW * 2)
 							#elseif defined(__USE_WINAPI__)
@@ -3574,7 +3574,7 @@ Namespace My.Sys.Forms
 							#ifdef __USE_GTK__
 								PenColor = RGBtoARGB(lColor, 100)
 								cairo_set_line_width(cr, LW)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								PenColor = RGBtoARGB(lColor, 100)
 								mcairo_set_line_width(cr, LW)
 							#elseif defined(__USE_WINAPI__)
@@ -3586,7 +3586,7 @@ Namespace My.Sys.Forms
 						If m_FillGradient Then
 							#ifdef __USE_GTK__
 								BrushColor = RGBtoARGB(lColor, m_FillOpacity)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								BrushColor = RGBtoARGB(lColor, m_FillOpacity)
 							#elseif defined(__USE_WINAPI__)
 								GdipCreateLineBrushFromRectWithAngleI Cast(GpRect Ptr, @RectL_), RGBtoARGB(lColor, m_FillOpacity), RGBtoARGB(clWhite, IIf(m_FillOpacity < 100, 0, 100)), 90, 0, WrapModeTile, Cast(GpLineGradient Ptr Ptr, @hBrush)
@@ -3594,7 +3594,7 @@ Namespace My.Sys.Forms
 						Else
 							#ifdef __USE_GTK__
 								BrushColor = RGBtoARGB(lColor, m_FillOpacity)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								BrushColor = RGBtoARGB(lColor, m_FillOpacity)
 							#elseif defined(__USE_WINAPI__)
 								GdipCreateSolidFill RGBtoARGB(lColor, m_FillOpacity), Cast(GpSolidFill Ptr Ptr, @hBrush)
@@ -3609,7 +3609,7 @@ Namespace My.Sys.Forms
 								cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
 								cairo_rectangle(cr, .Left, .Top, .Right, .Bottom)
 								cairo_stroke(cr)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								mcairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), m_FillOpacity / 100)
 								mcairo_rectangle(cr, .Left, .Top, .Right, .Bottom)
 								mcairo_fill(cr)
@@ -3668,7 +3668,7 @@ Namespace My.Sys.Forms
 									cairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
 									cairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
 									cairo_fill(cr)
-								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 									Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
 									mcairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
 									mcairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
@@ -3710,7 +3710,7 @@ Namespace My.Sys.Forms
 									cairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
 									cairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
 									cairo_fill(cr)
-								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 									Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
 									mcairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
 									mcairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
@@ -3781,7 +3781,7 @@ Namespace My.Sys.Forms
 					cairo_move_to(cr, MarginLeft, ZeroPoint)
 					cairo_line_to(cr, This.ClientWidth - MarginRight - mPenWidth, ZeroPoint)
 					cairo_stroke(cr)
-				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					Var PenColor1 = RGBtoARGB(m_LinesColor, 100)
 					mcairo_set_line_width(cr, LW)
 					mcairo_set_source_rgb(cr, GetRedD(PenColor1), GetGreenD(PenColor1), GetBlueD(PenColor1))
@@ -4042,7 +4042,7 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK__
 					Var PenColor = RGBtoARGB(m_LinesColor, 100)
 					cairo_set_line_width(cr, mPenWidth)
-				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					Var PenColor = RGBtoARGB(m_LinesColor, 100)
 					mcairo_set_line_width(cr, mPenWidth)
 				#elseif defined(__USE_WINAPI__)
@@ -4072,7 +4072,7 @@ Namespace My.Sys.Forms
 							cairo_move_to(cr, XX, TopHeader)
 							cairo_line_to(cr, XX, TopHeader + mHeight - mPenWidth)
 							cairo_stroke(cr)
-						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 							mcairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
 							mcairo_move_to(cr, XX, TopHeader)
 							mcairo_line_to(cr, XX, TopHeader + mHeight - mPenWidth)
@@ -4105,7 +4105,7 @@ Namespace My.Sys.Forms
 							cairo_move_to(cr, MarginLeft, YY)
 							cairo_line_to(cr, MarginLeft + mWidth, YY)
 							cairo_stroke(cr)
-						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 							mcairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
 							mcairo_move_to(cr, MarginLeft, YY)
 							mcairo_line_to(cr, MarginLeft + mWidth, YY)
@@ -4218,7 +4218,7 @@ Namespace My.Sys.Forms
 							#ifdef __USE_GTK__
 								PenColor = RGBtoARGB(lColor, 100)
 								cairo_set_line_width(cr, LW * 2)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								PenColor = RGBtoARGB(lColor, 100)
 								mcairo_set_line_width(cr, LW * 2)
 							#elseif defined(__USE_WINAPI__)
@@ -4229,7 +4229,7 @@ Namespace My.Sys.Forms
 							#ifdef __USE_GTK__
 								PenColor = RGBtoARGB(lColor, 100)
 								cairo_set_line_width(cr, LW)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								PenColor = RGBtoARGB(lColor, 100)
 								mcairo_set_line_width(cr, LW)
 							#elseif defined(__USE_WINAPI__)
@@ -4241,7 +4241,7 @@ Namespace My.Sys.Forms
 						If m_FillGradient Then
 							#ifdef __USE_GTK__
 								BrushColor = RGBtoARGB(lColor, m_FillOpacity)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								BrushColor = RGBtoARGB(lColor, m_FillOpacity)
 							#elseif defined(__USE_WINAPI__)
 								GdipCreateLineBrushFromRectWithAngleI Cast(GpRect Ptr, @RectL_), RGBtoARGB(lColor, m_FillOpacity), RGBtoARGB(clWhite, IIf(m_FillOpacity < 100, 0, 100)), 180, 0, WrapModeTile, Cast(GpLineGradient Ptr Ptr, hBrush)
@@ -4249,7 +4249,7 @@ Namespace My.Sys.Forms
 						Else
 							#ifdef __USE_GTK__
 								BrushColor = RGBtoARGB(lColor, m_FillOpacity)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								BrushColor = RGBtoARGB(lColor, m_FillOpacity)
 							#elseif defined(__USE_WINAPI__)
 								GdipCreateSolidFill RGBtoARGB(lColor, m_FillOpacity), Cast(GpSolidFill Ptr Ptr, @hBrush)
@@ -4264,7 +4264,7 @@ Namespace My.Sys.Forms
 								cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
 								cairo_rectangle(cr, .Left, .Top, .Right, .Bottom)
 								cairo_stroke(cr)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								mcairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), m_FillOpacity / 100)
 								mcairo_rectangle(cr, .Left, .Top, .Right, .Bottom)
 								mcairo_fill(cr)
@@ -4322,7 +4322,7 @@ Namespace My.Sys.Forms
 									cairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
 									cairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
 									cairo_fill(cr)
-								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 									Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
 									mcairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
 									mcairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
@@ -4364,7 +4364,7 @@ Namespace My.Sys.Forms
 									cairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
 									cairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
 									cairo_fill(cr)
-								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 									Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
 									mcairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
 									mcairo_rectangle(cr, .Left, .Top + m_Serie(i).TextHeight / 4, m_Serie(i).TextHeight / 2, m_Serie(i).TextHeight / 2)
@@ -4435,7 +4435,7 @@ Namespace My.Sys.Forms
 					cairo_move_to(cr, ZeroPoint, TopHeader)
 					cairo_line_to(cr, ZeroPoint, TopHeader + mHeight - mPenWidth)
 					cairo_stroke(cr)
-				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					mcairo_set_line_width(cr, LW)
 					Var PenColor1 = RGBtoARGB(m_LinesColor, 100)
 					mcairo_set_source_rgb(cr, GetRedD(PenColor1), GetGreenD(PenColor1), GetBlueD(PenColor1))
@@ -4545,7 +4545,7 @@ Namespace My.Sys.Forms
 								Wend
 								PT.X = pData[1].point.X
 								PT.Y = pData[1].point.Y
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 								Dim As Double LastX, LastY
 								mcairo_path_last_point m_Serie(mHotSerie).hPath(mHotPie), LastX, LastY
 								PT.X = LastX
@@ -4606,7 +4606,7 @@ Namespace My.Sys.Forms
 							Wend
 							PT.X = pData[1].point.X
 							PT.Y = pData[1].point.Y
-						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 							Dim As Double LastX, LastY
 							mcairo_path_last_point m_Item(HotItem).hPath, LastX, LastY
 							PT.X = LastX
@@ -4730,7 +4730,7 @@ Namespace My.Sys.Forms
 									cairo_set_source_rgba(cr, GetRedD(m_Serie(i).SerieColor), GetGreenD(m_Serie(i).SerieColor), GetBlueD(m_Serie(i).SerieColor), 1)
 									cairo_rectangle(cr, .X, .Y + SZ.Height / 4, SZ.Height / 2, SZ.Height / 2)
 									cairo_fill(cr)
-								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 									mcairo_set_source_rgba(cr, GetRedD(m_Serie(i).SerieColor), GetGreenD(m_Serie(i).SerieColor), GetBlueD(m_Serie(i).SerieColor), 1)
 									mcairo_rectangle(cr, .X, .Y + SZ.Height / 4, SZ.Height / 2, SZ.Height / 2)
 									mcairo_fill(cr)
@@ -4843,7 +4843,7 @@ Namespace My.Sys.Forms
 			Dim As Long PenColor = lBorderColor
 			cairo_set_line_width(cr, 1 * nScale)
 			cairo_new_path(cr)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Dim As Long BrushColor = BackColor
 			Dim As Long PenColor = lBorderColor
 			mcairo_set_line_width(cr, 1 * nScale)
@@ -4864,7 +4864,7 @@ Namespace My.Sys.Forms
 						cairo_rectangle(cr, .X, .Y, .Width, .Height)
 						cairo_stroke(cr)
 					End If
-				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					mcairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), BackColorAlpha / 100)
 					mcairo_rectangle(cr, .X, .Y, .Width, .Height)
 					mcairo_fill(cr)
@@ -4907,7 +4907,7 @@ Namespace My.Sys.Forms
 						cairo_stroke(cr)
 					End If
 				End With
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				'Like GTK: the rounded rectangle is filled, then its border is stroked (fill and stroke begin a new path)
 				With Rect_
 					Var x = .X, y = .Y, nWidth = .Width, nHeight = .Height
@@ -4966,7 +4966,7 @@ Namespace My.Sys.Forms
 			
 			lShiftColor = RGB(clrFore(0), clrFore(1), clrFore(2))
 			lShiftColor = (Cast(ULong, 100 / 100 * 255) Shl 24) + (Cast(ULong, GetRed(lShiftColor)) Shl 16) + (Cast(ULong, GetGreen(lShiftColor)) Shl 8) + (Cast(ULong, GetBlue(lShiftColor)))
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Dim clrFore(3)         As ULong = {GetRed(clrFirst), GetGreen(clrFirst), GetBlue(clrFirst)}
 			Dim clrBack(3)         As ULong = {GetRed(clrSecond), GetGreen(clrSecond), GetBlue(clrSecond)}
 			
@@ -5064,7 +5064,7 @@ Namespace My.Sys.Forms
 		
 		Private Sub Chart.WndProc(ByRef Message As Message)
 		End Sub
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'The designed size, before the anchors resize the chart to the screen: the fonts follow the size in CM_PAINT
 		Private Sub Chart.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			With QChart(@Sender)
@@ -5082,7 +5082,7 @@ Namespace My.Sys.Forms
 	Private Sub Chart.ProcessMessage(ByRef Message As Message)
 		Static DownButton As Integer = -1
 		Dim As Integer HitResult
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Select Case Message.Msg
 			Case CM_PAINT
 				'The first paint: like HandleIsAllocated (Windows) / OnDraw (GTK)
@@ -5294,7 +5294,7 @@ Namespace My.Sys.Forms
 				.RegisterClass "Chart", ""
 				.ChildProc    = @WndProc
 				.OnHandleIsAllocated = @HandleIsAllocated
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				'The hot item under the mouse / touch and OnItemClick (CM_MOUSE*)
 				FMouseEvents = True
 				.OnHandleIsAllocated = @HandleIsAllocated
@@ -5317,7 +5317,7 @@ Namespace My.Sys.Forms
 		For i = 0 To ItemsCount - 1
 			#ifdef __USE_GTK__
 				If m_Item(i).hPath <> 0 Then cairo_path_destroy(m_Item(i).hPath)
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				If m_Item(i).hPath <> 0 Then mcairo_path_destroy(m_Item(i).hPath)
 			#elseif defined(__USE_WINAPI__)
 				If m_Item(i).hPath <> 0 Then GdipDeletePath m_Item(i).hPath
@@ -5327,7 +5327,7 @@ Namespace My.Sys.Forms
 			For j = 0 To UBound(m_Serie(i).hPath)
 				#ifdef __USE_GTK__
 					If m_Serie(i).hPath(j) <> 0 Then cairo_path_destroy(m_Serie(i).hPath(j))
-				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					If m_Serie(i).hPath(j) <> 0 Then mcairo_path_destroy(m_Serie(i).hPath(j))
 				#elseif defined(__USE_WINAPI__)
 					If m_Serie(i).hPath(j) <> 0 Then GdipDeletePath m_Serie(i).hPath(j)

@@ -10,7 +10,7 @@
 
 #include once "Dialogs.bi"
 #include once "Printer.bi"
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	'Web and Android: the form of Page Setup (PageSetupDialog.Execute)
 	#include once "Form.bi"
 	#include once "Label.bi"

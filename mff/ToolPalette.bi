@@ -134,7 +134,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			Declare Virtual Sub SetDark(Value As Boolean)
 		#endif
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'Web, Android: a row of buttons: the groups (they open and close) and the buttons of the open groups
 			FItemGroups(Any) As ToolGroup Ptr
 			FItemButtons(Any) As ToolButton Ptr

@@ -6,7 +6,7 @@
 
 #include once "Object.bi"
 #include once "Dictionary.bi"
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	'Web and Android: the program has no sockets to listen to
 #elseif defined(__FB_WIN32__)
 	'Windows (WinAPI and GTK): Winsock

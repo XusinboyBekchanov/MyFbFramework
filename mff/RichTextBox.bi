@@ -38,7 +38,7 @@ Namespace My.Sys.Forms
 		FSelIntVal          As Integer
 		FSelBoolVal         As Integer
 		m_bMenuOpen         As Boolean
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Declare Function RtfToText(ByRef Value As WString, Html As Boolean) As UString
 		#endif
 		#ifdef __USE_WASM__

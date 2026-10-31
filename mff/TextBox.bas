@@ -1376,7 +1376,7 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			SendMessage(FHandle, EM_REPLACESEL, 0, CInt(FSelText))
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'The selection is replaced by Value, the place after it is selected (Android: before, nothing was added, e.g.
 			'to the Output of the IDE)
 			Dim As Integer LStart, LEnd

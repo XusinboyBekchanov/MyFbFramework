@@ -414,7 +414,7 @@ Namespace My.Sys.Forms
 			If Message.Sender Then
 			End If
 		End Sub
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Sub Animate.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QAnimate(Sender.Child)
@@ -492,7 +492,7 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'Shows a GIF/picture with <img> and other files with <video> (in a WebView on Android)
 		Private Sub AnimateShow(Id As Any Ptr, ByRef FileName As WString, AutoPlay As Boolean)
 			Dim As String sHTML, sFile = ToUtf8(FileName)
@@ -532,7 +532,7 @@ Namespace My.Sys.Forms
 				'					gtk_image_set_from_pixbuf(gtk_image(widget), gdk_pixbuf_animation_get_static_image(pixbuf_animation))
 				'				End If
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If OnOpen Then OnOpen(*Designer, This)
 			FOpenMode = 1
 			If FHandle AndAlso FFile Then AnimateShow(FHandle, *FFile, FAutoPlay)
@@ -716,7 +716,7 @@ Namespace My.Sys.Forms
 	Private Function Animate.IsPlaying As Boolean
 		#ifdef __USE_GTK__
 			Return FPlay
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Return FPlay
 		#elseif defined(__USE_WINAPI__)
 			If FOpenMode= 3 Then
@@ -741,7 +741,7 @@ Namespace My.Sys.Forms
 				FPlay = True
 				Timer_cb(@This)
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle AndAlso FFile Then AnimateShow(FHandle, *FFile, True)
 			If OnStart Then OnStart(*Designer, This)
 			FPlay = True
@@ -772,7 +772,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If OnStop Then OnStop(*Designer, This)
 			FPlay = False
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If OnStop Then OnStop(*Designer, This)
 			If FHandle AndAlso FFile Then AnimateShow(FHandle, *FFile, False)
 			FPlay = False
@@ -826,7 +826,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If OnPause Then OnPause(*Designer, This)
 			FPlay = False
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If OnPause Then OnPause(*Designer, This)
 			If FHandle AndAlso FFile Then AnimateShow(FHandle, *FFile, False)
 			FPlay = False
@@ -851,7 +851,7 @@ Namespace My.Sys.Forms
 			If OnClose Then OnClose(*Designer, This)
 			FOpenMode= 0
 			FPlay = False
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If OnClose Then OnClose(*Designer, This)
 			If FHandle Then AnimateShow(FHandle, "", False)
 			FOpenMode = 0

@@ -87,7 +87,7 @@ Namespace My.Sys.Forms
 		FMinValue = Value
 		#ifdef __USE_GTK__
 			gtk_spin_button_set_range(GTK_SPIN_BUTTON(widget), FMinValue, FMaxValue)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then ..SetRange(FHandle, FMinValue, FMaxValue)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then
@@ -108,7 +108,7 @@ Namespace My.Sys.Forms
 		FMaxValue = Value
 		#ifdef __USE_GTK__
 			gtk_spin_button_set_range(GTK_SPIN_BUTTON(widget), FMinValue, FMaxValue)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then ..SetRange(FHandle, FMinValue, FMaxValue)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then 
@@ -124,7 +124,7 @@ Namespace My.Sys.Forms
 	Private Property UpDown.Position As Integer
 		#ifdef __USE_GTK__
 			FPosition = gtk_spin_button_get_value(GTK_SPIN_BUTTON(widget))
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then FPosition = GetPosition(FHandle)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then
@@ -139,7 +139,7 @@ Namespace My.Sys.Forms
 		FPosition = Value
 		#ifdef __USE_GTK__
 			gtk_spin_button_set_value(GTK_SPIN_BUTTON(widget), FPosition)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then SetPosition(FHandle, FPosition)
 			If FAssociate Then FAssociate->Text = Str(FPosition)
 		#elseif defined(__USE_WINAPI__)
@@ -311,7 +311,7 @@ Namespace My.Sys.Forms
 		
 		Private Sub UpDown.WndProc(ByRef Message As Message)
 		End Sub
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Sub UpDown.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QUpDown(Sender.Child)
@@ -330,10 +330,10 @@ Namespace My.Sys.Forms
 	#endif
 
 	Private Sub UpDown.ProcessMessage(ByRef Message As Message)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Message.Msg = CM_CHANGE Then
 				Dim As Integer OldPosition = FPosition
-				#ifdef __USE_JNI__
+				#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					FPosition = Message.wParam
 				#else
 					FPosition = GetPosition(FHandle)

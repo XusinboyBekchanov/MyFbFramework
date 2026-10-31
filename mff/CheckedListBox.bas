@@ -51,7 +51,7 @@ Namespace My.Sys.Forms
 			gtk_list_store_set(ListStore, @iter, 1, ToUtf8(FItem), -1)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(LB_ADDSTRING, 0, CInt(@FItem))
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then InsertSelectItem(FHandle, FNewIndex, ToUtf8(FItem))
 		#endif
 	End Sub
@@ -69,7 +69,7 @@ Namespace My.Sys.Forms
 			gtk_list_store_set (ListStore, @iter, 1, ToUtf8(FItem), -1)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform(LB_INSERTSTRING, FIndex, CInt(@FItem))
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then InsertSelectItem(FHandle, FIndex, ToUtf8(FItem))
 		#endif
 	End Sub
@@ -83,7 +83,7 @@ Namespace My.Sys.Forms
 			Return bChecked
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Return Perform(LB_GETITEMDATA, Index, 0) Else Return False
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then Return GetItemChecked(FHandle, Index) Else Return False
 		#endif
 	End Property
@@ -103,7 +103,7 @@ Namespace My.Sys.Forms
 					Next
 				End If
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then
 				SetItemChecked(FHandle, Index, Value)
 				If Value AndAlso FRadioCheck Then
@@ -324,7 +324,7 @@ Namespace My.Sys.Forms
 			End Select
 			Base.ProcessMessage(Message)
 		End Sub
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Sub CheckedListBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QCheckedListBox(Sender.Child)

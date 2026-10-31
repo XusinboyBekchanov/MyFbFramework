@@ -396,7 +396,7 @@ Namespace My.Sys.Forms
 					SendMessage(Handle, SB_SIMPLE, FSimplePanel, 0)
 					SimpleText = *FSimpleText
 				End If
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				UpdatePanels
 			#endif
 		End If
@@ -413,7 +413,7 @@ Namespace My.Sys.Forms
 			Text = *FSimpleText
 			#ifdef __USE_WINAPI__
 				If FHandle Then SendMessage(Handle, SB_SETTEXT, 255, CInt(@Value))
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				UpdatePanels
 			#endif
 		End If
@@ -510,7 +510,7 @@ Namespace My.Sys.Forms
 			End Select
 			Base.ProcessMessage(Message)
 		End Sub
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Sub StatusBar.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then QStatusBar(Sender.Child).UpdatePanels
 		End Sub

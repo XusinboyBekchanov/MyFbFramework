@@ -121,7 +121,7 @@ Namespace My.Sys.Forms
 		'If FDecimalPlaces > 1 Then UpDownControl.Increment = FScaleFactor / Val(Mid("1000000", 1, FDecimalPlaces))
 	End Property
 	Private Property NumericUpDown.Text ByRef As WString
-		#if defined(__USE_GTK__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_GTK__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			FText = IIf(FDecimalPlaces > 0, WStr(UpDownControl.Position / FScaleFactor), UpDownControl.Text)
 		#elseif defined(__USE_WINAPI__)
 			FText = IIf(FDecimalPlaces > 0,  WStr(Val(Base.Text) / FScaleFactor), Base.Text)
@@ -246,7 +246,7 @@ Namespace My.Sys.Forms
 		
 		Private Sub NumericUpDown.WndProc(ByRef Message As Message)
 		End Sub
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'The edit part and the arrows are one element (input type="number" / NumberPicker): the inner UpDown fills the control
 		Private Sub NumericUpDown.UpDownControl_Changing(ByRef Designer As My.Sys.Object, ByRef Sender As UpDown, Value As Integer, Direction As Integer)
 			Dim As NumericUpDown Ptr nud = Cast(NumericUpDown Ptr, @Designer)
@@ -343,7 +343,7 @@ Namespace My.Sys.Forms
 			#endif
 			WLet(FClassName, "NumericUpDown")
 			WLet(FClassAncestor, "Edit")
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				#ifdef __USE_WASM__
 					WLet(FClassAncestor, "div")
 				#else

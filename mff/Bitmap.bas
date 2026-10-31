@@ -109,7 +109,7 @@ Namespace My.Sys.Drawing
 			If Handle = 0 Then Return False
 			FWidth  = gdk_pixbuf_get_width(Handle)
 			FHeight = gdk_pixbuf_get_height(Handle)
-		#elseif defined(__USE_WASM__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 			Handle = File
 		#elseif defined(__USE_JNI__)
 			WLet(FResName, File)
@@ -393,6 +393,8 @@ Namespace My.Sys.Drawing
 				If gerr Then Print gerr->code, *gerr->message
 			#elseif defined(__USE_WASM__)
 				Handle = "Resources/" & ResName & ".png"
+			#elseif defined(__USE_APPLE__)
+				Handle = FindResourceFile(ToUtf8(ResName))
 			#elseif defined(__USE_WINAPI__)
 				Dim As Any Ptr ModuleHandle_ = ModuleHandle: If ModuleHandle = 0 Then ModuleHandle_ = GetModuleHandle(NULL)
 				Dim As BITMAP BMP
@@ -533,7 +535,7 @@ Namespace My.Sys.Drawing
 			If Handle Then DeleteObject Handle
 			Handle = 0
 			
-		#elseif defined(__USE_WASM__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 			Handle = ""
 		#elseif defined(__USE_JNI__)
 			If Handle AndAlso env Then (*env)->DeleteGlobalRef(env, Handle)
@@ -556,7 +558,7 @@ Namespace My.Sys.Drawing
 				Else
 					LoadFromResourceName(Value)
 				End If
-			#elseif defined(__USE_WASM__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 				If StartsWith(Value, "/") OrElse InStr(Value, ".") > 0 Then
 					LoadFromFile(Value)
 				Else

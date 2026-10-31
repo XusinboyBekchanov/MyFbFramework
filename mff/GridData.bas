@@ -58,7 +58,7 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 		FExpanded = False
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then Cast(GridData Ptr, Parent)->UpdateRows
 		#endif
 	End Sub
@@ -105,7 +105,7 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 		FExpanded = True
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then Cast(GridData Ptr, Parent)->UpdateRows
 		#endif
 	End Sub
@@ -216,7 +216,7 @@ Namespace My.Sys.Forms
 				'				End If
 			#endif
 		End If
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent AndAlso Parent->Handle Then
 				Cast(GridData Ptr, Parent)->UpdateRow(@This)
 			End If
@@ -679,7 +679,7 @@ Namespace My.Sys.Forms
 				End If
 			#endif
 		End With
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then Cast(GridData Ptr, Parent)->UpdateRows
 		#endif
 		Return PItem
@@ -753,7 +753,7 @@ Namespace My.Sys.Forms
 			End If
 		#endif
 		FItems.Remove Index
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then Cast(GridData Ptr, Parent)->UpdateRows
 		#endif
 	End Sub
@@ -814,7 +814,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then SendMessage Parent->Handle, LVM_DELETEALLITEMS, 0, 0
 		#endif
 		
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then Cast(GridData Ptr, Parent)->UpdateRows
 		#endif
 	End Sub
@@ -956,7 +956,7 @@ Namespace My.Sys.Forms
 					ListView_InsertColumn(Parent->Handle, PColumn->Index, @lvc)
 					GridDataUpdateHeaderLayout(Parent->Handle)
 				End If
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				Cast(GridData Ptr, Parent)->UpdateColumns
 			#endif
 		End If
@@ -1158,7 +1158,7 @@ Namespace My.Sys.Forms
 			If Handle Then
 				Return ListView_GetNextItem(Handle, -1, LVNI_SELECTED)
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			For i As Integer = 0 To UBound(FRowItems)
 				If FRowItems(i) = FSelItem Then Return i
 			Next
@@ -1179,7 +1179,7 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_WINAPI__)
 			ListView_SetItemState(Handle, Value, LVIS_FOCUSED Or LVIS_SELECTED, LVNI_SELECTED Or LVNI_FOCUSED)
 			ListView_EnsureVisible(Handle, Value, True)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Value >= 0 AndAlso Value <= UBound(FRowItems) Then FSelItem = FRowItems(Value) Else FSelItem = 0
 			If Handle Then TableSetIndex(Handle, IIf(FSelItem, Value, -1))
 		#endif
@@ -1941,7 +1941,7 @@ Namespace My.Sys.Forms
 			DeleteDC(memDC)
 		End Sub
 	#endif
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Function GridData.RowCells(Item As GridDataItem Ptr) As String
 			Dim As WString * 3 Sign = IIf(Item->Items.Count = 0, "", IIf(Item->IsExpanded, WChr(&H25BC) & " ", WChr(&H25BA) & " "))
 			Dim As String sRow = Space(Item->Indent * 4) & ToUtf8(Sign & Item->Text(0))
@@ -2001,10 +2001,10 @@ Namespace My.Sys.Forms
 	#endif
 
 	Private Sub GridData.ProcessMessage(ByRef Message As Message)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Message.Msg = CM_CHANGE Then
 				Dim As Integer RowIndex
-				#ifdef __USE_JNI__
+				#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					RowIndex = Message.wParam
 				#else
 					RowIndex = TableGetIndex(FHandle)

@@ -282,7 +282,7 @@ Namespace My.Sys.Forms
 	#else
 		Private Sub Ruler.ProcessMessage(ByRef Message As Message)
 			'Web, Android: the ruler is drawn on the canvas of the control before OnPaint
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				If Message.Msg = CM_PAINT Then DrawRuler(Canvas)
 			#endif
 			Base.ProcessMessage(Message)

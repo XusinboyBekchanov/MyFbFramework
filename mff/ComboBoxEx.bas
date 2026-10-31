@@ -17,6 +17,10 @@ Namespace My.Sys.Forms
 			If Imgs <> 0 AndAlso Item->ImageIndex >= 0 AndAlso Item->ImageIndex < Imgs->Items.Count Then URLs = FindResourceFile(Imgs->Items.Item(Item->ImageIndex)->Text)
 			SetSelectItemImage(Item->Parent->Handle, ItemIndex, URLs, Item->Indent)
 		End Sub
+	#elseif defined(__USE_APPLE__)
+		'The items of the pop-up button of the host have only their text
+		Private Sub ComboBoxItemShowImage(Item As ComboBoxItem Ptr, ByVal ItemIndex As Integer)
+		End Sub
 	#elseif defined(__USE_JNI__)
 		'Android: the text of the row of the item: the indent, Chr(1) & the picture file & Chr(1) (a picture in the text of
 		'the row of mffActivity) and the text
@@ -107,7 +111,7 @@ Namespace My.Sys.Forms
 					cbei.iImage = FImageIndex
 					SendMessage Parent->Handle, CBEM_SETITEM, 0, CInt(@cbei)
 				End If
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				ComboBoxItemShowImage(@This, Index)
 			#endif
 		End If
@@ -297,7 +301,7 @@ Namespace My.Sys.Forms
 				gtk_list_store_remove(Cast(ComboBoxEx Ptr, Parent)->ListStore, @This.Item(Index)->TreeIter)
 			#elseif defined(__USE_WINAPI__)
 				SendMessage Parent->Handle, CBEM_DELETEITEM, Index, 0
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				If Parent->Handle Then RemoveSelectItem(Parent->Handle, Index)
 			#endif
 		End If
@@ -332,7 +336,7 @@ Namespace My.Sys.Forms
 			If Parent Then gtk_list_store_clear(Cast(ComboBoxEx Ptr, Parent)->ListStore)
 		#elseif defined(__USE_WINAPI__)
 			If Parent Then SendMessage Parent->Handle, CB_RESETCONTENT, 0, 0
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent AndAlso Parent->Handle Then ClearSelectItems(Parent->Handle)
 		#endif
 		For i As Integer = Count -1 To 0 Step -1
@@ -480,7 +484,7 @@ Namespace My.Sys.Forms
 '				#else
 '					Base.Text
 '				#endif
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				Var iItem = This.Items.Item(This.ItemIndex)
 				If iItem Then WLet(FText, iItem->Text)
 			#endif
@@ -504,7 +508,7 @@ Namespace My.Sys.Forms
 			If Index >= 0 Then ItemIndex = Index
 		#elseif defined(__USE_GTK__)
 			If widget Then gtk_combo_box_set_active (GTK_COMBO_BOX(widget), This.IndexOf(Value))
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then SetSelectedIndex(FHandle, This.IndexOf(Value))
 		#endif
 	End Property
@@ -596,7 +600,7 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		End Sub
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Sub ComboBoxEx.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QComboBoxEx(Sender.Child)
@@ -901,7 +905,7 @@ Namespace My.Sys.Forms
 				WLet(FClassAncestor, "android/widget/Spinner")
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				.Height      = 24
 			#else
 				.Height      = 121

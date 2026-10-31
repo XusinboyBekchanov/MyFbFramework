@@ -70,7 +70,7 @@ Namespace My.Sys.Forms
 				Else
 					TimersList.Remove TimersList.IndexOf(ID)
 				End If
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				If FEnabled Then
 					StartTimer(@This, FInterval)
 				Else
@@ -104,7 +104,7 @@ Namespace My.Sys.Forms
 			TimersList.Remove TimersList.IndexOf(ID)
 			#ifdef __USE_WINAPI__
 				If ID Then KillTimer NULL, ID
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				StopTimer(@This)
 			#elseif defined(__USE_APPLE__)
 				mffTimerStop(@This)
@@ -113,7 +113,7 @@ Namespace My.Sys.Forms
 			If FInterval > 0 Then
 				#ifdef __USE_GTK__
 					ID = g_timeout_add(Interval, Cast(GSourceFunc, @TimerProc), Cast(gpointer, @This))
-				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					StartTimer(@This, FInterval)
 				#elseif defined(__USE_APPLE__)
 					mffTimerStart(@This, FInterval)
@@ -140,7 +140,7 @@ Namespace My.Sys.Forms
 	
 	Private Destructor TimerComponent
 		Enabled = False
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			StopTimer(@This)
 		#elseif defined(__USE_APPLE__)
 			mffTimerStop(@This)

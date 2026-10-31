@@ -216,7 +216,7 @@ End Property
 	End Function
 #endif
 
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	'The file dialog of the Web (the virtual file system, a file of the device can be uploaded into it) or Android side.
 	'Mode: 0 - open, 1 - open several files, 2 - save, 3 - folder. Files gets the chosen paths
 	Private Function ExecuteFileDialog(ByVal Mode As Long, ByRef Caption As WString, ByRef InitialDir As WString, ByRef FileName As WString, ByRef Filter As WString, ByVal FilterIndex As Integer, ByRef Files As WStringList) As Boolean
@@ -303,7 +303,7 @@ Private Function OpenFileDialog.Execute As Boolean
 		#else
 			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		bResult = ExecuteFileDialog(IIf(FMultiSelect, 1, 0), *FCaption, *FInitialDir, *FFileName, *FFilter, FilterIndex, FileNames)
 		If bResult Then
 			This.FileName = FileNames.Item(0)
@@ -611,7 +611,7 @@ Private Function SaveFileDialog.Execute As Boolean
 		#else
 			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Dim As WStringList Files
 		bResult = ExecuteFileDialog(2, *FCaption, *FInitialDir, *FFileName, *FFilter, FilterIndex, Files)
 		If bResult Then This.FileName = Files.Item(0)
@@ -783,7 +783,7 @@ Private Function FontDialog.Execute As Boolean
 			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif
 		Return bResult
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'The result is "Name" & Chr(10) & Size & Chr(10) & Style (1 - bold, 2 - italic, 4 - underline, 8 - strikeout) & Chr(10) & Color
 		Dim As Long FontStyle = IIf(Font.Bold, 1, 0) Or IIf(Font.Italic, 2, 0) Or IIf(Font.Underline, 4, 0) Or IIf(Font.StrikeOut, 8, 0)
 		Dim As ZString Ptr pResult = ShowFontDialog(ToUtf8(Font.Name), Font.Size, FontStyle, Font.Color)
@@ -963,7 +963,7 @@ Private Function FolderBrowserDialog.Execute As Boolean
 			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif
 		Return bResult
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Dim As WStringList Files
 		If ExecuteFileDialog(3, IIf(*FTitle <> "", *FTitle, *FCaption), *FInitialDir, *FDirectory, "", 1, Files) = False Then Return False
 		This.Directory = Files.Item(0)
@@ -1142,7 +1142,7 @@ Private Function ColorDialog.Execute As Boolean
 			gtk_widget_destroy( GTK_WIDGET(widget) ): widget = 0
 		#endif
 		Return bResult
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Dim As Long Result = ShowColorDialog(ToUtf8(*_Caption), This.Color)
 		If Result < 0 Then Return False
 		This.Color = Result

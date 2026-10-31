@@ -1,7 +1,8 @@
 name: macos
 
-# The macOS version (AppKit, -d __USE_COCOA__): the C code of the examples is made by fbc on Linux, the Mac builds it
-# with the host mff/Cocoa/mffCocoa.m, runs it and saves its windows (MFF_SNAPSHOT) as the artifact "macos-snapshots".
+# macOS (AppKit, -d __USE_COCOA__) and the iOS Simulator (UIKit, -d __USE_UIKIT__): the C code of the examples is made by
+# fbc on Linux, the Mac builds it with the hosts mff/Cocoa/mffCocoa.m and mff/UIKit/mffUIKit.m, runs it and saves its
+# windows as the artifacts "macos-snapshots" and "ios-snapshots".
 # The errors of a step are shown as annotations too (their text can be read without signing in)
 on:
   workflow_dispatch:
@@ -9,7 +10,7 @@ on:
     paths:
       - 'mff/**'
       - 'examples/Hello.bas'
-      - 'examples/WebAndroid/ControlsDemo.bas'
+      - 'examples/WebAndroid/*.bas'
       - '.github/workflows/macos.yml'
 
 jobs:
@@ -31,21 +32,24 @@ jobs:
       - name: Headers of fbc
         run: git clone --depth 1 https://github.com/freebasic/fbc.git "$RUNNER_TEMP/fbc"
 
-      - name: C code for macOS
+      - name: C code for macOS and iOS
         run: |
-          mkdir -p build
-          for f in examples/Hello.bas examples/WebAndroid/ControlsDemo.bas; do
-            if ! fbc -target darwin-aarch64 -gen gcc -r -d __USE_COCOA__ -i "$RUNNER_TEMP/fbc/inc" -i . -m "$(basename "$f" .bas)" "$f" > fbc.log 2>&1; then
-              cat fbc.log
-              grep -v "warning" fbc.log | head -n 20 | sed 's/^/::error::/'
-              exit 1
-            fi
-            mv "${f%.bas}.c" build/
+          mkdir -p build/macos build/ios
+          for f in examples/Hello.bas examples/WebAndroid/ControlsDemo.bas examples/WebAndroid/AllControlsDemo.bas examples/WebAndroid/CanvasDemo.bas; do
+            for t in "macos __USE_COCOA__" "ios __USE_UIKIT__"; do
+              set -- $t
+              if ! fbc -target darwin-aarch64 -gen gcc -r -d "$2" -i "$RUNNER_TEMP/fbc/inc" -i . -m "$(basename "$f" .bas)" "$f" > fbc.log 2>&1; then
+                cat fbc.log
+                grep -v "warning" fbc.log | head -n 20 | sed 's/^/::error::/'
+                exit 1
+              fi
+              mv "${f%.bas}.c" "build/$1/"
+            done
           done
 
       - uses: actions/upload-artifact@v4
         with:
-          name: macos-c-code
+          name: apple-c-code
           path: build
           retention-days: 3
 
@@ -57,45 +61,108 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: macos-c-code
+          name: apple-c-code
           path: build
 
       - name: Build the runtime of FreeBASIC
         run: |
           git clone --depth 1 https://github.com/freebasic/fbc.git "$RUNNER_TEMP/fbc"
-          # The cycle profiler uses a section and the __start_/__stop_ symbols of ELF: the ones of Mach-O on macOS
-          perl -0pi -e 's/extern char __start_fb_profilecycledata\[\];\s*extern char __stop_fb_profilecycledata;/#if defined(__APPLE__)\nextern char __start_fb_profilecycledata[] __asm("section\$start\$__DATA\$fb_profcycle");\nextern char __stop_fb_profilecycledata __asm("section\$end\$__DATA\$fb_profcycle");\n#define FB_PROFILE_SECTION "__DATA,fb_profcycle"\n#else\nextern char __start_fb_profilecycledata[];\nextern char __stop_fb_profilecycledata;\n#define FB_PROFILE_SECTION "fb_profilecycledata"\n#endif/; s/section\("fb_profilecycledata"\)/section(FB_PROFILE_SECTION)/' "$RUNNER_TEMP/fbc/src/rtlib/profile_cycles.c"
-          grep -q 'section(FB_PROFILE_SECTION)' "$RUNNER_TEMP/fbc/src/rtlib/profile_cycles.c"
-          grep -q 'section\$start\$__DATA\$fb_profcycle' "$RUNNER_TEMP/fbc/src/rtlib/profile_cycles.c"
+          sh mff/Apple/patch-fbc-rtlib.sh "$RUNNER_TEMP/fbc"
           # TARGET_ARCH: uname -m gives arm64, which the makefile of fbc takes for the 32-bit arm
           if ! make -C "$RUNNER_TEMP/fbc" rtlib -j4 TARGET_OS=darwin TARGET_ARCH=aarch64 > make.log 2>&1; then
             cat make.log
             grep -E "error:|Error [0-9]" make.log | head -n 20 | sed 's/^/::error::/'
             exit 1
           fi
-          ls "$RUNNER_TEMP"/fbc/lib/freebasic/*
 
       - name: Build
         run: |
-          for p in Hello ControlsDemo; do
-            if ! sh mff/Cocoa/build.sh build/$p.c build/$p "$RUNNER_TEMP/fbc" > build.log 2>&1; then
+          for p in Hello ControlsDemo AllControlsDemo CanvasDemo; do
+            if ! sh mff/Cocoa/build.sh build/macos/$p.c build/macos/$p "$RUNNER_TEMP/fbc" > build.log 2>&1; then
               cat build.log
               grep -E 'error|Undefined|undefined|ld:|^ *"_' build.log | head -n 40 | sed 's/^/::error::/'
               exit 1
             fi
           done
 
-      # The windows are saved after 2 seconds; the button is clicked then and the windows (a message box too) are
-      # saved again
+      # The windows are saved after 2 seconds; the button is clicked then and the windows (a message box too) are saved
+      # again. alarm: a program which hangs does not stop the job
       - name: Run
         run: |
-          MFF_SNAPSHOT=build/Hello MFF_CLICK="Click me!" ./build/Hello > run.log 2>&1 || { cat run.log; sed 's/^/::error::/' run.log | head -n 20; exit 1; }
-          MFF_SNAPSHOT=build/ControlsDemo MFF_CLICK="Ичидаги тугма" ./build/ControlsDemo > run.log 2>&1 || { cat run.log; sed 's/^/::error::/' run.log | head -n 20; exit 1; }
-          ls build/*.png | sed 's/^/::notice::/'
+          run() {
+            if ! MFF_SNAPSHOT="build/macos/$1" MFF_CLICK="$2" perl -e 'alarm 60; exec @ARGV' "./build/macos/$1" > run.log 2>&1; then
+              cat run.log
+              echo "::error::$1 failed"
+              sed 's/^/::error::/' run.log | head -n 10
+              FAILED=1
+            fi
+          }
+          FAILED=0
+          run Hello "Click me!"
+          run ControlsDemo "Ичидаги тугма"
+          run AllControlsDemo ""
+          run CanvasDemo ""
+          ls build/macos/*.png | sed 's/^/::notice::/'
+          exit $FAILED
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: macos-snapshots
-          path: build/*.png
+          path: build/macos/*.png
+          retention-days: 3
+
+  ios:
+    needs: c-code
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: apple-c-code
+          path: build
+
+      - name: Build the runtime of FreeBASIC for the Simulator
+        run: |
+          git clone --depth 1 https://github.com/freebasic/fbc.git "$RUNNER_TEMP/fbc-ios"
+          sh mff/Apple/patch-fbc-rtlib.sh "$RUNNER_TEMP/fbc-ios"
+          if ! make -C "$RUNNER_TEMP/fbc-ios" rtlib -j4 TARGET_OS=darwin TARGET_ARCH=aarch64 CC="xcrun --sdk iphonesimulator clang -target arm64-apple-ios14.0-simulator -Dsystem=mff_no_system" > make.log 2>&1; then
+            cat make.log
+            grep -E "error:|Error [0-9]" make.log | head -n 20 | sed 's/^/::error::/'
+            exit 1
+          fi
+
+      - name: Build
+        run: |
+          for p in Hello ControlsDemo AllControlsDemo CanvasDemo; do
+            if ! sh mff/UIKit/build.sh build/ios/$p.c build/ios/$p "$RUNNER_TEMP/fbc-ios" > build.log 2>&1; then
+              cat build.log
+              grep -E 'error|Undefined|undefined|ld:|^ *"_' build.log | head -n 40 | sed 's/^/::error::/'
+              exit 1
+            fi
+          done
+
+      - name: Run in the Simulator
+        run: |
+          DEVICE=$(xcrun simctl list devices available | grep -m1 'iPhone' | grep -oE '[0-9A-F-]{36}')
+          xcrun simctl boot "$DEVICE"
+          xcrun simctl bootstatus "$DEVICE" -b > /dev/null
+          for t in "Hello|Click me!" "ControlsDemo|Ичидаги тугма" "AllControlsDemo|" "CanvasDemo|"; do
+            p="${t%%|*}"
+            xcrun simctl install "$DEVICE" "build/ios/$p.app"
+            SIMCTL_CHILD_MFF_CLICK="${t#*|}" xcrun simctl launch "$DEVICE" "com.myfbframework.$p" || echo "::error::$p did not start"
+            sleep 1
+            xcrun simctl io "$DEVICE" screenshot "build/ios/${p}_1.png"
+            sleep 4
+            xcrun simctl io "$DEVICE" screenshot "build/ios/${p}_2.png"
+            xcrun simctl terminate "$DEVICE" "com.myfbframework.$p" || echo "::error::$p ended by itself"
+          done
+          ls build/ios/*.png | sed 's/^/::notice::/'
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-snapshots
+          path: build/ios/*.png
           retention-days: 3

@@ -254,7 +254,7 @@ Namespace My.Sys.Forms
 					End If
 				End If
 				FNotAdd = False
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				'Web, Android: the picture is the file Resources/ResName.png (FindResourceFile: ToolBar, ListView, ComboBoxEx):
 				'only the key and the name are kept, IndexOf finds the key
 				Items.Add Key, ResName

@@ -4,7 +4,7 @@
 '#  Authors: Xusinboy Bekchanov                                                #
 '###############################################################################
 '#define __USE_GTK3__
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__FB_JS__) OrElse defined(__FB_ANDROID__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__) OrElse defined(__FB_JS__) OrElse defined(__FB_ANDROID__)
 	'Web and Android: no library, the program includes this file (the designer of VisualFBEditor creates the controls with it)
 #elseif defined(__USE_WINAPI__) OrElse defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK__)
 	#ifdef __FB_64BIT__

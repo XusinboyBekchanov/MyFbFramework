@@ -56,7 +56,7 @@ Namespace My.Sys.Forms
 		
 		Private Sub HotKey.WndProc(ByRef Message As Message)
 		End Sub
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Sub HotKey.HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 			If Sender.Child Then
 				With QHotKey(Sender.Child)
@@ -243,7 +243,7 @@ Namespace My.Sys.Forms
 			If (HiByte(LoWord(wHotKey)) And HOTKEYF_SHIFT) = HOTKEYF_SHIFT Then WLetEx(FText, "Shift+" & *FText)
 			If (HiByte(LoWord(wHotKey)) And HOTKEYF_ALT) = HOTKEYF_ALT Then WLetEx(FText, "Alt+" & *FText)
 			If (HiByte(LoWord(wHotKey)) And HOTKEYF_CONTROL) = HOTKEYF_CONTROL Then WLetEx(FText, "Ctrl+" & *FText)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then ReadElementValue(FHandle, FText)
 		#endif
 		If FText = 0 Then Return "" Else Return *FText
@@ -278,7 +278,7 @@ Namespace My.Sys.Forms
 			If Pos1 > 0 Then sKey = Mid(sKey, Pos1 + 1)
 			wHotKey = MAKEWORD(GetAscKeyCode(sKey), IIf(InStr(Value, "Ctrl") > 0, HOTKEYF_CONTROL, 0) Or IIf(InStr(Value, "Shift") > 0, HOTKEYF_SHIFT, 0) Or IIf(InStr(Value, "Alt") > 0, HOTKEYF_ALT, 0))
 			SendMessage(Handle, HKM_SETHOTKEY, wHotKey, 0)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If FHandle Then SetStringValue(FHandle, ToUtf8(Value))
 		#endif
 	End Property

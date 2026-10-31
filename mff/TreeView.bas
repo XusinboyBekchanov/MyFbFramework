@@ -16,7 +16,7 @@ Namespace My.Sys.Forms
 			If Parent AndAlso Parent->Handle Then gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(Parent->Handle)), @TreeIter)
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then TreeView_Select(Parent->Handle, Handle, TVGN_CARET)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then Cast(TreeView Ptr, Parent)->SelectedNode = @This
 		#endif
 	End Sub
@@ -30,7 +30,7 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then TreeView_Expand(Parent->Handle, Handle, TVE_COLLAPSE)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			FExpanded = False
 			If Parent Then Cast(TreeView Ptr, Parent)->UpdateRows
 		#endif
@@ -45,7 +45,7 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then TreeView_Expand(Parent->Handle, Handle, TVE_EXPAND)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			FExpanded = True
 			If Parent Then Cast(TreeView Ptr, Parent)->UpdateRows
 		#endif
@@ -61,7 +61,7 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If Parent AndAlso Parent->Handle Then Return TreeView_GetItemState(Parent->Handle, Handle, TVIS_EXPANDED)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Return FExpanded
 		#endif
 		Return False
@@ -124,7 +124,7 @@ Namespace My.Sys.Forms
 				tvi.cchTextMax = Len(*FText) + 1
 				TreeView_SetItem(Parent->Handle, @tvi)
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then Cast(TreeView Ptr, Parent)->UpdateRows
 		#endif
 	End Property
@@ -475,7 +475,7 @@ Namespace My.Sys.Forms
 					If .ParentNode Then tvis.hParent               = .ParentNode->Handle
 					.Handle        = TreeView_InsertItem(Parent->Handle, @tvis)
 				End If
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				If Parent Then Cast(TreeView Ptr, Parent)->UpdateRows
 			#endif
 		End With
@@ -560,7 +560,7 @@ Namespace My.Sys.Forms
 		'		#endif
 		_Delete(Item(Index))
 		FNodes.Remove Index
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Parent Then Cast(TreeView Ptr, Parent)->UpdateRows
 		#endif
 	End Sub
@@ -632,7 +632,7 @@ Namespace My.Sys.Forms
 		'			Next i
 		'		End If
 		FNodes.Clear
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'The nodes of a deleted node: the rows are updated by Remove or Clear of its collection after it is removed
 			If Parent AndAlso ClearDepth = 0 AndAlso (FParentNode = 0 OrElse Not FParentNode->IsDisposed) Then Cast(TreeView Ptr, Parent)->UpdateRows
 		#endif
@@ -766,7 +766,7 @@ Namespace My.Sys.Forms
 				Dim As HTREEITEM hti = TreeView_GetNextItem(Handle, NULL, TVGN_CARET)
 				Return Nodes.FindByHandle(hti)
 			End If
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Return FSelectedNode
 		#endif
 		Return 0
@@ -777,7 +777,7 @@ Namespace My.Sys.Forms
 			If TreeSelection Then gtk_tree_selection_select_iter(TreeSelection, @Value->TreeIter)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then TreeView_Select(Handle, Value->Handle, TVGN_CARET)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			FSelectedNode = Value
 			'The parents of the node are expanded to show it
 			Dim As TreeNode Ptr PNode = IIf(Value, Value->ParentNode, 0)
@@ -856,7 +856,7 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Sub TreeView.AddRows(PNodes As TreeNodeCollection Ptr, Level As Integer, ByRef Lines As String = "")
 			Dim As Boolean bFirst = True
 			For i As Integer = 0 To PNodes->Count - 1
@@ -912,10 +912,10 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub TreeView.ProcessMessage(ByRef Message As Message)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Message.Msg = CM_CHANGE Then
 				Dim As Integer RowIndex
-				#ifdef __USE_JNI__
+				#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					RowIndex = Message.wParam
 				#else
 					RowIndex = TableGetIndex(FHandle)

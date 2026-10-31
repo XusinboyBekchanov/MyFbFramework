@@ -147,7 +147,7 @@ Private Function PrintDialog.Execute() As Boolean
 			GlobalUnlock(dn)
 			Return True
 		End If
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'Web: the print dialog of the browser chooses the printer when the document is printed (PrintDocument.Print);
 		'Android: the print dialog of the system (PrintManager)
 		Return True

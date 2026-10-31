@@ -84,7 +84,7 @@ Namespace My.Sys.Drawing
 	Public:
 		#ifdef __USE_WINAPI__
 			Handle  As HPEN
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'The pen itself: drawing code written for the handles of Windows takes the color from it
 			Declare Property Handle As Any Ptr
 		#endif

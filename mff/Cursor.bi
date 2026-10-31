@@ -53,7 +53,7 @@ Namespace Cursors
 	#define crHSplit      "col-resize"
 	#define crVSplit      "row-resize"
 	#define crNoDrop      "no-drop"
-#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	'CSS cursor names (Web); Android has no mouse cursor
 	#define crDefault     "default"
 	#define crArrow       "default"

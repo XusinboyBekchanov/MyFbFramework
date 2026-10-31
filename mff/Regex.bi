@@ -42,7 +42,7 @@
 #define __MFF_REGEX_BI__
 
 #include once "UString.bi"
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	#include once "SysUtils.bi"
 #endif
 

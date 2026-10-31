@@ -383,7 +383,7 @@ Namespace My.Sys.Forms
 				HI.lParam     = Cast(LParam, FSections.Items[I])
 				Perform(HDM_INSERTITEM, i, CInt(@HI))
 			Next i
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'The sections are a row of buttons
 			If FHandle = 0 Then Exit Sub
 			Dim As UString Items
@@ -432,7 +432,7 @@ Namespace My.Sys.Forms
 			If Message.Sender Then
 			End If
 		End Sub
-	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Private Sub Header.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then QHeader(Sender.Child).UpdateItems
 		End Sub
@@ -464,10 +464,10 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Sub Header.ProcessMessage(ByRef Message As Message)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			If Message.Msg = CM_CHANGE Then
 				Dim As Integer Index
-				#ifdef __USE_JNI__
+				#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					Index = Message.wParam
 				#else
 					Index = GetPosition(FHandle)
@@ -711,7 +711,7 @@ Namespace My.Sys.Forms
 			End With
 			If Handle Then Perform(HDM_INSERTITEM, SectionCount - 1, CInt(@HI))
 		#endif
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			UpdateItems
 		#endif
 		Return PSection
@@ -789,7 +789,7 @@ Namespace My.Sys.Forms
 				If FHandle Then Perform(HDM_DELETEITEM, Index, 0)
 			#endif
 			FSections.Remove Index
-			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				UpdateItems
 			#endif
 		End If
@@ -885,7 +885,7 @@ Namespace My.Sys.Forms
 				.BackColor             = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
 				WLet(FClassAncestor, WC_HEADER)
-			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			WLet(FClassName, "Header")
