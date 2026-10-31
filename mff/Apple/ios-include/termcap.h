@@ -3,6 +3,7 @@
 #ifndef MFF_TERMCAP_H
 #define MFF_TERMCAP_H
 extern char PC;
+extern short ospeed;
 extern char *BC, *UP;
 int tgetent(char *bp, const char *name);
 int tgetflag(const char *id);

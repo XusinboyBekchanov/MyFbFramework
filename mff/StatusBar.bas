@@ -588,7 +588,7 @@ Namespace My.Sys.Forms
 			'#else
 			'	.Height       = 21
 			'#endif
-			#ifdef __USE_WASM__
+			#if defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 				'The default font of the browser has no size here (Font.Size = 0)
 				.Height = ScaleY(IIf(Font.Size > 0, Font.Size, 9) / 72 * 96 + 10)
 			#else

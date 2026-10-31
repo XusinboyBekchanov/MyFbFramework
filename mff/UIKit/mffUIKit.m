@@ -1104,6 +1104,7 @@ void mffCanvasImage(const char *path, double x, double y, double w, double h, in
 /* The runtime of FreeBASIC for iOS: its console needs the terminal functions, a program of iOS has no terminal.
    system() is not allowed there (Apple/patch-fbc-rtlib.sh) */
 char PC;
+short ospeed;
 char *BC, *UP;
 int tgetent(char *bp, const char *name) { (void)bp; (void)name; return -1; }
 int tgetflag(const char *id) { (void)id; return 0; }
