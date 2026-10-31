@@ -63,9 +63,14 @@ jobs:
       - name: Build the runtime of FreeBASIC
         run: |
           git clone --depth 1 https://github.com/freebasic/fbc.git "$RUNNER_TEMP/fbc"
-          if ! make -C "$RUNNER_TEMP/fbc" rtlib -j4 > make.log 2>&1; then
+          # The cycle profiler uses a section and the __start_/__stop_ symbols of ELF: the ones of Mach-O on macOS
+          perl -0pi -e 's/extern char __start_fb_profilecycledata\[\];\s*extern char __stop_fb_profilecycledata;/#if defined(__APPLE__)\nextern char __start_fb_profilecycledata[] __asm("section\$start\$__DATA\$fb_profcycle");\nextern char __stop_fb_profilecycledata __asm("section\$end\$__DATA\$fb_profcycle");\n#define FB_PROFILE_SECTION "__DATA,fb_profcycle"\n#else\nextern char __start_fb_profilecycledata[];\nextern char __stop_fb_profilecycledata;\n#define FB_PROFILE_SECTION "fb_profilecycledata"\n#endif/; s/section\("fb_profilecycledata"\)/section(FB_PROFILE_SECTION)/' "$RUNNER_TEMP/fbc/src/rtlib/profile_cycles.c"
+          grep -q 'section(FB_PROFILE_SECTION)' "$RUNNER_TEMP/fbc/src/rtlib/profile_cycles.c"
+          grep -q 'section\$start\$__DATA\$fb_profcycle' "$RUNNER_TEMP/fbc/src/rtlib/profile_cycles.c"
+          # TARGET_ARCH: uname -m gives arm64, which the makefile of fbc takes for the 32-bit arm
+          if ! make -C "$RUNNER_TEMP/fbc" rtlib -j4 TARGET_OS=darwin TARGET_ARCH=aarch64 > make.log 2>&1; then
             cat make.log
-            grep -i "error" make.log | head -n 20 | sed 's/^/::error::/'
+            grep -E "error:|Error [0-9]" make.log | head -n 20 | sed 's/^/::error::/'
             exit 1
           fi
           ls "$RUNNER_TEMP"/fbc/lib/freebasic/*
