@@ -92,6 +92,20 @@ Extern "C"
 	Declare Sub mffClipboardSetText(ByVal Text As Const ZString Ptr)
 	Declare Function mffClipboardGetText() As ZString Ptr
 	Declare Sub mffOpenURL(ByVal URL As Const ZString Ptr)
+	'The pages of a PrintDocument: pictures; the Canvas draws in a page between mffCanvasBegin and mffCanvasEnd on macOS,
+	'mffPageBeginDraw and mffPageEndDraw on iOS
+	Declare Function mffPageCreate(ByVal PageWidth As Long, ByVal PageHeight As Long) As Any Ptr
+	Declare Sub mffPageFree(ByVal Page As Any Ptr)
+	Declare Sub mffPageDraw(ByVal Page As Any Ptr, ByVal x As Long, ByVal y As Long, ByVal w As Long, ByVal h As Long)
+	Declare Sub mffPagesPrint(ByVal Pages As Any Ptr Ptr, ByVal Count As Long, ByVal DocName As Const ZString Ptr)
+	#ifdef __USE_UIKIT__
+		Declare Sub mffPageBeginDraw(ByVal Page As Any Ptr)
+		Declare Sub mffPageEndDraw(ByVal Page As Any Ptr)
+	#endif
+	'OpenFileControl: the folders and the files of Patterns ("*.bas;*.bi") in a table; a choice raises mffOnChange,
+	'mffFileViewAttr gives "data-event" (select, activate, folder), "data-dir" and "data-files" (malloc)
+	Declare Sub mffFileViewFill(ByVal Id As Any Ptr, ByVal sDir As Const ZString Ptr, ByVal Patterns As Const ZString Ptr, ByVal Multiple As Long)
+	Declare Function mffFileViewAttr(ByVal Id As Any Ptr, ByVal AttrName As Const ZString Ptr) As ZString Ptr
 	'The bar of the menu of the program: the lines of mffPopupMenu, the host calls mffOnMenu with the index of the line
 	Declare Sub mffMenuBarSet(ByVal Items As Const ZString Ptr)
 

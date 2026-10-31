@@ -282,7 +282,7 @@
 	'The names of the Web and Android versions, which the controls share: the host functions of Apple/mffApple.bi
 	Declare Sub StartTimer(Id As Any Ptr, ByVal Interval As Integer)
 	Declare Sub StopTimer(Id As Any Ptr)
-	'Not made on macOS and iOS yet: the file list of an OpenFileControl, the pages of a print preview
+	'The file list of an OpenFileControl, the pages of a print preview
 	Declare Sub FileViewFill(ByVal Id As Any Ptr, sDir As String, Patterns As String, ByVal Multiple As Long)
 	Declare Function GetAttribute(Id As Any Ptr, AttrName As String) As ZString Ptr
 	Declare Sub FreePtr(ByVal Ptr_ As Any Ptr)

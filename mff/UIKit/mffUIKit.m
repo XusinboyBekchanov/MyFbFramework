@@ -12,7 +12,8 @@
 #include <string.h>
 #include "../Apple/mffApple.h"
 
-static char kMffCtrlKey, kMffItemsKey, kMffChecksKey;
+static char kMffCtrlKey, kMffItemsKey, kMffChecksKey, kMffFileViewKey;
+static void mffFileViewChoose(id table, id owner, NSInteger row, BOOL activate);
 static BOOL mffSilent, mffRunning;
 static int mffDblClick;
 static UIWindow *mffMainWindow;
@@ -284,6 +285,8 @@ static NSString *mffCellText(NSString *s) {
 		if ([mffChecks(t) containsIndex:p.row]) [mffChecks(t) removeIndex:p.row]; else [mffChecks(t) addIndex:p.row];
 		[t reloadData];
 	}
+	/* A tap in a file list opens a folder, or chooses a file */
+	if (objc_getAssociatedObject(t, &kMffFileViewKey)) { mffFileViewChoose(t, t, p.row, [mffItems(t)[p.row] hasSuffix:@"/"] || [mffItems(t)[p.row] isEqualToString:@".."]); return; }
 	void *ctrl = mffGetCtrl(t);
 	if (ctrl && !mffSilent) mffOnChange(ctrl, (int)p.row);
 }
@@ -362,7 +365,7 @@ void *mffViewCreate(const char *kind, void *ctrl) {
 		obj = v;
 	} else if ([k isEqualToString:@"WebBrowser"]) {
 		obj = [[WKWebView alloc] initWithFrame:r configuration:[[WKWebViewConfiguration alloc] init]];
-	} else if ([k isEqualToString:@"ListControl"] || [k isEqualToString:@"CheckedListBox"] || [k isEqualToString:@"ListView"] || [k isEqualToString:@"TreeView"] || [k isEqualToString:@"TreeListView"] || [k isEqualToString:@"GridData"] || [k isEqualToString:@"Grid"]) {
+	} else if ([k isEqualToString:@"ListControl"] || [k isEqualToString:@"CheckedListBox"] || [k isEqualToString:@"ListView"] || [k isEqualToString:@"TreeView"] || [k isEqualToString:@"TreeListView"] || [k isEqualToString:@"GridData"] || [k isEqualToString:@"Grid"] || [k isEqualToString:@"OpenFileControl"]) {
 		UITableView *v = [[UITableView alloc] initWithFrame:r style:UITableViewStylePlain];
 		v.dataSource = t;
 		v.delegate = t;
@@ -919,20 +922,6 @@ int mffPopupMenu(const char *items, int x, int y) {
 	return result;
 }
 
-/* A program of iOS has no file system of the user for these dialogs: they are cancelled */
-char *mffFileDialog(int mode, const char *caption, const char *initialDir, const char *fileName, const char *filter, int filterIndex) {
-	(void)mode; (void)caption; (void)initialDir; (void)fileName; (void)filter; (void)filterIndex;
-	return NULL;
-}
-char *mffFontDialog(const char *fontName, int size, int style, int fontColor) {
-	(void)fontName; (void)size; (void)style; (void)fontColor;
-	return NULL;
-}
-int mffColorDialog(const char *caption, int colorValue) {
-	(void)caption; (void)colorValue;
-	return -1;
-}
-
 /* Regular expressions */
 static NSMutableDictionary<NSNumber *, NSRegularExpression *> *mffRegexes;
 static NSString *mffRegexLastError;
@@ -1102,7 +1091,7 @@ void mffCanvasImage(const char *path, double x, double y, double w, double h, in
 }
 
 /* The runtime of FreeBASIC for iOS: its console needs the terminal functions, a program of iOS has no terminal.
-   system() is not allowed there (-Dsystem=mff_no_system of the build of the runtime) */
+   system() is not allowed there (Apple/patch-fbc-rtlib.sh) */
 int tgetent(char *bp, const char *name) { (void)bp; (void)name; return -1; }
 int tgetflag(const char *id) { (void)id; return 0; }
 int tgetnum(const char *id) { (void)id; return -1; }
@@ -1110,3 +1099,211 @@ char *tgetstr(const char *id, char **area) { (void)id; (void)area; return NULL; 
 char *tgoto(const char *cap, int col, int row) { (void)cap; (void)col; (void)row; return NULL; }
 int tputs(const char *str, int affcnt, int (*putc_)(int)) { (void)str; (void)affcnt; (void)putc_; return 0; }
 int mff_no_system(const char *command) { (void)command; return -1; }
+
+static id mffFileTable(void *view) { return mffTable(view); }
+
+/* ---- OpenFileControl: the file list in a table ---- */
+
+static NSMutableDictionary *mffFileState(id table) {
+	return objc_getAssociatedObject(table, &kMffFileViewKey);
+}
+
+static void mffFileViewList(id table) {
+	NSMutableDictionary *st = mffFileState(table);
+	NSMutableArray *items = mffItems(table);
+	[items removeAllObjects];
+	NSArray *names = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:st[@"dir"] error:nil] sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
+	NSMutableArray *dirs = [NSMutableArray array], *files = [NSMutableArray array];
+	NSArray *patterns = [st[@"patterns"] componentsSeparatedByString:@";"];
+	for (NSString *n in names) {
+		if ([n hasPrefix:@"."]) continue;
+		BOOL isDir = NO;
+		[[NSFileManager defaultManager] fileExistsAtPath:[st[@"dir"] stringByAppendingPathComponent:n] isDirectory:&isDir];
+		if (isDir) { [dirs addObject:n]; continue; }
+		for (NSString *p in patterns) {
+			NSString *t = [p stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+			if (![t length] || [t isEqualToString:@"*"] || [t isEqualToString:@"*.*"] || [[NSPredicate predicateWithFormat:@"SELF LIKE[c] %@", t] evaluateWithObject:n]) { [files addObject:n]; break; }
+		}
+	}
+	[items addObject:@".."];
+	for (NSString *d in dirs) [items addObject:[d stringByAppendingString:@"/"]];
+	[items addObjectsFromArray:files];
+	[table reloadData];
+}
+
+/* A choice in the file list: "select" (the file), "activate" (Activate: a double click), "folder" (another folder) */
+static void mffFileViewChoose(id table, id owner, NSInteger row, BOOL activate) {
+	NSMutableDictionary *st = mffFileState(table);
+	NSArray *items = mffItems(table);
+	if (!st || row < 0 || row >= (NSInteger)[items count]) return;
+	NSString *name = items[row];
+	if ([name isEqualToString:@".."] || [name hasSuffix:@"/"]) {
+		if (!activate) return;
+		st[@"dir"] = [name isEqualToString:@".."] ? [st[@"dir"] stringByDeletingLastPathComponent] : [st[@"dir"] stringByAppendingPathComponent:[name substringToIndex:[name length] - 1]];
+		st[@"event"] = @"folder";
+		st[@"files"] = @"";
+		mffFileViewList(table);
+	} else {
+		st[@"event"] = activate ? @"activate" : @"select";
+		st[@"files"] = [st[@"dir"] stringByAppendingPathComponent:name];
+	}
+	void *ctrl = mffGetCtrl(owner);
+	if (ctrl) mffOnChange(ctrl, (int)row);
+}
+
+char *mffFileViewAttr(void *view, const char *name) {
+	id t = mffFileTable(view);
+	NSMutableDictionary *st = t ? mffFileState(t) : nil;
+	NSString *n = mffStr(name);
+	if (!st) return NULL;
+	if ([n isEqualToString:@"data-event"]) return mffDup(st[@"event"]);
+	if ([n isEqualToString:@"data-dir"]) return mffDup(st[@"dir"]);
+	if ([n isEqualToString:@"data-files"]) return mffDup(st[@"files"]);
+	return NULL;
+}
+
+void mffFileViewFill(void *view, const char *dir, const char *patterns, int multiple) {
+	(void)multiple;
+	id t = mffFileTable(view);
+	if (!t) return;
+	NSMutableDictionary *st = mffFileState(t);
+	if (!st) {
+		st = [NSMutableDictionary dictionary];
+		objc_setAssociatedObject(t, &kMffFileViewKey, st, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+	}
+	st[@"dir"] = mffStr(dir);
+	st[@"patterns"] = mffStr(patterns);
+	st[@"event"] = @"";
+	st[@"files"] = @"";
+	mffFileViewList(t);
+}
+
+/* ---- The pages of a PrintDocument: pictures, the Canvas draws in them between mffCanvasBegin and mffCanvasEnd ---- */
+
+static char kMffPageSizeKey;
+
+void *mffPageCreate(int width, int height) {
+	UIGraphicsBeginImageContextWithOptions(CGSizeMake(width > 0 ? width : 1, height > 0 ? height : 1), YES, 0);
+	[[UIColor whiteColor] setFill];
+	UIRectFill(CGRectMake(0, 0, width, height));
+	UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
+	UIGraphicsEndImageContext();
+	/* The object of the page keeps its picture: it is another one after each drawing */
+	NSMutableArray *page = [NSMutableArray arrayWithObject:img];
+	objc_setAssociatedObject(page, &kMffPageSizeKey, [NSValue valueWithCGSize:img.size], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+	return (__bridge_retained void *)page;
+}
+
+void mffPageFree(void *page) {
+	if (page) (void)(__bridge_transfer id)page;
+}
+
+void mffPageBeginDraw(void *page) {
+	NSMutableArray *a = (__bridge NSMutableArray *)page;
+	UIImage *img = a[0];
+	UIGraphicsBeginImageContextWithOptions(img.size, YES, img.scale);
+	[img drawAtPoint:CGPointZero];
+}
+
+void mffPageEndDraw(void *page) {
+	NSMutableArray *a = (__bridge NSMutableArray *)page;
+	a[0] = UIGraphicsGetImageFromCurrentImageContext();
+	UIGraphicsEndImageContext();
+}
+
+void mffPageDraw(void *page, int x, int y, int w, int h) {
+	if (!page || !UIGraphicsGetCurrentContext()) return;
+	NSMutableArray *a = (__bridge NSMutableArray *)page;
+	[(UIImage *)a[0] drawInRect:CGRectMake(x, y, w, h)];
+}
+
+void mffPagesPrint(void **pages, int count, const char *name) {
+	if (count <= 0) return;
+	NSMutableArray *items = [NSMutableArray array];
+	for (int i = 0; i < count; i++) [items addObject:((__bridge NSMutableArray *)pages[i])[0]];
+	UIPrintInteractionController *c = [UIPrintInteractionController sharedPrintController];
+	UIPrintInfo *info = [UIPrintInfo printInfo];
+	info.jobName = mffStr(name);
+	c.printInfo = info;
+	c.printingItems = items;
+	[c presentAnimated:YES completionHandler:nil];
+}
+
+/* ---- Dialogs: the program waits in a nested loop ---- */
+
+@interface MffPicker : NSObject <UIDocumentPickerDelegate, UIColorPickerViewControllerDelegate>
+@property (nonatomic, strong) NSArray<NSURL *> *urls;
+@property (nonatomic, strong) UIColor *color;
+@property (nonatomic) BOOL done;
+@end
+
+@implementation MffPicker
+- (void)documentPicker:(UIDocumentPickerViewController *)c didPickDocumentsAtURLs:(NSArray<NSURL *> *)u {
+	self.urls = u;
+	self.done = YES;
+}
+- (void)documentPickerWasCancelled:(UIDocumentPickerViewController *)c {
+	self.done = YES;
+}
+- (void)colorPickerViewControllerDidFinish:(UIColorPickerViewController *)c {
+	self.color = c.selectedColor;
+	self.done = YES;
+}
+@end
+
+static void mffWait(MffPicker *p) {
+	while (!p.done) [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
+}
+
+/* Open: the picker of the system (a copy of the file in the sandbox of the program). Save: the file in the Documents of the
+   program, its other folders can not be written */
+char *mffFileDialog(int mode, const char *caption, const char *initialDir, const char *fileName, const char *filter, int filterIndex) {
+	(void)caption; (void)initialDir; (void)filter; (void)filterIndex;
+	if (!mffRunning) return NULL;
+	if (mode == 2) {
+		NSString *docs = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
+		return mffDup([docs stringByAppendingPathComponent:[mffStr(fileName) length] ? [mffStr(fileName) lastPathComponent] : @"Untitled"]);
+	}
+	MffPicker *p = [[MffPicker alloc] init];
+	#pragma clang diagnostic push
+	#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+	UIDocumentPickerViewController *c = [[UIDocumentPickerViewController alloc] initWithDocumentTypes:@[mode == 3 ? @"public.folder" : @"public.item"] inMode:mode == 3 ? UIDocumentPickerModeOpen : UIDocumentPickerModeImport];
+	#pragma clang diagnostic pop
+	c.delegate = p;
+	c.allowsMultipleSelection = mode == 1;
+	[mffTopController() presentViewController:c animated:YES completion:nil];
+	mffWait(p);
+	if (![p.urls count]) return NULL;
+	NSMutableArray *paths = [NSMutableArray array];
+	for (NSURL *u in p.urls) [paths addObject:[u path]];
+	return mffDup([paths componentsJoinedByString:@"\n"]);
+}
+
+char *mffFontDialog(const char *fontName, int size, int style, int fontColor) {
+	if (!mffRunning) return NULL;
+	UIAlertController *a = [UIAlertController alertControllerWithTitle:@"Font" message:nil preferredStyle:UIAlertControllerStyleAlert];
+	[a addTextFieldWithConfigurationHandler:^(UITextField *f) { f.text = mffStr(fontName); f.placeholder = @"Name"; }];
+	[a addTextFieldWithConfigurationHandler:^(UITextField *f) { f.text = [NSString stringWithFormat:@"%d", size > 0 ? size : 10]; f.keyboardType = UIKeyboardTypeNumberPad; }];
+	__block int result = -1;
+	[a addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction *x) { result = 1; }]];
+	[a addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *x) { result = 0; }]];
+	[mffTopController() presentViewController:a animated:YES completion:nil];
+	while (result < 0) [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
+	if (!result) return NULL;
+	return mffDup([NSString stringWithFormat:@"%@\n%d\n%d\n%d", a.textFields[0].text, [a.textFields[1].text intValue], style, fontColor]);
+}
+
+int mffColorDialog(const char *caption, int colorValue) {
+	(void)caption;
+	if (!mffRunning) return -1;
+	MffPicker *p = [[MffPicker alloc] init];
+	UIColorPickerViewController *c = [[UIColorPickerViewController alloc] init];
+	if (colorValue >= 0) c.selectedColor = mffColor(colorValue);
+	c.delegate = p;
+	[mffTopController() presentViewController:c animated:YES completion:nil];
+	mffWait(p);
+	[c dismissViewControllerAnimated:YES completion:nil];
+	CGFloat r, g, b, al;
+	if (!p.color || ![p.color getRed:&r green:&g blue:&b alpha:&al]) return -1;
+	return ((int)lround(r * 255)) | ((int)lround(g * 255) << 8) | ((int)lround(b * 255) << 16);
+}

@@ -37,6 +37,8 @@ Namespace My.Sys.ComponentModel
 			PageDelete(@This)
 		#elseif defined(__USE_JNI__)
 			If Handle Then PageDelete(Handle): Handle = 0
+		#elseif defined(__USE_APPLE__)
+			If Handle Then mffPageFree(Handle): Handle = 0
 		#endif
 	End Destructor
 	
@@ -135,7 +137,17 @@ Namespace My.Sys.ComponentModel
 	#endif
 
 	Private Sub PrintDocument.Print
-		#ifdef __USE_WASM__
+		#ifdef __USE_APPLE__
+			'The print panel of the system prints the pictures of the pages
+			If Pages.Count = 0 Then Repaint
+			If Pages.Count = 0 Then Return
+			Dim As Any Ptr PageHandles(Pages.Count - 1)
+			For i As Integer = 0 To Pages.Count - 1
+				PageHandles(i) = Pages.Item(i)->Handle
+			Next
+			mffPagesPrint(@PageHandles(0), Pages.Count, ToUtf8(DocumentName))
+			Return
+		#elseif defined(__USE_WASM__)
 			'Web: the print dialog of the browser prints the pages (it chooses the printer)
 			If Pages.Count = 0 Then Repaint
 			Dim As String Ids
@@ -242,8 +254,21 @@ Namespace My.Sys.ComponentModel
 				NewPage->Canvas.ydpi = IIf(pApp AndAlso pApp->MainForm AndAlso pApp->MainForm->ydpi > 0, pApp->MainForm->ydpi, 1)
 				NewPage->Handle = PageCreate(NewPage->Canvas.ScaleX(PrinterSettings.PrintableWidth), NewPage->Canvas.ScaleY(PrinterSettings.PrintableHeight))
 				NewPage->Canvas.Handle = NewPage->Handle
+			#elseif defined(__USE_APPLE__)
+				NewPage->Handle = mffPageCreate(PrinterSettings.PrintableWidth, PrinterSettings.PrintableHeight)
+				NewPage->Canvas.Handle = NewPage->Handle
+				#ifdef __USE_UIKIT__
+					mffPageBeginDraw(NewPage->Handle)
+				#else
+					mffCanvasBegin(NewPage->Handle)
+				#endif
 			#endif
 			If OnPrintPage Then OnPrintPage(*Designer, This, NewPage->Canvas, HasMorePages)
+			#ifdef __USE_UIKIT__
+				mffPageEndDraw(NewPage->Handle)
+			#elseif defined(__USE_COCOA__)
+				mffCanvasEnd(NewPage->Handle)
+			#endif
 			#if defined(__USE_WINAPI__) AndAlso Not defined(__USE_CAIRO__)
 				NewPage->Handle = CloseEnhMetaFile(NewPage->Canvas.Handle)
 			#elseif defined(__USE_GTK__)

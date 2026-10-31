@@ -1201,10 +1201,11 @@ End Namespace
 	End Function
 	
 	Sub FileViewFill(ByVal Id As Any Ptr, sDir As String, Patterns As String, ByVal Multiple As Long)
+		If Id Then mffFileViewFill(Id, sDir, Patterns, Multiple)
 	End Sub
 
 	Function GetAttribute(Id As Any Ptr, AttrName As String) As ZString Ptr
-		Return 0
+		Return IIf(Id, mffFileViewAttr(Id, AttrName), 0)
 	End Function
 
 	Sub FreePtr(ByVal Ptr_ As Any Ptr)
@@ -1212,6 +1213,7 @@ End Namespace
 	End Sub
 
 	Sub PageDraw(Id As Any Ptr, Page As Any Ptr, ByVal x As Integer, ByVal y As Integer, ByVal w As Integer, ByVal h As Integer)
+		mffPageDraw(Page, x, y, w, h)
 	End Sub
 
 	Sub StartTimer(Id As Any Ptr, ByVal Interval As Integer)

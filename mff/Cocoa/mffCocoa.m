@@ -20,7 +20,8 @@ static BOOL mffSettingFrame, mffInWindowEvent;
 /* The program changes the selection (the events are for the changes of the user); a double click on a row of a table */
 static BOOL mffSilent;
 static int mffDblClick, mffPopupResult = -1;
-static char kMffTableKey, kMffChecksKey;
+static char kMffTableKey, kMffChecksKey, kMffFileViewKey;
+static void mffFileViewChoose(id table, id owner, NSInteger row, BOOL activate);
 
 /* The Control Ptr of the FreeBASIC side which gets the events of the object */
 static void mffSetCtrl(id obj, void *ctrl) {
@@ -331,6 +332,7 @@ static NSMutableArray<NSString *> *mffItems(id table) {
 	NSTableView *t = [n object];
 	NSView *v = [t enclosingScrollView];
 	void *ctrl = v ? mffGetCtrl(v) : NULL;
+	if (objc_getAssociatedObject(t, &kMffFileViewKey)) { mffFileViewChoose(t, v, [t selectedRow], NO); return; }
 	if (ctrl) mffOnChange(ctrl, (int)[t selectedRow]);
 }
 /* A click on a row of a CheckedListBox changes its check box */
@@ -360,6 +362,7 @@ static NSMutableArray<NSString *> *mffItems(id table) {
 	NSView *v = [t enclosingScrollView];
 	void *ctrl = v ? mffGetCtrl(v) : NULL;
 	if (!ctrl) return;
+	if (objc_getAssociatedObject(t, &kMffFileViewKey)) { mffFileViewChoose(t, v, [t clickedRow], YES); return; }
 	/* ListView, TreeView: the double click is a change with TableDblClick */
 	if (objc_getAssociatedObject(t, &kMffTableKey)) {
 		mffDblClick = 1;
@@ -515,7 +518,7 @@ void *mffViewCreate(const char *kind, void *ctrl) {
 		obj = v;
 	} else if ([k isEqualToString:@"WebBrowser"]) {
 		obj = [[WKWebView alloc] initWithFrame:r configuration:[[WKWebViewConfiguration alloc] init]];
-	} else if ([k isEqualToString:@"ListControl"] || [k isEqualToString:@"CheckedListBox"] || [k isEqualToString:@"ListView"] || [k isEqualToString:@"TreeView"] || [k isEqualToString:@"TreeListView"] || [k isEqualToString:@"GridData"] || [k isEqualToString:@"Grid"]) {
+	} else if ([k isEqualToString:@"ListControl"] || [k isEqualToString:@"CheckedListBox"] || [k isEqualToString:@"ListView"] || [k isEqualToString:@"TreeView"] || [k isEqualToString:@"TreeListView"] || [k isEqualToString:@"GridData"] || [k isEqualToString:@"Grid"] || [k isEqualToString:@"OpenFileControl"]) {
 		NSScrollView *s = [[NSScrollView alloc] initWithFrame:r];
 		[s setHasVerticalScroller:YES];
 		[s setBorderType:NSBezelBorder];
@@ -1530,6 +1533,7 @@ int mffRegexExec(int id_, const char *subject, int startByte, int *offsets, int 
 
 static NSBezierPath *mffPath;
 static NSView *mffLockedView;
+static NSImage *mffLockedPage;
 
 static NSBezierPath *mffCurrentPath(void) {
 	if (!mffPath) mffPath = [NSBezierPath bezierPath];
@@ -1542,6 +1546,12 @@ static NSColor *mffColorAlpha(int color, int alpha) {
 
 void mffCanvasBegin(void *id_) {
 	mffPath = nil;
+	if (id_ && [mffObj(id_) isKindOfClass:[NSImage class]]) {
+		/* A page of a PrintDocument */
+		[(NSImage *)mffObj(id_) lockFocusFlipped:YES];
+		mffLockedPage = mffObj(id_);
+		return;
+	}
 	if ([NSGraphicsContext currentContext] || !id_) return;
 	/* Out of the drawing of the view */
 	NSView *v = (__bridge NSView *)mffViewLayout(id_);
@@ -1550,6 +1560,11 @@ void mffCanvasBegin(void *id_) {
 
 void mffCanvasEnd(void *id_) {
 	(void)id_;
+	if (mffLockedPage) {
+		[mffLockedPage unlockFocus];
+		mffLockedPage = nil;
+		return;
+	}
 	if (mffLockedView) {
 		[[NSGraphicsContext currentContext] flushGraphics];
 		[mffLockedView unlockFocus];
@@ -1662,4 +1677,143 @@ void mffCanvasImage(const char *path, double x, double y, double w, double h, in
 	if (!img) return;
 	NSSize s = [img size];
 	[img drawInRect:NSMakeRect(x, y, w > 0 ? w : s.width, h > 0 ? h : s.height) fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:alpha / 255.0 respectFlipped:YES hints:nil];
+}
+
+static id mffFileTable(void *view) { return mffTable(view); }
+
+/* ---- OpenFileControl: the file list in a table ---- */
+
+static NSMutableDictionary *mffFileState(id table) {
+	return objc_getAssociatedObject(table, &kMffFileViewKey);
+}
+
+static void mffFileViewList(id table) {
+	NSMutableDictionary *st = mffFileState(table);
+	NSMutableArray *items = mffItems(table);
+	[items removeAllObjects];
+	NSArray *names = [[[NSFileManager defaultManager] contentsOfDirectoryAtPath:st[@"dir"] error:nil] sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
+	NSMutableArray *dirs = [NSMutableArray array], *files = [NSMutableArray array];
+	NSArray *patterns = [st[@"patterns"] componentsSeparatedByString:@";"];
+	for (NSString *n in names) {
+		if ([n hasPrefix:@"."]) continue;
+		BOOL isDir = NO;
+		[[NSFileManager defaultManager] fileExistsAtPath:[st[@"dir"] stringByAppendingPathComponent:n] isDirectory:&isDir];
+		if (isDir) { [dirs addObject:n]; continue; }
+		for (NSString *p in patterns) {
+			NSString *t = [p stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+			if (![t length] || [t isEqualToString:@"*"] || [t isEqualToString:@"*.*"] || [[NSPredicate predicateWithFormat:@"SELF LIKE[c] %@", t] evaluateWithObject:n]) { [files addObject:n]; break; }
+		}
+	}
+	[items addObject:@".."];
+	for (NSString *d in dirs) [items addObject:[d stringByAppendingString:@"/"]];
+	[items addObjectsFromArray:files];
+	[table reloadData];
+}
+
+/* A choice in the file list: "select" (the file), "activate" (Activate: a double click), "folder" (another folder) */
+static void mffFileViewChoose(id table, id owner, NSInteger row, BOOL activate) {
+	NSMutableDictionary *st = mffFileState(table);
+	NSArray *items = mffItems(table);
+	if (!st || row < 0 || row >= (NSInteger)[items count]) return;
+	NSString *name = items[row];
+	if ([name isEqualToString:@".."] || [name hasSuffix:@"/"]) {
+		if (!activate) return;
+		st[@"dir"] = [name isEqualToString:@".."] ? [st[@"dir"] stringByDeletingLastPathComponent] : [st[@"dir"] stringByAppendingPathComponent:[name substringToIndex:[name length] - 1]];
+		st[@"event"] = @"folder";
+		st[@"files"] = @"";
+		mffFileViewList(table);
+	} else {
+		st[@"event"] = activate ? @"activate" : @"select";
+		st[@"files"] = [st[@"dir"] stringByAppendingPathComponent:name];
+	}
+	void *ctrl = mffGetCtrl(owner);
+	if (ctrl) mffOnChange(ctrl, (int)row);
+}
+
+char *mffFileViewAttr(void *view, const char *name) {
+	id t = mffFileTable(view);
+	NSMutableDictionary *st = t ? mffFileState(t) : nil;
+	NSString *n = mffStr(name);
+	if (!st) return NULL;
+	if ([n isEqualToString:@"data-event"]) return mffDup(st[@"event"]);
+	if ([n isEqualToString:@"data-dir"]) return mffDup(st[@"dir"]);
+	if ([n isEqualToString:@"data-files"]) return mffDup(st[@"files"]);
+	return NULL;
+}
+
+void mffFileViewFill(void *view, const char *dir, const char *patterns, int multiple) {
+	(void)multiple;
+	id t = mffFileTable(view);
+	if (!t) return;
+	NSMutableDictionary *st = mffFileState(t);
+	if (!st) {
+		st = [NSMutableDictionary dictionary];
+		objc_setAssociatedObject(t, &kMffFileViewKey, st, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+	}
+	st[@"dir"] = mffStr(dir);
+	st[@"patterns"] = mffStr(patterns);
+	st[@"event"] = @"";
+	st[@"files"] = @"";
+	mffFileViewList(t);
+}
+
+/* ---- The pages of a PrintDocument: pictures, the Canvas draws in them between mffCanvasBegin and mffCanvasEnd ---- */
+
+void *mffPageCreate(int width, int height) {
+	NSImage *img = [[NSImage alloc] initWithSize:NSMakeSize(width > 0 ? width : 1, height > 0 ? height : 1)];
+	return (__bridge_retained void *)img;
+}
+
+void mffPageFree(void *page) {
+	if (page) (void)(__bridge_transfer id)page;
+}
+
+void mffPageDraw(void *page, int x, int y, int w, int h) {
+	if (!page || ![NSGraphicsContext currentContext]) return;
+	NSImage *img = (__bridge NSImage *)page;
+	[[NSColor whiteColor] setFill];
+	NSRectFill(NSMakeRect(x, y, w, h));
+	[img drawInRect:NSMakeRect(x, y, w, h) fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:1 respectFlipped:YES hints:nil];
+}
+
+/* The view of the print operation: one page of the paper for each picture */
+@interface MffPagesView : NSView
+@property (nonatomic, strong) NSArray<NSImage *> *pages;
+@end
+
+@implementation MffPagesView
+- (BOOL)isFlipped { return YES; }
+- (BOOL)knowsPageRange:(NSRangePointer)r {
+	*r = NSMakeRange(1, [self.pages count]);
+	return YES;
+}
+- (NSRect)rectForPage:(NSInteger)n {
+	NSSize s = [self bounds].size;
+	CGFloat h = s.height / MAX([self.pages count], 1);
+	return NSMakeRect(0, (n - 1) * h, s.width, h);
+}
+- (void)drawRect:(NSRect)r {
+	NSSize s = [self bounds].size;
+	CGFloat h = s.height / MAX([self.pages count], 1);
+	for (NSUInteger i = 0; i < [self.pages count]; i++) {
+		NSRect to = NSMakeRect(0, i * h, s.width, h);
+		if (NSIntersectsRect(to, r)) [self.pages[i] drawInRect:to fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:1 respectFlipped:YES hints:nil];
+	}
+}
+@end
+
+void mffPagesPrint(void **pages, int count, const char *name) {
+	mffEnsureApp();
+	if (count <= 0) return;
+	NSMutableArray *a = [NSMutableArray array];
+	for (int i = 0; i < count; i++) [a addObject:(__bridge NSImage *)pages[i]];
+	NSSize s = [(NSImage *)a[0] size];
+	MffPagesView *v = [[MffPagesView alloc] initWithFrame:NSMakeRect(0, 0, s.width, s.height * count)];
+	v.pages = a;
+	NSPrintInfo *info = [[NSPrintInfo sharedPrintInfo] copy];
+	[info setHorizontalPagination:NSPrintingPaginationModeFit];
+	[info setVerticalPagination:NSPrintingPaginationModeAutomatic];
+	NSPrintOperation *op = [NSPrintOperation printOperationWithView:v printInfo:info];
+	[op setJobTitle:mffStr(name)];
+	[op runOperation];
 }

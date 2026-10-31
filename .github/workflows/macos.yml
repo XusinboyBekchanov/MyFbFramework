@@ -125,13 +125,7 @@ jobs:
 
       - name: Build the runtime of FreeBASIC for the Simulator
         run: |
-          git clone --depth 1 https://github.com/freebasic/fbc.git "$RUNNER_TEMP/fbc-ios"
-          sh mff/Apple/patch-fbc-rtlib.sh "$RUNNER_TEMP/fbc-ios"
-          if ! make -C "$RUNNER_TEMP/fbc-ios" rtlib -j4 TARGET_OS=darwin TARGET_ARCH=aarch64 CC="xcrun --sdk iphonesimulator clang -target arm64-apple-ios14.0-simulator -Dsystem=mff_no_system" > make.log 2>&1; then
-            cat make.log
-            grep -E "error:|Error [0-9]" make.log | head -n 20 | sed 's/^/::error::/'
-            exit 1
-          fi
+          sh mff/UIKit/build-rtlib.sh "$RUNNER_TEMP/fbc-ios"
 
       - name: Build
         run: |

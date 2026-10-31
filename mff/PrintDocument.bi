@@ -16,8 +16,8 @@ Namespace My.Sys.ComponentModel
 		#elseif defined(__USE_GTK__)
 			' Recording surface with the page drawing (like the enhanced metafile on WinAPI)
 			Surface As cairo_surface_t Ptr
-		#elseif defined(__USE_JNI__)
-			'Android: the MffPage of the page (a global reference, PageCreate)
+		#elseif defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+			'Android: the MffPage of the page (a global reference, PageCreate); macOS, iOS: its picture
 			Handle As Any Ptr
 		#endif
 		Canvas As My.Sys.Drawing.Canvas

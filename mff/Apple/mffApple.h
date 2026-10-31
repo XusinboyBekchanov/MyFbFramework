@@ -83,6 +83,12 @@ void mffTimerStop(void *id);
 void mffClipboardSetText(const char *text);
 char *mffClipboardGetText(void);
 void mffOpenURL(const char *url);
+void *mffPageCreate(int width, int height);
+void mffPageFree(void *page);
+void mffPageDraw(void *page, int x, int y, int w, int h);
+void mffPagesPrint(void **pages, int count, const char *name);
+void mffFileViewFill(void *view, const char *dir, const char *patterns, int multiple);
+char *mffFileViewAttr(void *view, const char *name);
 void mffMenuBarSet(const char *items);
 
 /* See Apple/mffApple.bi */

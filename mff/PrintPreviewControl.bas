@@ -255,7 +255,7 @@ Namespace My.Sys.Forms
 			SetScrollsInfo
 			Dim As Integer iLeft = IIf(iWidth + 20 <= ClientWidth, (ClientWidth - iWidth) \ 2, 10 - FScrollX)
 			Dim As Integer iTop = IIf(iHeight + 20 <= ClientHeight, (ClientHeight - iHeight) \ 2, 10 - FScrollY)
-			#ifdef __USE_JNI__
+			#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				PageDraw(PaintView, Document->Pages.Item(FCurrentPage - 1)->Handle, ScaleX(iLeft), ScaleY(iTop), ScaleX(iWidth), ScaleY(iHeight))
 			#else
 				PageDraw(PaintView, Document->Pages.Item(FCurrentPage - 1), ScaleX(iLeft), ScaleY(iTop), ScaleX(iWidth), ScaleY(iHeight))

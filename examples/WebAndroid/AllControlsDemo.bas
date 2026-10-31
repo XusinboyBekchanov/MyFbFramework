@@ -13,7 +13,7 @@
 	Const _MAIN_FILE_ = __FILE__
 #endif
 
-#ifdef __FB_JS__
+#if defined(__FB_JS__) OrElse defined(__USE_COCOA__) OrElse defined(__USE_UIKIT__)
 	#define OnClient
 #else
 	#define OnServer

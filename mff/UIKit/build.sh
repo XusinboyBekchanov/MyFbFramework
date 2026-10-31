@@ -6,7 +6,7 @@
 # Program.c is the C code of the program (on any system):
 #   fbc -target darwin-aarch64 -gen gcc -r -d __USE_UIKIT__ -i <MyFbFramework> -m Program Program.bas
 # FbcDir is the folder of the sources of fbc with the runtime of FreeBASIC built for the Simulator, ../fbc-ios by default:
-#   make -C ../fbc-ios rtlib TARGET_OS=darwin TARGET_ARCH=aarch64 CC="xcrun --sdk iphonesimulator clang -target arm64-apple-ios14.0-simulator -Dsystem=mff_no_system"
+#   sh build-rtlib.sh ../fbc-ios
 # The bundle is Program.app.
 set -e
 SRC="$1"
@@ -22,6 +22,7 @@ if [ ! -f "$LIB/libfbmt.a" ]; then
 	echo "The runtime of FreeBASIC (libfbmt.a) is not in $FBC/lib/freebasic/darwin-*"
 	exit 1
 fi
+sh "$DIR/../Apple/fix-c-code.sh" "$SRC"
 CC="xcrun --sdk iphonesimulator clang -target arm64-apple-ios14.0-simulator"
 $CC -c -O1 -w -fno-strict-aliasing -fwrapv -fno-math-errno -fno-exceptions -fno-asynchronous-unwind-tables -funwind-tables "$SRC" -o "$OUT.o"
 $CC -c -O1 -fobjc-arc -Wall "$DIR/mffUIKit.m" -o "$OUT.mff.o"

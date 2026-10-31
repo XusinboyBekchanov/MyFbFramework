@@ -21,6 +21,7 @@ if [ ! -f "$LIB/libfbmt.a" ]; then
 	echo "The runtime of FreeBASIC (libfbmt.a) is not in $FBC/lib/freebasic/darwin-*: make -C $FBC rtlib"
 	exit 1
 fi
+sh "$DIR/../Apple/fix-c-code.sh" "$SRC"
 # The flags of fbc for the C code of -gen gcc
 clang -c -O1 -w -fno-strict-aliasing -fwrapv -fno-math-errno -fno-exceptions -fno-asynchronous-unwind-tables -funwind-tables "$SRC" -o "$OUT.o"
 clang -c -O1 -fobjc-arc -Wall "$DIR/mffCocoa.m" -o "$OUT.mff.o"
