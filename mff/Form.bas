@@ -2382,6 +2382,16 @@ Namespace My.Sys.Forms
 				This.Top  = ScrTop + (ScrHeight - This.Height) \ 2
 			End If
 			Move This.Left, This.Top, This.Width, This.Height
+		#elseif defined(__USE_APPLE__)
+			If ScrHeight <> 0 OrElse ScrWidth <> 0 Then
+				FStartPosition = FormStartPosition.Manual
+				Move ScrLeft + (ScrWidth - This.Width) \ 2, ScrTop + (ScrHeight - This.Height) \ 2, This.Width, This.Height
+			ElseIf FHandle Then
+				Move (mffScreenSize(0) - This.Width) \ 2, (mffScreenSize(1) - This.Height) \ 2, This.Width, This.Height
+			Else
+				'The window is made in the middle of the screen (CreateWnd)
+				FStartPosition = FormStartPosition.CenterScreen
+			End If
 		#endif
 	End Sub
 	
@@ -2561,6 +2571,9 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 				FDefaultBackColor = clWhite
 				.BackColor       = clWhite
+			#elseif defined(__USE_APPLE__)
+				.Width             = 350
+				.Height            = 300
 			#endif
 			.StartPosition = DefaultLocation
 		End With

@@ -118,13 +118,20 @@ static void mffEnsureApp(void) {
 @end
 
 @implementation MffView
+- (instancetype)initWithFrame:(NSRect)f {
+	self = [super initWithFrame:f];
+	/* Since macOS 14 a view can draw out of its bounds: it would paint over the views next to it */
+	if (self && [self respondsToSelector:@selector(setClipsToBounds:)]) [self setValue:@YES forKey:@"clipsToBounds"];
+	return self;
+}
 - (BOOL)isFlipped { return YES; }
 - (BOOL)acceptsFirstResponder { return mffGetCtrl(self) != NULL; }
 - (BOOL)acceptsFirstMouse:(NSEvent *)e { return YES; }
 - (void)drawRect:(NSRect)r {
 	if (self.mffBackColor) {
 		[self.mffBackColor setFill];
-		NSRectFill(r);
+		/* The dirty rectangle can be larger than the view */
+		NSRectFill(NSIntersectionRect(r, [self bounds]));
 	}
 	void *ctrl = mffGetCtrl(self);
 	if (ctrl) mffOnPaint(ctrl);
