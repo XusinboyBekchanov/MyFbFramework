@@ -64,7 +64,7 @@ static UIViewController *mffTopController(void) {
 /* The view of a control without a view of its own kind, the view of a form */
 @interface MffView : UIView
 @property (nonatomic, strong) UIImage *mffImage;
-@property (nonatomic) BOOL mffImageCenter, mffModal, mffModalDone;
+@property (nonatomic) BOOL mffImageCenter, mffModal, mffModalDone, mffIsForm;
 @end
 
 @implementation MffView
@@ -90,7 +90,7 @@ static UIViewController *mffTopController(void) {
 	[super layoutSubviews];
 	void *ctrl = mffGetCtrl(self);
 	/* The view of a form follows the size of the screen */
-	if (ctrl && self == mffMainFormView) mffOnResize(ctrl, (int)self.bounds.size.width, (int)self.bounds.size.height);
+	if (ctrl && self.mffIsForm) mffOnResize(ctrl, (int)self.bounds.size.width, (int)self.bounds.size.height);
 }
 - (void)touch:(NSSet *)t action:(int)action {
 	void *ctrl = mffGetCtrl(self);
@@ -321,6 +321,7 @@ void *mffViewCreate(const char *kind, void *ctrl) {
 	if ([k isEqualToString:@"Form"]) {
 		MffView *v = [[MffView alloc] initWithFrame:[UIScreen mainScreen].bounds];
 		v.backgroundColor = [UIColor systemBackgroundColor];
+		v.mffIsForm = YES;
 		obj = v;
 	} else if ([k isEqualToString:@"CommandButton"]) {
 		UIButton *b = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -426,7 +427,7 @@ void mffViewAddChild(void *parent, void *child) {
 void mffViewSetBounds(void *view, int x, int y, int w, int h) {
 	UIView *v = mffView(view);
 	/* A form has the size of the screen */
-	if (!v || v == mffMainFormView || !mffGetCtrl(v)) return;
+	if (!v || ([v isKindOfClass:[MffView class]] && ((MffView *)v).mffIsForm)) return;
 	CGRect f = CGRectMake(x, y, w, h);
 	if (!CGRectEqualToRect(f, v.frame)) v.frame = f;
 }
@@ -657,10 +658,11 @@ void mffFormShow(void *view, int modal) {
 		if (![mffFormsToShow containsObject:v]) [mffFormsToShow addObject:v];
 		return;
 	}
-	if (!v.superview && v != mffMainFormView) {
-		v.frame = mffMainWindow.rootViewController.view.bounds;
-		v.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-		[mffMainWindow.rootViewController.view addSubview:v];
+	if (!v.superview) {
+		UIView *root = mffMainWindow.rootViewController.view;
+		v.frame = root.safeAreaLayoutGuide.layoutFrame;
+		[root addSubview:v];
+		if (!mffMainFormView) mffMainFormView = v;
 		void *ctrl = mffGetCtrl(v);
 		if (ctrl) mffOnResize(ctrl, (int)v.bounds.size.width, (int)v.bounds.size.height);
 	}
@@ -679,7 +681,10 @@ void mffFormHide(void *view) {
 	UIView *v = mffView(view);
 	if (!v) return;
 	if ([v isKindOfClass:[MffView class]]) ((MffView *)v).mffModalDone = YES;
-	if (v != mffMainFormView) [v removeFromSuperview];
+	[mffFormsToShow removeObject:v];
+	[v removeFromSuperview];
+	/* The form on the top goes on (a splash form is hidden, the main form stays) */
+	if (v == mffMainFormView) mffMainFormView = [mffMainWindow.rootViewController.view.subviews lastObject];
 }
 void mffFormSetState(void *view, int state) { (void)view; (void)state; }
 void mffFormSetBorder(void *view, int style) { (void)view; (void)style; }
@@ -698,13 +703,16 @@ int mffScreenSize(int vertical) {
 @end
 
 @implementation MffRootController
+- (void)mffLayoutForms {
+	for (UIView *v in self.view.subviews) v.frame = self.view.safeAreaLayoutGuide.layoutFrame;
+}
 - (void)viewSafeAreaInsetsDidChange {
 	[super viewSafeAreaInsetsDidChange];
-	mffMainFormView.frame = self.view.safeAreaLayoutGuide.layoutFrame;
+	[self mffLayoutForms];
 }
 - (void)viewDidLayoutSubviews {
 	[super viewDidLayoutSubviews];
-	mffMainFormView.frame = self.view.safeAreaLayoutGuide.layoutFrame;
+	[self mffLayoutForms];
 }
 @end
 
@@ -727,12 +735,7 @@ static UIButton *mffFindButton(UIView *v, NSString *title) {
 	mffRunning = YES;
 	/* The forms shown before UIApplicationMain: the first one is the main form */
 	for (UIView *v in mffFormsToShow) {
-		if (!mffMainFormView) {
-			mffMainFormView = v;
-			[root.view addSubview:v];
-		} else {
-			mffFormShow((__bridge void *)v, 0);
-		}
+		mffFormShow((__bridge void *)v, 0);
 	}
 	[self.window makeKeyAndVisible];
 	[root.view setNeedsLayout];

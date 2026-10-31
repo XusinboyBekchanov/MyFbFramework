@@ -21,6 +21,7 @@ static BOOL mffSettingFrame, mffInWindowEvent;
 static BOOL mffSilent;
 static int mffDblClick, mffPopupResult = -1;
 static char kMffTableKey, kMffChecksKey, kMffFileViewKey;
+static void mffStartSnapshotTest(void);
 static void mffFileViewChoose(id table, id owner, NSInteger row, BOOL activate);
 
 /* The Control Ptr of the FreeBASIC side which gets the events of the object */
@@ -911,6 +912,8 @@ int mffPositionGet(void *view) {
 void mffFormShow(void *view, int modal) {
 	NSWindow *w = mffWindow(view);
 	if (!w) return;
+	/* The test starts with the first window: a program can show a modal form before App.Run */
+	mffStartSnapshotTest();
 	[w makeKeyAndOrderFront:nil];
 	if (modal) [NSApp runModalForWindow:w];
 }
@@ -986,8 +989,10 @@ static NSButton *mffFindButton(NSView *v, NSString *title) {
 }
 
 static void mffStartSnapshotTest(void) {
+	static BOOL started;
 	const char *snap = getenv("MFF_SNAPSHOT");
-	if (!snap || !*snap) return;
+	if (started || !snap || !*snap) return;
+	started = YES;
 	NSString *base = mffStr(snap);
 	NSString *click = mffStr(getenv("MFF_CLICK"));
 	__block int step = 0;
