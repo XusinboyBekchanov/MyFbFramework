@@ -35,7 +35,7 @@ jobs:
         run: |
           mkdir -p build
           for f in examples/Hello.bas examples/WebAndroid/ControlsDemo.bas; do
-            if ! fbc -target darwin-aarch64 -gen gcc -r -d __USE_COCOA__ -i "$RUNNER_TEMP/fbc/inc" -i . "$f" > fbc.log 2>&1; then
+            if ! fbc -target darwin-aarch64 -gen gcc -r -d __USE_COCOA__ -i "$RUNNER_TEMP/fbc/inc" -i . -m "$(basename "$f" .bas)" "$f" > fbc.log 2>&1; then
               cat fbc.log
               grep -v "warning" fbc.log | head -n 20 | sed 's/^/::error::/'
               exit 1
@@ -80,7 +80,7 @@ jobs:
           for p in Hello ControlsDemo; do
             if ! sh mff/Cocoa/build.sh build/$p.c build/$p "$RUNNER_TEMP/fbc" > build.log 2>&1; then
               cat build.log
-              grep -E "error|Undefined|undefined|ld:" build.log | head -n 30 | sed 's/^/::error::/'
+              grep -E 'error|Undefined|undefined|ld:|^ *"_' build.log | head -n 40 | sed 's/^/::error::/'
               exit 1
             fi
           done
