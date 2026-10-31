@@ -56,6 +56,7 @@ void mffListSetIndex(void *view, int index);
 
 void mffRangeSet(void *view, int minValue, int maxValue);
 void mffPositionSet(void *view, int value);
+void mffScrollPageSet(void *view, int page);
 int mffPositionGet(void *view);
 
 /* modal: a nested loop until mffFormHide of the form */

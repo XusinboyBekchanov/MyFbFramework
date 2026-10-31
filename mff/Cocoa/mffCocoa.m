@@ -408,6 +408,64 @@ static NSTextView *mffTextView(void *view) {
 
 /* A GroupBox: the coordinates of its controls are from the top left corner of its frame like on Windows (the content
    view of NSBox is smaller than the box by the title and the margins) */
+/* A scroll bar with the thumb of the size of the page (NSSlider has no page, NSScroller of the system hides itself) */
+@interface MffScrollBar : NSView
+@property (nonatomic) int mffMin, mffMax, mffPage, mffPos;
+@property (nonatomic) CGFloat mffGrab;
+@property (nonatomic) BOOL mffDragging;
+@end
+
+@implementation MffScrollBar
+- (BOOL)isFlipped { return YES; }
+- (BOOL)mffVertical { return self.bounds.size.height >= self.bounds.size.width; }
+- (CGFloat)mffLength { return [self mffVertical] ? self.bounds.size.height : self.bounds.size.width; }
+- (CGFloat)mffThumbLength {
+	CGFloat l = [self mffLength];
+	int range = self.mffMax - self.mffMin;
+	if (range <= 0) return l;
+	return MIN(l, MAX(24, self.mffPage > 0 ? l * self.mffPage / (range + self.mffPage) : 24));
+}
+- (CGFloat)mffThumbOffset {
+	int range = self.mffMax - self.mffMin;
+	return range > 0 ? ([self mffLength] - [self mffThumbLength]) * (self.mffPos - self.mffMin) / range : 0;
+}
+- (void)mffUserPosition:(int)value {
+	value = MAX(self.mffMin, MIN(value, self.mffMax));
+	if (value == self.mffPos) return;
+	self.mffPos = value;
+	[self setNeedsDisplay:YES];
+	void *ctrl = mffGetCtrl(self);
+	if (ctrl) mffOnChange(ctrl, value);
+}
+- (void)mffPress:(CGFloat)a {
+	CGFloat off = [self mffThumbOffset];
+	if (a >= off && a <= off + [self mffThumbLength]) { self.mffGrab = a - off; self.mffDragging = YES; return; }
+	self.mffDragging = NO;
+	int step = self.mffPage > 0 ? self.mffPage : 1;
+	[self mffUserPosition:self.mffPos + (a < off ? -step : step)];
+}
+- (void)mffDrag:(CGFloat)a {
+	CGFloat free = [self mffLength] - [self mffThumbLength];
+	if (self.mffDragging && free > 0) [self mffUserPosition:self.mffMin + (int)lround((a - self.mffGrab) / free * (self.mffMax - self.mffMin))];
+}
+- (CGFloat)mffAxis:(NSEvent *)e {
+	NSPoint p = [self convertPoint:[e locationInWindow] fromView:nil];
+	return [self mffVertical] ? p.y : p.x;
+}
+- (void)mouseDown:(NSEvent *)e { [self mffPress:[self mffAxis:e]]; }
+- (void)mouseDragged:(NSEvent *)e { [self mffDrag:[self mffAxis:e]]; }
+- (void)drawRect:(NSRect)r {
+	[[NSColor controlBackgroundColor] setFill];
+	NSRectFill(self.bounds);
+	if (self.mffMax <= self.mffMin) return;
+	NSRect t = [self mffVertical] ? NSMakeRect(0, [self mffThumbOffset], self.bounds.size.width, [self mffThumbLength]) : NSMakeRect([self mffThumbOffset], 0, [self mffThumbLength], self.bounds.size.height);
+	t = NSInsetRect(t, 3, 3);
+	CGFloat radius = MIN(t.size.width, t.size.height) / 2;
+	[[[NSColor labelColor] colorWithAlphaComponent:0.35] setFill];
+	[[NSBezierPath bezierPathWithRoundedRect:t xRadius:radius yRadius:radius] fill];
+}
+@end
+
 @interface MffGroupView : MffView
 @property (nonatomic, copy) NSString *mffTitle;
 @end
@@ -562,7 +620,11 @@ void *mffViewCreate(const char *kind, void *ctrl) {
 		[p setMinValue:0];
 		[p setMaxValue:100];
 		obj = p;
-	} else if ([k isEqualToString:@"TrackBar"] || [k isEqualToString:@"HScrollBar"] || [k isEqualToString:@"VScrollBar"] || [k isEqualToString:@"ScrollBarControl"]) {
+	} else if ([k isEqualToString:@"HScrollBar"] || [k isEqualToString:@"VScrollBar"] || [k isEqualToString:@"ScrollBarControl"]) {
+		MffScrollBar *s = [[MffScrollBar alloc] initWithFrame:r];
+		s.mffMax = 10;
+		obj = s;
+	} else if ([k isEqualToString:@"TrackBar"]) {
 		NSSlider *s = [[NSSlider alloc] initWithFrame:r];
 		[s setMinValue:0];
 		[s setMaxValue:10];
@@ -891,6 +953,12 @@ void mffRangeSet(void *view, int minValue, int maxValue) {
 	if ([o isKindOfClass:[NSProgressIndicator class]]) { [(NSProgressIndicator *)o setMinValue:minValue]; [(NSProgressIndicator *)o setMaxValue:maxValue]; }
 	else if ([o isKindOfClass:[NSSlider class]]) { [(NSSlider *)o setMinValue:minValue]; [(NSSlider *)o setMaxValue:maxValue]; }
 	else if ([o isKindOfClass:[NSStepper class]]) { [(NSStepper *)o setMinValue:minValue]; [(NSStepper *)o setMaxValue:maxValue]; }
+	else if ([o isKindOfClass:[MffScrollBar class]]) { MffScrollBar *b = o; b.mffMin = minValue; b.mffMax = maxValue; b.mffPos = MAX(minValue, MIN(b.mffPos, maxValue)); [b setNeedsDisplay:YES]; }
+}
+
+void mffScrollPageSet(void *view, int page) {
+	id o = mffObj(view);
+	if ([o isKindOfClass:[MffScrollBar class]]) { ((MffScrollBar *)o).mffPage = page; [(NSView *)o setNeedsDisplay:YES]; }
 }
 
 void mffPositionSet(void *view, int value) {
@@ -899,6 +967,7 @@ void mffPositionSet(void *view, int value) {
 	else if ([o isKindOfClass:[NSProgressIndicator class]]) [(NSProgressIndicator *)o setDoubleValue:value];
 	else if ([o isKindOfClass:[NSSlider class]]) [(NSSlider *)o setIntValue:value];
 	else if ([o isKindOfClass:[NSStepper class]]) [(NSStepper *)o setIntValue:value];
+	else if ([o isKindOfClass:[MffScrollBar class]]) { ((MffScrollBar *)o).mffPos = value; [(NSView *)o setNeedsDisplay:YES]; }
 }
 
 int mffPositionGet(void *view) {
@@ -907,6 +976,7 @@ int mffPositionGet(void *view) {
 	if ([o isKindOfClass:[NSProgressIndicator class]]) return (int)[(NSProgressIndicator *)o doubleValue];
 	if ([o isKindOfClass:[NSSlider class]]) return [(NSSlider *)o intValue];
 	if ([o isKindOfClass:[NSStepper class]]) return [(NSStepper *)o intValue];
+	if ([o isKindOfClass:[MffScrollBar class]]) return ((MffScrollBar *)o).mffPos;
 	return 0;
 }
 

@@ -192,6 +192,11 @@ Namespace My.Sys.Forms
 				If FHandle Then SetAttribute(FHandle, "data-page", Str(Value)): ..SetRange(FHandle, FMin, FMax)
 			End If
 			Exit Property
+		#elseif defined(__USE_APPLE__)
+			'The thumb of the scroll bar has the size of the page
+			FPageSize = Value
+			If FHandle Then mffScrollPageSet(FHandle, Value)
+			Exit Property
 		#endif
 		If FPageSize > FMax Or Value = FPageSize Then Exit Property
 		FPageSize = Value
@@ -230,6 +235,9 @@ Namespace My.Sys.Forms
 						'Web: the scroll bar of the browser (like the ones of the other controls) over the range (SETRANGE)
 						SetAttribute(.FHandle, "data-scrollbar", IIf(.FStyle = sbVertical, "v", "h"))
 						If .FPageSize > 0 Then SetAttribute(.FHandle, "data-page", Str(.FPageSize))
+					#endif
+					#ifdef __USE_APPLE__
+						mffScrollPageSet(.FHandle, .FPageSize)
 					#endif
 					..SetRange(.FHandle, .FMin, .FMax)
 					SetPosition(.FHandle, .FPosition)

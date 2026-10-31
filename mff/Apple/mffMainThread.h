@@ -35,6 +35,7 @@
 #define mffListSetIndex real_mffListSetIndex
 #define mffRangeSet real_mffRangeSet
 #define mffPositionSet real_mffPositionSet
+#define mffScrollPageSet real_mffScrollPageSet
 #define mffPositionGet real_mffPositionGet
 #define mffFormShow real_mffFormShow
 #define mffFormHide real_mffFormHide
@@ -143,6 +144,7 @@
 #undef mffListSetIndex
 #undef mffRangeSet
 #undef mffPositionSet
+#undef mffScrollPageSet
 #undef mffPositionGet
 #undef mffFormShow
 #undef mffFormHide
@@ -250,6 +252,7 @@ int mffListGetIndex(void *view) { if ([NSThread isMainThread]) return real_mffLi
 void mffListSetIndex(void *view, int index) { if ([NSThread isMainThread]) real_mffListSetIndex(view, index); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffListSetIndex(view, index); }); }
 void mffRangeSet(void *view, int minValue, int maxValue) { if ([NSThread isMainThread]) real_mffRangeSet(view, minValue, maxValue); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffRangeSet(view, minValue, maxValue); }); }
 void mffPositionSet(void *view, int value) { if ([NSThread isMainThread]) real_mffPositionSet(view, value); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffPositionSet(view, value); }); }
+void mffScrollPageSet(void *view, int page) { if ([NSThread isMainThread]) real_mffScrollPageSet(view, page); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffScrollPageSet(view, page); }); }
 int mffPositionGet(void *view) { if ([NSThread isMainThread]) return real_mffPositionGet(view); __block int r_; dispatch_sync(dispatch_get_main_queue(), ^{ r_ = real_mffPositionGet(view); }); return r_; }
 void mffFormShow(void *view, int modal) { if ([NSThread isMainThread]) real_mffFormShow(view, modal); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffFormShow(view, modal); }); }
 void mffFormHide(void *view) { if ([NSThread isMainThread]) real_mffFormHide(view); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffFormHide(view); }); }

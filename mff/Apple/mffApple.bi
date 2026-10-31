@@ -64,6 +64,7 @@ Extern "C"
 	'ProgressBar, TrackBar, ScrollBar
 	Declare Sub mffRangeSet(ByVal Id As Any Ptr, ByVal MinValue As Long, ByVal MaxValue As Long)
 	Declare Sub mffPositionSet(ByVal Id As Any Ptr, ByVal Value As Long)
+	Declare Sub mffScrollPageSet(ByVal Id As Any Ptr, ByVal PageSize As Long)
 	Declare Function mffPositionGet(ByVal Id As Any Ptr) As Long
 
 	'Forms. Modal: the host runs a nested loop until mffFormHide of the form (Form.ShowModal)
