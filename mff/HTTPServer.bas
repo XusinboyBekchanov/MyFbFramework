@@ -416,6 +416,10 @@ Namespace My.Sys.Forms
 				End If
 			#endif
 
+			#ifdef __USE_COCOA__
+				'A browser which closed the connection would end the program with SIGPIPE (SIG_IGN)
+				signal_(13, Cast(Any Ptr, 1))
+			#endif
 			' create a socket for listening
 			_socket = opensocket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
 			If (_socket = INVALID_SOCKET) Then
@@ -437,6 +441,9 @@ Namespace My.Sys.Forms
 			Dim sa As SOCKADDR_IN
 			sa.sin_port         = htons(Port)
 			sa.sin_family       = AF_INET
+			#ifdef __USE_COCOA__
+				sa.sin_len = SizeOf(sa)
+			#endif
 			'Address: 127.0.0.1 (the default) - only this computer can connect, "" or 0.0.0.0 - every network interface
 			sa.sin_addr.s_addr  = IIf(Address = "" OrElse Address = "0.0.0.0", INADDR_ANY, inet_addr(Address))
 			'The port is used by another program: the socket is closed, Run can be called again

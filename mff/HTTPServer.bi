@@ -6,8 +6,51 @@
 
 #include once "Object.bi"
 #include once "Dictionary.bi"
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-	'Web and Android: the program has no sockets to listen to
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_UIKIT__)
+	'Web, Android and iOS: the program has no sockets to listen to
+#elseif defined(__USE_COCOA__)
+	'macOS: the headers of FreeBASIC have no sockets of Darwin
+	#define __MFF_HTTPSERVER_SOCKETS__
+	#include once "fbthread.bi"
+	Type SOCKET As Long
+	Type socklen_t As ULong
+	Type in_addr_mff
+		s_addr As ULong
+	End Type
+	Type SOCKADDR_IN
+		sin_len As UByte
+		sin_family As UByte
+		sin_port As UShort
+		sin_addr As in_addr_mff
+		sin_zero(7) As UByte
+	End Type
+	Type PSOCKADDR As SOCKADDR_IN Ptr
+	Extern "C"
+		Declare Function socket_ Alias "socket"(ByVal Domain As Long, ByVal SocketType As Long, ByVal Protocol As Long) As Long
+		Declare Function bind Alias "bind"(ByVal Fd As Long, ByVal Address As Any Ptr, ByVal AddressLength As ULong) As Long
+		Declare Function listen Alias "listen"(ByVal Fd As Long, ByVal Backlog As Long) As Long
+		Declare Function accept Alias "accept"(ByVal Fd As Long, ByVal Address As Any Ptr, ByVal AddressLength As ULong Ptr) As Long
+		Declare Function recv Alias "recv"(ByVal Fd As Long, ByVal Buffer As Any Ptr, ByVal Length As UInteger, ByVal Flags As Long) As Integer
+		Declare Function send Alias "send"(ByVal Fd As Long, ByVal Buffer As Any Ptr, ByVal Length As UInteger, ByVal Flags As Long) As Integer
+		Declare Function shutdown Alias "shutdown"(ByVal Fd As Long, ByVal How As Long) As Long
+		Declare Function closesocket Alias "close"(ByVal Fd As Long) As Long
+		Declare Function setsockopt Alias "setsockopt"(ByVal Fd As Long, ByVal Level As Long, ByVal OptName As Long, ByVal OptValue As Any Ptr, ByVal OptLength As ULong) As Long
+		Declare Function inet_addr Alias "inet_addr"(ByVal Address As Const ZString Ptr) As ULong
+		Declare Function signal_ Alias "signal"(ByVal SigNum As Long, ByVal Handler As Any Ptr) As Any Ptr
+	End Extern
+	#define opensocket socket_
+	#define htons(x) ((((x) And &hFF) Shl 8) Or (((x) Shr 8) And &hFF))
+	#define AF_INET 2
+	#define SOCK_STREAM 1
+	#define IPPROTO_TCP 6
+	#define SOL_SOCKET &hFFFF
+	#define SO_REUSEADDR 4
+	#define SOMAXCONN 128
+	#define INADDR_ANY 0
+	#define INVALID_SOCKET (-1)
+	#define SOCKET_ERROR (-1)
+	'SIGPIPE is ignored (HTTPServer.Run): macOS has no MSG_NOSIGNAL
+	#define HTTPServerSendFlags 0
 #elseif defined(__FB_WIN32__)
 	'Windows (WinAPI and GTK): Winsock
 	#define __MFF_HTTPSERVER_SOCKETS__

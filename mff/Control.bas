@@ -3069,6 +3069,9 @@ Namespace My.Sys.Forms
 		End Function
 		
 		Private Sub Control.Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
+			#ifdef __USE_APPLE__
+				Dim As Integer OldWidth = FWidth, OldHeight = FHeight
+			#endif
 			Base.Move IIf(FDesignMode AndAlso (Designer = @This), 0, IIf(Constraints.Left, Constraints.Left, cLeft)), IIf(FDesignMode AndAlso (Designer = @This), 0, IIf(Constraints.Top, Constraints.Top, cTop)), IIf(Constraints.Width, Constraints.Width, cWidth), IIf(Constraints.Height, Constraints.Height, cHeight)
 			#ifdef __USE_WASM__
 				'The size of the main form is the one of the browser window (ONRESIZE). A docked control gets the bounds of
@@ -3083,6 +3086,13 @@ Namespace My.Sys.Forms
 						If ControlCount > 0 Then RequestAlign
 						If OnResize Then OnResize(*Designer, This, FWidth, FHeight)
 					End If
+				End If
+			#endif
+			#ifdef __USE_APPLE__
+				'Like WM_SIZE of Windows: the docked and anchored controls follow the new size
+				If FHandle <> 0 AndAlso (FWidth <> OldWidth OrElse FHeight <> OldHeight) Then
+					If ControlCount > 0 Then RequestAlign
+					If OnResize Then OnResize(*Designer, This, FWidth, FHeight)
 				End If
 			#endif
 			#ifdef __USE_GTK__

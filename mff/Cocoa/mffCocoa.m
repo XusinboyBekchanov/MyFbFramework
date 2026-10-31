@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "../Apple/mffMainThread.h"
 #include "../Apple/mffApple.h"
 
 static char kMffCtrlKey;
@@ -1832,3 +1833,6 @@ void mffPagesPrint(void **pages, int count, const char *name) {
 	[op setJobTitle:mffStr(name)];
 	[op runOperation];
 }
+
+#define MFF_MAIN_THREAD_WRAPPERS
+#include "../Apple/mffMainThread.h"

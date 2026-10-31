@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "../Apple/mffMainThread.h"
 #include "../Apple/mffApple.h"
 
 static char kMffCtrlKey, kMffItemsKey, kMffChecksKey, kMffFileViewKey;
@@ -65,6 +66,7 @@ static UIViewController *mffTopController(void) {
 @interface MffView : UIView
 @property (nonatomic, strong) UIImage *mffImage;
 @property (nonatomic) BOOL mffImageCenter, mffModal, mffModalDone, mffIsForm;
+@property (nonatomic) CGSize mffDesignSize;
 @end
 
 @implementation MffView
@@ -427,7 +429,11 @@ void mffViewAddChild(void *parent, void *child) {
 void mffViewSetBounds(void *view, int x, int y, int w, int h) {
 	UIView *v = mffView(view);
 	/* A form has the size of the screen */
-	if (!v || ([v isKindOfClass:[MffView class]] && ((MffView *)v).mffIsForm)) return;
+	if (v && [v isKindOfClass:[MffView class]] && ((MffView *)v).mffIsForm) {
+		((MffView *)v).mffDesignSize = CGSizeMake(w, h);
+		return;
+	}
+	if (!v) return;
 	CGRect f = CGRectMake(x, y, w, h);
 	if (!CGRectEqualToRect(f, v.frame)) v.frame = f;
 }
@@ -660,9 +666,10 @@ void mffFormShow(void *view, int modal) {
 	}
 	if (!v.superview) {
 		UIView *root = mffMainWindow.rootViewController.view;
-		v.frame = root.safeAreaLayoutGuide.layoutFrame;
 		[root addSubview:v];
 		if (!mffMainFormView) mffMainFormView = v;
+		[root setNeedsLayout];
+		[root layoutIfNeeded];
 		void *ctrl = mffGetCtrl(v);
 		if (ctrl) mffOnResize(ctrl, (int)v.bounds.size.width, (int)v.bounds.size.height);
 	}
@@ -703,8 +710,17 @@ int mffScreenSize(int vertical) {
 @end
 
 @implementation MffRootController
+/* A form fills the safe area; a form designed wider than the screen is scaled down, not cut (a form of the desktop stays
+   readable: not smaller than 60 %) */
 - (void)mffLayoutForms {
-	for (UIView *v in self.view.subviews) v.frame = self.view.safeAreaLayoutGuide.layoutFrame;
+	CGRect a = self.view.safeAreaLayoutGuide.layoutFrame;
+	for (UIView *v in self.view.subviews) {
+		CGFloat design = [v isKindOfClass:[MffView class]] ? ((MffView *)v).mffDesignSize.width : 0;
+		CGFloat s = (design > a.size.width && a.size.width > 0) ? MAX(a.size.width / design, 0.6) : 1;
+		v.transform = CGAffineTransformMakeScale(s, s);
+		v.bounds = CGRectMake(0, 0, a.size.width / s, a.size.height / s);
+		v.center = CGPointMake(CGRectGetMidX(a), CGRectGetMidY(a));
+	}
 }
 - (void)viewSafeAreaInsetsDidChange {
 	[super viewSafeAreaInsetsDidChange];
@@ -1324,3 +1340,6 @@ int mffColorDialog(const char *caption, int colorValue) {
 	if (!p.color || ![p.color getRed:&r green:&g blue:&b alpha:&al]) return -1;
 	return ((int)lround(r * 255)) | ((int)lround(g * 255) << 8) | ((int)lround(b * 255) << 16);
 }
+
+#define MFF_MAIN_THREAD_WRAPPERS
+#include "../Apple/mffMainThread.h"
