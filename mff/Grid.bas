@@ -2761,6 +2761,8 @@ Namespace My.Sys.Forms
 				.ForeColor = IIf(g_darkModeEnabled, darkTextColor, Font.Color)
 				.RegisterClass "Grid", WC_LISTVIEW
 				WLet(FClassAncestor, WC_LISTVIEW)
+			#elseif defined(__USE_APPLE__)
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "table")
 				FElementStyle = "border-collapse: collapse;"

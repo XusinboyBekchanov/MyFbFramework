@@ -2809,6 +2809,8 @@ Namespace My.Sys.Forms
 				.Style             = WS_CHILD Or WS_TABSTOP Or WS_VISIBLE Or LVS_REPORT Or LVS_SINGLESEL Or LVS_OWNERDRAWFIXED 'Or LVS_SHOWSELALWAYS OR LVS_EDITLABELS OR LVS_EX_DOUBLEBUFFER
 				.DoubleBuffered = True
 				WLet(FClassAncestor, WC_LISTVIEW)
+			#elseif defined(__USE_APPLE__)
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "table")
 				FElementStyle = "border: 1px solid var(--mff-border, #aaa); background: var(--mff-window, white);"

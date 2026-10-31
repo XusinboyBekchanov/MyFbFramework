@@ -320,6 +320,8 @@ Namespace My.Sys.Forms
 				.ExStyle      = 0
 				.ChildProc    = @WndProc
 				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_APPLE__)
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "mff:CalendarView")
 				.OnHandleIsAllocated = @HandleIsAllocated

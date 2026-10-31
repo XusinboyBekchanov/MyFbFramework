@@ -211,6 +211,8 @@ Namespace My.Sys.Forms
 					If .Graphic.Bitmap.Handle <> "" Then LoadImage(.FHandle, .Graphic.Bitmap.Handle, .FCenterImage)
 					#elseif defined(__USE_JNI__)
 					If .Graphic.Bitmap.ToString <> "" Then LoadImage(.FHandle, ToUtf8(.Graphic.Bitmap.ToString), .FCenterImage)
+					#elseif defined(__USE_APPLE__)
+					If .Graphic.Bitmap.Handle <> "" Then LoadImage(.FHandle, ToUtf8(.Graphic.Bitmap.Handle), .FCenterImage)
 					#endif
 				End With
 			End If
@@ -309,6 +311,8 @@ Namespace My.Sys.Forms
 				FDefaultBackColor = .BackColor
 				.OnHandleIsAllocated = @HandleIsAllocated
 				WLet(FClassAncestor, "Static")
+			#elseif defined(__USE_APPLE__)
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "div")
 				.OnHandleIsAllocated = @HandleIsAllocated

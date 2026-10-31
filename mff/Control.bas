@@ -3608,7 +3608,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_WINAPI__
 				' A request of a rescale (no given client size, not a part of a running layout) is
 				'only noted: the outermost rescale lays out every noted container once at its end
-				If DpiPass > 0 AndAlso iClientWidth = -1 AndAlso iClientHeight = -1 AndAlso bInDraw = False Then
+				If CBool(DpiPass > 0) AndAlso CBool(iClientWidth = -1) AndAlso CBool(iClientHeight = -1) AndAlso CBool(bInDraw = False) Then
 					For i As Integer = 0 To DpiPendingCount - 1
 						If DpiPending[i] = @This Then Exit Sub
 					Next

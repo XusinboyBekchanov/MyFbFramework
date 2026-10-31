@@ -341,6 +341,14 @@ Namespace My.Sys.Forms
 					SetInnerText(FHandle, ToUtf8(Replace(*ss, !"	", "  |  ")))
 				End If
 			End If
+		#elseif defined(__USE_APPLE__)
+			If FHandle Then
+				If FSimplePanel OrElse Count = 0 Then
+					mffViewSetText(FHandle, ToUtf8(IIf(FSimplePanel, IIf(FSimpleText, *FSimpleText, ""), IIf(FText, *FText, ""))))
+				Else
+					mffViewSetText(FHandle, ToUtf8(Replace(*ss, !"	", "  |  ")))
+				End If
+			End If
 		#endif
 		Invalidate
 		WDeAllocate(s)
@@ -557,6 +565,8 @@ Namespace My.Sys.Forms
 			#ifdef __USE_WASM__
 				WLet(FClassAncestor, "div")
 				FElementStyle = "border-top: 1px solid var(--mff-border, #aaa); overflow: hidden; white-space: nowrap;"
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_APPLE__)
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "android/widget/TextView")

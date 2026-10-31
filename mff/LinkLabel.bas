@@ -176,6 +176,8 @@ Namespace My.Sys.Forms
 				.Style        = WS_CHILD
 				.ChildProc    = @WndProc
 				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_APPLE__)
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "div")
 				'The lines of the text are kept (CR LF like the SysLink of Windows), the markup is HTML

@@ -1080,6 +1080,8 @@ Namespace My.Sys.Forms
 				.BackColor             = GetSysColor(COLOR_BTNFACE)
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.DoubleBuffered = True
+			#elseif defined(__USE_APPLE__)
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "div")
 				.OnHandleIsAllocated = @HandleIsAllocated

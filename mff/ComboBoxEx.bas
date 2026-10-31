@@ -901,6 +901,8 @@ Namespace My.Sys.Forms
 			#ifdef __USE_WASM__
 				WLet(FClassAncestor, "select")
 				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_APPLE__)
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "android/widget/Spinner")
 				.OnHandleIsAllocated = @HandleIsAllocated

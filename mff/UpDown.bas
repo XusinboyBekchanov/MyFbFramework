@@ -529,6 +529,10 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.Width             = 40
 				.Height            = 24
+			#elseif defined(__USE_APPLE__)
+				.OnHandleIsAllocated = @HandleIsAllocated
+				.Width             = 40
+				.Height            = 24
 			#elseif defined(__USE_JNI__)
 				'The number and the arrows like the ones of Windows (mffActivity.MffSpinBox)
 				WLet(FClassAncestor, "mff:NumberPicker")

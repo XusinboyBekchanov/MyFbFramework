@@ -1378,6 +1378,8 @@ Namespace My.Sys.Forms
 				.ExStyle      = WS_EX_CLIENTEDGE
 				.ChildProc    = @WndProc
 				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_APPLE__)
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "iframe")
 				FElementStyle = "border: 1px solid var(--mff-border, #aaa);"

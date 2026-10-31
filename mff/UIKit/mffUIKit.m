@@ -246,6 +246,10 @@ static NSString *mffCellText(NSString *s) {
 	void *ctrl = mffGetCtrl(s);
 	if (ctrl) mffOnChange(ctrl, (int)lround(s.value));
 }
+- (void)stepperChanged:(UIStepper *)s {
+	void *ctrl = mffGetCtrl(s);
+	if (ctrl) mffOnChange(ctrl, (int)lround(s.value));
+}
 - (void)textChanged:(UITextField *)f {
 	void *ctrl = mffGetCtrl(f);
 	if (ctrl) mffOnChange(ctrl, 0);
@@ -335,11 +339,15 @@ void *mffViewCreate(const char *kind, void *ctrl) {
 		[b mffUpdate];
 		[b addTarget:t action:@selector(buttonTap:) forControlEvents:UIControlEventTouchUpInside];
 		obj = b;
-	} else if ([k isEqualToString:@"Label"] || [k isEqualToString:@"LinkLabel"]) {
+	} else if ([k isEqualToString:@"UpDown"]) {
+		UIStepper *s = [[UIStepper alloc] initWithFrame:r];
+		[s addTarget:t action:@selector(stepperChanged:) forControlEvents:UIControlEventValueChanged];
+		obj = s;
+	} else if ([k isEqualToString:@"Label"] || [k isEqualToString:@"LinkLabel"] || [k isEqualToString:@"StatusBar"]) {
 		UILabel *l = [[UILabel alloc] initWithFrame:r];
 		l.numberOfLines = 0;
 		obj = l;
-	} else if ([k isEqualToString:@"TextBox"] || [k isEqualToString:@"ComboBox"]) {
+	} else if ([k isEqualToString:@"TextBox"] || [k isEqualToString:@"ComboBox"] || [k isEqualToString:@"DateTimePicker"] || [k isEqualToString:@"IPAddress"] || [k isEqualToString:@"HotKey"]) {
 		UITextField *f = [[UITextField alloc] initWithFrame:r];
 		f.borderStyle = UITextBorderStyleRoundedRect;
 		f.delegate = t;
@@ -386,7 +394,7 @@ void *mffViewCreate(const char *kind, void *ctrl) {
 	} else if ([k isEqualToString:@"ProgressBar"]) {
 		UIProgressView *p = [[UIProgressView alloc] initWithFrame:r];
 		obj = p;
-	} else if ([k isEqualToString:@"TrackBar"]) {
+	} else if ([k isEqualToString:@"TrackBar"] || [k isEqualToString:@"HScrollBar"] || [k isEqualToString:@"VScrollBar"] || [k isEqualToString:@"ScrollBarControl"]) {
 		UISlider *s = [[UISlider alloc] initWithFrame:r];
 		s.minimumValue = 0;
 		s.maximumValue = 10;
@@ -608,6 +616,7 @@ static char kMffMinKey, kMffMaxKey;
 void mffRangeSet(void *view, int minValue, int maxValue) {
 	id o = mffObj(view);
 	if ([o isKindOfClass:[UISlider class]]) { [(UISlider *)o setMinimumValue:minValue]; [(UISlider *)o setMaximumValue:maxValue]; }
+	else if ([o isKindOfClass:[UIStepper class]]) { [(UIStepper *)o setMinimumValue:minValue]; [(UIStepper *)o setMaximumValue:maxValue]; }
 	else if ([o isKindOfClass:[UIProgressView class]]) {
 		objc_setAssociatedObject(o, &kMffMinKey, @(minValue), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 		objc_setAssociatedObject(o, &kMffMaxKey, @(maxValue), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
@@ -616,6 +625,7 @@ void mffRangeSet(void *view, int minValue, int maxValue) {
 void mffPositionSet(void *view, int value) {
 	id o = mffObj(view);
 	if ([o isKindOfClass:[UISlider class]]) [(UISlider *)o setValue:value];
+	else if ([o isKindOfClass:[UIStepper class]]) [(UIStepper *)o setValue:value];
 	else if ([o isKindOfClass:[MffTabsView class]]) ((MffTabsView *)o).segments.selectedSegmentIndex = value;
 	else if ([o isKindOfClass:[UIProgressView class]]) {
 		int lo = [objc_getAssociatedObject(o, &kMffMinKey) intValue];
@@ -627,6 +637,7 @@ void mffPositionSet(void *view, int value) {
 int mffPositionGet(void *view) {
 	id o = mffObj(view);
 	if ([o isKindOfClass:[UISlider class]]) return (int)lround([(UISlider *)o value]);
+	if ([o isKindOfClass:[UIStepper class]]) return (int)lround([(UIStepper *)o value]);
 	if ([o isKindOfClass:[MffTabsView class]]) return (int)((MffTabsView *)o).segments.selectedSegmentIndex;
 	if ([o isKindOfClass:[UIProgressView class]]) {
 		int lo = [objc_getAssociatedObject(o, &kMffMinKey) intValue];
@@ -1092,6 +1103,8 @@ void mffCanvasImage(const char *path, double x, double y, double w, double h, in
 
 /* The runtime of FreeBASIC for iOS: its console needs the terminal functions, a program of iOS has no terminal.
    system() is not allowed there (Apple/patch-fbc-rtlib.sh) */
+char PC;
+char *BC, *UP;
 int tgetent(char *bp, const char *name) { (void)bp; (void)name; return -1; }
 int tgetflag(const char *id) { (void)id; return 0; }
 int tgetnum(const char *id) { (void)id; return -1; }

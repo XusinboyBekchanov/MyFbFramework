@@ -314,6 +314,8 @@ Namespace My.Sys.Forms
 				WLet(FClassAncestor, "input")
 				FType = "range"
 				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_APPLE__)
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "mff:SeekBar")
 				.OnHandleIsAllocated = @HandleIsAllocated

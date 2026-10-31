@@ -1410,6 +1410,8 @@ Namespace My.Sys.Forms
 				.BackColor       = GetSysColor(COLOR_WINDOW) 'David Change
 				FDefaultBackColor = .BackColor
 				.DoubleBuffered = True
+			#elseif defined(__USE_APPLE__)
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_WASM__)
 				'A tree without the lines of a table (table.mfftree of mff.html)
 				FElementStyle = "overflow: auto; border: 1px solid var(--mff-border, #aaa); background: var(--mff-window, white);"

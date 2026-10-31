@@ -265,8 +265,8 @@ static NSMutableArray<NSString *> *mffItems(id table) {
 - (void)action:(id)sender {
 	void *ctrl = mffGetCtrl(sender);
 	if (!ctrl) return;
-	if ([sender isKindOfClass:[NSPopUpButton class]] || [sender isKindOfClass:[NSSlider class]]) {
-		mffOnChange(ctrl, [sender isKindOfClass:[NSSlider class]] ? [sender intValue] : (int)[sender indexOfSelectedItem]);
+	if ([sender isKindOfClass:[NSPopUpButton class]] || [sender isKindOfClass:[NSSlider class]] || [sender isKindOfClass:[NSStepper class]]) {
+		mffOnChange(ctrl, [sender isKindOfClass:[NSPopUpButton class]] ? (int)[sender indexOfSelectedItem] : [sender intValue]);
 		return;
 	}
 	mffOnClick(ctrl);
@@ -479,13 +479,20 @@ void *mffViewCreate(const char *kind, void *ctrl) {
 		[b setTarget:t];
 		[b setAction:@selector(action:)];
 		obj = b;
-	} else if ([k isEqualToString:@"Label"] || [k isEqualToString:@"LinkLabel"]) {
+	} else if ([k isEqualToString:@"UpDown"]) {
+		NSStepper *s = [[NSStepper alloc] initWithFrame:r];
+		[s setMinValue:0];
+		[s setMaxValue:100];
+		[s setTarget:t];
+		[s setAction:@selector(action:)];
+		obj = s;
+	} else if ([k isEqualToString:@"Label"] || [k isEqualToString:@"LinkLabel"] || [k isEqualToString:@"StatusBar"]) {
 		NSTextField *f = [NSTextField labelWithString:@""];
 		[f setFrame:r];
 		[[f cell] setWraps:YES];
 		[f setLineBreakMode:NSLineBreakByWordWrapping];
 		obj = f;
-	} else if ([k isEqualToString:@"TextBox"]) {
+	} else if ([k isEqualToString:@"TextBox"] || [k isEqualToString:@"DateTimePicker"] || [k isEqualToString:@"IPAddress"] || [k isEqualToString:@"HotKey"]) {
 		NSTextField *f = [[NSTextField alloc] initWithFrame:r];
 		[f setDelegate:t];
 		[[f cell] setScrollable:YES];
@@ -553,7 +560,7 @@ void *mffViewCreate(const char *kind, void *ctrl) {
 		[p setMinValue:0];
 		[p setMaxValue:100];
 		obj = p;
-	} else if ([k isEqualToString:@"TrackBar"]) {
+	} else if ([k isEqualToString:@"TrackBar"] || [k isEqualToString:@"HScrollBar"] || [k isEqualToString:@"VScrollBar"] || [k isEqualToString:@"ScrollBarControl"]) {
 		NSSlider *s = [[NSSlider alloc] initWithFrame:r];
 		[s setMinValue:0];
 		[s setMaxValue:10];
@@ -881,6 +888,7 @@ void mffRangeSet(void *view, int minValue, int maxValue) {
 	id o = mffObj(view);
 	if ([o isKindOfClass:[NSProgressIndicator class]]) { [(NSProgressIndicator *)o setMinValue:minValue]; [(NSProgressIndicator *)o setMaxValue:maxValue]; }
 	else if ([o isKindOfClass:[NSSlider class]]) { [(NSSlider *)o setMinValue:minValue]; [(NSSlider *)o setMaxValue:maxValue]; }
+	else if ([o isKindOfClass:[NSStepper class]]) { [(NSStepper *)o setMinValue:minValue]; [(NSStepper *)o setMaxValue:maxValue]; }
 }
 
 void mffPositionSet(void *view, int value) {
@@ -888,6 +896,7 @@ void mffPositionSet(void *view, int value) {
 	if ([o isKindOfClass:[MffTabsView class]]) { if (value >= 0 && value < [((MffTabsView *)o).segments segmentCount]) [((MffTabsView *)o).segments setSelectedSegment:value]; }
 	else if ([o isKindOfClass:[NSProgressIndicator class]]) [(NSProgressIndicator *)o setDoubleValue:value];
 	else if ([o isKindOfClass:[NSSlider class]]) [(NSSlider *)o setIntValue:value];
+	else if ([o isKindOfClass:[NSStepper class]]) [(NSStepper *)o setIntValue:value];
 }
 
 int mffPositionGet(void *view) {
@@ -895,6 +904,7 @@ int mffPositionGet(void *view) {
 	if ([o isKindOfClass:[MffTabsView class]]) return (int)[((MffTabsView *)o).segments selectedSegment];
 	if ([o isKindOfClass:[NSProgressIndicator class]]) return (int)[(NSProgressIndicator *)o doubleValue];
 	if ([o isKindOfClass:[NSSlider class]]) return [(NSSlider *)o intValue];
+	if ([o isKindOfClass:[NSStepper class]]) return [(NSStepper *)o intValue];
 	return 0;
 }
 

@@ -2,6 +2,8 @@
    The functions are in UIKit/mffUIKit.m */
 #ifndef MFF_TERMCAP_H
 #define MFF_TERMCAP_H
+extern char PC;
+extern char *BC, *UP;
 int tgetent(char *bp, const char *name);
 int tgetflag(const char *id);
 int tgetnum(const char *id);

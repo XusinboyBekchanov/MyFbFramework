@@ -216,6 +216,10 @@ Namespace My.Sys.Forms
 					gtk_entry_buffer_set_text(gtk_entry_get_buffer(GTK_ENTRY(widget)), ToUtf8(Format(Value, *FFormat)), -1)
 				#endif
 				If OnDateTimeChanged Then OnDateTimeChanged(*Designer, This)
+			#elseif defined(__USE_APPLE__)
+				'A text field with the date
+				mffViewSetText(FHandle, ToUtf8(Format(Value, *FFormat)))
+				If OnDateTimeChanged Then OnDateTimeChanged(*Designer, This)
 			#elseif defined(__USE_WINAPI__)
 				Dim As SYSTEMTIME pst
 				pst.wYear  = Year(Value)
@@ -241,6 +245,9 @@ Namespace My.Sys.Forms
 			#else
 				WLet(FText, WStr(*gtk_entry_get_text(GTK_ENTRY(widget))))
 			#endif
+			If FText = 0 Then Return "" Else Return *FText
+		#elseif defined(__USE_APPLE__)
+			If FHandle Then ReadElementValue(FHandle, FText)
 			If FText = 0 Then Return "" Else Return *FText
 		#elseif defined(__USE_WASM__)
 			ReadElementValue(@This, FText)
@@ -1329,6 +1336,8 @@ Namespace My.Sys.Forms
 				.ExStyle      = 0 'WS_EX_LEFT OR WS_EX_LTRREADING OR WS_EX_RIGHTSCROLLBAR OR WS_EX_CLIENTEDGE
 				.Style        = WS_CHILD Or DTS_SHORTDATEFORMAT
 				.ChildProc    = @WndProc
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_APPLE__)
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "input")

@@ -441,6 +441,10 @@ Namespace My.Sys.Forms
 			'The pages are in the client element under the tab strip (SETTABS, mff_lib.js)
 			Base.SetMargins 0, 0, 0, 0
 			Exit Sub
+		#elseif defined(__USE_APPLE__)
+			'The strip of the tabs of the host is at the top or at the bottom
+			If FTabPosition = 3 Then Base.SetMargins 0, 0, 0, mffTabsStripHeight() Else Base.SetMargins 0, mffTabsStripHeight(), 0, 0
+			Exit Sub
 		#elseif defined(__USE_JNI__)
 			'The pages are beside the row of the tabs at its side (mffActivity.tabsSet)
 			Select Case FTabPosition
@@ -839,6 +843,8 @@ Namespace My.Sys.Forms
 				SetAttribute(FHandle, "data-tabpos", Str(FTabPosition))
 			#elseif defined(__USE_JNI__)
 				'The side of the row of the tabs (mffActivity.tabsSetPosition), before SetTabs makes it
+				SetTabsPosition(FHandle, FTabPosition)
+		#elseif defined(__USE_APPLE__)
 				SetTabsPosition(FHandle, FTabPosition)
 			#endif
 			Dim As UString Titles
@@ -1585,6 +1591,8 @@ Namespace My.Sys.Forms
 				WLet(FClassAncestor, "SysTabControl32")
 				.RegisterClass "TabControl", "SysTabControl32"
 				UpDownControl.Style = UpDownOrientation.udHorizontal
+			#elseif defined(__USE_APPLE__)
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "div")
 				FElementStyle = "border: 1px solid var(--mff-border, #aaa);"

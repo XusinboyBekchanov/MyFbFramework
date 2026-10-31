@@ -328,7 +328,11 @@ Namespace My.Sys.Forms
 		Private Sub CheckedListBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QCheckedListBox(Sender.Child)
-					#ifdef __USE_JNI__
+					#ifdef __USE_APPLE__
+						For i As Integer = 0 To .Items.Count - 1
+							AddSelectItem(.FHandle, ToUtf8(.Items.Item(i)))
+						Next
+					#elseif defined(__USE_JNI__)
 						'Single choice shows radio buttons, multiple choice check boxes
 						ListInitMode(.FHandle, IIf(.FRadioCheck, 0, 1))
 						For i As Integer = 0 To .Items.Count - 1
@@ -467,6 +471,8 @@ Namespace My.Sys.Forms
 				.BackColor       = GetSysColor(COLOR_WINDOW)
 				.OnHandleIsAllocated = @HandleIsAllocated
 				.DoubleBuffered = True
+			#elseif defined(__USE_APPLE__)
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "div")
 				FElementStyle = "overflow: auto; border: 1px solid var(--mff-border, #aaa);"

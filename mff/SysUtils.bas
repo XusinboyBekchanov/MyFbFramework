@@ -1232,8 +1232,21 @@ End Namespace
 		If Id Then mffViewSetText(Id, Value)
 	End Sub
 	
+	'The text of a LinkLabel without its tags
 	Sub SetInnerHTML(Id As Any Ptr, Value As String)
-		'The content of the elements of the Web
+		If Id = 0 Then Exit Sub
+		Dim As String sText
+		Dim As Boolean InTag
+		For i As Integer = 0 To Len(Value) - 1
+			If Value[i] = Asc("<") Then
+				InTag = True
+			ElseIf Value[i] = Asc(">") Then
+				InTag = False
+			ElseIf Not InTag Then
+				sText &= Chr(Value[i])
+			End If
+		Next
+		mffViewSetText(Id, sText)
 	End Sub
 	
 	Sub SetAttribute(Id As Any Ptr, AttrName As String, Value As String)

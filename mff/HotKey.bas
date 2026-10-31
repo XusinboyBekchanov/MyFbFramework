@@ -311,6 +311,8 @@ Namespace My.Sys.Forms
 				.ExStyle      = 0
 				.ChildProc    = @WndProc
 				.OnHandleIsAllocated = @HandleIsAllocated
+			#elseif defined(__USE_APPLE__)
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_WASM__)
 				WLet(FClassAncestor, "input")
 				FType = "text"

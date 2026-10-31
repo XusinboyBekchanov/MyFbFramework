@@ -1296,7 +1296,7 @@ Namespace My.Sys.Forms
 				'xdpi = FDpiFormX
 				'ydpi = FDpiFormY
 				' In a rescale OnResize runs once, when the whole tree has the new scale
-				If OnResize AndAlso Not FDPIChanging Then OnResize(*Designer, This, This.Width, This.Height)
+				If CBool(OnResize <> 0) AndAlso CBool(Not FDPIChanging) Then OnResize(*Designer, This, This.Width, This.Height)
 				If Not IsIconic(FHandle) Then
 					'If Not FDPIChanging Then UpdateLock
 					'RequestAlign
