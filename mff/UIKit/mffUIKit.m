@@ -15,7 +15,7 @@
 
 static char kMffCtrlKey, kMffItemsKey, kMffChecksKey, kMffFileViewKey;
 static void mffFileViewChoose(id table, id owner, NSInteger row, BOOL activate);
-static BOOL mffSilent, mffRunning;
+static BOOL mffSilent, mffRunning, mffFormResizing;
 static int mffDblClick;
 static UIWindow *mffMainWindow;
 static UIView *mffMainFormView;
@@ -92,7 +92,12 @@ static UIViewController *mffTopController(void) {
 	[super layoutSubviews];
 	void *ctrl = mffGetCtrl(self);
 	/* The view of a form follows the size of the screen */
-	if (ctrl && self.mffIsForm) mffOnResize(ctrl, (int)self.bounds.size.width, (int)self.bounds.size.height);
+	if (ctrl && self.mffIsForm) {
+		/* The bounds which the form gets back are not the ones of its design */
+		mffFormResizing = YES;
+		mffOnResize(ctrl, (int)self.bounds.size.width, (int)self.bounds.size.height);
+		mffFormResizing = NO;
+	}
 }
 - (void)touch:(NSSet *)t action:(int)action {
 	void *ctrl = mffGetCtrl(self);
@@ -430,7 +435,7 @@ void mffViewSetBounds(void *view, int x, int y, int w, int h) {
 	UIView *v = mffView(view);
 	/* A form has the size of the screen */
 	if (v && [v isKindOfClass:[MffView class]] && ((MffView *)v).mffIsForm) {
-		((MffView *)v).mffDesignSize = CGSizeMake(w, h);
+		if (!mffFormResizing) ((MffView *)v).mffDesignSize = CGSizeMake(w, h);
 		return;
 	}
 	if (!v) return;

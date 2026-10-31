@@ -450,7 +450,7 @@ Namespace My.Sys.Forms
 			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				FPainting As Boolean
 			#endif
-			#ifdef __USE_WASM__
+			#if defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 				'The size which the element got the last time (Move): FWidth and FHeight are new already in Move
 				FElementWidth As Integer = -1
 				FElementHeight As Integer = -1
