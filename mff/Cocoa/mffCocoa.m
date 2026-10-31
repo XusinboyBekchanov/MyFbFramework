@@ -1258,7 +1258,8 @@ void mffButtonsSet(void *view, const char *items) {
 		NSSize s = [b frame].size;
 		s.width = MAX(s.width + 6, 24);
 		s.height = MAX(s.height + 4, 24);
-		if (x > 0 && width > 0 && x + s.width > width) { x = 0; y += rowHeight; rowHeight = 0; }
+		/* Only a tall view (ToolPalette) has more rows: a ToolBar gets its width after its buttons (ReBar) */
+		if (x > 0 && width > 0 && x + s.width > width && [v bounds].size.height >= s.height * 2) { x = 0; y += rowHeight; rowHeight = 0; }
 		[b setFrame:NSMakeRect(x, y, s.width, s.height)];
 		[v addSubview:b];
 		[v.buttons addObject:b];
