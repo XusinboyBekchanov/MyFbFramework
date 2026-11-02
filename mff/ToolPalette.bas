@@ -1018,7 +1018,7 @@ Namespace My.Sys.Forms
 							DeleteObject SeparatorPen
 							Message.Result = CDRF_DODEFAULT
 							Return
-						End Select
+				End Select
 					End If
 				End Select
 			Case CM_NEEDTEXT

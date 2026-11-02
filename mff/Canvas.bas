@@ -2278,11 +2278,365 @@ Namespace My.Sys.Drawing
 				' of a GpGraphics object
 				GdipGraphics = 0
 			End If
+			If hGdipPath <> 0 Then GdipDeletePath(hGdipPath)
+			hGdipPath = 0
 			Handle = 0
 		#endif
 		HandleSetted = False
 	End Sub
-	
+
+	'Path-based drawing (Windows: GDI+, GTK: cairo, WASM/JNI: mcairo).
+	'The Path* methods work in device (physical) pixels: no Canvas scale transform is
+	'applied, so a control that already scales its geometry can feed its coordinates in
+	'directly. Colors are passed the same way the control renders them on its platform
+	'(ARGB on Windows, the ShiftColor layout on GTK/WASM) and Opacity is 0..100.
+	Private Sub Canvas.PathStart()
+		#ifdef __USE_CAIRO__
+			cairo_new_path(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			mcairo_new_path(Handle)
+		#elseif defined(__USE_WINAPI__)
+			If hGdipPath <> 0 Then GdipDeletePath(hGdipPath)
+			hGdipPath = 0
+			GdipCreatePath(0, @hGdipPath)
+		#endif
+	End Sub
+
+	Private Sub Canvas.PathMoveTo(x As Double, y As Double)
+		#ifdef __USE_CAIRO__
+			cairo_move_to(Handle, x, y)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			mcairo_move_to(Handle, x, y)
+		#elseif defined(__USE_WINAPI__)
+			If hGdipPath = 0 Then GdipCreatePath(0, @hGdipPath)
+			GdipStartPathFigure(hGdipPath)
+			GdipAddPathLineI(hGdipPath, x, y, x, y)
+		#endif
+	End Sub
+
+	Private Sub Canvas.PathLineTo(x As Double, y As Double)
+		#ifdef __USE_CAIRO__
+			cairo_line_to(Handle, x, y)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			mcairo_line_to(Handle, x, y)
+		#elseif defined(__USE_WINAPI__)
+			If hGdipPath = 0 Then GdipCreatePath(0, @hGdipPath)
+			Dim pLast As GpPointF
+			If GdipGetPathLastPoint(hGdipPath, @pLast) = 0 Then
+				GdipAddPathLineI(hGdipPath, pLast.x, pLast.y, x, y)
+			Else
+				GdipAddPathLineI(hGdipPath, x, y, x, y)
+			End If
+		#endif
+	End Sub
+
+	Private Sub Canvas.PathArc(x As Double, y As Double, W As Double, H As Double, StartAngle As Double, SweepAngle As Double)
+		#ifdef __USE_CAIRO__
+			If W = 0 OrElse H = 0 Then Exit Sub
+			cairo_save(Handle)
+			cairo_translate(Handle, x + W / 2, y + H / 2)
+			cairo_scale(Handle, W / 2, H / 2)
+			If SweepAngle >= 0 Then
+				cairo_arc(Handle, 0, 0, 1, StartAngle * G_PI / 180, (StartAngle + SweepAngle) * G_PI / 180)
+			Else
+				cairo_arc_negative(Handle, 0, 0, 1, StartAngle * G_PI / 180, (StartAngle + SweepAngle) * G_PI / 180)
+			End If
+			cairo_restore(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If W = 0 OrElse H = 0 Then Exit Sub
+			If SweepAngle >= 0 Then
+				mcairo_arc(Handle, x + W / 2, y + H / 2, W / 2, StartAngle * G_PI / 180, (StartAngle + SweepAngle) * G_PI / 180)
+			Else
+				mcairo_arc_negative(Handle, x + W / 2, y + H / 2, W / 2, StartAngle * G_PI / 180, (StartAngle + SweepAngle) * G_PI / 180)
+			End If
+		#elseif defined(__USE_WINAPI__)
+			If hGdipPath = 0 Then GdipCreatePath(0, @hGdipPath)
+			GdipAddPathArc(hGdipPath, x, y, W, H, StartAngle, SweepAngle)
+		#endif
+	End Sub
+
+	Private Sub Canvas.PathPie(x As Double, y As Double, W As Double, H As Double, StartAngle As Double, SweepAngle As Double)
+		#ifdef __USE_CAIRO__
+			If W = 0 OrElse H = 0 Then Exit Sub
+			cairo_save(Handle)
+			cairo_translate(Handle, x + W / 2, y + H / 2)
+			cairo_scale(Handle, W / 2, H / 2)
+			cairo_move_to(Handle, 0, 0)
+			If SweepAngle >= 0 Then
+				cairo_arc(Handle, 0, 0, 1, StartAngle * G_PI / 180, (StartAngle + SweepAngle) * G_PI / 180)
+			Else
+				cairo_arc_negative(Handle, 0, 0, 1, StartAngle * G_PI / 180, (StartAngle + SweepAngle) * G_PI / 180)
+			End If
+			cairo_restore(Handle)
+			cairo_close_path(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			If W = 0 OrElse H = 0 Then Exit Sub
+			mcairo_move_to(Handle, x + W / 2, y + H / 2)
+			If SweepAngle >= 0 Then
+				mcairo_arc(Handle, x + W / 2, y + H / 2, W / 2, StartAngle * G_PI / 180, (StartAngle + SweepAngle) * G_PI / 180)
+			Else
+				mcairo_arc_negative(Handle, x + W / 2, y + H / 2, W / 2, StartAngle * G_PI / 180, (StartAngle + SweepAngle) * G_PI / 180)
+			End If
+			mcairo_close_path(Handle)
+		#elseif defined(__USE_WINAPI__)
+			If hGdipPath = 0 Then GdipCreatePath(0, @hGdipPath)
+			GdipAddPathPie(hGdipPath, x, y, W, H, StartAngle, SweepAngle)
+		#endif
+	End Sub
+
+	Private Sub Canvas.PathRoundRect(x As Double, y As Double, W As Double, H As Double, Radius As Double)
+		'Composed from four quarter arcs: consecutive PathArcs connect with a
+		'line on every backend (GDI+ connects consecutive figures, cairo draws
+		'a line from the current point to the arc start)
+		If W <= 0 OrElse H <= 0 Then Exit Sub
+		Dim r As Double = Radius
+		Dim rMax As Double = IIf(W < H, W, H) / 2
+		If r > rMax Then r = rMax
+		If r < 0 Then r = 0
+		If r = 0 Then
+			PathMoveTo(x, y)
+			PathLineTo(x + W, y)
+			PathLineTo(x + W, y + H)
+			PathLineTo(x, y + H)
+			PathClose
+		Else
+			PathArc(x, y, r * 2, r * 2, 180, 90)
+			PathArc(x + W - r * 2, y, r * 2, r * 2, 270, 90)
+			PathArc(x + W - r * 2, y + H - r * 2, r * 2, r * 2, 0, 90)
+			PathArc(x, y + H - r * 2, r * 2, r * 2, 90, 90)
+			PathClose
+		End If
+	End Sub
+
+	Private Sub Canvas.PathCurveTo(x1 As Double, y1 As Double, x2 As Double, y2 As Double, x3 As Double, y3 As Double)
+		#ifdef __USE_CAIRO__
+			cairo_curve_to(Handle, x1, y1, x2, y2, x3, y3)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			mcairo_curve_to(Handle, x1, y1, x2, y2, x3, y3)
+		#elseif defined(__USE_WINAPI__)
+			If hGdipPath = 0 Then GdipCreatePath(0, @hGdipPath)
+			'GDI+ bezier needs the explicit start point (cairo implies the current one)
+			Dim pLast As GpPointF
+			If GdipGetPathLastPoint(hGdipPath, @pLast) = 0 Then
+				GdipAddPathBezier(hGdipPath, pLast.x, pLast.y, x1, y1, x2, y2, x3, y3)
+			Else
+				GdipAddPathBezier(hGdipPath, x1, y1, x1, y1, x2, y2, x3, y3)
+			End If
+		#endif
+	End Sub
+
+	Private Sub Canvas.PathAddPolyline(ByVal Points As Any Ptr, ByVal Count As Long)
+		#ifdef __USE_CAIRO__
+			Dim pPt As Point Ptr = Cast(Point Ptr, Points)
+			For i As Long = 0 To Count - 1
+				cairo_line_to(Handle, pPt[i].X, pPt[i].Y)
+			Next
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Dim pPt As Point Ptr = Cast(Point Ptr, Points)
+			For i As Long = 0 To Count - 1
+				mcairo_line_to(Handle, pPt[i].X, pPt[i].Y)
+			Next
+		#elseif defined(__USE_WINAPI__)
+			If hGdipPath = 0 Then GdipCreatePath(0, @hGdipPath)
+			If Count > 0 Then GdipAddPathLine2I(hGdipPath, Cast(GpPoint Ptr, Points), Count)
+		#endif
+	End Sub
+
+	Private Sub Canvas.PathAddCurve(ByVal Points As Any Ptr, ByVal Count As Long)
+		#ifdef __USE_CAIRO__
+			Dim pPt As Point Ptr = Cast(Point Ptr, Points)
+			If Count <= 0 Then Exit Sub
+			For i As Long = 1 To Count - 1
+				Dim Y As Double
+				If i Mod 2 = 1 Then
+					If pPt[i].Y > pPt[i - 1].Y Then
+						Y = IIf(pPt[i - 1].Y > pPt[i].Y, pPt[i - 1].Y, pPt[i].Y)
+					Else
+						Y = IIf(pPt[i - 1].Y < pPt[i].Y, pPt[i - 1].Y, pPt[i].Y)
+					End If
+				Else
+					If pPt[i].Y > pPt[i - 1].Y Then
+						Y = IIf(pPt[i - 1].Y < pPt[i].Y, pPt[i - 1].Y, pPt[i].Y)
+					Else
+						Y = IIf(pPt[i - 1].Y > pPt[i].Y, pPt[i - 1].Y, pPt[i].Y)
+					End If
+				End If
+				cairo_curve_to(Handle, pPt[i - 1].X, pPt[i - 1].Y, (pPt[i].X + pPt[i - 1].X) / 2, Y, pPt[i].X, pPt[i].Y)
+			Next
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Dim pPt As Point Ptr = Cast(Point Ptr, Points)
+			If Count <= 0 Then Exit Sub
+			For i As Long = 1 To Count - 1
+				Dim Y As Double
+				If i Mod 2 = 1 Then
+					If pPt[i].Y > pPt[i - 1].Y Then
+						Y = IIf(pPt[i - 1].Y > pPt[i].Y, pPt[i - 1].Y, pPt[i].Y)
+					Else
+						Y = IIf(pPt[i - 1].Y < pPt[i].Y, pPt[i - 1].Y, pPt[i].Y)
+					End If
+				Else
+					If pPt[i].Y > pPt[i - 1].Y Then
+						Y = IIf(pPt[i - 1].Y < pPt[i].Y, pPt[i - 1].Y, pPt[i].Y)
+					Else
+						Y = IIf(pPt[i - 1].Y > pPt[i].Y, pPt[i - 1].Y, pPt[i].Y)
+					End If
+				End If
+				mcairo_curve_to(Handle, pPt[i - 1].X, pPt[i - 1].Y, (pPt[i].X + pPt[i - 1].X) / 2, Y, pPt[i].X, pPt[i].Y)
+			Next
+		#elseif defined(__USE_WINAPI__)
+			If hGdipPath = 0 Then GdipCreatePath(0, @hGdipPath)
+			If Count > 0 Then GdipAddPathCurveI(hGdipPath, Cast(GpPoint Ptr, Points), Count)
+		#endif
+	End Sub
+
+	Private Sub Canvas.PathClose()
+		#ifdef __USE_CAIRO__
+			cairo_close_path(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			mcairo_close_path(Handle)
+		#elseif defined(__USE_WINAPI__)
+			If hGdipPath <> 0 Then GdipClosePathFigure(hGdipPath)
+		#endif
+	End Sub
+
+	Private Sub Canvas.PathDiscard()
+		#ifdef __USE_CAIRO__
+			cairo_new_path(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			mcairo_new_path(Handle)
+		#elseif defined(__USE_WINAPI__)
+			If hGdipPath <> 0 Then GdipDeletePath(hGdipPath)
+			hGdipPath = 0
+		#endif
+	End Sub
+
+	Private Sub Canvas.FillPath(PathColor As ULong, Opacity As Long = 100)
+		#ifdef __USE_CAIRO__
+			cairo_set_source_rgba(Handle, GetRedD(PathColor), GetGreenD(PathColor), GetBlueD(PathColor), Opacity / 100)
+			cairo_fill_preserve(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'The mcairo shim has no fill_preserve: keep the path by copying it
+			'before the fill and appending it back afterwards
+			Dim pKeep As Any Ptr = mcairo_copy_path(Handle)
+			mcairo_set_source_rgba(Handle, GetRedD(PathColor), GetGreenD(PathColor), GetBlueD(PathColor), Opacity / 100)
+			mcairo_fill(Handle)
+			If pKeep <> 0 Then
+				mcairo_append_path(Handle, pKeep)
+				mcairo_path_destroy(pKeep)
+			End If
+		#elseif defined(__USE_WINAPI__)
+			If hGdipPath = 0 OrElse GdipGraphics = 0 Then Exit Sub
+			Dim hBrush As GpSolidFill Ptr = 0
+			GdipCreateSolidFill(PathColor, @hBrush)
+			GdipFillPath(GdipGraphics, Cast(GpBrush Ptr, hBrush), hGdipPath)
+			GdipDeleteBrush(Cast(GpBrush Ptr, hBrush))
+		#endif
+	End Sub
+
+	Private Sub Canvas.FillPathGradient(PathColor As ULong, GradientColor As ULong, Opacity As Long = 100, GradientOpacity As Long = 10, RLeft As Double = 0, RTop As Double = 0, RWidth As Double = 0, RHeight As Double = 0, Angle As Single = 90)
+		#ifdef __USE_CAIRO__
+			Dim As Double CX = RLeft + RWidth / 2, CY = RTop + RHeight / 2
+			Dim As Double Half = Sqr(RWidth * RWidth + RHeight * RHeight) / 2
+			Dim As Double Rad = Angle * G_PI / 180
+			Dim As Double DX = Cos(Rad), DY = Sin(Rad)
+			Dim As cairo_pattern_t Ptr Pattern = cairo_pattern_create_linear(CX - DX * Half, CY - DY * Half, CX + DX * Half, CY + DY * Half)
+			cairo_pattern_add_color_stop_rgba(Pattern, 0, GetRedD(PathColor), GetGreenD(PathColor), GetBlueD(PathColor), Opacity / 100)
+			cairo_pattern_add_color_stop_rgba(Pattern, 1, GetRedD(GradientColor), GetGreenD(GradientColor), GetBlueD(GradientColor), GradientOpacity / 100)
+			cairo_set_source(Handle, Pattern)
+			cairo_fill_preserve(Handle)
+			cairo_pattern_destroy(Pattern)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'The mcairo shim has no fill_preserve: keep the path by copying it
+			'before the fill and appending it back afterwards
+			Dim pKeep As Any Ptr = mcairo_copy_path(Handle)
+			mcairo_set_source_rgba(Handle, GetRedD(PathColor), GetGreenD(PathColor), GetBlueD(PathColor), Opacity / 100)
+			mcairo_fill(Handle)
+			If pKeep <> 0 Then
+				mcairo_append_path(Handle, pKeep)
+				mcairo_path_destroy(pKeep)
+			End If
+		#elseif defined(__USE_WINAPI__)
+			If hGdipPath = 0 OrElse GdipGraphics = 0 Then Exit Sub
+			Dim hBrush As GpLineGradient Ptr = 0
+			Dim rGradient As GpRect = Type<GpRect>(CInt(RLeft), CInt(RTop), CInt(RWidth), CInt(RHeight))
+			GdipCreateLineBrushFromRectWithAngleI(@rGradient, PathColor, GradientColor, Angle, 0, WrapModeTileFlipXY, @hBrush)
+			'Gamma-corrected compositing slows antialiased gradient fills down
+			'by an order of magnitude: fill with AssumedLinear (4), restore after
+			Dim OldQuality As CompositingQuality
+			GdipGetCompositingQuality(GdipGraphics, @OldQuality)
+			GdipSetCompositingQuality(GdipGraphics, Cast(CompositingQuality, 4))
+			GdipFillPath(GdipGraphics, Cast(GpBrush Ptr, hBrush), hGdipPath)
+			GdipSetCompositingQuality(GdipGraphics, OldQuality)
+			GdipDeleteBrush(Cast(GpBrush Ptr, hBrush))
+		#endif
+	End Sub
+
+	Private Sub Canvas.StrokePath(PathColor As ULong, PenWidth As Single = 1, Opacity As Long = 100)
+		#ifdef __USE_CAIRO__
+			cairo_set_source_rgba(Handle, GetRedD(PathColor), GetGreenD(PathColor), GetBlueD(PathColor), Opacity / 100)
+			cairo_set_line_width(Handle, PenWidth)
+			cairo_stroke_preserve(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'Same preserve trick as FillPath (the mcairo shim has no stroke_preserve)
+			Dim pKeep As Any Ptr = mcairo_copy_path(Handle)
+			mcairo_set_source_rgba(Handle, GetRedD(PathColor), GetGreenD(PathColor), GetBlueD(PathColor), Opacity / 100)
+			mcairo_set_line_width(Handle, PenWidth)
+			mcairo_stroke(Handle)
+			If pKeep <> 0 Then
+				mcairo_append_path(Handle, pKeep)
+				mcairo_path_destroy(pKeep)
+			End If
+		#elseif defined(__USE_WINAPI__)
+			If hGdipPath = 0 OrElse GdipGraphics = 0 Then Exit Sub
+			Dim hPen As GpPen Ptr = 0
+			GdipCreatePen1(PathColor, PenWidth, UnitPixel, @hPen)
+			GdipDrawPath(GdipGraphics, hPen, hGdipPath)
+			GdipDeletePen(hPen)
+		#endif
+	End Sub
+
+	Private Sub Canvas.StrokePolyline(ByVal Points As Any Ptr, ByVal Count As Long, PathColor As ULong, PenWidth As Single = 1, Opacity As Long = 100)
+		#ifdef __USE_CAIRO__
+			Dim pPt As Point Ptr = Cast(Point Ptr, Points)
+			If Count <= 0 Then Exit Sub
+			cairo_set_source_rgba(Handle, GetRedD(PathColor), GetGreenD(PathColor), GetBlueD(PathColor), Opacity / 100)
+			cairo_set_line_width(Handle, PenWidth)
+			cairo_move_to(Handle, pPt[0].X, pPt[0].Y)
+			For i As Long = 1 To Count - 1
+				cairo_line_to(Handle, pPt[i].X, pPt[i].Y)
+			Next
+			cairo_stroke(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Dim pPt As Point Ptr = Cast(Point Ptr, Points)
+			If Count <= 0 Then Exit Sub
+			mcairo_set_source_rgba(Handle, GetRedD(PathColor), GetGreenD(PathColor), GetBlueD(PathColor), Opacity / 100)
+			mcairo_set_line_width(Handle, PenWidth)
+			mcairo_move_to(Handle, pPt[0].X, pPt[0].Y)
+			For i As Long = 1 To Count - 1
+				mcairo_line_to(Handle, pPt[i].X, pPt[i].Y)
+			Next
+			mcairo_stroke(Handle)
+		#elseif defined(__USE_WINAPI__)
+			If GdipGraphics = 0 OrElse Count <= 1 Then Exit Sub
+			Dim hPen As GpPen Ptr = 0
+			GdipCreatePen1(PathColor, PenWidth, UnitPixel, @hPen)
+			GdipDrawLinesI(GdipGraphics, hPen, Cast(GpPoint Ptr, Points), Count)
+			GdipDeletePen(hPen)
+		#endif
+	End Sub
+
+	Private Function Canvas.PathCopy() As Any Ptr
+		#ifdef __USE_CAIRO__
+			Return cairo_copy_path(Handle)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Return mcairo_copy_path(Handle)
+		#elseif defined(__USE_WINAPI__)
+			Dim pClone As GpPath Ptr = 0
+			If hGdipPath <> 0 Then GdipClonePath(hGdipPath, @pClone)
+			Return pClone
+		#endif
+	End Function
+
 	Private Sub Canvas.TextOut(x As Double, y As Double, ByRef s As WString, FG As Integer = -1, BK As Integer = -1)
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
@@ -3302,6 +3656,7 @@ Namespace My.Sys.Drawing
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then ReleaseDevice
 			' // Shutdown Gdiplus
+			If hGdipPath Then GdipDeletePath(hGdipPath): hGdipPath = 0
 			If GdipPen Then GdipDeletePen(GdipPen)
 			If GdipBrush Then GdipDeleteBrush(GdipBrush)
 			If GdipGraphics Then GdipDeleteGraphics(GdipGraphics)

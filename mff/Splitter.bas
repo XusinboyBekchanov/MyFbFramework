@@ -295,7 +295,7 @@ Namespace My.Sys.Forms
 						If OnMoving Then OnMoving(*Designer, This)
 						This.Parent->RequestAlign
 						#ifdef __USE_GTK__
-							If i > 0 Then This.Parent->Controls[i-1]->RequestAlign
+							If i > 0 Then This.Parent->Controls[i-1]->RequestAlign 
 							'#Else
 							'		This.Parent->RequestAlign
 						#endif
@@ -487,7 +487,7 @@ Namespace My.Sys.Forms
 	
 	Private Destructor Splitter
 		#ifdef __USE_WINAPI__
-			'UnregisterClass "Splitter", GetModuleHandle(NULL)
+			UnregisterClass "Splitter", GetModuleHandle(NULL)
 		#endif
 	End Destructor
 End Namespace

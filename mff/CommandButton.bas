@@ -218,8 +218,27 @@ Namespace My.Sys.Forms
 				'	.Brush.Handle = hbrBkgnd
 				'	SendMessageW(.FHandle, WM_THEMECHANGED, 0, 0)
 				'End If
-			'Case BM_CLICK
-				'If OnClick Then OnClick(This)
+			Case BM_CLICK
+				'Simulate the user click the way the system button does: focus
+				'the button, then run the normal mouse path (WM_LBUTTONDOWN /
+				'WM_LBUTTONUP) so OnMouseDown / OnClick / OnMouseUp fire exactly
+				'once through the standard pipeline. Disabled buttons ignore it.
+				'The message is consumed so the ancestor button procedure does
+				'not repeat the click.
+				Debug.Print "CommandButton BM_CLICK received: " & *FText
+				If Enabled Then
+					If Handle Then
+						SetFocus
+						SendMessage(Handle, WM_LBUTTONDOWN, MK_LBUTTON, 0)
+						SendMessage(Handle, WM_LBUTTONUP, 0, 0)
+					ElseIf OnClick Then
+						'No window yet (designer/headless): raise the event directly.
+						OnClick(*Designer, This)
+					End If
+				End If
+				msg.Handled = True
+				msg.Result = 0
+				Return
 			Case CM_COMMAND
 				'If Message.wParamHi = BN_CLICKED Then
 				'    If OnClick Then OnClick(This)

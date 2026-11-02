@@ -1455,7 +1455,7 @@ Namespace My.Sys.Forms
 			If StartsWith(Value, "{\rtf") OrElse StartsWith(Value, "{\urtf") Then Base.Text = RtfToText(Value, False) Else Base.Text = Value
 		#endif
 	End Property
-
+	
 	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 		'The text of an RTF: Html - with the formatting as HTML (\b, \i, \ul, \strike, their ends \b0, \i0, \ulnone, \strike0;
 		'a group {} keeps its formatting inside it), otherwise only the text. \par and \line are new lines, \tab a tab,
@@ -1981,6 +1981,7 @@ Namespace My.Sys.Forms
 			FTabIndex          = -1
 			FTabStop           = True
 			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+				'A multiline text box without the formatting of a rich edit
 				.Multiline = True
 			#endif
 			#ifdef __USE_WASM__

@@ -653,6 +653,20 @@ Namespace My.Sys.Forms
 		
 	End Function
 	
+	' ---- 行排序辅助: TimSortIndex 需要"行号"形式的比较回调 ----
+	Dim Shared GridRowsSortBase As WString Ptr Ptr
+	Dim Shared GridRowsSortCols As Long
+	Dim Shared GridRowsSortCol As Long
+	Dim Shared GridRowsSortMatchCase As Boolean
+	Dim Shared GridRowsSortNatural As Boolean
+
+	Private Function GridRowsRowCompare(ByVal a As Long, ByVal b As Long, ByVal ctx As Any Ptr) As Long
+		Dim As Long ia = a * GridRowsSortCols + GridRowsSortCol
+		Dim As Long ib = b * GridRowsSortCols + GridRowsSortCol
+		' 用框架统一的 StringsCompare(与 WStringList/Dictionary 一致), 方向由 TimSortIndex 施加
+		Return StringsCompare(*GridRowsSortBase[ia], *GridRowsSortBase[ib], GridRowsSortMatchCase, 1, GridRowsSortNatural)
+	End Function
+
 	Sub GridRows.SortArray(iDataPtr() As WString Ptr, ByVal ColIndex As Integer, ByVal bSortOrder As SortStyle = SortStyle.ssSortAscending, ByVal bNaturalSort As Boolean = False, ByVal bMatchCase As Boolean = False)
 		Dim pGrid As Grid Ptr = Cast(Grid Ptr, Parent)
 		If pGrid = 0 Then Return
@@ -680,96 +694,50 @@ Namespace My.Sys.Forms
 				End If
 			Next
 		#endif
-		Const INSERTION_SORT_THRESHOLD As Long = 32 'can be 16
 		Dim As Integer iDirection = IIf(bSortOrder = SortStyle.ssSortAscending, 1, -1)
-		Dim As Long iLBound = LBound(iDataPtr, 1)
-		Dim As Long iUBound = iDataCount - 1
 		Dim As Long ArrayLBound = LBound(iDataPtr, 2)
 		Dim As Long ArrayUBound = UBound(iDataPtr, 2)
 		Dim As Long  ArraryCol = ColIndex - IIf(pGrid->FixCols, 1, 0)
-		If iUBound <= iLBound Then Return
-		If ArraryCol > iUBound OrElse ArraryCol < iLBound Then
+		If ArraryCol > iDataCount - 1 OrElse ArraryCol < 0 Then
 			Print Date & " " & Time & " " & Chr(9) & __FUNCTION__ & " " & Chr(9) & ML("The sort index is out of array data dimensions range!"), True
 			Return
 		End If
-		Dim As WString Ptr iExchange(ArrayLBound To ArrayUBound)
 		pGrid->SortComparePara.Parent = Parent
 		pGrid->SortComparePara.SortIndex = ArraryCol
 		pGrid->SortComparePara.SortOrder = bSortOrder
 		pGrid->SortComparePara.SortNatural = bNaturalSort
 		pGrid->SortComparePara.MatchCase = bMatchCase
-		Type SortStackItem
-			iLow As Long
-			iHigh As Long
-		End Type
-		Dim arrStack(0 To 127) As SortStackItem
-		Dim As Long iStackTop = 0
-		arrStack(iStackTop).iLow = iLBound
-		arrStack(iStackTop).iHigh = iUBound
-		iStackTop += 1
-		Do While iStackTop > 0
-			iStackTop -= 1
-			Dim As Long iLow = arrStack(iStackTop).iLow
-			Dim As Long iHigh = arrStack(iStackTop).iHigh
-			Dim As Long iL = iLow
-			Dim As Long iR = iHigh
-			Dim As Long sPivotMid = (iLow + iHigh) \ 2
-			Do
-				' iDirection 乘数直接控制比较逻辑，无需重写两套排序代码
-				While iL <= iHigh AndAlso CompareStrings(*iDataPtr(iL, ArraryCol), *iDataPtr(sPivotMid, ArraryCol), bMatchCase, bNaturalSort, iDirection) < 0
-					iL += 1
-				Wend
-				While iR >= iLow AndAlso CompareStrings(*iDataPtr(iR, ArraryCol), *iDataPtr(sPivotMid, ArraryCol), bMatchCase, bNaturalSort, iDirection) > 0
-					iR -= 1
-				Wend
-				If iL <= iR Then
-					For k As Long = ArrayLBound To ArrayUBound : iExchange(k) = iDataPtr(iL, k) : Next
-					For k As Long = ArrayLBound To ArrayUBound : iDataPtr(iL, k) = iDataPtr(iR, k) : Next
-					For k As Long = ArrayLBound To ArrayUBound : iDataPtr(iR, k) = iExchange(k) : Next
-					iL += 1
-					iR -= 1
-				End If
-			Loop Until iL > iR
-			
-			Dim As Long iSize1 = iR - iLow + 1
-			Dim As Long iSize2 = iHigh - iL + 1
-			
-			If iSize1 > iSize2 Then
-				If iSize2 > INSERTION_SORT_THRESHOLD Then
-					arrStack(iStackTop).iLow = iL
-					arrStack(iStackTop).iHigh = iHigh
-					iStackTop += 1
-				End If
-				If iSize1 > INSERTION_SORT_THRESHOLD Then
-					arrStack(iStackTop).iLow = iLow
-					arrStack(iStackTop).iHigh = iR
-					iStackTop += 1
-				End If
-			Else
-				If iSize1 > INSERTION_SORT_THRESHOLD Then
-					arrStack(iStackTop).iLow = iLow
-					arrStack(iStackTop).iHigh = iR
-					iStackTop += 1
-				End If
-				If iSize2 > INSERTION_SORT_THRESHOLD Then
-					arrStack(iStackTop).iLow = iL
-					arrStack(iStackTop).iHigh = iHigh
-					iStackTop += 1
-				End If
-			End If
-		Loop
-		
-		Dim As Long i
-		Dim As Long j
-		For i = iLBound + 1 To iUBound
-			j = i
-			While j > iLBound AndAlso CompareStrings(*iDataPtr(j - 1, ArraryCol), *iDataPtr(j, ArraryCol), bMatchCase, bNaturalSort) * iDirection > 0
-				For k As Long = ArrayLBound To ArrayUBound : iExchange(k) = iDataPtr(j - 1, k) : Next
-				For k As Long = ArrayLBound To ArrayUBound : iDataPtr(j - 1, k) = iDataPtr(j, k) : Next
+
+		' TimSort: 只排行号索引(稳定, 最坏 O(n log n)), 每行数据只在最后搬一次,
+		' 不再像快排那样每次交换都搬整行。
+		GridRowsSortBase = Cast(WString Ptr Ptr, @iDataPtr(0, ArrayLBound))
+		GridRowsSortCols = ArrayUBound - ArrayLBound + 1
+		GridRowsSortCol = ArraryCol - ArrayLBound
+		GridRowsSortMatchCase = bMatchCase
+		GridRowsSortNatural = bNaturalSort
+
+		Dim As Long Ptr idx = New Long[iDataCount]
+		If idx = 0 Then Return
+		TimSortIndex(idx, iDataCount, @GridRowsRowCompare, iDirection, 0)
+
+		' 按 idx 重排所有列(循环置换, 只需一行临时缓冲)
+		Dim As WString Ptr iExchange(ArrayLBound To ArrayUBound)
+		For i As Long = 0 To iDataCount - 1
+			If idx[i] <> i Then
+				For k As Long = ArrayLBound To ArrayUBound : iExchange(k) = iDataPtr(i, k) : Next
+				Dim As Long j = i
+				Do
+					Dim As Long kk = idx[j]
+					If kk = i Then Exit Do
+					For k As Long = ArrayLBound To ArrayUBound : iDataPtr(j, k) = iDataPtr(kk, k) : Next
+					idx[j] = j
+					j = kk
+				Loop
 				For k As Long = ArrayLBound To ArrayUBound : iDataPtr(j, k) = iExchange(k) : Next
-				j -= 1
-			Wend
-		Next i
+				idx[j] = j
+			End If
+		Next
+		Delete[] idx
 	End Sub
 	
 	Sub GridRows.Sort(ByVal ColIndex As Integer, ByVal bSortOrder As SortStyle = SortStyle.ssSortAscending, ByVal bNaturalSort As Boolean = False, ByVal bMatchCase As Boolean = False)

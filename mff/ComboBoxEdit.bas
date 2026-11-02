@@ -228,7 +228,7 @@ Namespace My.Sys.Forms
 					FType = IIf(FStyle <= cbDropDown, "text", "")
 					'.mffcombo of mff.html: the arrow of the list
 					FClass = IIf(FStyle <= cbDropDown, "mffcombo", "")
-				End If
+		End If
 			#endif
 		End If
 	End Property
@@ -540,8 +540,8 @@ Namespace My.Sys.Forms
 				With QComboBoxEdit(Sender.Child)
 					#ifdef __USE_WASM__
 						If .FType = "text" Then
-							For i As Integer = 0 To .Items.Count - 1
-								AddSelectItem(.FHandle, ToUtf8(.Items.Item(i)))
+						For i As Integer = 0 To .Items.Count - 1
+							AddSelectItem(.FHandle, ToUtf8(.Items.Item(i)))
 							Next
 						End If
 					#endif

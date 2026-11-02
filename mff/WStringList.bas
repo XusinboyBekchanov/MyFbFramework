@@ -245,6 +245,18 @@ Private Sub WStringList.Remove(Index As Integer)
 End Sub
 
 #ifndef WStringList_Sort_Off
+	' 字符串排序: TimSort(稳定, 最坏 O(n log n), 近似有序输入接近 O(n))
+	' 比较上下文由调用方传入(MatchCase / NaturalSort), 方向由 SortByCompare 施加
+	Type WStringSortCtx
+		bMatchCase As Boolean
+		bNaturalSort As Boolean
+	End Type
+
+	Private Function WStringItemCompare(ByVal a As Any Ptr, ByVal b As Any Ptr, ByVal ctx As Any Ptr) As Long
+		Dim As WStringSortCtx Ptr c = Cast(WStringSortCtx Ptr, ctx)
+		Return StringsCompare(Cast(WStringListItem Ptr, a)->Value, Cast(WStringListItem Ptr, b)->Value, c->bMatchCase, 1, c->bNaturalSort)
+	End Function
+
 	' iDirection: SORT_ASCENDING (1) 为升序(默认), SORT_DESCENDING (-1) 为降序
 	Sub WStringList.Sort(ByVal bMatchCase As Boolean = False, ByVal iDirection As Integer = 1, ByVal bNaturalSort As Boolean = False)
 		FMatchCase = bMatchCase : FNaturalSort = bNaturalSort : FDirection = iDirection
@@ -252,80 +264,10 @@ End Sub
 			FIsSorted = True
 			Return
 		End If
-		Type SortStackItem
-			iLow As Long
-			iHigh As Long
-		End Type
-		Const INSERTION_SORT_THRESHOLD As Long = 32 'can be 16
-		Dim As Long iLBound = 0
-		Dim As Long iUBound = FCount - 1
-		If iUBound <= iLBound Then Return
-		Dim arrStack(0 To 127) As SortStackItem
-		Dim As Long iStackTop = 0
-		arrStack(iStackTop).iLow = iLBound
-		arrStack(iStackTop).iHigh = iUBound
-		iStackTop += 1
-		Do While iStackTop > 0
-			iStackTop -= 1
-			Dim As Long iLow = arrStack(iStackTop).iLow
-			Dim As Long iHigh = arrStack(iStackTop).iHigh
-			Dim As Long iL = iLow
-			Dim As Long iR = iHigh
-			Dim As WString Ptr sPivotPtr = @(Item((iLow + iHigh) \ 2))
-			If sPivotPtr = 0 Then Return
-			Do
-				' iDirection 乘数直接控制比较逻辑，无需重写两套排序代码
-				While iL <= iHigh AndAlso StringsCompare(Item(iL), *sPivotPtr, bMatchCase, iDirection, bNaturalSort) < 0
-					iL += 1
-				Wend
-				While iR >= iLow AndAlso StringsCompare(Item(iR), *sPivotPtr, bMatchCase, iDirection, bNaturalSort) > 0
-					iR -= 1
-				Wend
-				
-				If iL <= iR Then
-					Exchange iL, iR
-					iL += 1
-					iR -= 1
-				End If
-			Loop Until iL > iR
-			
-			Dim As Long iSize1 = iR - iLow + 1
-			Dim As Long iSize2 = iHigh - iL + 1
-			
-			If iSize1 > iSize2 Then
-				If iSize2 > INSERTION_SORT_THRESHOLD Then
-					arrStack(iStackTop).iLow = iL
-					arrStack(iStackTop).iHigh = iHigh
-					iStackTop += 1
-				End If
-				If iSize1 > INSERTION_SORT_THRESHOLD Then
-					arrStack(iStackTop).iLow = iLow
-					arrStack(iStackTop).iHigh = iR
-					iStackTop += 1
-				End If
-			Else
-				If iSize1 > INSERTION_SORT_THRESHOLD Then
-					arrStack(iStackTop).iLow = iLow
-					arrStack(iStackTop).iHigh = iR
-					iStackTop += 1
-				End If
-				If iSize2 > INSERTION_SORT_THRESHOLD Then
-					arrStack(iStackTop).iLow = iL
-					arrStack(iStackTop).iHigh = iHigh
-					iStackTop += 1
-				End If
-			End If
-		Loop
-		
-		Dim As Long i
-		Dim As Long j
-		For i = iLBound + 1 To iUBound
-			j = i
-			While j > iLBound AndAlso StringsCompare(Item(j - 1), Item(j), bMatchCase, iDirection, bNaturalSort) > 0
-				Exchange j - 1, j
-				j -= 1
-			Wend
-		Next i
+		Dim As WStringSortCtx ctx
+		ctx.bMatchCase = bMatchCase
+		ctx.bNaturalSort = bNaturalSort
+		FItems.SortByCompare(@WStringItemCompare, iDirection, @ctx)
 		FIsSorted = True
 		If OnChange Then OnChange(This)
 	End Sub

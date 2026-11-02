@@ -293,7 +293,7 @@ Namespace My.Sys.Forms
 			FillFiles
 		#endif
 	End Property
-
+	
 	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 		'The folders and the files of the patterns of the filter (FilterIndex) in the current folder: the file list of the
 		'file dialog (FileViewFill) in the element (Android: the view), its view buttons switch large icons and the list
@@ -660,7 +660,7 @@ Namespace My.Sys.Forms
 			
 			If OpenDial = 0 Then Exit Sub
 			#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
-				On Error Goto ErrorHandler
+			On Error Goto ErrorHandler
 			#endif
 			
 			' The shell folder view (SHCreateShellFolderView) requires COM in this thread.
