@@ -31,6 +31,15 @@ Namespace My.Sys.Forms
 		ARealSizeImage(2) As Integer
 		ARealSizeControl(2) As Integer
 		ACenterImage(2)   As Integer
+		#ifdef __USE_WINAPI__
+			'The image copy scaled with the monitor scale which is currently shown
+			'(the scale can differ from the one of the source image of the Graphic)
+			FScaledImage      As HWND
+			FScaledIsCopy     As Boolean
+			FScaledType       As Integer
+			Declare Sub ClearScaledImage
+			Declare Sub UpdateImage
+		#endif
 		#ifdef __USE_GTK__
 			Declare Static Function DesignDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Declare Static Function DesignExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean

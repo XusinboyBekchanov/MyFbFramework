@@ -452,29 +452,36 @@ Namespace My.Sys.Forms
 					If .Handle Then
 						i = SendMessage(.Handle, TB_COMMANDTOINDEX, FCommandID, 0)
 						SendMessage(.Handle, TB_GETITEMRECT, i, CInt(@R))
-						FButtonWidth = UnScaleX(R.Right - R.Left)
+						'The item rectangle is laid out by the toolbar: divide it by the
+						'scale of the toolbar, not by the one of this button (they can
+						'differ for a moment around a DPI change)
+						FButtonWidth = .UnScaleX(R.Right - R.Left)
 					End If
 				End With
 			End If
 		#endif
 		Return FButtonWidth
 	End Property
-	
-	Private Property ToolButton.Width(Value As Integer)
-		FButtonWidth = Value
-		#ifdef __USE_WINAPI__
-			If Ctrl AndAlso Ctrl->Handle Then
-				Var i = SendMessage(Ctrl->Handle, TB_COMMANDTOINDEX, FCommandID, 0)
-				Dim As TBBUTTONINFO tbbi
-				tbbi.cbSize = SizeOf(tbbi)
-				tbbi.dwMask = TBIF_SIZE Or TBIF_BYINDEX
-				tbbi.cx = ScaleX(Value)
-				SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, i, Cast(LPARAM, @tbbi))
-				If FChild Then 
-					FChild->Width = Value
-					Dim As Rect R
-					SendMessage(Ctrl->Handle, TB_GETITEMRECT, i, CInt(@R))
-					MoveWindow FChild->Handle, R.Left, R.Top, R.Right - R.Left, R.Bottom - R.Top, True
+
+		Private Property ToolButton.Width(Value As Integer)
+			FButtonWidth = Value
+			#ifdef __USE_WINAPI__
+				If Ctrl AndAlso Ctrl->Handle Then
+					Var i = SendMessage(Ctrl->Handle, TB_COMMANDTOINDEX, FCommandID, 0)
+					Dim As TBBUTTONINFO tbbi
+					tbbi.cbSize = SizeOf(tbbi)
+					tbbi.dwMask = TBIF_SIZE Or TBIF_BYINDEX
+					tbbi.cx = QControl(Ctrl).ScaleX(Value)
+					SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, i, Cast(LPARAM, @tbbi))
+					If FChild Then
+						FChild->Width = Value
+						Dim As Rect R
+						SendMessage(Ctrl->Handle, TB_GETITEMRECT, i, CInt(@R))
+						'The rectangle of the item is realized with the scale of the toolbar
+						'(the child follows it): the getters of the child must divide by it
+						FChild->physXdpi = FChild->xdpi
+						FChild->physYdpi = FChild->ydpi
+						MoveWindow FChild->Handle, R.Left, R.Top, R.Right - R.Left, R.Bottom - R.Top, True
 				End If
 			End If
 		#endif
@@ -494,12 +501,17 @@ Namespace My.Sys.Forms
 				Dim As TBBUTTONINFO tbbi
 				tbbi.cbSize = SizeOf(tbbi)
 				tbbi.dwMask = TBIF_SIZE Or TBIF_BYINDEX
-				tbbi.cx = ScaleX(FButtonWidth)
+				'The cx of the button info is a position in the toolbar: with its scale
+				tbbi.cx = QControl(Ctrl).ScaleX(FButtonWidth)
 				SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, i, Cast(LPARAM, @tbbi))
 				If FChild Then
 					FChild->Width = FButtonWidth
 					Dim As Rect R
 					SendMessage(Ctrl->Handle, TB_GETITEMRECT, i, CInt(@R))
+					'The rectangle of the item is realized with the scale of the toolbar
+					'(the child follows it): the getters of the child must divide by it
+					FChild->physXdpi = FChild->xdpi
+					FChild->physYdpi = FChild->ydpi
 					MoveWindow FChild->Handle, R.Left, R.Top, R.Right - R.Left, R.Bottom - R.Top, True
 				End If
 			End If
@@ -1153,9 +1165,11 @@ Namespace My.Sys.Forms
 			Dim As ..Rect R
 			GetWindowRect Handle, @R
 			If AutoSize Then
-				FHeight = R.Bottom - R.Top
+				'The physical height back to design units: the raw pixel height would
+				'grow the bar with every align pass on a monitor with DPI over 100%
+				FHeight = UnScaleY(R.Bottom - R.Top)
 			End If
-			Dim As Integer ExpandCount, ButtonsWidth, SpaceWidth
+			Dim As Integer ExpandCount, ButtonsWidth, SpaceWidth, ShareWidth
 			For i As Integer = 0 To Buttons.Count - 1
 				If Buttons.Item(i)->Expand Then
 					ExpandCount += 1
@@ -1165,9 +1179,17 @@ Namespace My.Sys.Forms
 			Next
 			If ExpandCount > 0 Then
 				SpaceWidth = UnScaleX(R.Right - R.Left) - ButtonsWidth
+				'A bar narrower than its fixed buttons leaves no room for the expanding ones. A
+				'negative width must not reach TB_SETBUTTONINFO: its cx is a word, so -1 became
+				'65535 pixels, the drop-downs covered the whole bar and the buttons at its right
+				'end were pushed out of it (the Form/Code toggles of the tab's toolbar). They
+				'shrink to the minimum instead; once the bar is wide again a WM_SIZE sizes them
+				'from its new width.
+				If SpaceWidth < ExpandCount Then SpaceWidth = ExpandCount
+				ShareWidth = SpaceWidth \ ExpandCount
 				For i As Integer = 0 To Buttons.Count - 1
 					If Buttons.Item(i)->Expand Then
-						Buttons.Item(i)->Width = SpaceWidth / ExpandCount
+						Buttons.Item(i)->Width = ShareWidth
 					End If
 				Next
 			End If

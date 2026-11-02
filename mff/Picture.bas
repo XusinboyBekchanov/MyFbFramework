@@ -245,7 +245,9 @@ Namespace My.Sys.Forms
 					If .Visible AndAlso .Bitmap.Handle > 0 Then
 						Select Case Graphic.StretchImage
 						Case StretchMode.smNone
-							Canvas.DrawAlpha .StartX, .StartY, , , .Bitmap
+							'The natural size is the design size: scaled with the scale of
+							'the monitor (the raw pixels would show half as big on a 200% one)
+							Canvas.DrawAlpha .StartX, .StartY, ScaleX(.Bitmap.Width), ScaleY(.Bitmap.Height), .Bitmap
 						Case StretchMode.smStretch
 							Canvas.DrawAlpha .StartX, .StartY, ScaleX(This.Width) * .ScaleFactor, ScaleY(This.Height) * .ScaleFactor, .Bitmap
 						Case Else 'StretchMode.smStretchProportional

@@ -52,6 +52,17 @@ Namespace My.Sys.ComponentModel
 		Declare Sub FreeWidget()
 		Declare Virtual Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 	Public:
+		#ifdef __USE_WINAPI__
+			'The scale the current physical bounds were realized with: the bounds getters
+			'divide the window rectangle by it, so a DPI rescale in flight (the scale
+			'member already of the new monitor, the window rectangle of the old one yet)
+			'cannot resync FLeft/FTop/FWidth/FHeight to a wrong design size. Every code
+			'path which realizes new physical bounds (Move, CreateWnd, WM_DPICHANGED,
+			'SyncWindowDpi, the MoveWindow of the children of a ToolButton) sets it
+			'before the reposition
+			physXdpi           As Single
+			physYdpi           As Single
+		#endif
 		#ifdef __USE_JNI__
 			'Android: the title bar of the designed form (the designer of the IDE) is above its view like the one of a
 			'window of Windows: the view is lower by its height (FormDesignFrame draws it)

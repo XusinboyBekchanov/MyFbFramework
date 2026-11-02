@@ -111,7 +111,16 @@ Namespace My.Sys.Forms
 				End If
 				ImageList_SetIconSize(Handle, ScaleX(FImageWidth), ScaleY(FImageHeight))
 				For i As Integer = 0 To FList.Count - 1
-					ImageList_AddIcon(Handle, FList.Item(i))
+					'An image of the old cell size must be scaled to the new one: re-added
+					'as it is, it would keep the old size inside the bigger cells (small
+					'pictures in a corner after a move to a monitor with another DPI)
+					Dim As Any Ptr hScaled = CopyImage(FList.Item(i), IMAGE_ICON, ScaleX(FImageWidth), ScaleY(FImageHeight), 0)
+					If hScaled <> 0 Then
+						ImageList_AddIcon(Handle, hScaled)
+						DestroyIcon hScaled
+					Else
+						ImageList_AddIcon(Handle, FList.Item(i))
+					End If
 				Next i
 			#endif
 		End If
