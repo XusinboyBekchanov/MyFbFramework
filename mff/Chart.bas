@@ -1427,9 +1427,9 @@ Namespace My.Sys.Forms
 
 	Private Function Chart.CandleNumText(ByVal Value As Double) As String
 		'Axis label without the trailing dot FB Format leaves for whole
-		'numbers ("3200." -> "3200")
+		'numbers ("3200." -> "3200"); the separator follows the locale ("3200,")
 		Dim s As String = Format(Value, "0.##")
-		If Mid(s, Len(s), 1) = "." Then s = Mid(s, 1, Len(s) - 1)
+		If Mid(s, Len(s), 1) = "." OrElse Mid(s, Len(s), 1) = "," Then s = Mid(s, 1, Len(s) - 1)
 		Return s
 	End Function
 
@@ -3452,7 +3452,7 @@ Namespace My.Sys.Forms
 			Dim cndLblH As Single, cndLblStep As Long, cndLblW As Single
 			Dim cndLastUp As Boolean
 			Dim cndLastY As Single
-			Dim cndInfo As String
+			Dim cndInfo As UString
 			Dim cndDirColor As Long
 			Dim cndShowVol As Boolean
 			Dim cndFirst As Long, cndN As Long
