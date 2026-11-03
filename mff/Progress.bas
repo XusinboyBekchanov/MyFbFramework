@@ -340,7 +340,7 @@
 
 		'---- the background -------------------------------------------------------
 		Dim backClr As ULong = This.BackColor
-		If backClr = Cast(ULong, -1) Then backClr = GetSysColor(COLOR_BTNFACE)
+		If backClr = Cast(ULong, -1) Then backClr = clBtnFace
 		'A path fill, not Canvas.Rectangle: the GDI+ branch of Rectangle takes
 		'its colour from Canvas.FillColor/FillOpacity rather than Brush.Color
 		Canvas.PathStart
