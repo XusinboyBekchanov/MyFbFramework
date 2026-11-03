@@ -155,7 +155,7 @@
 		'A path fill, not Canvas.Rectangle: the GDI+ branch of Rectangle takes
 		'its colour from Canvas.FillColor/FillOpacity rather than Brush.Color
 		Dim backClr As ULong = This.BackColor
-		If backClr = Cast(ULong, -1) Then backClr = GetSysColor(COLOR_BTNFACE)
+		If backClr = Cast(ULong, -1) Then backClr = clBtnFace
 		Canvas.PathStart
 		Canvas.PathRoundRect(0, 0, ScaleX(This.ClientWidth), ScaleY(This.ClientHeight), 0)
 		Canvas.FillPath(ARGB(backClr), 100)

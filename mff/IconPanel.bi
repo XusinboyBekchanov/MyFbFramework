@@ -100,6 +100,8 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		#elseif defined(__USE_GTK__)
 			Declare Static Function OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
 			Declare Static Sub GTK_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, X As Integer, Y As Integer, Shift As Integer)

@@ -174,7 +174,7 @@
 
 		'---- the background -------------------------------------------------------
 		Dim backClr As ULong = m_BackColor
-		If backClr = Cast(ULong, -1) Then backClr = GetSysColor(COLOR_BTNFACE)
+		If backClr = Cast(ULong, -1) Then backClr = clBtnFace
 		FillRectPath(0, 0, ScaleX(This.ClientWidth), ScaleY(This.ClientHeight), backClr)
 
 		Canvas.Font = This.Font

@@ -60,15 +60,68 @@
 #include once "CommandButton.bi"
 #include once "GridDataExEnums.bi"
 #include once "Clipboard.bi"
-#include once "VisualStyles.bi"
-#include once "GridDataExBase.bi"
 
 #ifdef __USE_WINAPI__
-	#ifndef __USE_GTK__
 	#include once "win\commctrl.bi"
-		#include once "win\shellapi.bi"
-		#include once "win\winspool.bi"
-		#include once "win\windowsx.bi"
+	#include once "win\shellapi.bi"
+	#include once "win\winspool.bi"
+	#include once "win\windowsx.bi"
+#else
+	'The key codes of Windows: the grid works with them on every platform (the Web and
+	'Android send them in CM_KEYDOWN, the keys of GTK are translated by FlexKeyToVK)
+	#ifndef VK_LBUTTON
+		#define VK_LBUTTON &h01
+		#define VK_RBUTTON &h02
+		#define VK_MBUTTON &h04
+		#define VK_BACK &h08
+		#define VK_TAB &h09
+		#define VK_RETURN &h0D
+		#define VK_SHIFT &h10
+		#define VK_CONTROL &h11
+		#define VK_MENU &h12
+		#define VK_ESCAPE &h1B
+		#define VK_SPACE &h20
+		#define VK_PRIOR &h21
+		#define VK_NEXT &h22
+		#define VK_END &h23
+		#define VK_HOME &h24
+		#define VK_LEFT &h25
+		#define VK_UP &h26
+		#define VK_RIGHT &h27
+		#define VK_DOWN &h28
+		#define VK_INSERT &h2D
+		#define VK_DELETE &h2E
+		#define VK_NUMPAD0 &h60
+		#define VK_MULTIPLY &h6A
+		#define VK_ADD &h6B
+		#define VK_SUBTRACT &h6D
+		#define VK_DECIMAL &h6E
+		#define VK_DIVIDE &h6F
+		#define VK_F1 &h70
+		#define VK_F2 &h71
+		#define VK_F4 &h73
+		#define VK_F12 &h7B
+	#endif
+	'The indexes of the system colors of Windows (FlexSysColor)
+	#ifndef COLOR_WINDOW
+		#define COLOR_SCROLLBAR 0
+		#define COLOR_WINDOW 5
+		#define COLOR_WINDOWTEXT 8
+		#define COLOR_HIGHLIGHT 13
+		#define COLOR_HIGHLIGHTTEXT 14
+		#define COLOR_BTNFACE 15
+		#define COLOR_BTNSHADOW 16
+		#define COLOR_GRAYTEXT 17
+		#define COLOR_BTNTEXT 18
+		#define COLOR_BTNHIGHLIGHT 20
+		#define COLOR_3DDKSHADOW 21
+		#define COLOR_3DLIGHT 22
+		#define COLOR_INFOTEXT 23
+		#define COLOR_INFOBK 24
+		#define COLOR_HOTLIGHT 26
+	#endif
+	#ifndef GetSysColor
+		#define GetSysColor(Index) My.Sys.Forms.FlexSysColor(Index)
 	#endif
 #endif
 
@@ -92,13 +145,18 @@ Namespace My.Sys.Forms
 	'other platforms keep the raw value.
 	Declare Function FlexWinColor(ByVal CrColor As Long) As Long
 	#ifdef __USE_WINAPI__
-		#ifndef __USE_GTK__
-	'State readers for the raw WinAPI message path; the GTK branch receives
-	'the state through the shared control events instead.
-	Declare Function FlexGetShiftStateFromMsg() As Integer
-	Declare Function FlexGetMouseState() As Integer
-	Declare Function FlexKeyPressed(ByVal KeyCode As Long) As Boolean
-	Declare Sub FlexSetWindowRedraw(ByVal hWnd As HWND, ByVal Enabled As Boolean)
+		'State readers for the raw WinAPI message path; the other platforms
+		'receive the state with the input messages (CM_*, GdkEvent)
+		Declare Function FlexGetShiftStateFromMsg() As Integer
+		Declare Function FlexGetMouseState() As Integer
+		Declare Function FlexKeyPressed(ByVal KeyCode As Long) As Boolean
+		Declare Sub FlexSetWindowRedraw(ByVal hWnd As HWND, ByVal Enabled As Boolean)
+	#else
+		'The system colors of the light scheme (GetSysColor of Windows)
+		Declare Function FlexSysColor(ByVal Index As Long) As Long
+		#ifdef __USE_GTK__
+			'A key of GTK (a GDK keyval) as the key code of Windows (VK_*)
+			Declare Function FlexKeyToVK(ByVal KeyVal As Long) As Long
 		#endif
 	#endif
 
@@ -251,6 +309,10 @@ Namespace My.Sys.Forms
 		Public:
 			Grid As Any Ptr = 0
 			Declare Virtual Sub ProcessMessage(ByRef Message As Message)
+			#ifndef __USE_WINAPI__
+				'The keys of the editor (OnKeyDown) on the platforms without WM_KEYDOWN
+				Declare Static Sub Edit_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
+			#endif
 			Declare Static Sub Edit_Change(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
 			Declare Static Sub Edit_LostFocus(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
 	End Type
@@ -517,7 +579,7 @@ Namespace My.Sys.Forms
 		'Physical row capacity of CellsArr/RowsArr/FMergeRows (amortized growth;
 		'logical size is FRows). Cells are allocated lazily (0 = empty cell).
 		Dim FCapRows As Long = 0
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			'Off-screen paint buffer for flicker-free WM_PAINT (double buffering).
 			Dim FMemDc As Any Ptr = 0
 			Dim FMemBmp As Any Ptr = 0
@@ -525,8 +587,28 @@ Namespace My.Sys.Forms
 			Dim FMemW As Long = 0
 			Dim FMemH As Long = 0
 		#endif
-		#ifdef __USE_GTK__
-			Dim FLastCursorName As String = ""
+		#ifndef __USE_WINAPI__
+			'The own scroll bars (no scroll bars of a window): shown, the drag of a
+			'thumb (1 - vertical, 2 - horizontal) from the point and the first row/column
+			Dim FOwnVScroll As Boolean = False
+			Dim FOwnHScroll As Boolean = False
+			Dim FOwnScrollDrag As Integer = 0
+			Dim FOwnScrollDragPos As Long = 0
+			Dim FOwnScrollDragFirst As Long = 0
+			'Android: a finger which moves after the press pans the grid
+			Dim FTouchDown As Boolean = False
+			Dim FTouchPanning As Boolean = False
+			Dim FTouchX As Long = 0
+			Dim FTouchY As Long = 0
+			'The cursor shown and the one which the move asked for (SetGridCursor)
+			Dim FLastCursor As Integer = 0
+			Dim FPendingCursor As Integer = 0
+			'GTK: the default row height followed the font (PaintOwn)
+			Dim FDefaultRowFitted As Boolean = False
+			'The double click of the Web and Android (two presses in a short time on one place)
+			Dim FLastDownTime As Double = 0
+			Dim FLastDownX As Long = -10000
+			Dim FLastDownY As Long = -10000
 		#endif
 		Dim FMergeRows(Any) As Boolean   'per-row merge participation
 		Dim FMergeCols(Any) As Boolean   'per-column merge participation
@@ -615,7 +697,9 @@ Namespace My.Sys.Forms
 		Declare Function CollectVisRows(RowList() As Long) As Long
 		Declare Function CollectVisCols(ColList() As Long) As Long
 		Declare Sub BuildReportLayout(ByRef Lay As FlexReportLayout, ByVal Landscape As Boolean, ByVal XDpi As Double, ByVal YDpi As Double)
-		Declare Sub RenderReportPage(ByVal Dc As HDC, ByVal PageNo As Long, ByRef Lay As FlexReportLayout, ByRef Title As WString)
+		#ifdef __USE_WINAPI__
+			Declare Sub RenderReportPage(ByVal Dc As HDC, ByVal PageNo As Long, ByRef Lay As FlexReportLayout, ByRef Title As WString)
+		#endif
 		Declare Sub PreviewShowPage(ByVal Delta As Long, ByVal Absolute As Long)
 		Declare Sub PreviewDoPrint()
 		Declare Static Sub PreviewBtn_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
@@ -659,12 +743,43 @@ Namespace My.Sys.Forms
 		Declare Function DrawThickHLine(ByRef Cv As My.Sys.Drawing.Canvas, ByVal X1 As Long, ByVal X2 As Long, ByVal Y As Long, ByVal W As Long, ByVal Clr As Long) As Long
 		Declare Function DrawThickVLine(ByRef Cv As My.Sys.Drawing.Canvas, ByVal X As Long, ByVal Y1 As Long, ByVal Y2 As Long, ByVal W As Long, ByVal Clr As Long) As Long
 		#ifdef __USE_GTK__
-			'GTK: shared handlers wired to OnMouseDown/Move/Up/OnPaint in the constructor.
-			Declare Static Sub GTK_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, X As Integer, Y As Integer, Shift As Integer)
-			Declare Static Sub GTK_MouseMove(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, X As Integer, Y As Integer, Shift As Integer)
-			Declare Static Sub GTK_MouseUp(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, X As Integer, Y As Integer, Shift As Integer)
+			'GTK paints the grid through OnPaint (the cairo context of the draw signal)
 			Declare Static Sub GTK_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Cv As My.Sys.Drawing.Canvas)
-			Declare Sub GTK_UpdateCursor(ByVal X As Long, ByVal Y As Long)
+		#endif
+		'The input of every platform (WM_* of Windows, GdkEvent of GTK, CM_* of the Web
+		'and Android): the points are physical pixels of the client area, the key codes
+		'are the ones of Windows (VK_*), ShiftState has the FLEX_*_MASK bits
+		Declare Sub GridMouseDown(ByVal Button As Integer, ByVal X As Long, ByVal Y As Long, ByVal ShiftState As Integer)
+		Declare Function GridMouseMove(ByVal X As Long, ByVal Y As Long) As Boolean
+		Declare Function GridMouseUp(ByVal Button As Integer, ByVal X As Long, ByVal Y As Long) As Boolean
+		Declare Sub GridDblClick(ByVal X As Long, ByVal Y As Long)
+		'Delta: > 0 up (vertical) or right (horizontal)
+		Declare Sub GridWheel(ByVal Delta As Long, ByVal ShiftState As Integer, ByVal Horizontal As Boolean)
+		'GridMouseMove, GridMouseUp, GridKeyDown: True when the grid handled the input
+		Declare Function GridKeyDown(ByVal KeyCode As Integer, ByVal ShiftState As Integer) As Boolean
+		Declare Sub GridKeyPress(ByVal KeyChar As Integer)
+		Declare Sub GridKeyUp(ByVal KeyCode As Integer, ByVal ShiftState As Integer)
+		'0 - the arrow, 1 - the column divider, 2 - the row divider, 3 - the hand
+		Declare Sub SetGridCursor(ByVal Kind As Integer)
+		Declare Sub GridCapture(ByVal Value As Boolean)
+		#ifndef __USE_WINAPI__
+			'The own scroll bars and the input of GTK, the Web and Android
+			Declare Function OwnScrollBarSize() As Long
+			Declare Function OwnFullWidth() As Long
+			Declare Function OwnFullHeight() As Long
+			Declare Function OwnScrollBarRects(ByVal Vertical As Boolean, ByRef TrackLen As Long, ByRef ThumbStart As Long, ByRef ThumbLen As Long) As Boolean
+			Declare Sub DrawOwnScrollBars(ByRef Cv As My.Sys.Drawing.Canvas)
+			Declare Function OwnScrollBarDown(ByVal X As Long, ByVal Y As Long) As Boolean
+			Declare Function OwnScrollBarMove(ByVal X As Long, ByVal Y As Long) As Boolean
+			Declare Function OwnScrollBarUp() As Boolean
+			Declare Sub PaintOwn(ByRef Cv As My.Sys.Drawing.Canvas)
+			Declare Sub ApplyOwnCursor(ByVal Kind As Integer)
+			Declare Sub InputMouseDown(ByVal Button As Integer, ByVal X As Long, ByVal Y As Long, ByVal ShiftState As Integer)
+			Declare Sub InputMouseMove(ByVal X As Long, ByVal Y As Long)
+			Declare Sub InputMouseUp(ByVal Button As Integer, ByVal X As Long, ByVal Y As Long)
+			#ifdef __USE_GTK__
+				Declare Function InputKeyDown(ByVal KeyVal As Long, ByVal ShiftState As Integer) As Boolean
+			#endif
 		#endif
 		Declare Function HitColDividerPx(ByVal X As Long, ByVal Y As Long) As Long
 		Declare Function HitRowDividerPx(ByVal X As Long, ByVal Y As Long) As Long
@@ -678,7 +793,7 @@ Namespace My.Sys.Forms
 		'Shifts already-drawn pixels by (dX, dY) when the content covers the
 		'scroll area (ScrollWindowEx + ScrollDC on the buffer), else repaints.
 		Declare Sub ScrollGridPixels(ByVal dX As Long, ByVal dY As Long)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Declare Sub EnsureMemSurface(ByVal Dc As HDC, ByVal W As Long, ByVal H As Long)
 			Declare Sub DestroyMemSurface()
 		#endif

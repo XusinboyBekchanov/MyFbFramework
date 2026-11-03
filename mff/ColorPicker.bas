@@ -524,7 +524,7 @@
 
 		'---- the background and the border ----------------------------------------
 		Dim backClr As ULong = m_ChromeBackColor
-		If backClr = Cast(ULong, -1) Then backClr = GetSysColor(COLOR_BTNFACE)
+		If backClr = Cast(ULong, -1) Then backClr = clBtnFace
 		FillRectPath(0, 0, ScaleX(This.ClientWidth), ScaleY(This.ClientHeight), backClr)
 		StrokeRectPath(0, 0, ScaleX(This.ClientWidth), ScaleY(This.ClientHeight), m_BorderColor, 1)
 

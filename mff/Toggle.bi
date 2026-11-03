@@ -94,6 +94,8 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		#elseif defined(__USE_GTK__)
 			Dim As PangoContext Ptr pcontext
 			Dim As PangoLayout Ptr layout

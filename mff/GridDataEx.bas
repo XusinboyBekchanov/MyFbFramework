@@ -13,7 +13,7 @@
 'DarkMode_Explorer switches a window's own scrollbars to the dark theme
 '(Win10 1809+; harmless no-op on older systems). Declared at global scope so
 'the import name is not namespaced.
-#ifndef __USE_GTK__
+#ifdef __USE_WINAPI__
 	Declare Function GDSetWindowTheme Lib "uxtheme" Alias "SetWindowTheme" (ByVal hWnd As HWND, ByVal pszSubAppName As WString Ptr, ByVal pszSubIdList As WString Ptr) As Long
 #endif
 
@@ -34,16 +34,14 @@ Namespace My.Sys.Forms
 	'constants (&H80000000 and above) translate through GetSysColor on Windows;
 	'other platforms keep the raw value.
 	Function FlexWinColor(ByVal CrColor As Long) As Long
-		#ifdef __USE_WINAPI__
-			If (CrColor And &H80000000) <> 0 Then
-				Return GetSysColor(CrColor And &HFF)
-			End If
-		#endif
+		If (CrColor And &H80000000) <> 0 Then
+			Return GetSysColor(CrColor And &HFF)
+		End If
 		Return CrColor
 	End Function
 
 	#ifdef __USE_WINAPI__
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 	'The shift/mouse state readers serve the raw WinAPI message path; the GTK
 	'branch receives the state through the shared control events instead.
 	Function FlexGetShiftStateFromMsg() As Integer
@@ -80,6 +78,73 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 		#endif
+	#else
+		'The colors of the light scheme of Windows 10 (GetSysColor) for the platforms
+		'without the system colors of Windows
+		Function FlexSysColor(ByVal Index As Long) As Long
+			Select Case Index
+			Case COLOR_SCROLLBAR: Return &HC8C8C8
+			Case COLOR_WINDOW, COLOR_HIGHLIGHTTEXT, COLOR_BTNHIGHLIGHT: Return &HFFFFFF
+			Case COLOR_HIGHLIGHT: Return &HD77800
+			Case COLOR_BTNFACE: Return &HF0F0F0
+			Case COLOR_BTNSHADOW: Return &HA0A0A0
+			Case COLOR_GRAYTEXT: Return &H6D6D6D
+			Case COLOR_3DDKSHADOW: Return &H696969
+			Case COLOR_3DLIGHT: Return &HE3E3E3
+			Case COLOR_INFOBK: Return &HE1FFFF
+			Case COLOR_HOTLIGHT: Return &HCC6600
+			Case Else: Return 0 'the texts and the frames
+			End Select
+		End Function
+
+		'The FLEX_*_MASK bits of a state of the modifiers of GDK
+		Function FlexGdkShift(ByVal State As Long) As Integer
+			Dim As Integer Result
+			#ifdef __USE_GTK__
+				If State And GDK_SHIFT_MASK Then Result Or= FLEX_SHIFT_MASK
+				If State And GDK_CONTROL_MASK Then Result Or= FLEX_CTRL_MASK
+				If State And GDK_MOD1_MASK Then Result Or= FLEX_ALT_MASK
+			#else
+				Result = State And 7
+			#endif
+			Return Result
+		End Function
+
+		#ifdef __USE_GTK__
+			Function FlexKeyToVK(ByVal KeyVal As Long) As Long
+				Select Case KeyVal
+				Case GDK_KEY_a To GDK_KEY_z: Return KeyVal - GDK_KEY_a + &H41
+				Case GDK_KEY_A To GDK_KEY_Z, GDK_KEY_0 To GDK_KEY_9: Return KeyVal
+				Case GDK_KEY_KP_0 To GDK_KEY_KP_9: Return KeyVal - GDK_KEY_KP_0 + VK_NUMPAD0
+				Case GDK_KEY_F1 To GDK_KEY_F12: Return KeyVal - GDK_KEY_F1 + VK_F1
+				Case GDK_KEY_Up, GDK_KEY_KP_Up: Return VK_UP
+				Case GDK_KEY_Down, GDK_KEY_KP_Down: Return VK_DOWN
+				Case GDK_KEY_Left, GDK_KEY_KP_Left: Return VK_LEFT
+				Case GDK_KEY_Right, GDK_KEY_KP_Right: Return VK_RIGHT
+				Case GDK_KEY_Home, GDK_KEY_KP_Home: Return VK_HOME
+				Case GDK_KEY_End, GDK_KEY_KP_End: Return VK_END
+				Case GDK_KEY_Page_Up, GDK_KEY_KP_Page_Up: Return VK_PRIOR
+				Case GDK_KEY_Page_Down, GDK_KEY_KP_Page_Down: Return VK_NEXT
+				Case GDK_KEY_Tab, GDK_KEY_ISO_Left_Tab: Return VK_TAB
+				Case GDK_KEY_Return, GDK_KEY_KP_Enter: Return VK_RETURN
+				Case GDK_KEY_Escape: Return VK_ESCAPE
+				Case GDK_KEY_BackSpace: Return VK_BACK
+				Case GDK_KEY_Delete, GDK_KEY_KP_Delete: Return VK_DELETE
+				Case GDK_KEY_Insert, GDK_KEY_KP_Insert: Return VK_INSERT
+				Case GDK_KEY_space: Return VK_SPACE
+				Case GDK_KEY_KP_Add: Return VK_ADD
+				Case GDK_KEY_KP_Subtract: Return VK_SUBTRACT
+				Case GDK_KEY_KP_Multiply: Return VK_MULTIPLY
+				Case GDK_KEY_KP_Divide: Return VK_DIVIDE
+				Case GDK_KEY_KP_Decimal: Return VK_DECIMAL
+				Case GDK_KEY_period: Return &HBE
+				Case GDK_KEY_Shift_L, GDK_KEY_Shift_R: Return VK_SHIFT
+				Case GDK_KEY_Control_L, GDK_KEY_Control_R: Return VK_CONTROL
+				Case GDK_KEY_Alt_L, GDK_KEY_Alt_R: Return VK_MENU
+				End Select
+				Return 0
+			End Function
+		#endif
 	#endif
 
 	'Twips-per-pixel helpers. The VB6 control works internally in twips;
@@ -108,8 +173,9 @@ Namespace My.Sys.Forms
 	'boundaries and neutralize the Canvas scaling while the grid paints.
 
 	Function GridDataEx.ClientWidthPx() As Long
-		#ifdef __USE_GTK__
-			Return ClientWidth
+		#ifndef __USE_WINAPI__
+			'The physical pixels without the own scroll bar
+			Return Max(0, ScaleX(ClientWidth) - IIf(FOwnVScroll, OwnScrollBarSize(), 0))
 		#else
 			Dim As RECT R
 			If Handle <> 0 Then GetClientRect(Handle, @R)
@@ -118,8 +184,8 @@ Namespace My.Sys.Forms
 	End Function
 
 	Function GridDataEx.ClientHeightPx() As Long
-		#ifdef __USE_GTK__
-			Return ClientHeight
+		#ifndef __USE_WINAPI__
+			Return Max(0, ScaleY(ClientHeight) - IIf(FOwnHScroll, OwnScrollBarSize(), 0))
 		#else
 			Dim As RECT R
 			If Handle <> 0 Then GetClientRect(Handle, @R)
@@ -213,18 +279,29 @@ Namespace My.Sys.Forms
 		With This
 			Canvas.Ctrl = @This
 			.Child = @This
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				.RegisterClass "GridDataEx"
 				.ExStyle = 0
 				.Style = WS_CHILD Or WS_VISIBLE Or WS_TABSTOP Or WS_CLIPSIBLINGS Or WS_VSCROLL Or WS_HSCROLL
 				.BackColor = GetSysColor(COLOR_WINDOW)
 				.DoubleBuffered = True
-			#else
+			#elseif defined(__USE_GTK__)
+				'A layout like Chart: it gets the mouse, the keys and the draw signal
+				widget = gtk_layout_new(NULL, NULL)
 				.RegisterClass "GridDataEx", @This
+				'The layout holds the editors (TextBox, ComboBoxEdit) like the one of a Panel
+				layoutwidget = widget
+				#ifdef __USE_GTK4__
+					gtk_widget_set_focusable(widget, True)
+				#else
+					gtk_widget_set_can_focus(widget, True)
+				#endif
 				.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Cv As My.Sys.Drawing.Canvas), @GTK_Paint)
-				.OnMouseDown = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, X As Integer, Y As Integer, Shift As Integer), @GTK_MouseDown)
-				.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, X As Integer, Y As Integer, Shift As Integer), @GTK_MouseMove)
-				.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, X As Integer, Y As Integer, Shift As Integer), @GTK_MouseUp)
+			#else
+				'The Web and Android: the grid paints on CM_PAINT and gets the CM_MOUSE* and
+				'CM_KEY* messages without the OnMouse* and OnKey* events of the user
+				FMouseEvents = True
+				FKeyEvents = True
 			#endif
 			WLet(FClassName, "GridDataEx")
 			.Width = 121 * TwipsPerPixelX()
@@ -232,7 +309,7 @@ Namespace My.Sys.Forms
 		End With
 
 		'Light/dark default scheme follows App.DarkMode (g_darkModeEnabled).
-		#ifdef __USE_GTK__
+		#ifndef __USE_WINAPI__
 			SetDefaultColors(False)
 		#else
 			SetDefaultColors(g_darkModeEnabled)
@@ -281,7 +358,7 @@ Namespace My.Sys.Forms
 
 	Destructor GridDataEx
 		CancelEdit
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			DestroyMemSurface
 		#endif
 		If FTextTmp <> 0 Then _Deallocate(FTextTmp)
@@ -307,7 +384,7 @@ Namespace My.Sys.Forms
 			WDeAllocate(ColsArr(i).Lookup)
 			ColsArr(i).Lookup = 0
 		Next i
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FScrollTipHwnd <> 0 Then DestroyWindow(Cast(HWND, FScrollTipHwnd))
 			FScrollTipHwnd = 0
 		#endif
@@ -658,7 +735,7 @@ Namespace My.Sys.Forms
 		FTopRow = Value
 		SetScrollBarsInternal
 		If FRedraw AndAlso Handle <> 0 Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				ScrollGridPixels(0, dY)
 			#else
 				RepaintGrid
@@ -678,7 +755,7 @@ Namespace My.Sys.Forms
 		FLeftCol = Value
 		SetScrollBarsInternal
 		If FRedraw AndAlso Handle <> 0 Then
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				ScrollGridPixels(dX, 0)
 			#else
 				RepaintGrid
@@ -827,7 +904,7 @@ Namespace My.Sys.Forms
 		InvalidateMergeCache
 		InvalidateRowGeometry
 		FScrollBarsDirty = True
-		If FRedraw AndAlso Handle <> 0 Then InvalidateRect(Handle, NULL, False)
+		If FRedraw AndAlso Handle <> 0 Then RepaintGrid
 		Return True
 	End Function
 
@@ -933,8 +1010,11 @@ Namespace My.Sys.Forms
 				.Visible = False
 				.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox), @FlexEditTextBox.Edit_Change)
 				.OnLostFocus = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox), @FlexEditTextBox.Edit_LostFocus)
+				#ifndef __USE_WINAPI__
+					.OnKeyDown = @FlexEditTextBox.Edit_KeyDown
+				#endif
 			End With
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				If EditText_->Handle <> 0 Then
 					SendMessage(EditText_->Handle, EM_SETLIMITTEXT, IIf(FEditMaxLength > 0, FEditMaxLength, 32767), 0)
 				End If
@@ -947,11 +1027,11 @@ Namespace My.Sys.Forms
 		EditText_->Text = TextMatrix(FEditRow, FEditCol)
 		'EditSetupStyle: app can add ES_NUMBER/ES_READONLY per column.
 		Dim As Long dwSt = 0, dwEx = 0
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If EditText_->Handle <> 0 Then dwSt = GetWindowLong(EditText_->Handle, GWL_STYLE)
 		#endif
 		If OnEditSetupStyle Then OnEditSetupStyle(*Designer, This, dwSt, dwEx)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If EditText_->Handle <> 0 Then
 				Dim As Long CurSt = GetWindowLong(EditText_->Handle, GWL_STYLE)
 				If (dwSt And &H2000) <> 0 Then CurSt Or= &H2000 Else CurSt And= Not &H2000 'ES_NUMBER
@@ -1076,8 +1156,10 @@ Namespace My.Sys.Forms
 		Dim As WString Ptr NewText = 0
 		WLet(NewText, EditText_->Text)
 		Dim As Boolean WasChanged = TextMatrix(FEditRow, FEditCol) <> *NewText
-		EditText_->Visible = False
+		'Not in the edit before the editor hides: hiding it takes its focus, and the
+		'lost focus (EditBoxLostFocus) must not commit the same edit once more
 		FInEdit = False
+		EditText_->Visible = False
 		If WasChanged Then
 			Dim As UString OldText = TextMatrix(FEditRow, FEditCol)
 			TextToCell(*NewText, FEditRow, FEditCol)
@@ -1255,7 +1337,7 @@ Namespace My.Sys.Forms
 
 	'=== Scroll bars ===
 
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 	Sub GridDataEx.SetScrollBarsInternal
 		'Totals come from the prefix caches (O(1)); bulk loads defer this via
 		'FScrollBarsDirty and the state flushes before the next paint.
@@ -1409,15 +1491,15 @@ Namespace My.Sys.Forms
 
 	Sub GridDataEx.RepaintGrid
 		If Handle = 0 Then Exit Sub
-		#ifdef __USE_GTK__
-			gtk_widget_queue_draw(widget)
-		#else
+		#ifdef __USE_WINAPI__
 			InvalidateRect(Handle, NULL, False)
 			UpdateWindow(Handle)
+		#else
+			Repaint
 		#endif
 	End Sub
 
-	#ifndef __USE_GTK__
+	#ifdef __USE_WINAPI__
 	Sub GridDataEx.EnsureMemSurface(ByVal Dc As HDC, ByVal W As Long, ByVal H As Long)
 		'Keeps an off-screen bitmap matching the client size; WM_PAINT draws
 		'into it and blits once, so per-cell GDI calls never touch the screen.
@@ -2112,13 +2194,495 @@ Namespace My.Sys.Forms
 	'===
 	'=== Message processing ===
 
+	'=== The input of every platform (called by ProcessMessage: WM_* of Windows,
+	'GdkEvent of GTK, CM_* of the Web and Android) ===
+
+	Sub GridDataEx.GridMouseDown(ByVal Button As Integer, ByVal X As Long, ByVal Y As Long, ByVal ShiftState As Integer)
+		If Button = 2 Then
+			'Reader mode: middle-button panning.
+			If FAllowReaderMode Then
+				FReaderPanning = True
+				FReaderLastX = X
+				FReaderLastY = Y
+				GridCapture(True)
+			End If
+			Exit Sub
+			Exit Sub
+		End If
+		If Button <> 0 Then Exit Sub
+		Dim As Boolean CancelFlag = False
+		If OnBeforeMouseDown Then OnBeforeMouseDown(*Designer, This, 0, ShiftState, X, Y, CancelFlag)
+		If CancelFlag Then
+			Exit Sub
+		End If
+		If FComboDropped Then CloseDropDown(False)
+		SetFocus
+		UpdateHitTest(X, Y)
+		'Divider drag has priority over cell selection.
+		Dim As Long DragColIdx = HitColDividerPx(X, Y)
+		Dim As Long DragRowIdx = -1
+		If DragColIdx < 0 Then DragRowIdx = HitRowDividerPx(X, Y)
+		If DragColIdx >= 0 Then
+			Dim As Boolean CancelResize = False
+			If OnBeforeUserResize Then OnBeforeUserResize(*Designer, This, -1, DragColIdx, CancelResize)
+			If CancelResize Then
+				Exit Sub
+			End If
+			FDragMode = 1
+			FDragIndex = DragColIdx
+			FDragStartPos = X
+			FDragStartSize = ColWidth(DragColIdx)
+			GridCapture(True)
+			Exit Sub
+		ElseIf DragRowIdx >= 0 Then
+			Dim As Boolean CancelResize2 = False
+			If OnBeforeUserResize Then OnBeforeUserResize(*Designer, This, DragRowIdx, -1, CancelResize2)
+			If CancelResize2 Then
+				Exit Sub
+			End If
+			FDragMode = 2
+			FDragIndex = DragRowIdx
+			FDragStartPos = Y
+			FDragStartSize = RowHeight(DragRowIdx)
+			GridCapture(True)
+			Exit Sub
+		End If
+		'Cell button click: move onto the cell and raise the event.
+		If FHitResult = FlexHitResultCellButton Then
+			If FInEdit Then CommitEdit
+			If FFilterEditActive Then ApplyFilterEdit
+			Row = FHitRow
+			Col = FHitCol
+			If OnCellButtonClick Then OnCellButtonClick(*Designer, This, FHitRow, FHitCol)
+			Exit Sub
+		End If
+		'Filter bar band click: edit that column's filter criteria in place.
+		If FHitResult = FlexHitResultFilterCell Then
+			If FInEdit Then CommitEdit
+			If FFilterEditActive Then ApplyFilterEdit
+			StartFilterEdit(FHitCol)
+			Exit Sub
+		End If
+		Dim As Long HitRowL = FHitRow
+		Dim As Long HitColL = FHitCol
+		If HitRowL < 0 OrElse HitColL < 0 Then
+			Exit Sub
+		End If
+		'Checkbox click toggles the check state.
+		If FHitResult = FlexHitResultCheckBox AndAlso CheckBoxesActive(HitRowL, HitColL) Then
+			If HitRowL >= FFixedRows Then
+				If FInEdit Then CommitEdit
+				Row = HitRowL
+				Col = HitColL
+			End If
+			Dim As Boolean CancelCheck = False
+			If OnCellBeforeCheck Then OnCellBeforeCheck(*Designer, This, HitRowL, HitColL, FlexCellCheckReasonMouse, CancelCheck)
+			If CancelCheck = False Then
+				Dim As Integer NewState = FlexChecked
+				If EffectiveChecked(HitRowL, HitColL) = FlexChecked Then NewState = FlexUnchecked
+				Dim As FlexCellFormat Ptr F = EnsureFmtg(HitRowL, HitColL)
+				If F <> 0 Then F->Checked = NewState
+				If OnCellCheck Then OnCellCheck(*Designer, This, HitRowL, HitColL)
+				If FRedraw Then RepaintGrid
+			End If
+			Exit Sub
+		End If
+		'Combo cue click opens the cell editor.
+		If FHitResult = FlexHitResultComboCue Then
+			If HitRowL >= FFixedRows Then
+				If FAllowUserEditing = False AndAlso FAlwaysAllowComboCues Then
+					'Not editable, but cues stay clickable for custom handling.
+					If OnComboCueClick Then OnComboCueClick(*Designer, This, HitRowL, HitColL, FlexEditReasonComboCueClick)
+				Else
+					If FInEdit Then CommitEdit
+					Row = HitRowL
+					Col = HitColL
+					If OnComboCueClick Then OnComboCueClick(*Designer, This, HitRowL, HitColL, FlexEditReasonComboCueClick)
+					FEditReason = FlexEditReasonComboCueClick
+					StartEdit(HitRowL, HitColL)
+				End If
+			End If
+			Exit Sub
+		End If
+		If FInEdit Then CommitEdit
+		'Clicking outside the band commits a running filter edit.
+		If FFilterEditActive Then ApplyFilterEdit
+		'Header click sort (SortOnClick): clicking a fixed-row header cell
+		'sorts that column, toggling the direction on repeat clicks. The
+		'fixed-column corner keeps its big-selection behavior.
+		If FSortOnClick AndAlso HitRowL >= 0 AndAlso HitRowL < FFixedRows AndAlso HitColL >= FFixedCols Then
+			Dim As Long ClickCol = HitColL
+			If FSortClickCol = ClickCol Then
+				FSortClickDesc = Not FSortClickDesc
+			Else
+				FSortClickCol = ClickCol
+				FSortClickDesc = False
+			End If
+			'Auto mode: numeric sort when every non-empty value is numeric.
+			Dim As Boolean AllNum = True, AnyVal = False
+			For kSort As Long = FFixedRows To FRows - 1
+				Dim As UString SV = TextMatrix(kSort, ClickCol)
+				If Len(Trim(SV)) > 0 Then
+					AnyVal = True
+					If IsNumericText(SV) = False Then
+						AllNum = False
+						Exit For
+					End If
+				End If
+			Next kSort
+			Dim As Integer SortKind
+			If AllNum AndAlso AnyVal Then
+				SortKind = IIf(FSortClickDesc, FlexSortNumericDescending, FlexSortNumericAscending)
+			Else
+				SortKind = IIf(FSortClickDesc, FlexSortStringNoCaseDescending, FlexSortStringNoCaseAscending)
+			End If
+			For kSort As Long = 0 To FCols - 1
+				ColSortArrow(kSort) = FlexSortArrowNone
+			Next kSort
+			ColSortArrow(ClickCol) = IIf(FSortClickDesc, FlexSortArrowDescending, FlexSortArrowAscending)
+			Sort(ClickCol, SortKind)
+			If OnClick_ Then OnClick_(*Designer, This, HitRowL, HitColL)
+			If OnCellClick Then OnCellClick(*Designer, This, HitRowL, HitColL, 0)
+			Exit Sub
+		End If
+		'Fixed area big selection: click a fixed row/col to select the whole row/col.
+		If FAllowBigSelection AndAlso FAllowSelection Then
+			If HitRowL < FFixedRows AndAlso HitRowL >= 0 Then
+				Row = HitRowL
+				Col = FFixedCols
+				FRowSel = HitRowL
+				FColSel = FCols - 1
+				If OnSelChange Then OnSelChange(*Designer, This)
+				If FRedraw AndAlso Handle <> 0 Then RepaintGrid
+				If OnClick_ Then OnClick_(*Designer, This, HitRowL, HitColL)
+				If OnCellClick Then OnCellClick(*Designer, This, HitRowL, HitColL, 0)
+				Exit Sub
+			ElseIf HitColL < FFixedCols AndAlso HitColL >= 0 Then
+				Row = FFixedRows
+				Col = HitColL
+				FRowSel = FRows - 1
+				FColSel = HitColL
+				If OnSelChange Then OnSelChange(*Designer, This)
+				If FRedraw AndAlso Handle <> 0 Then RepaintGrid
+				If OnClick_ Then OnClick_(*Designer, This, HitRowL, HitColL)
+				If OnCellClick Then OnCellClick(*Designer, This, HitRowL, HitColL, 0)
+				Exit Sub
+			End If
+		End If
+		If HitRowL >= FFixedRows AndAlso HitRowL >= 0 AndAlso HitColL >= 0 Then
+			Dim As Boolean CtrlHeld = CBool((ShiftState And FLEX_CTRL_MASK) = FLEX_CTRL_MASK)
+			Dim As Boolean ShiftHeld = CBool((ShiftState And FLEX_SHIFT_MASK) = FLEX_SHIFT_MASK)
+			If CtrlHeld AndAlso FAllowMultiSelection Then
+				'Toggle a non-contiguous row mark.
+				RowSelected(HitRowL) = Not RowSelected(HitRowL)
+			ElseIf ShiftHeld AndAlso FAllowSelection Then
+				'Extend the selection rectangle from the current cell.
+				FRowSel = HitRowL
+				FColSel = HitColL
+				If OnSelChange Then OnSelChange(*Designer, This)
+			Else
+				If FAllowMultiSelection = False Then
+					Dim iClear As Long
+					For iClear = 0 To FRows - 1
+						RowsArr(iClear).State And= Not FLEX_RWIS_SELECTED
+					Next iClear
+				End If
+				Row = HitRowL
+				Col = HitColL
+			End If
+			If OnClick_ Then OnClick_(*Designer, This, HitRowL, HitColL)
+			If OnCellClick Then OnCellClick(*Designer, This, HitRowL, HitColL, 0)
+		End If
+		Exit Sub
+	End Sub
+
+	Function GridDataEx.GridMouseMove(ByVal X As Long, ByVal Y As Long) As Boolean
+		If FReaderPanning Then
+			'Middle-button panning: scroll by whole rows/columns moved.
+			Dim As Long dPx = FReaderLastX - X, dPy = FReaderLastY - Y
+			FReaderLastX = X : FReaderLastY = Y
+			Dim As Long RH = Max(1, GetDefaultRowHeightPx()), CWp = Max(1, GetDefaultColWidthPx())
+			If Abs(dPy) >= RH Then TopRow = Max(FFixedRows + FFrozenRows, Min(FRows - 1, TopRow + Sgn(dPy) * (Abs(dPy) \ RH)))
+			If Abs(dPx) >= CWp Then LeftCol = Max(FFixedCols + FFrozenCols, Min(FCols - 1, LeftCol + Sgn(dPx) * (Abs(dPx) \ CWp)))
+			Return True
+		End If
+		UpdateHitTest(X, Y)
+		If FDragMode = 1 Then
+			'Dragging a column divider: convert pixel delta back to twips.
+			Dim As Long DeltaTw = CInt((X - FDragStartPos) * TwipsPerPixelX())
+			Dim As Long NewW = Max(240, FDragStartSize + DeltaTw)
+			If FColWidthMax > 0 AndAlso NewW > FColWidthMax Then NewW = FColWidthMax
+			If NewW <> ColWidth(FDragIndex) Then ColWidth(FDragIndex) = NewW
+			Return True
+		ElseIf FDragMode = 2 Then
+			Dim As Long DeltaTwY = CInt((Y - FDragStartPos) * TwipsPerPixelY())
+			Dim As Long NewH = Max(120, FDragStartSize + DeltaTwY)
+			If FRowHeightMax > 0 AndAlso NewH > FRowHeightMax Then NewH = FRowHeightMax
+			If NewH <> RowHeight(FDragIndex) Then RowHeight(FDragIndex) = NewH
+			Return True
+		Else
+			'Hover feedback: change cursor over dividers.
+			Dim As Long HovCol = HitColDividerPx(X, Y)
+			Dim As Long HovRow = -1
+			If HovCol < 0 Then HovRow = HitRowDividerPx(X, Y)
+			If HovCol >= 0 Then
+				SetGridCursor(1)
+			ElseIf HovRow >= 0 Then
+				SetGridCursor(2)
+			ElseIf FMouseTrack AndAlso CBool(FHitResult = FlexHitResultCell OrElse FHitResult = FlexHitResultCellButton) Then
+				'Hot-track: hand cursor over interactive cell parts.
+				If FHitResult = FlexHitResultCellButton OrElse CheckBoxesActive(FHitRow, FHitCol) OrElse ColsArr(FHitCol).ComboCue >= FlexComboCueDropDown Then
+					SetGridCursor(3)
+				End If
+			End If
+		End If
+		Return False
+	End Function
+
+	Function GridDataEx.GridMouseUp(ByVal Button As Integer, ByVal X As Long, ByVal Y As Long) As Boolean
+		If Button = 2 Then
+			If FReaderPanning Then
+				FReaderPanning = False
+				GridCapture(False)
+			End If
+			Return True
+			Return False
+		End If
+		If Button <> 0 Then Return False
+		CancelScrollTip
+		If FDragMode = 1 Then
+			Dim As Long ResizedCol = FDragIndex
+			FDragMode = 0
+			FDragIndex = -1
+			GridCapture(False)
+			If OnAfterUserResize Then OnAfterUserResize(*Designer, This, -1, ResizedCol, ColWidth(ResizedCol))
+			Return True
+		ElseIf FDragMode = 2 Then
+			Dim As Long ResizedRow = FDragIndex
+			FDragMode = 0
+			FDragIndex = -1
+			GridCapture(False)
+			If OnAfterUserResize Then OnAfterUserResize(*Designer, This, ResizedRow, -1, RowHeight(ResizedRow))
+			Return True
+		End If
+		Return False
+	End Function
+
+	Sub GridDataEx.GridDblClick(ByVal X As Long, ByVal Y As Long)
+		UpdateHitTest(X, Y)
+		'Divider double click: auto fit.
+		Dim As Long DbColIdx = HitColDividerPx(X, Y)
+		Dim As Long DbRowIdx = -1
+		If DbColIdx < 0 Then DbRowIdx = HitRowDividerPx(X, Y)
+		If DbColIdx >= 0 Then
+			If OnDividerDblClick Then OnDividerDblClick(*Designer, This, -1, DbColIdx)
+			AutoSizeCol(DbColIdx, CBool(DbColIdx < FFixedCols))
+			If OnAfterUserResize Then OnAfterUserResize(*Designer, This, -1, DbColIdx, -1)
+			Exit Sub
+		ElseIf DbRowIdx >= 0 Then
+			If OnDividerDblClick Then OnDividerDblClick(*Designer, This, DbRowIdx, -1)
+			AutoSize(DbRowIdx, DbRowIdx, FlexAutoSizeModeRowHeight, FlexAutoSizeScopeAll, False, 0)
+			If OnAfterUserResize Then OnAfterUserResize(*Designer, This, DbRowIdx, -1, -1)
+			Exit Sub
+		End If
+		Dim As Long HR = FHitRow, HC = FHitCol
+		If HR >= 0 AndAlso HC >= 0 Then
+			If OnDblClick_ Then OnDblClick_(*Designer, This, HR, HC)
+			If OnCellDblClick Then OnCellDblClick(*Designer, This, HR, HC, 0)
+			If FAllowUserEditing Then
+				FEditReason = FlexEditReasonDblClick
+				StartEdit(HR, HC)
+			End If
+		End If
+		Exit Sub
+	End Sub
+
+	Sub GridDataEx.GridWheel(ByVal Delta As Long, ByVal ShiftState As Integer, ByVal Horizontal As Boolean)
+		If Horizontal Then
+			'The tilt wheel scrolls horizontally (Delta > 0: right).
+			Dim As Long HLines = FWheelScrollLines
+			If HLines < 1 Then HLines = 3
+			If Delta < 0 Then
+				LeftCol = Max(FFixedCols + FFrozenCols, LeftCol - HLines)
+			Else
+				LeftCol = min(LeftCol + HLines, FCols - 1)
+			End If
+			Exit Sub
+			Exit Sub
+		End If
+		'Ctrl+wheel zooms the view instead of scrolling.
+		If (ShiftState And FLEX_CTRL_MASK) = FLEX_CTRL_MASK Then
+			Zoom = Zoom + IIf(Delta > 0, 0.1, -0.1)
+			Exit Sub
+		End If
+		Dim As Long Lines = FWheelScrollLines
+		If Lines < 1 Then Lines = 3
+		If Delta < 0 Then
+			TopRow = min(TopRow + Lines, FRows - 1)
+		Else
+			TopRow = Max(FFixedRows + FFrozenRows, TopRow - Lines)
+		End If
+		Exit Sub
+	End Sub
+
+	Function GridDataEx.GridKeyDown(ByVal KeyCode As Integer, ByVal ShiftState As Integer) As Boolean
+		If FInEdit Then Return False
+		'VB6 semantics: the KeyDown event can set KeyCode = 0 to suppress the default action.
+		If OnKeyDown Then OnKeyDown(*Designer, This, KeyCode, ShiftState)
+		If KeyCode = 0 Then
+			Return True
+		End If
+		Select Case KeyCode
+			Case VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT
+				If (ShiftState And FLEX_SHIFT_MASK) = FLEX_SHIFT_MASK AndAlso FAllowSelection Then
+					'Extend the selection.
+					Select Case KeyCode
+						Case VK_UP : If FRowSel > FFixedRows Then FRowSel -= 1
+						Case VK_DOWN : If FRowSel < FRows - 1 Then FRowSel += 1
+						Case VK_LEFT : If FColSel > FFixedCols Then FColSel -= 1
+						Case VK_RIGHT : If FColSel < FCols - 1 Then FColSel += 1
+					End Select
+					If OnSelChange Then OnSelChange(*Designer, This)
+				ElseIf (ShiftState And FLEX_CTRL_MASK) = FLEX_CTRL_MASK Then
+					'Jump to the data region edges.
+					Select Case KeyCode
+						Case VK_UP : Row = FFixedRows
+						Case VK_DOWN : Row = FRows - 1
+						Case VK_LEFT : Col = FFixedCols
+						Case VK_RIGHT : Col = FCols - 1
+					End Select
+				Else
+					Select Case KeyCode
+						Case VK_UP
+							'Skip over hidden rows (filtered out).
+							Dim As Long NRUp = Row - 1
+							Do While (NRUp > FFixedRows) AndAlso ((RowsArr(NRUp).State And FLEX_RWIS_HIDDEN) <> 0)
+								NRUp -= 1
+							Loop
+							If (NRUp >= FFixedRows) AndAlso ((RowsArr(NRUp).State And FLEX_RWIS_HIDDEN) = 0) Then Row = NRUp
+						Case VK_DOWN
+							Dim As Long NRDown = Row + 1
+							Do While (NRDown < FRows - 1) AndAlso ((RowsArr(NRDown).State And FLEX_RWIS_HIDDEN) <> 0)
+								NRDown += 1
+							Loop
+							If (NRDown <= FRows - 1) AndAlso ((RowsArr(NRDown).State And FLEX_RWIS_HIDDEN) = 0) Then Row = NRDown
+						Case VK_LEFT : If Col > FFixedCols Then Col = Col - 1
+						Case VK_RIGHT : If Col < FCols - 1 Then Col = Col + 1
+					End Select
+				End If
+			Case VK_HOME
+				If (ShiftState And FLEX_CTRL_MASK) = FLEX_CTRL_MASK Then
+					Row = FFixedRows
+					Col = FFixedCols
+				Else
+					Col = FFixedCols
+				End If
+			Case VK_END
+				If (ShiftState And FLEX_CTRL_MASK) = FLEX_CTRL_MASK Then
+					Row = FRows - 1
+					Col = FCols - 1
+				Else
+					Col = FCols - 1
+				End If
+			Case VK_PRIOR
+				Row = Max(FFixedRows, Row - RowsPerPage())
+			Case VK_NEXT
+				Row = Min(Row + RowsPerPage(), FRows - 1)
+			Case VK_TAB
+				If FTabBehavior = FlexTabCells Then
+					Dim As Integer ShiftState2 = ShiftState
+					If (ShiftState2 And FLEX_SHIFT_MASK) = FLEX_SHIFT_MASK Then
+						If Col > FFixedCols Then
+							Col = Col - 1
+						ElseIf FWrapCellBehavior <> FlexWrapNone AndAlso Row > FFixedRows Then
+							Row = Row - 1
+							Col = FCols - 1
+						End If
+					Else
+						If Col < FCols - 1 Then
+							Col = Col + 1
+						ElseIf FWrapCellBehavior <> FlexWrapNone AndAlso Row < FRows - 1 Then
+							Row = Row + 1
+							Col = FFixedCols
+						End If
+					End If
+				Else
+					Exit Select
+				End If
+			Case VK_RETURN
+				If FAllowUserEditing AndAlso FDirectionAfterReturn = FlexDirectionAfterReturnEdit Then
+					FEditReason = FlexEditReasonReturn
+					StartEdit
+				Else
+					If OnDblClick_ Then OnDblClick_(*Designer, This, FRow, FCol)
+				End If
+			Case VK_F2
+				If FAllowUserEditing Then
+					FEditReason = FlexEditReasonF2
+					StartEdit
+				End If
+			Case VK_F4
+				If FAllowUserEditing AndAlso ColsArr(FCol).ComboMode <> FlexComboModeNone Then
+					FEditReason = FlexEditReasonComboCueF4
+					StartEdit
+				End If
+			Case VK_SPACE
+				If CheckBoxesActive(FRow, FCol) Then
+					Dim As Boolean CancelCheck = False
+					If OnCellBeforeCheck Then OnCellBeforeCheck(*Designer, This, FRow, FCol, FlexCellCheckReasonKeyboard, CancelCheck)
+					If CancelCheck = False Then
+						Dim As Integer NewState = FlexChecked
+						If EffectiveChecked(FRow, FCol) = FlexChecked Then NewState = FlexUnchecked
+						Dim As FlexCellFormat Ptr F = EnsureFmtg(FRow, FCol)
+						If F <> 0 Then F->Checked = NewState
+						If OnCellCheck Then OnCellCheck(*Designer, This, FRow, FCol)
+						If FRedraw Then RepaintGrid
+					End If
+				ElseIf FAllowUserEditing Then
+					FEditReason = FlexEditReasonSpace
+					StartEdit
+				End If
+			Case Else
+				Exit Select
+		End Select
+		Return True
+		Return False
+	End Function
+
+	Sub GridDataEx.GridKeyPress(ByVal KeyChar As Integer)
+		If FInEdit = False Then
+			If OnKeyPress Then OnKeyPress(*Designer, This, KeyChar)
+			If KeyChar = 0 Then
+				Exit Sub
+			End If
+			If FAllowIncrementalSearch AndAlso KeyChar >= 32 Then
+				IncrementalSearchAdvance(KeyChar)
+			ElseIf FAllowUserEditing AndAlso KeyChar >= 32 Then
+				'Typing starts an edit session seeded with the pressed character.
+				'(Combo/calendar/calculator cells open their drop-down instead.)
+				FEditReason = FlexEditReasonKeyPress
+				If StartEdit Then
+					If (FEditCol < 0) OrElse (FEditCol > FCols - 1) OrElse (ColsArr(FEditCol).ComboMode = FlexComboModeNone) Then
+						EditText_->Text = Chr(KeyChar)
+						EditText_->SetSel(1, 1)
+					End If
+					FEditChanged = True
+				End If
+			End If
+		End If
+	End Sub
+
+	Sub GridDataEx.GridKeyUp(ByVal KeyCode As Integer, ByVal ShiftState As Integer)
+		If OnKeyUp Then OnKeyUp(*Designer, This, KeyCode, ShiftState)
+	End Sub
+
 	Sub GridDataEx.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 		Select Case Message.Msg
 			Case WM_PAINT
 				'The scheme was chosen before the window existed; apply the
 				'matching scrollbar theme once the HWND is there.
-				#ifndef __USE_GTK__
+				#ifdef __USE_WINAPI__
 					If FScrollBarThemeDark = -1 AndAlso Handle <> 0 Then
 						ApplyScrollBarTheme(g_darkModeEnabled)
 					End If
@@ -2238,14 +2802,7 @@ Namespace My.Sys.Forms
 				Message.Result = 0
 				Return
 			Case &H20E 'WM_MOUSEHWHEEL: tilt wheel scrolls horizontally.
-				Dim As Long HDelta = GET_WHEEL_DELTA_WPARAM(Message.wParam)
-				Dim As Long HLines = FWheelScrollLines
-				If HLines < 1 Then HLines = 3
-				If HDelta < 0 Then
-					LeftCol = Max(FFixedCols + FFrozenCols, LeftCol - HLines)
-				Else
-					LeftCol = min(LeftCol + HLines, FCols - 1)
-				End If
+				GridWheel(IIf(GET_WHEEL_DELTA_WPARAM(Message.wParam) < 0, -1, 1), FlexGetShiftStateFromMsg(), True)
 				Message.Result = 0
 				Return
 			Case WM_DROPFILES '&H233: files dropped onto the grid.
@@ -2269,491 +2826,157 @@ Namespace My.Sys.Forms
 				Message.Result = 0
 				Return
 			Case WM_MBUTTONDOWN 'reader mode: middle-button panning.
-				If FAllowReaderMode Then
-					FReaderPanning = True
-					FReaderLastX = GET_X_LPARAM(Message.lParam)
-					FReaderLastY = GET_Y_LPARAM(Message.lParam)
-					SetCapture(Handle)
-				End If
+				GridMouseDown(2, GET_X_LPARAM(Message.lParam), GET_Y_LPARAM(Message.lParam), FlexGetShiftStateFromMsg())
 				Message.Result = 0
 				Return
 			Case WM_MBUTTONUP
-				If FReaderPanning Then
-					FReaderPanning = False
-					ReleaseCapture()
-				End If
+				GridMouseUp(2, GET_X_LPARAM(Message.lParam), GET_Y_LPARAM(Message.lParam))
 				Message.Result = 0
 				Return
 			Case WM_MOUSEWHEEL
-				Dim As Long Delta = GET_WHEEL_DELTA_WPARAM(Message.wParam)
-				'Ctrl+wheel zooms the view instead of scrolling.
-				If (FlexGetShiftStateFromMsg() And FLEX_CTRL_MASK) = FLEX_CTRL_MASK Then
-					Zoom = Zoom + IIf(Delta > 0, 0.1, -0.1)
-					Message.Result = 0
-					Return
-				End If
-				Dim As Long Lines = FWheelScrollLines
-				If Lines < 1 Then Lines = 3
-				If Delta < 0 Then
-					TopRow = min(TopRow + Lines, FRows - 1)
-				Else
-					TopRow = Max(FFixedRows + FFrozenRows, TopRow - Lines)
-				End If
+				GridWheel(IIf(GET_WHEEL_DELTA_WPARAM(Message.wParam) < 0, -1, 1), FlexGetShiftStateFromMsg(), False)
 				Message.Result = 0
 				Return
 			Case WM_LBUTTONDOWN
-				Dim As Long ptX = GET_X_LPARAM(Message.lParam)
-				Dim As Long ptY = GET_Y_LPARAM(Message.lParam)
-				Dim As Integer ShiftState = FlexGetShiftStateFromMsg()
-				Dim As Boolean CancelFlag = False
-				If OnBeforeMouseDown Then OnBeforeMouseDown(*Designer, This, 0, ShiftState, ptX, ptY, CancelFlag)
-				If CancelFlag Then
-					Message.Result = 0
-					Return
-				End If
-				If FComboDropped Then CloseDropDown(False)
-				SetFocus
-				UpdateHitTest(ptX, ptY)
-				'Divider drag has priority over cell selection.
-				Dim As Long DragColIdx = HitColDividerPx(ptX, ptY)
-				Dim As Long DragRowIdx = -1
-				If DragColIdx < 0 Then DragRowIdx = HitRowDividerPx(ptX, ptY)
-				If DragColIdx >= 0 Then
-					Dim As Boolean CancelResize = False
-					If OnBeforeUserResize Then OnBeforeUserResize(*Designer, This, -1, DragColIdx, CancelResize)
-					If CancelResize Then
-						Message.Result = 0
-						Return
-					End If
-					FDragMode = 1
-					FDragIndex = DragColIdx
-					FDragStartPos = ptX
-					FDragStartSize = ColWidth(DragColIdx)
-					SetCapture(Handle)
-					Message.Result = 0
-					Return
-				ElseIf DragRowIdx >= 0 Then
-					Dim As Boolean CancelResize2 = False
-					If OnBeforeUserResize Then OnBeforeUserResize(*Designer, This, DragRowIdx, -1, CancelResize2)
-					If CancelResize2 Then
-						Message.Result = 0
-						Return
-					End If
-					FDragMode = 2
-					FDragIndex = DragRowIdx
-					FDragStartPos = ptY
-					FDragStartSize = RowHeight(DragRowIdx)
-					SetCapture(Handle)
-					Message.Result = 0
-					Return
-				End If
-				'Cell button click: move onto the cell and raise the event.
-				If FHitResult = FlexHitResultCellButton Then
-					If FInEdit Then CommitEdit
-					If FFilterEditActive Then ApplyFilterEdit
-					Row = FHitRow
-					Col = FHitCol
-					If OnCellButtonClick Then OnCellButtonClick(*Designer, This, FHitRow, FHitCol)
-					Message.Result = 0
-					Return
-				End If
-				'Filter bar band click: edit that column's filter criteria in place.
-				If FHitResult = FlexHitResultFilterCell Then
-					If FInEdit Then CommitEdit
-					If FFilterEditActive Then ApplyFilterEdit
-					StartFilterEdit(FHitCol)
-					Message.Result = 0
-					Return
-				End If
-				Dim As Long HitRowL = FHitRow
-				Dim As Long HitColL = FHitCol
-				If HitRowL < 0 OrElse HitColL < 0 Then
-					Message.Result = 0
-					Return
-				End If
-				'Checkbox click toggles the check state.
-				If FHitResult = FlexHitResultCheckBox AndAlso CheckBoxesActive(HitRowL, HitColL) Then
-					If HitRowL >= FFixedRows Then
-						If FInEdit Then CommitEdit
-						Row = HitRowL
-						Col = HitColL
-					End If
-					Dim As Boolean CancelCheck = False
-					If OnCellBeforeCheck Then OnCellBeforeCheck(*Designer, This, HitRowL, HitColL, FlexCellCheckReasonMouse, CancelCheck)
-					If CancelCheck = False Then
-						Dim As Integer NewState = FlexChecked
-						If EffectiveChecked(HitRowL, HitColL) = FlexChecked Then NewState = FlexUnchecked
-						Dim As FlexCellFormat Ptr F = EnsureFmtg(HitRowL, HitColL)
-						If F <> 0 Then F->Checked = NewState
-						If OnCellCheck Then OnCellCheck(*Designer, This, HitRowL, HitColL)
-						If FRedraw Then RepaintGrid
-					End If
-					Message.Result = 0
-					Return
-				End If
-				'Combo cue click opens the cell editor.
-				If FHitResult = FlexHitResultComboCue Then
-					If HitRowL >= FFixedRows Then
-						If FAllowUserEditing = False AndAlso FAlwaysAllowComboCues Then
-							'Not editable, but cues stay clickable for custom handling.
-							If OnComboCueClick Then OnComboCueClick(*Designer, This, HitRowL, HitColL, FlexEditReasonComboCueClick)
-						Else
-							If FInEdit Then CommitEdit
-							Row = HitRowL
-							Col = HitColL
-							If OnComboCueClick Then OnComboCueClick(*Designer, This, HitRowL, HitColL, FlexEditReasonComboCueClick)
-							FEditReason = FlexEditReasonComboCueClick
-							StartEdit(HitRowL, HitColL)
-						End If
-					End If
-					Message.Result = 0
-					Return
-				End If
-				If FInEdit Then CommitEdit
-				'Clicking outside the band commits a running filter edit.
-				If FFilterEditActive Then ApplyFilterEdit
-				'Header click sort (SortOnClick): clicking a fixed-row header cell
-				'sorts that column, toggling the direction on repeat clicks. The
-				'fixed-column corner keeps its big-selection behavior.
-				If FSortOnClick AndAlso HitRowL >= 0 AndAlso HitRowL < FFixedRows AndAlso HitColL >= FFixedCols Then
-					Dim As Long ClickCol = HitColL
-					If FSortClickCol = ClickCol Then
-						FSortClickDesc = Not FSortClickDesc
-					Else
-						FSortClickCol = ClickCol
-						FSortClickDesc = False
-					End If
-					'Auto mode: numeric sort when every non-empty value is numeric.
-					Dim As Boolean AllNum = True, AnyVal = False
-					For kSort As Long = FFixedRows To FRows - 1
-						Dim As UString SV = TextMatrix(kSort, ClickCol)
-						If Len(Trim(SV)) > 0 Then
-							AnyVal = True
-							If IsNumericText(SV) = False Then
-								AllNum = False
-								Exit For
-							End If
-						End If
-					Next kSort
-					Dim As Integer SortKind
-					If AllNum AndAlso AnyVal Then
-						SortKind = IIf(FSortClickDesc, FlexSortNumericDescending, FlexSortNumericAscending)
-					Else
-						SortKind = IIf(FSortClickDesc, FlexSortStringNoCaseDescending, FlexSortStringNoCaseAscending)
-					End If
-					For kSort As Long = 0 To FCols - 1
-						ColSortArrow(kSort) = FlexSortArrowNone
-					Next kSort
-					ColSortArrow(ClickCol) = IIf(FSortClickDesc, FlexSortArrowDescending, FlexSortArrowAscending)
-					Sort(ClickCol, SortKind)
-					If OnClick_ Then OnClick_(*Designer, This, HitRowL, HitColL)
-					If OnCellClick Then OnCellClick(*Designer, This, HitRowL, HitColL, 0)
-					Message.Result = 0
-					Return
-				End If
-				'Fixed area big selection: click a fixed row/col to select the whole row/col.
-				If FAllowBigSelection AndAlso FAllowSelection Then
-					If HitRowL < FFixedRows AndAlso HitRowL >= 0 Then
-						Row = HitRowL
-						Col = FFixedCols
-						FRowSel = HitRowL
-						FColSel = FCols - 1
-						If OnSelChange Then OnSelChange(*Designer, This)
-						If FRedraw AndAlso Handle <> 0 Then RepaintGrid
-						If OnClick_ Then OnClick_(*Designer, This, HitRowL, HitColL)
-						If OnCellClick Then OnCellClick(*Designer, This, HitRowL, HitColL, 0)
-						Message.Result = 0
-						Return
-					ElseIf HitColL < FFixedCols AndAlso HitColL >= 0 Then
-						Row = FFixedRows
-						Col = HitColL
-						FRowSel = FRows - 1
-						FColSel = HitColL
-						If OnSelChange Then OnSelChange(*Designer, This)
-						If FRedraw AndAlso Handle <> 0 Then RepaintGrid
-						If OnClick_ Then OnClick_(*Designer, This, HitRowL, HitColL)
-						If OnCellClick Then OnCellClick(*Designer, This, HitRowL, HitColL, 0)
-						Message.Result = 0
-						Return
-					End If
-				End If
-				If HitRowL >= FFixedRows AndAlso HitRowL >= 0 AndAlso HitColL >= 0 Then
-					Dim As Boolean CtrlHeld = CBool((ShiftState And FLEX_CTRL_MASK) = FLEX_CTRL_MASK)
-					Dim As Boolean ShiftHeld = CBool((ShiftState And FLEX_SHIFT_MASK) = FLEX_SHIFT_MASK)
-					If CtrlHeld AndAlso FAllowMultiSelection Then
-						'Toggle a non-contiguous row mark.
-						RowSelected(HitRowL) = Not RowSelected(HitRowL)
-					ElseIf ShiftHeld AndAlso FAllowSelection Then
-						'Extend the selection rectangle from the current cell.
-						FRowSel = HitRowL
-						FColSel = HitColL
-						If OnSelChange Then OnSelChange(*Designer, This)
-					Else
-						If FAllowMultiSelection = False Then
-							Dim iClear As Long
-							For iClear = 0 To FRows - 1
-								RowsArr(iClear).State And= Not FLEX_RWIS_SELECTED
-							Next iClear
-						End If
-						Row = HitRowL
-						Col = HitColL
-					End If
-					If OnClick_ Then OnClick_(*Designer, This, HitRowL, HitColL)
-					If OnCellClick Then OnCellClick(*Designer, This, HitRowL, HitColL, 0)
-				End If
+				GridMouseDown(0, GET_X_LPARAM(Message.lParam), GET_Y_LPARAM(Message.lParam), FlexGetShiftStateFromMsg())
 				Message.Result = 0
 				Return
 			Case WM_MOUSEMOVE
-				Dim As Long mvX = GET_X_LPARAM(Message.lParam)
-				Dim As Long mvY = GET_Y_LPARAM(Message.lParam)
-				If FReaderPanning Then
-					'Middle-button panning: scroll by whole rows/columns moved.
-					Dim As Long dPx = FReaderLastX - mvX, dPy = FReaderLastY - mvY
-					FReaderLastX = mvX : FReaderLastY = mvY
-					Dim As Long RH = Max(1, GetDefaultRowHeightPx()), CWp = Max(1, GetDefaultColWidthPx())
-					If Abs(dPy) >= RH Then TopRow = Max(FFixedRows + FFrozenRows, Min(FRows - 1, TopRow + Sgn(dPy) * (Abs(dPy) \ RH)))
-					If Abs(dPx) >= CWp Then LeftCol = Max(FFixedCols + FFrozenCols, Min(FCols - 1, LeftCol + Sgn(dPx) * (Abs(dPx) \ CWp)))
+				If GridMouseMove(GET_X_LPARAM(Message.lParam), GET_Y_LPARAM(Message.lParam)) Then
 					Message.Result = 0
 					Return
-				End If
-				UpdateHitTest(mvX, mvY)
-				If FDragMode = 1 Then
-					'Dragging a column divider: convert pixel delta back to twips.
-					Dim As Long DeltaTw = CInt((mvX - FDragStartPos) * TwipsPerPixelX())
-					Dim As Long NewW = Max(240, FDragStartSize + DeltaTw)
-					If FColWidthMax > 0 AndAlso NewW > FColWidthMax Then NewW = FColWidthMax
-					If NewW <> ColWidth(FDragIndex) Then ColWidth(FDragIndex) = NewW
-					Message.Result = 0
-					Return
-				ElseIf FDragMode = 2 Then
-					Dim As Long DeltaTwY = CInt((mvY - FDragStartPos) * TwipsPerPixelY())
-					Dim As Long NewH = Max(120, FDragStartSize + DeltaTwY)
-					If FRowHeightMax > 0 AndAlso NewH > FRowHeightMax Then NewH = FRowHeightMax
-					If NewH <> RowHeight(FDragIndex) Then RowHeight(FDragIndex) = NewH
-					Message.Result = 0
-					Return
-				Else
-					'Hover feedback: change cursor over dividers.
-					Dim As Long HovCol = HitColDividerPx(mvX, mvY)
-					Dim As Long HovRow = -1
-					If HovCol < 0 Then HovRow = HitRowDividerPx(mvX, mvY)
-					If HovCol >= 0 Then
-						SetCursor(LoadCursor(NULL, IDC_SIZEWE))
-					ElseIf HovRow >= 0 Then
-						SetCursor(LoadCursor(NULL, IDC_SIZENS))
-					ElseIf FMouseTrack AndAlso CBool(FHitResult = FlexHitResultCell OrElse FHitResult = FlexHitResultCellButton) Then
-						'Hot-track: hand cursor over interactive cell parts.
-						If FHitResult = FlexHitResultCellButton OrElse CheckBoxesActive(FHitRow, FHitCol) OrElse ColsArr(FHitCol).ComboCue >= FlexComboCueDropDown Then
-							SetCursor(LoadCursor(NULL, IDC_HAND))
-						End If
-					End If
 				End If
 			Case WM_LBUTTONUP
-				CancelScrollTip
-				If FDragMode = 1 Then
-					Dim As Long ResizedCol = FDragIndex
-					FDragMode = 0
-					FDragIndex = -1
-					ReleaseCapture()
-					If OnAfterUserResize Then OnAfterUserResize(*Designer, This, -1, ResizedCol, ColWidth(ResizedCol))
-					Message.Result = 0
-					Return
-				ElseIf FDragMode = 2 Then
-					Dim As Long ResizedRow = FDragIndex
-					FDragMode = 0
-					FDragIndex = -1
-					ReleaseCapture()
-					If OnAfterUserResize Then OnAfterUserResize(*Designer, This, ResizedRow, -1, RowHeight(ResizedRow))
+				If GridMouseUp(0, GET_X_LPARAM(Message.lParam), GET_Y_LPARAM(Message.lParam)) Then
 					Message.Result = 0
 					Return
 				End If
 			Case WM_LBUTTONDBLCLK
-				Dim As Long ptX2 = GET_X_LPARAM(Message.lParam)
-				Dim As Long ptY2 = GET_Y_LPARAM(Message.lParam)
-				UpdateHitTest(ptX2, ptY2)
-				'Divider double click: auto fit.
-				Dim As Long DbColIdx = HitColDividerPx(ptX2, ptY2)
-				Dim As Long DbRowIdx = -1
-				If DbColIdx < 0 Then DbRowIdx = HitRowDividerPx(ptX2, ptY2)
-				If DbColIdx >= 0 Then
-					If OnDividerDblClick Then OnDividerDblClick(*Designer, This, -1, DbColIdx)
-					AutoSizeCol(DbColIdx, CBool(DbColIdx < FFixedCols))
-					If OnAfterUserResize Then OnAfterUserResize(*Designer, This, -1, DbColIdx, -1)
-					Message.Result = 0
-					Return
-				ElseIf DbRowIdx >= 0 Then
-					If OnDividerDblClick Then OnDividerDblClick(*Designer, This, DbRowIdx, -1)
-					AutoSize(DbRowIdx, DbRowIdx, FlexAutoSizeModeRowHeight, FlexAutoSizeScopeAll, False, 0)
-					If OnAfterUserResize Then OnAfterUserResize(*Designer, This, DbRowIdx, -1, -1)
-					Message.Result = 0
-					Return
-				End If
-				Dim As Long HR = FHitRow, HC = FHitCol
-				If HR >= 0 AndAlso HC >= 0 Then
-					If OnDblClick_ Then OnDblClick_(*Designer, This, HR, HC)
-					If OnCellDblClick Then OnCellDblClick(*Designer, This, HR, HC, 0)
-					If FAllowUserEditing Then
-						FEditReason = FlexEditReasonDblClick
-						StartEdit(HR, HC)
-					End If
-				End If
+				GridDblClick(GET_X_LPARAM(Message.lParam), GET_Y_LPARAM(Message.lParam))
 				Message.Result = 0
 				Return
 			Case WM_KEYDOWN
-				If FInEdit Then Exit Select
-				Dim As Integer KeyCode = CInt(Message.wParam)
-				Dim As Integer ShiftState = FlexGetShiftStateFromMsg()
-				'VB6 semantics: the KeyDown event can set KeyCode = 0 to suppress the default action.
-				If OnKeyDown Then OnKeyDown(*Designer, This, KeyCode, ShiftState)
-				If KeyCode = 0 Then
+				If GridKeyDown(CInt(Message.wParam), FlexGetShiftStateFromMsg()) Then
 					Message.Result = 0
 					Return
 				End If
-				Select Case KeyCode
-					Case VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT
-						If (ShiftState And FLEX_SHIFT_MASK) = FLEX_SHIFT_MASK AndAlso FAllowSelection Then
-							'Extend the selection.
-							Select Case KeyCode
-								Case VK_UP : If FRowSel > FFixedRows Then FRowSel -= 1
-								Case VK_DOWN : If FRowSel < FRows - 1 Then FRowSel += 1
-								Case VK_LEFT : If FColSel > FFixedCols Then FColSel -= 1
-								Case VK_RIGHT : If FColSel < FCols - 1 Then FColSel += 1
-							End Select
-							If OnSelChange Then OnSelChange(*Designer, This)
-						ElseIf (ShiftState And FLEX_CTRL_MASK) = FLEX_CTRL_MASK Then
-							'Jump to the data region edges.
-							Select Case KeyCode
-								Case VK_UP : Row = FFixedRows
-								Case VK_DOWN : Row = FRows - 1
-								Case VK_LEFT : Col = FFixedCols
-								Case VK_RIGHT : Col = FCols - 1
-							End Select
-						Else
-							Select Case KeyCode
-								Case VK_UP
-									'Skip over hidden rows (filtered out).
-									Dim As Long NRUp = Row - 1
-									Do While (NRUp > FFixedRows) AndAlso ((RowsArr(NRUp).State And FLEX_RWIS_HIDDEN) <> 0)
-										NRUp -= 1
-									Loop
-									If (NRUp >= FFixedRows) AndAlso ((RowsArr(NRUp).State And FLEX_RWIS_HIDDEN) = 0) Then Row = NRUp
-								Case VK_DOWN
-									Dim As Long NRDown = Row + 1
-									Do While (NRDown < FRows - 1) AndAlso ((RowsArr(NRDown).State And FLEX_RWIS_HIDDEN) <> 0)
-										NRDown += 1
-									Loop
-									If (NRDown <= FRows - 1) AndAlso ((RowsArr(NRDown).State And FLEX_RWIS_HIDDEN) = 0) Then Row = NRDown
-								Case VK_LEFT : If Col > FFixedCols Then Col = Col - 1
-								Case VK_RIGHT : If Col < FCols - 1 Then Col = Col + 1
-							End Select
-						End If
-					Case VK_HOME
-						If (ShiftState And FLEX_CTRL_MASK) = FLEX_CTRL_MASK Then
-							Row = FFixedRows
-							Col = FFixedCols
-						Else
-							Col = FFixedCols
-						End If
-					Case VK_END
-						If (ShiftState And FLEX_CTRL_MASK) = FLEX_CTRL_MASK Then
-							Row = FRows - 1
-							Col = FCols - 1
-						Else
-							Col = FCols - 1
-						End If
-					Case VK_PRIOR
-						Row = Max(FFixedRows, Row - RowsPerPage())
-					Case VK_NEXT
-						Row = Min(Row + RowsPerPage(), FRows - 1)
-					Case VK_TAB
-						If FTabBehavior = FlexTabCells Then
-							Dim As Integer ShiftState2 = FlexGetShiftStateFromMsg()
-							If (ShiftState2 And FLEX_SHIFT_MASK) = FLEX_SHIFT_MASK Then
-								If Col > FFixedCols Then
-									Col = Col - 1
-								ElseIf FWrapCellBehavior <> FlexWrapNone AndAlso Row > FFixedRows Then
-									Row = Row - 1
-									Col = FCols - 1
-								End If
-							Else
-								If Col < FCols - 1 Then
-									Col = Col + 1
-								ElseIf FWrapCellBehavior <> FlexWrapNone AndAlso Row < FRows - 1 Then
-									Row = Row + 1
-									Col = FFixedCols
-								End If
-							End If
-						Else
-							Exit Select
-						End If
-					Case VK_RETURN
-						If FAllowUserEditing AndAlso FDirectionAfterReturn = FlexDirectionAfterReturnEdit Then
-							FEditReason = FlexEditReasonReturn
-							StartEdit
-						Else
-							If OnDblClick_ Then OnDblClick_(*Designer, This, FRow, FCol)
-						End If
-					Case VK_F2
-						If FAllowUserEditing Then
-							FEditReason = FlexEditReasonF2
-							StartEdit
-						End If
-					Case VK_F4
-						If FAllowUserEditing AndAlso ColsArr(FCol).ComboMode <> FlexComboModeNone Then
-							FEditReason = FlexEditReasonComboCueF4
-							StartEdit
-						End If
-					Case VK_SPACE
-						If CheckBoxesActive(FRow, FCol) Then
-							Dim As Boolean CancelCheck = False
-							If OnCellBeforeCheck Then OnCellBeforeCheck(*Designer, This, FRow, FCol, FlexCellCheckReasonKeyboard, CancelCheck)
-							If CancelCheck = False Then
-								Dim As Integer NewState = FlexChecked
-								If EffectiveChecked(FRow, FCol) = FlexChecked Then NewState = FlexUnchecked
-								Dim As FlexCellFormat Ptr F = EnsureFmtg(FRow, FCol)
-								If F <> 0 Then F->Checked = NewState
-								If OnCellCheck Then OnCellCheck(*Designer, This, FRow, FCol)
-								If FRedraw Then RepaintGrid
-							End If
-						ElseIf FAllowUserEditing Then
-							FEditReason = FlexEditReasonSpace
-							StartEdit
-						End If
-					Case Else
-						Exit Select
-				End Select
-				Message.Result = 0
-				Return
 			Case WM_CHAR
-				If FInEdit = False Then
-					Dim As Integer KeyChar = CInt(Message.wParam)
-					If OnKeyPress Then OnKeyPress(*Designer, This, KeyChar)
-					If KeyChar = 0 Then
-						Message.Result = 0
-						Return
-					End If
-					If FAllowIncrementalSearch AndAlso KeyChar >= 32 Then
-						IncrementalSearchAdvance(KeyChar)
-					ElseIf FAllowUserEditing AndAlso KeyChar >= 32 Then
-						'Typing starts an edit session seeded with the pressed character.
-						'(Combo/calendar/calculator cells open their drop-down instead.)
-						FEditReason = FlexEditReasonKeyPress
-						If StartEdit Then
-							If (FEditCol < 0) OrElse (FEditCol > FCols - 1) OrElse (ColsArr(FEditCol).ComboMode = FlexComboModeNone) Then
-								EditText_->Text = Chr(KeyChar)
-								EditText_->SetSel(1, 1)
-							End If
-							FEditChanged = True
-						End If
-					End If
-				End If
+				If FInEdit = False Then GridKeyPress(CInt(Message.wParam))
 			Case WM_KEYUP
-				Dim As Integer KeyCodeUp = CInt(Message.wParam)
-				Dim As Integer ShiftStateUp = FlexGetShiftStateFromMsg()
-				If OnKeyUp Then OnKeyUp(*Designer, This, KeyCodeUp, ShiftStateUp)
+				GridKeyUp(CInt(Message.wParam), FlexGetShiftStateFromMsg())
 			Case WM_SETFOCUS
 				RepaintGrid
 			Case WM_KILLFOCUS
+				RepaintGrid
+		End Select
+		#elseif defined(__USE_GTK__)
+		'The events of the layout (Chart does the same): the points are in the units of GTK
+		Dim As GdkEvent Ptr e = Message.Event
+		If e <> 0 Then
+			#ifdef __USE_GTK4__
+				Dim As gdouble ex, ey
+				gtk4compat_event_get_widget_position(widget, e, @ex, @ey)
+				Dim As Integer GState = FlexGdkShift(gdk_event_get_modifier_state(e))
+				Select Case gtk4compat_event_type(e)
+				Case GDK_BUTTON_PRESS
+					InputMouseDown(gdk_button_event_get_button(e) - 1, ex, ey, GState)
+				Case GDK_2BUTTON_PRESS
+					GridDblClick(ex, ey)
+				Case GDK_BUTTON_RELEASE
+					InputMouseUp(gdk_button_event_get_button(e) - 1, ex, ey)
+				Case GDK_MOTION_NOTIFY
+					InputMouseMove(ex, ey)
+				Case GDK_KEY_PRESS
+					If InputKeyDown(gdk_key_event_get_keyval(e), GState) Then Message.Result = True
+				Case GDK_KEY_RELEASE
+					GridKeyUp(FlexKeyToVK(gdk_key_event_get_keyval(e)), GState)
+				Case GDK_SCROLL
+					Select Case gdk_scroll_event_get_direction(e)
+					Case GDK_SCROLL_UP: GridWheel(1, GState, False)
+					Case GDK_SCROLL_DOWN: GridWheel(-1, GState, False)
+					Case GDK_SCROLL_LEFT: GridWheel(-1, GState, True)
+					Case GDK_SCROLL_RIGHT: GridWheel(1, GState, True)
+					Case GDK_SCROLL_SMOOTH
+						Dim As gdouble dx, dy
+						gdk_scroll_event_get_deltas(e, @dx, @dy)
+						If dy <> 0 Then GridWheel(-Sgn(dy), GState, False)
+						If dx <> 0 Then GridWheel(Sgn(dx), GState, True)
+					End Select
+					Message.Result = True
+				End Select
+			#else
+				Select Case e->type
+				Case GDK_BUTTON_PRESS
+					InputMouseDown(e->button.button - 1, e->button.x, e->button.y, FlexGdkShift(e->button.state))
+				Case GDK_2BUTTON_PRESS
+					GridDblClick(e->button.x, e->button.y)
+				Case GDK_BUTTON_RELEASE
+					InputMouseUp(e->button.button - 1, e->button.x, e->button.y)
+				Case GDK_MOTION_NOTIFY
+					InputMouseMove(e->motion.x, e->motion.y)
+				Case GDK_KEY_PRESS
+					If InputKeyDown(e->key.keyval, FlexGdkShift(e->key.state)) Then Message.Result = True
+				Case GDK_KEY_RELEASE
+					GridKeyUp(FlexKeyToVK(e->key.keyval), FlexGdkShift(e->key.state))
+				Case GDK_SCROLL
+					Dim As Integer GState = FlexGdkShift(e->scroll.state)
+					Select Case e->scroll.direction
+					Case GDK_SCROLL_UP: GridWheel(1, GState, False)
+					Case GDK_SCROLL_DOWN: GridWheel(-1, GState, False)
+					Case GDK_SCROLL_LEFT: GridWheel(-1, GState, True)
+					Case GDK_SCROLL_RIGHT: GridWheel(1, GState, True)
+					#ifndef __USE_GTK2__
+					Case GDK_SCROLL_SMOOTH
+						If e->scroll.delta_y <> 0 Then GridWheel(-Sgn(e->scroll.delta_y), GState, False)
+						If e->scroll.delta_x <> 0 Then GridWheel(Sgn(e->scroll.delta_x), GState, True)
+					#endif
+					End Select
+					Message.Result = True
+				Case GDK_FOCUS_CHANGE
+					RepaintGrid
+				End Select
+			#endif
+		End If
+		#else
+		'The Web and Android: CM_* messages, the points are the pixels of the canvas
+		Select Case Message.Msg
+			Case CM_PAINT
+				PaintOwn(Canvas)
+			Case CM_MOUSEDOWN
+				Dim As Long X = MffPointX(Message.lParam), Y = MffPointY(Message.lParam)
+				If Message.wParam = 0 Then
+					'No double click message here: the second press soon on the same place is one
+					Dim As Double TimeNow = Timer
+					If TimeNow - FLastDownTime < 0.5 AndAlso Abs(X - FLastDownX) <= LogicalToPxX(4) AndAlso Abs(Y - FLastDownY) <= LogicalToPxY(4) Then
+						FLastDownTime = 0
+						If OwnScrollBarDown(X, Y) = False Then GridDblClick(X, Y)
+					Else
+						FLastDownTime = TimeNow
+						FLastDownX = X
+						FLastDownY = Y
+						InputMouseDown(0, X, Y, 0)
+					End If
+				Else
+					InputMouseDown(Message.wParam, X, Y, 0)
+				End If
+			Case CM_MOUSEMOVE
+				InputMouseMove(MffPointX(Message.lParam), MffPointY(Message.lParam))
+			Case CM_MOUSEUP
+				InputMouseUp(Message.wParam, MffPointX(Message.lParam), MffPointY(Message.lParam))
+			Case CM_MOUSEWHEEL
+				GridWheel(Message.wParam, 0, False)
+				Message.Result = 1
+			Case CM_MOUSEHWHEEL
+				'wParam: 1 left, -1 right
+				GridWheel(-Message.wParam, 0, True)
+				Message.Result = 1
+			Case CM_KEYDOWN
+				If GridKeyDown(Message.wParam, Message.lParam And 7) Then Message.Result = 1
+			Case CM_CHAR
+				If FInEdit = False AndAlso Message.wParam >= 32 Then GridKeyPress(Message.wParam)
+			Case CM_KEYUP
+				GridKeyUp(Message.wParam, Message.lParam And 7)
+			Case CM_SETFOCUS, CM_KILLFOCUS
 				RepaintGrid
 		End Select
 		#endif
@@ -2868,6 +3091,7 @@ Namespace My.Sys.Forms
 		Lay.RowPages = rPages
 	End Sub
 
+	#ifdef __USE_WINAPI__
 	Sub GridDataEx.RenderReportPage(ByVal Dc As HDC, ByVal PageNo As Long, ByRef Lay As FlexReportLayout, ByRef Title As WString)
 		'Draws one report page (light palette, GDI) into Dc at the DPI the
 		'layout was built for. Page order: column groups outer, row pages
@@ -2978,6 +3202,7 @@ Namespace My.Sys.Forms
 		DeleteObject(Cast(HGDIOBJ, LinePen))
 		DeleteObject(Cast(HGDIOBJ, BodyFont))
 	End Sub
+	#endif
 
 	Property GridDataEx.ReportFitWidth As Boolean
 		Return FReportFitWidth
@@ -3032,6 +3257,7 @@ Namespace My.Sys.Forms
 	Sub GridDataEx.PreviewHost_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Cv As My.Sys.Drawing.Canvas)
 		Dim As GridDataEx Ptr G = PreviewGrid
 		If G = 0 Then Exit Sub
+		#ifdef __USE_WINAPI__
 		Dim As HDC Dc = Cast(HDC, Cv.Handle)
 		If Dc = 0 Then Exit Sub
 		'Physical host size: ClientWidth would be logical pixels while the DC
@@ -3098,6 +3324,7 @@ Namespace My.Sys.Forms
 		DrawTextW(Dc, ZTxt, Len(ZTxt), @ZR, DT_RIGHT Or DT_VCENTER Or DT_SINGLELINE)
 		SelectObject(Dc, OldF)
 		DeleteObject(Cast(HGDIOBJ, CapFont))
+		#endif
 	End Sub
 
 	Sub GridDataEx.PreviewSetZoom(ByVal NewZoom As Double)
@@ -3118,11 +3345,10 @@ Namespace My.Sys.Forms
 		Dim As Double Cur = G->FPrevZoom
 		If Cur <= 0 Then
 			'Adopt the current fit level as the zoom base first.
-			Dim As RECT HRC
-			GetClientRect(Sender.Handle, @HRC)
+			Dim As Long HostW = Sender.ScaleX(Sender.ClientWidth), HostH = Sender.ScaleY(Sender.ClientHeight)
 			Dim As Double BaseW = 8.27 * 96, BaseH = 11.69 * 96
 			If G->FPrevLandscape Then Swap BaseW, BaseH
-			Cur = Min((HRC.Right - 24) / BaseW, (HRC.Bottom - 24) / BaseH)
+			Cur = Min((HostW - 24) / BaseW, (HostH - 24) / BaseH)
 			If Cur < 0.05 Then Cur = 0.05
 		End If
 		If Direction > 0 Then
@@ -3162,6 +3388,10 @@ Namespace My.Sys.Forms
 
 	Sub GridDataEx.PrintPreview(ByRef Title As WString = "", ByVal Landscape As Boolean = False)
 		'Builds the pagination at preview DPI and shows the preview window.
+		#ifndef __USE_WINAPI__
+			'The pages are drawn with GDI (RenderReportPage): Windows only
+			Exit Sub
+		#endif
 		Dim As FlexReportLayout Lay
 		BuildReportLayout(Lay, Landscape, 96, 96)
 		If Lay.ColPages < 1 OrElse Lay.RowPages < 1 Then Exit Sub
@@ -3239,7 +3469,7 @@ Namespace My.Sys.Forms
 
 	Sub GridDataEx.PrintOut(ByRef Title As WString = "", ByVal Landscape As Boolean = False)
 		'Prints the report to the default printer, one page per StartPage.
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As WString * 260 PrnName
 			Dim As ULong Sz = 260
 			If GetDefaultPrinterW(@PrnName, @Sz) = 0 Then Exit Sub
@@ -3432,7 +3662,7 @@ Namespace My.Sys.Forms
 	Sub GridDataEx.ApplyScrollBarTheme(ByVal Dark As Boolean)
 		'Switches the grid's own scrollbars between the light and the
 		'DarkMode_Explorer theme; FScrollBarThemeDark=-1 means "not yet".
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If FScrollBarThemeDark = IIf(Dark, 1, 0) Then Exit Sub
 			If Handle = 0 Then Exit Sub
 			Dim As WString * 20 LightTheme = ""
@@ -3453,7 +3683,7 @@ Namespace My.Sys.Forms
 	Sub GridDataEx.ApplyDefaultColors()
 		'Reapplies the scheme for the current App.DarkMode state; call after
 		'toggling App.DarkMode (the grid receives no notification on its own).
-		#ifdef __USE_GTK__
+		#ifndef __USE_WINAPI__
 			SetDefaultColors(False)
 		#else
 			SetDefaultColors(g_darkModeEnabled)
@@ -4322,7 +4552,7 @@ Namespace My.Sys.Forms
 
 	Property GridDataEx.Redraw(ByVal Value As Boolean)
 		FRedraw = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle <> 0 Then FlexSetWindowRedraw(Handle, Value)
 		#endif
 		If Value AndAlso Handle <> 0 Then RepaintGrid
@@ -4334,7 +4564,7 @@ Namespace My.Sys.Forms
 
 	Property GridDataEx.DoubleBuffer(ByVal Value As Boolean)
 		FDoubleBuffer = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			DoubleBuffered = Value
 		#endif
 	End Property
@@ -6023,8 +6253,12 @@ Namespace My.Sys.Forms
 			Case FlexMetricTextPadding : CX = CLng(3 * FactorX) : CY = CLng(1 * FactorY)
 			Case FlexMetricCellSpacing : CX = 0 : CY = 0
 			Case FlexMetricScrollBarSize
-				CX = GetSystemMetrics(SM_CXVSCROLL)
-				CY = GetSystemMetrics(SM_CYHSCROLL)
+				#ifdef __USE_WINAPI__
+					CX = GetSystemMetrics(SM_CXVSCROLL)
+					CY = GetSystemMetrics(SM_CYHSCROLL)
+				#else
+					CX = OwnScrollBarSize() : CY = CX
+				#endif
 			Case FlexMetricCheckBoxSize
 				CX = CvCheckBoxSize() : CY = CX
 			Case Else : CX = 0 : CY = 0
@@ -6036,7 +6270,7 @@ Namespace My.Sys.Forms
 		Dim As Single FactorY = 15 / TwipsPerPixelY()
 		If FactorY <= 0 Then FactorY = 1
 		Dim As Long BaseSize = 13
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			BaseSize = Max(GetSystemMetrics(SM_CXVSCROLL) - 2, 11)
 		#endif
 		Return Max(11, CLng(CDbl(BaseSize) * FactorY))
@@ -6053,7 +6287,7 @@ Namespace My.Sys.Forms
 
 	Function GridDataEx.TextWidthOf(ByRef Value As WString) As Long
 		If Handle = 0 Then Return Len(Value) * 8
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As HDC Dc = GetDC(Handle)
 			Canvas.SetHandle(Dc)
 			UsePhysicalCanvas
@@ -6064,22 +6298,28 @@ Namespace My.Sys.Forms
 		#else
 			'Measure through a Pango layout on a scratch cairo surface: a layout
 			'can be created from any cairo context, no live paint is needed
-			Dim As cairo_surface_t Ptr Surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1)
-			Dim As cairo_t Ptr cr = cairo_create(Surface)
-			Canvas.SetHandle(cr)
-			Canvas.Font = This.Font
-			Dim As Long Result = Canvas.TextWidth(Value)
-			Canvas.Handle = 0
-			Canvas.HandleSetted = False
-			cairo_destroy(cr)
-			cairo_surface_destroy(Surface)
-			Return Result
+			#ifdef __USE_GTK__
+				Dim As cairo_surface_t Ptr Surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1)
+				Dim As cairo_t Ptr cr = cairo_create(Surface)
+				Canvas.SetHandle(cr)
+				Canvas.Font = This.Font
+				Dim As Long Result = Canvas.TextWidth(Value)
+				Canvas.Handle = 0
+				Canvas.HandleSetted = False
+				cairo_destroy(cr)
+				cairo_surface_destroy(Surface)
+				Return Result
+			#else
+				'The Web and Android measure without a running paint
+				Canvas.Font = This.Font
+				Return Canvas.TextWidth(Value)
+			#endif
 		#endif
 	End Function
 
 	Function GridDataEx.TextHeightOf(ByRef Value As WString) As Long
 		If Handle = 0 Then Return 16
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As HDC Dc = GetDC(Handle)
 			Canvas.SetHandle(Dc)
 			UsePhysicalCanvas
@@ -6088,16 +6328,22 @@ Namespace My.Sys.Forms
 			ReleaseDC(Handle, Dc)
 			Return Result
 		#else
-			Dim As cairo_surface_t Ptr Surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1)
-			Dim As cairo_t Ptr cr = cairo_create(Surface)
-			Canvas.SetHandle(cr)
-			Canvas.Font = This.Font
-			Dim As Long Result = Canvas.TextHeight(Value)
-			Canvas.Handle = 0
-			Canvas.HandleSetted = False
-			cairo_destroy(cr)
-			cairo_surface_destroy(Surface)
-			Return Result
+			#ifdef __USE_GTK__
+				Dim As cairo_surface_t Ptr Surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1)
+				Dim As cairo_t Ptr cr = cairo_create(Surface)
+				Canvas.SetHandle(cr)
+				Canvas.Font = This.Font
+				Dim As Long Result = Canvas.TextHeight(Value)
+				Canvas.Handle = 0
+				Canvas.HandleSetted = False
+				cairo_destroy(cr)
+				cairo_surface_destroy(Surface)
+				Return Result
+			#else
+				'The Web and Android measure without a running paint
+				Canvas.Font = This.Font
+				Return Canvas.TextHeight(Value)
+			#endif
 		#endif
 	End Function
 
@@ -6413,6 +6659,9 @@ Namespace My.Sys.Forms
 	End Sub
 
 	Sub GridDataEx.ComboEdit_KeyDown(ByRef Sender As ComboBoxEdit, Key As Integer, Shift As Integer)
+		#ifdef __USE_GTK__
+			Key = FlexKeyToVK(Key)
+		#endif
 		Select Case Key
 			Case VK_ESCAPE
 				CloseDropDown(False)
@@ -6462,7 +6711,7 @@ Namespace My.Sys.Forms
 		Dim As FlexCell Ptr C = CellAt(aRow, aCol)
 		Dim As UString TextValue = ""
 		If C <> 0 AndAlso C->FText <> 0 Then TextValue = *C->FText
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As HDC Dc = GetDC(Handle)
 			Canvas.SetHandle(Dc)
 			UsePhysicalCanvas
@@ -6894,7 +7143,7 @@ Namespace My.Sys.Forms
 
 	Function GridDataEx.CanPaste() As Boolean
 		#ifdef __USE_WINAPI__
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 				Return Clipboard.HasFormat(CF_UNICODETEXT)
 			#endif
 		#endif
@@ -6969,7 +7218,7 @@ Namespace My.Sys.Forms
 
 	Property GridDataEx.EditMaxLength(ByVal Value As Long)
 		FEditMaxLength = Max(0, Value)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If EditText_ <> 0 AndAlso EditText_->Handle <> 0 Then
 				SendMessage(EditText_->Handle, EM_SETLIMITTEXT, IIf(FEditMaxLength > 0, FEditMaxLength, 32767), 0)
 			End If
@@ -7085,7 +7334,7 @@ Namespace My.Sys.Forms
 			Dim pixbuf As GdkPixbuf Ptr = Cast(GdkPixbuf Ptr, Handle)
 			W = gdk_pixbuf_get_width(pixbuf)
 			H = gdk_pixbuf_get_height(pixbuf)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If IsIcon Then
 				Dim As ICONINFO II
 				If GetIconInfo(Cast(HICON, Handle), @II) <> 0 Then
@@ -7129,7 +7378,7 @@ Namespace My.Sys.Forms
 			cairo_rectangle(cr, 0, 0, NW, NH)
 			cairo_fill(cr)
 			cairo_restore(cr)
-		#else
+		#elseif defined(__USE_WINAPI__)
 			If IsIcon Then
 				DrawIconEx(Cast(HDC, Cv.Handle), X, Y, Cast(HICON, Handle), W, H, 0, NULL, DI_NORMAL)
 			Else
@@ -7343,7 +7592,7 @@ Namespace My.Sys.Forms
 	'=== FlexEditTextBox: the in-place editor ===
 
 	Sub FlexEditTextBox.ProcessMessage(ByRef Message As Message)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 		Dim As GridDataEx Ptr G = Cast(GridDataEx Ptr, Grid)
 		If G <> 0 AndAlso Message.Msg = WM_KEYDOWN Then
 			Dim As Integer KeyCode = CInt(Message.wParam)
@@ -7356,6 +7605,18 @@ Namespace My.Sys.Forms
 		#endif
 		Base.ProcessMessage(Message)
 	End Sub
+
+	#ifndef __USE_WINAPI__
+		Sub FlexEditTextBox.Edit_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
+			Dim As GridDataEx Ptr G = Cast(GridDataEx Ptr, Cast(FlexEditTextBox Ptr, @Sender)->Grid)
+			If G = 0 Then Exit Sub
+			#ifdef __USE_GTK__
+				G->EditBoxKeyDown(FlexKeyToVK(Key), FlexGdkShift(Shift))
+			#else
+				G->EditBoxKeyDown(Key, FlexGdkShift(Shift))
+			#endif
+		End Sub
+	#endif
 
 	Sub GridDataEx.EditBoxChanged()
 		'Enforce EditMaxLength cross-platform, then notify.
@@ -7470,90 +7731,323 @@ Namespace My.Sys.Forms
 		G->EditBoxLostFocus
 	End Sub
 
-	#ifdef __USE_GTK__
-	'=== GTK branch: mouse drag for column/row sizing + painting ===
+	'=== The cursor and the capture of the mouse ===
 
-	Sub GridDataEx.GTK_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, X As Integer, Y As Integer, Shift As Integer)
-		If MouseButton <> 0 Then Exit Sub
-		Dim As GridDataEx Ptr G = Cast(GridDataEx Ptr, @Sender)
-		Dim As Long DragColIdx = G->HitColDividerPx(X, Y)
-		Dim As Long DragRowIdx = -1
-		If DragColIdx < 0 Then DragRowIdx = G->HitRowDividerPx(X, Y)
-		If DragColIdx >= 0 Then
-			G->FDragMode = 1
-			G->FDragIndex = DragColIdx
-			G->FDragStartPos = X
-			G->FDragStartSize = G->ColWidth(DragColIdx)
-		ElseIf DragRowIdx >= 0 Then
-			G->FDragMode = 2
-			G->FDragIndex = DragRowIdx
-			G->FDragStartPos = Y
-			G->FDragStartSize = G->RowHeight(DragRowIdx)
-		Else
-			'Cell selection mirrors the Windows path.
-			Dim As Long HitRow = G->RowAtY(Y)
-			Dim As Long HitCol = G->ColAtX(X)
-			If HitRow >= 0 AndAlso HitCol >= 0 Then
-				Dim As Long M1, M2, M3, M4
-				G->GetMergedRange(HitRow, HitCol, M1, M2, M3, M4)
-				HitRow = M1 : HitCol = M2
-				If HitRow >= G->FFixedRows AndAlso HitCol >= G->FFixedCols Then
-					If G->FInEdit Then G->CommitEdit
-					G->Row = HitRow
-					G->Col = HitCol
-				End If
-			End If
-		End If
-	End Sub
-
-	Sub GridDataEx.GTK_MouseMove(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, X As Integer, Y As Integer, Shift As Integer)
-		Dim As GridDataEx Ptr G = Cast(GridDataEx Ptr, @Sender)
-		If G->FDragMode = 1 Then
-			Dim As Long DeltaTw = CInt((X - G->FDragStartPos) * G->TwipsPerPixelX())
-			Dim As Long NewW = Max(240, G->FDragStartSize + DeltaTw)
-			If NewW <> G->ColWidth(G->FDragIndex) Then G->ColWidth(G->FDragIndex) = NewW
-		ElseIf G->FDragMode = 2 Then
-			Dim As Long DeltaTwY = CInt((Y - G->FDragStartPos) * G->TwipsPerPixelY())
-			Dim As Long NewH = Max(120, G->FDragStartSize + DeltaTwY)
-			If NewH <> G->RowHeight(G->FDragIndex) Then G->RowHeight(G->FDragIndex) = NewH
-		Else
-			G->GTK_UpdateCursor(X, Y)
-		End If
-	End Sub
-
-	Sub GridDataEx.GTK_MouseUp(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, X As Integer, Y As Integer, Shift As Integer)
-		Dim As GridDataEx Ptr G = Cast(GridDataEx Ptr, @Sender)
-		G->FDragMode = 0
-		G->FDragIndex = -1
-	End Sub
-
-	Sub GridDataEx.GTK_UpdateCursor(ByVal X As Long, ByVal Y As Long)
-		#ifndef __USE_GTK__
+	Sub GridDataEx.SetGridCursor(ByVal Kind As Integer)
+		#ifdef __USE_WINAPI__
+			Select Case Kind
+			Case 1: SetCursor(LoadCursor(NULL, IDC_SIZEWE))
+			Case 2: SetCursor(LoadCursor(NULL, IDC_SIZENS))
+			Case 3: SetCursor(LoadCursor(NULL, IDC_HAND))
+			End Select
 		#else
-		Dim As String CursorName = "default"
-		If HitColDividerPx(X, Y) >= 0 Then
-			CursorName = "col-resize"
-		ElseIf HitRowDividerPx(X, Y) >= 0 Then
-			CursorName = "row-resize"
-		End If
-		If CursorName <> FLastCursorName Then
-			FLastCursorName = CursorName
-			If widget <> 0 Then
-				Dim As GdkDisplay Ptr pdisplay = gtk_widget_get_display(widget)
-				Dim As GdkCursor Ptr pcursor = gdk_cursor_new_from_name(pdisplay, CursorName)
-				Dim As GdkWindow Ptr win = gtk_widget_get_window(widget)
-				#ifndef __USE_GTK4__
-				If GTK_IS_LAYOUT(widget) Then win = gtk_layout_get_bin_window(GTK_LAYOUT(widget))
-				#endif
-				If win <> 0 Then gdk_window_set_cursor(win, pcursor)
-			End If
-		End If
+			'InputMouseMove shows it after the move (the arrow when no part asked for another one)
+			FPendingCursor = Kind
 		#endif
 	End Sub
 
-	Sub GridDataEx.GTK_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Cv As My.Sys.Drawing.Canvas)
-		Dim As GridDataEx Ptr G = Cast(GridDataEx Ptr, @Sender)
-		G->DrawGridArea(Cv, 0, 0, G->ClientWidthPx(), G->ClientHeightPx())
+	Sub GridDataEx.GridCapture(ByVal Value As Boolean)
+		#ifdef __USE_WINAPI__
+			If Value Then
+				SetCapture(Handle)
+			Else
+				ReleaseCapture()
+			End If
+		#endif
+	End Sub
+
+	#ifndef __USE_WINAPI__
+	'=== GTK, the Web and Android: the own scroll bars ===
+	'The grid has no scroll bars of a window there: it draws them at the right and
+	'the bottom edge of its client area and handles their presses and drags.
+
+	Function GridDataEx.OwnScrollBarSize() As Long
+		Return LogicalToPxX(14)
+	End Function
+
+	'The whole client area in the pixels of the painting and of the mouse
+	Function GridDataEx.OwnFullWidth() As Long
+		#ifdef __USE_GTK__
+			If widget = 0 Then Return 0
+			#ifdef __USE_GTK4__
+				Return gtk_widget_get_width(widget)
+			#else
+				Return gtk_widget_get_allocated_width(widget)
+			#endif
+		#else
+			Return ScaleX(ClientWidth)
+		#endif
+	End Function
+
+	Function GridDataEx.OwnFullHeight() As Long
+		#ifdef __USE_GTK__
+			If widget = 0 Then Return 0
+			#ifdef __USE_GTK4__
+				Return gtk_widget_get_height(widget)
+			#else
+				Return gtk_widget_get_allocated_height(widget)
+			#endif
+		#else
+			Return ScaleY(ClientHeight)
+		#endif
+	End Function
+
+	Sub GridDataEx.SetScrollBarsInternal
+		Dim As Long FullW = OwnFullWidth(), FullH = OwnFullHeight()
+		Dim As Long SB = OwnScrollBarSize()
+		Dim As Long TotalHeight = RowTopY(FRows) + FilterBarHeightPx()
+		Dim As Long TotalWidth = ColLeftX(FCols)
+		Dim As Boolean NeedV = False, NeedH = False
+		'Twice: a bar takes the room of the other direction
+		For iPass As Integer = 1 To 2
+			NeedV = CBool(FScrollBars = 2 OrElse FScrollBars = 3) AndAlso TotalHeight > FullH - IIf(NeedH, SB, 0)
+			NeedH = CBool(FScrollBars = 1 OrElse FScrollBars = 3) AndAlso TotalWidth > FullW - IIf(NeedV, SB, 0)
+		Next
+		FOwnVScroll = NeedV
+		FOwnHScroll = NeedH
+		FScrollBarsDirty = False
+	End Sub
+
+	Sub GridDataEx.ScrollGridPixels(ByVal dX As Long, ByVal dY As Long)
+		RepaintGrid
+	End Sub
+
+	'The track and the thumb of a bar along it (Vertical: the rows from TopRow, else
+	'the columns from LeftCol); False when the bar is not shown
+	Function GridDataEx.OwnScrollBarRects(ByVal Vertical As Boolean, ByRef TrackLen As Long, ByRef ThumbStart As Long, ByRef ThumbLen As Long) As Boolean
+		Dim As Long SB = OwnScrollBarSize()
+		Dim As Long First, Count, Position, Page
+		If Vertical Then
+			If FOwnVScroll = False Then Return False
+			TrackLen = OwnFullHeight() - IIf(FOwnHScroll, SB, 0)
+			First = FFixedRows + FFrozenRows
+			Count = FRows - First
+			Position = FTopRow - First
+			Page = Max(1, RowsPerPage)
+		Else
+			If FOwnHScroll = False Then Return False
+			TrackLen = OwnFullWidth() - IIf(FOwnVScroll, SB, 0)
+			First = FFixedCols + FFrozenCols
+			Count = FCols - First
+			Position = FLeftCol - First
+			Page = Max(1, ColsPerPage)
+		End If
+		If TrackLen <= 0 OrElse Count <= 0 Then Return False
+		ThumbLen = Max(SB, CLng(CDbl(TrackLen) * Min(1.0, Page / Count)))
+		If ThumbLen > TrackLen Then ThumbLen = TrackLen
+		ThumbStart = CLng(CDbl(TrackLen - ThumbLen) * Min(1.0, Max(0, Position) / Max(1, Count - 1)))
+		Return True
+	End Function
+
+	Sub GridDataEx.DrawOwnScrollBars(ByRef Cv As My.Sys.Drawing.Canvas)
+		Dim As Long SB = OwnScrollBarSize()
+		Dim As Long FullW = OwnFullWidth(), FullH = OwnFullHeight()
+		Dim As Long TrackLen, ThumbStart, ThumbLen
+		Dim As Long ClrTrack = FlexWinColor(FBackColorFixed), ClrThumb = FlexWinColor(FGridColor)
+		Dim As My.Sys.Drawing.Rect R
+		If OwnScrollBarRects(True, TrackLen, ThumbStart, ThumbLen) Then
+			R.Left = FullW - SB : R.Top = 0 : R.Right = FullW : R.Bottom = TrackLen
+			Cv.FillRect(R, ClrTrack)
+			R.Left = FullW - SB + 3 : R.Top = ThumbStart + 2 : R.Right = FullW - 3 : R.Bottom = ThumbStart + ThumbLen - 2
+			Cv.FillRect(R, ClrThumb)
+		End If
+		If OwnScrollBarRects(False, TrackLen, ThumbStart, ThumbLen) Then
+			R.Left = 0 : R.Top = FullH - SB : R.Right = TrackLen : R.Bottom = FullH
+			Cv.FillRect(R, ClrTrack)
+			R.Left = ThumbStart + 2 : R.Top = FullH - SB + 3 : R.Right = ThumbStart + ThumbLen - 2 : R.Bottom = FullH - 3
+			Cv.FillRect(R, ClrThumb)
+		End If
+		If FOwnVScroll AndAlso FOwnHScroll Then
+			R.Left = FullW - SB : R.Top = FullH - SB : R.Right = FullW : R.Bottom = FullH
+			Cv.FillRect(R, ClrTrack)
+		End If
+	End Sub
+
+	'A press on a scroll bar: the track pages, the thumb starts a drag. True when
+	'the press was on a bar (the cells do not get it then)
+	Function GridDataEx.OwnScrollBarDown(ByVal X As Long, ByVal Y As Long) As Boolean
+		Dim As Long SB = OwnScrollBarSize()
+		Dim As Long FullW = OwnFullWidth(), FullH = OwnFullHeight()
+		Dim As Long TrackLen, ThumbStart, ThumbLen
+		If X >= FullW - SB AndAlso OwnScrollBarRects(True, TrackLen, ThumbStart, ThumbLen) AndAlso Y < TrackLen Then
+			If FInEdit Then CommitEdit
+			If Y < ThumbStart Then
+				TopRow = TopRow - RowsPerPage
+			ElseIf Y >= ThumbStart + ThumbLen Then
+				TopRow = TopRow + RowsPerPage
+			Else
+				FOwnScrollDrag = 1
+				FOwnScrollDragPos = Y
+				FOwnScrollDragFirst = FTopRow
+			End If
+			Return True
+		End If
+		If Y >= FullH - SB AndAlso OwnScrollBarRects(False, TrackLen, ThumbStart, ThumbLen) AndAlso X < TrackLen Then
+			If FInEdit Then CommitEdit
+			If X < ThumbStart Then
+				LeftCol = LeftCol - ColsPerPage
+			ElseIf X >= ThumbStart + ThumbLen Then
+				LeftCol = LeftCol + ColsPerPage
+			Else
+				FOwnScrollDrag = 2
+				FOwnScrollDragPos = X
+				FOwnScrollDragFirst = FLeftCol
+			End If
+			Return True
+		End If
+		'The corner between the bars
+		Return FOwnVScroll AndAlso FOwnHScroll AndAlso X >= FullW - SB AndAlso Y >= FullH - SB
+	End Function
+
+	Function GridDataEx.OwnScrollBarMove(ByVal X As Long, ByVal Y As Long) As Boolean
+		If FOwnScrollDrag = 0 Then Return False
+		Dim As Long TrackLen, ThumbStart, ThumbLen
+		If FOwnScrollDrag = 1 Then
+			If OwnScrollBarRects(True, TrackLen, ThumbStart, ThumbLen) AndAlso TrackLen > ThumbLen Then
+				Dim As Long Count = FRows - (FFixedRows + FFrozenRows)
+				TopRow = FOwnScrollDragFirst + CLng(CDbl(Y - FOwnScrollDragPos) * Max(1, Count - 1) / (TrackLen - ThumbLen))
+			End If
+		Else
+			If OwnScrollBarRects(False, TrackLen, ThumbStart, ThumbLen) AndAlso TrackLen > ThumbLen Then
+				Dim As Long Count = FCols - (FFixedCols + FFrozenCols)
+				LeftCol = FOwnScrollDragFirst + CLng(CDbl(X - FOwnScrollDragPos) * Max(1, Count - 1) / (TrackLen - ThumbLen))
+			End If
+		End If
+		Return True
+	End Function
+
+	Function GridDataEx.OwnScrollBarUp() As Boolean
+		If FOwnScrollDrag = 0 Then Return False
+		FOwnScrollDrag = 0
+		Return True
+	End Function
+
+	'=== GTK, the Web and Android: the painting and the mouse ===
+
+	'Cv.Handle is the paint context of GTK (cairo) or of the canvas of the Web / Android
+	Sub GridDataEx.PaintOwn(ByRef Cv As My.Sys.Drawing.Canvas)
+		#ifdef __USE_GTK__
+			'The default row height (240 twips) is for Tahoma 8: the default font of GTK is
+			'bigger, the rows grow to it once (before the first paint)
+			If FDefaultRowFitted = False Then
+				FDefaultRowFitted = True
+				Dim As Long NeedPx = TextHeightOf("Ag") + LogicalToPxY(4)
+				If FDefaultRowHeight = 240 AndAlso NeedPx > GetDefaultRowHeightPx() Then
+					FDefaultRowHeight = CLng(NeedPx * TwipsPerPixelY())
+					InvalidateRowGeometry
+					FScrollBarsDirty = True
+				End If
+			End If
+		#endif
+		If FScrollBarsDirty Then SetScrollBarsInternal
+		'The grid passes the pixels of the painting: the Canvas must not scale them again
+		Dim As Single SavedX = Cv.xdpi, SavedY = Cv.ydpi
+		Cv.xdpi = 1
+		Cv.ydpi = 1
+		DrawGridArea(Cv, 0, 0, ClientWidthPx(), ClientHeightPx())
+		DrawOwnScrollBars(Cv)
+		Cv.xdpi = SavedX
+		Cv.ydpi = SavedY
+	End Sub
+
+	#ifdef __USE_GTK__
+		Sub GridDataEx.GTK_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Cv As My.Sys.Drawing.Canvas)
+			Cast(GridDataEx Ptr, @Sender)->PaintOwn(Cv)
+		End Sub
+
+		'A key of GTK: the key code of Windows for GridKeyDown, then its character like WM_CHAR
+		Function GridDataEx.InputKeyDown(ByVal KeyVal As Long, ByVal ShiftState As Integer) As Boolean
+			Dim As Boolean Handled
+			Dim As Long VK = FlexKeyToVK(KeyVal)
+			If VK <> 0 Then Handled = GridKeyDown(VK, ShiftState)
+			If FInEdit = False AndAlso (ShiftState And FLEX_CTRL_MASK) = 0 Then
+				Dim As Long KeyChar = gdk_keyval_to_unicode(KeyVal)
+				If KeyChar >= 32 Then GridKeyPress(KeyChar)
+			End If
+			Return Handled
+		End Function
+	#endif
+
+	Sub GridDataEx.ApplyOwnCursor(ByVal Kind As Integer)
+		If Kind = FLastCursor Then Exit Sub
+		FLastCursor = Kind
+		#ifdef __USE_GTK__
+			If widget = 0 Then Exit Sub
+			Dim As String CursorName = "default"
+			Select Case Kind
+			Case 1: CursorName = "col-resize"
+			Case 2: CursorName = "row-resize"
+			Case 3: CursorName = "pointer"
+			End Select
+			#ifdef __USE_GTK4__
+				gtk_widget_set_cursor_from_name(widget, CursorName)
+			#else
+				Dim As GdkCursor Ptr pcursor = gdk_cursor_new_from_name(gtk_widget_get_display(widget), CursorName)
+				Dim As GdkWindow Ptr win = gtk_widget_get_window(widget)
+				If GTK_IS_LAYOUT(widget) Then win = gtk_layout_get_bin_window(GTK_LAYOUT(widget))
+				If win <> 0 Then gdk_window_set_cursor(win, pcursor)
+				If pcursor <> 0 Then g_object_unref(pcursor)
+			#endif
+		#endif
+		'The Web and Android keep the cursor of the page (Android has none)
+	End Sub
+
+	Sub GridDataEx.InputMouseDown(ByVal Button As Integer, ByVal X As Long, ByVal Y As Long, ByVal ShiftState As Integer)
+		If Button = 0 AndAlso OwnScrollBarDown(X, Y) Then Exit Sub
+		#ifdef __USE_JNI__
+			'A touch: a move of the finger after the press pans the grid (InputMouseMove)
+			If Button = 0 Then
+				FTouchDown = True
+				FTouchPanning = False
+				FTouchX = X
+				FTouchY = Y
+			End If
+		#endif
+		GridMouseDown(Button, X, Y, ShiftState)
+	End Sub
+
+	Sub GridDataEx.InputMouseMove(ByVal X As Long, ByVal Y As Long)
+		If OwnScrollBarMove(X, Y) Then Exit Sub
+		#ifdef __USE_JNI__
+			If FTouchDown AndAlso FDragMode = 0 Then
+				Dim As Long Slop = LogicalToPxX(8)
+				If FTouchPanning = False AndAlso (Abs(X - FTouchX) > Slop OrElse Abs(Y - FTouchY) > Slop) Then FTouchPanning = True
+				If FTouchPanning Then
+					'Whole rows and columns: the rest of the move waits for the next one
+					Dim As Long RowH = Max(1, GetDefaultRowHeightPx()), ColW = Max(1, GetDefaultColWidthPx())
+					Dim As Long dRows = (FTouchY - Y) \ RowH, dCols = (FTouchX - X) \ ColW
+					If dRows <> 0 Then
+						TopRow = TopRow + dRows
+						FTouchY -= dRows * RowH
+					End If
+					If dCols <> 0 Then
+						LeftCol = LeftCol + dCols
+						FTouchX -= dCols * ColW
+					End If
+					Exit Sub
+				End If
+			End If
+		#endif
+		FPendingCursor = 0
+		GridMouseMove(X, Y)
+		If FDragMode = 0 Then ApplyOwnCursor(FPendingCursor)
+	End Sub
+
+	Sub GridDataEx.InputMouseUp(ByVal Button As Integer, ByVal X As Long, ByVal Y As Long)
+		If OwnScrollBarUp() Then Exit Sub
+		#ifdef __USE_JNI__
+			FTouchDown = False
+			If FTouchPanning Then
+				FTouchPanning = False
+				Exit Sub
+			End If
+		#endif
+		GridMouseUp(Button, X, Y)
+		#ifdef __USE_WASM__
+			'The browser focuses the grid after the press which opened the editor (a double
+			'click): the editor gets the focus again when the button is released
+			If FInEdit AndAlso EditText_ <> 0 AndAlso EditText_->Visible Then EditText_->SetFocus
+		#endif
 	End Sub
 	#endif
 
@@ -8463,6 +8957,9 @@ Namespace My.Sys.Forms
 				.Visible = False
 				.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox), @FlexEditTextBox.Edit_Change)
 				.OnLostFocus = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox), @FlexEditTextBox.Edit_LostFocus)
+				#ifndef __USE_WINAPI__
+					.OnKeyDown = @FlexEditTextBox.Edit_KeyDown
+				#endif
 			End With
 		End If
 		FFilterEditCol = aCol
@@ -9090,7 +9587,7 @@ Namespace My.Sys.Forms
 		Dim As Long FrozenAdd = IIf(IsRow, FFrozenRows, FFrozenCols)
 		Dim As Long LastIdx = IIf(IsRow, FRows - 1, FCols - 1)
 		If Result < FixedBound OrElse Result > LastIdx Then Return Result
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 		If Handle = 0 Then Return Result
 		If (FlexGetMouseState() And (FLEX_LEFT_BUTTON Or FLEX_RIGHT_BUTTON)) = 0 Then Return Result
 		FDragRowColActive = True
@@ -9334,7 +9831,7 @@ Namespace My.Sys.Forms
 
 	Sub GridDataEx.DrawWallPaperArea(ByRef Cv As My.Sys.Drawing.Canvas, ByVal RCLeft As Long, ByVal RCTop As Long, ByVal RCRight As Long, ByVal RCBottom As Long)
 		'Nine-grid / stretch / tile placement across the grid area.
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 		If FWallPaper = 0 Then Exit Sub
 		Dim As Long W = 0, H = 0
 		GetGraphicSize(FWallPaper, False, W, H)
@@ -9377,7 +9874,7 @@ Namespace My.Sys.Forms
 
 	Property GridDataEx.AllowDropFiles(ByVal Value As Boolean)
 		FAllowDropFiles = Value
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			If Handle <> 0 Then DragAcceptFiles(Handle, IIf(Value, 1, 0))
 		#endif
 	End Property
@@ -9434,7 +9931,7 @@ Namespace My.Sys.Forms
 	End Property
 
 	Sub GridDataEx.EnsureScrollTip()
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 		If FScrollTipHwnd <> 0 Then Exit Sub
 		Dim As WString * 50 ClsName = "tooltips_class32"
 		FScrollTipHwnd = Cast(Any Ptr, CreateWindowEx(WS_EX_TOOLWINDOW Or WS_EX_TOPMOST Or WS_EX_TRANSPARENT, _
@@ -9453,7 +9950,7 @@ Namespace My.Sys.Forms
 	End Sub
 
 	Sub GridDataEx.UpdateScrollTip(ByVal wBar As Long, ByVal TrackPos As Long)
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 		If FShowScrollTips = False Then Exit Sub
 		Dim As Long TipRow = -1, TipCol = -1
 		If wBar = SB_HORZ Then
@@ -9493,7 +9990,7 @@ Namespace My.Sys.Forms
 	End Sub
 
 	Sub GridDataEx.CancelScrollTip()
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 		If FScrollTipShown AndAlso FScrollTipHwnd <> 0 Then
 			Dim As TOOLINFO TI
 			TI.cbSize = SizeOf(TOOLINFO)
@@ -9901,7 +10398,7 @@ Namespace My.Sys.Forms
 
 	Property GridDataEx.Picture As Any Ptr
 		'Renders the current view into a new HBITMAP; the caller deletes it.
-		#ifdef __USE_GTK__
+		#ifndef __USE_WINAPI__
 			Return 0
 		#else
 			If Handle = 0 Then Return 0
@@ -9923,7 +10420,7 @@ Namespace My.Sys.Forms
 	End Property
 
 	Sub GridDataEx.PrintToClipboard()
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			Dim As Any Ptr Bmp = Picture
 			If Bmp = 0 Then Exit Sub
 			If OpenClipboard(Handle) <> 0 Then
