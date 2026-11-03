@@ -113,95 +113,17 @@ Private Property PointerList.Sorted As Boolean
 	Return FSorted
 End Property
 
+' 基数排序: 以指针地址为键(8 字节无符号), 8 趟。
+' 注意: 指针必须先转成"指针宽度的无符号整数"(UInteger, 32 位下 4 字节 /
+' 64 位下 8 字节)再升宽到 ULongInt —— 直接 CULngInt(指针) 在 32 位下类型不匹配。
+Private Function PointerListItemSortKey(ByVal item As Any Ptr) As ULongInt
+	Dim As PointerListItem Ptr ItemPtr = item
+	If ItemPtr <> 0 Then Return Cast(ULongInt, Cast(UInteger, ItemPtr->Value)) Else Return 0
+End Function
+
 Sub PointerList.Sort(ByVal iDirection As Long = 1)
 	If FCount <= 1 Then Return
-	Type SortStackItem
-		iLow As Long
-		iHigh As Long
-	End Type
-	Const INSERTION_SORT_THRESHOLD As Long = 32 'can be 16
-	Dim As Long iLBound = 0
-	Dim As Long iUBound = FCount - 1
-	If iUBound <= iLBound Then Return
-	Dim arrStack(0 To 127) As SortStackItem
-	Dim As Long iStackTop = 0
-	arrStack(iStackTop).iLow = iLBound
-	arrStack(iStackTop).iHigh = iUBound
-	iStackTop += 1
-	Do While iStackTop > 0
-		iStackTop -= 1
-		Dim As Long iLow = arrStack(iStackTop).iLow
-		Dim As Long iHigh = arrStack(iStackTop).iHigh
-		Dim As Long iL = iLow
-		Dim As Long iR = iHigh
-		Dim As Any Ptr sPivot = Item((iLow + iHigh) \ 2)
-		Do
-			If iDirection = 1 Then 'SORT_ASCENDING
-				While iL <= iHigh AndAlso Item(iL) < sPivot
-					iL += 1
-				Wend
-				While iR >= iLow AndAlso Item(iR) > sPivot
-					iR -= 1
-				Wend
-			Else  'SORT_DESCENDING
-				While iL <= iHigh AndAlso Item(iL) > sPivot
-					iL += 1
-				Wend
-				While iR >= iLow AndAlso Item(iR) < sPivot
-					iR -= 1
-				Wend
-			End If
-			If iL <= iR Then
-				Exchange iL, iR
-				iL += 1
-				iR -= 1
-			End If
-		Loop Until iL > iR
-		
-		Dim As Long iSize1 = iR - iLow + 1
-		Dim As Long iSize2 = iHigh - iL + 1
-		
-		If iSize1 > iSize2 Then
-			If iSize2 > INSERTION_SORT_THRESHOLD Then
-				arrStack(iStackTop).iLow = iL
-				arrStack(iStackTop).iHigh = iHigh
-				iStackTop += 1
-			End If
-			If iSize1 > INSERTION_SORT_THRESHOLD Then
-				arrStack(iStackTop).iLow = iLow
-				arrStack(iStackTop).iHigh = iR
-				iStackTop += 1
-			End If
-		Else
-			If iSize1 > INSERTION_SORT_THRESHOLD Then
-				arrStack(iStackTop).iLow = iLow
-				arrStack(iStackTop).iHigh = iR
-				iStackTop += 1
-			End If
-			If iSize2 > INSERTION_SORT_THRESHOLD Then
-				arrStack(iStackTop).iLow = iL
-				arrStack(iStackTop).iHigh = iHigh
-				iStackTop += 1
-			End If
-		End If
-	Loop
-	
-	Dim As Long i
-	Dim As Long j
-	For i = iLBound + 1 To iUBound
-		j = i
-		If iDirection = 1 Then
-			While j > iLBound AndAlso Item(j - 1) > Item(j)
-				Exchange j - 1, j
-				j -= 1
-			Wend
-		Else
-			While j > iLBound AndAlso Item(j - 1) < Item(j)
-				Exchange j - 1, j
-				j -= 1
-			Wend
-		End If
-	Next i
+	FItems.SortByKey(@PointerListItemSortKey, iDirection)
 	FSorted = True
 	FDirection = iDirection
 	SortedDirection = iDirection

@@ -54,6 +54,8 @@
 	#endif
 #endif
 
+#ifndef MFF_TIMERHIRES_DEFINED
+#define MFF_TIMERHIRES_DEFINED
 Private Function TimerHiRes() As Double
     Static initialized As Long = 0
     #ifdef __FB_WIN32__
@@ -79,6 +81,7 @@ Private Function TimerHiRes() As Double
         Return Timer
     #endif
 End Function
+#endif
 
 Private Function GetErrorString(ByVal Code As UInteger, ByVal MaxLen  As UShort = 1024, WithCode As Boolean = False) As UString
 	#ifdef UNICODE

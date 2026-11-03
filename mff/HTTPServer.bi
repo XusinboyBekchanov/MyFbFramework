@@ -27,7 +27,7 @@
 	#include once "fbthread.bi"
 	#ifndef INVALID_SOCKET
 		#define INVALID_SOCKET (-1)
-	#endif
+#endif
 	'A browser which closed the connection would end the program with SIGPIPE
 	#define HTTPServerSendFlags MSG_NOSIGNAL
 #endif

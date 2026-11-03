@@ -15,7 +15,7 @@ On Error Goto ErrorQ
 #include once "mff/Splitter.bi"
 
 Dim Shared SQLiteDB As sqlite3 Ptr
-If SQLiteOpen(SQLiteDB, ExePath & "\Data\Test.db", "") Then
+If SQLiteOpen(SQLiteDB, ExePath & "/../resources/Test.db", "") Then
 	Print "OPEN SQLiteDB Failure." + Chr(13,10)+SQLiteErrMsg(SQLiteDB)
 Else
 	Print "Opened SQLiteDB successfully.", ExePath & "\Data\Test.db"

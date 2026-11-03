@@ -181,9 +181,9 @@ Private Constructor PrintPreviewDialog
 			.Name = "hbxPages"
 			.Align = DockStyle.alTop
 			.SetBounds 0, 22, 620, 22
-			.Designer = @This
+		.Designer = @This
 			.Parent = @frmDialog
-		End With
+	End With
 		lblPrevious.Align = DockStyle.alLeft
 		txtPageNumber.Align = DockStyle.alLeft
 		lblPagesCount.Align = DockStyle.alLeft
@@ -339,7 +339,7 @@ Private Constructor PrintPreviewDialog
 		#ifdef __USE_JNI__
 			.Align = DockStyle.alClient
 		#else
-			.Align = DockStyle.alRight
+		.Align = DockStyle.alRight
 		#endif
 		.SetBounds 380, 0, 200, 22
 		.Designer = @This
@@ -358,7 +358,7 @@ Private Constructor PrintPreviewDialog
 		#ifdef __USE_JNI__
 			.Align = DockStyle.alLeft
 		#else
-			.Align = DockStyle.alRight
+		.Align = DockStyle.alRight
 		#endif
 		.Alignment = AlignmentConstants.taCenter
 		.SetBounds 600, 0, 20, 22

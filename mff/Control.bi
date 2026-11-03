@@ -792,6 +792,11 @@ Namespace My.Sys.Forms
 			Declare Sub RequestAlign(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False, bWithoutControl As Control Ptr = 0)
 			'The layout pass itself, without the paint batching of RequestAlign
 			Declare Sub RequestAlignCore(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False, bWithoutControl As Control Ptr = 0)
+			#ifdef __USE_WINAPI__
+				'Adopts the DPI of the monitor the window sits on and rescales it from its
+				'design bounds (a window shown again can be on another monitor than its scale)
+				Declare Sub SyncWindowDpi
+			#endif
 			'Displays the control to the user (Windows, Linux, Android, Web).
 			Declare Virtual Sub Show
 			'Conceals the control from the user (Windows, Linux, Android, Web).

@@ -154,95 +154,14 @@ Private Property IntegerList.Sorted As Boolean
 End Property
 
 ' iDirection: SORT_ASCENDING (1) 为升序(默认), SORT_DESCENDING (-1) 为降序
+' 基数排序: 有符号整数 -> 保序无符号键(翻转符号位), 与比较完全无关, 8 趟
+Private Function IntegerListItemSortKey(ByVal item As Any Ptr) As ULongInt
+	Return CulngInt(Cast(IntegerListItem Ptr, item)->Value) Xor (CulngInt(1) Shl 63)
+End Function
+
 Sub IntegerList.Sort(ByVal iDirection As Long = 1)
 	If FCount <= 1 Then Return
-	Type SortStackItem
-		iLow As Long
-		iHigh As Long
-	End Type
-	Const INSERTION_SORT_THRESHOLD As Long = 32 'can be 16
-	Dim As Long iLBound = 0
-	Dim As Long iUBound = FCount - 1
-	If iUBound <= iLBound Then Return
-	Dim arrStack(0 To 128) As SortStackItem
-	Dim As Long iStackTop = 0
-	arrStack(iStackTop).iLow = iLBound
-	arrStack(iStackTop).iHigh = iUBound
-	iStackTop += 1
-	Do While iStackTop > 0
-		iStackTop -= 1
-		Dim As Long iLow = arrStack(iStackTop).iLow
-		Dim As Long iHigh = arrStack(iStackTop).iHigh
-		Dim As Long iL = iLow
-		Dim As Long iR = iHigh
-		Dim As Integer sPivot = Item((iLow + iHigh) \ 2)
-		Do
-		If iDirection = 1 Then 'SORT_ASCENDING
-				While iL <= iHigh AndAlso Item(iL) < sPivot
-					iL += 1
-				Wend
-				While iR >= iLow AndAlso Item(iR) > sPivot
-					iR -= 1
-				Wend
-			Else  'SORT_DESCENDING
-				While iL <= iHigh AndAlso Item(iL) > sPivot
-					iL += 1
-				Wend
-				While iR >= iLow AndAlso Item(iR) < sPivot
-					iR -= 1
-				Wend
-			End If
-			If iL <= iR Then
-				Exchange iL, iR
-				iL += 1
-				iR -= 1
-			End If
-		Loop Until iL > iR
-		
-		Dim As Long iSize1 = iR - iLow + 1
-		Dim As Long iSize2 = iHigh - iL + 1
-		
-		If iSize1 > iSize2 Then
-			If iSize2 > INSERTION_SORT_THRESHOLD Then
-				arrStack(iStackTop).iLow = iL
-				arrStack(iStackTop).iHigh = iHigh
-				iStackTop += 1
-			End If
-			If iSize1 > INSERTION_SORT_THRESHOLD Then
-				arrStack(iStackTop).iLow = iLow
-				arrStack(iStackTop).iHigh = iR
-				iStackTop += 1
-			End If
-		Else
-			If iSize1 > INSERTION_SORT_THRESHOLD Then
-				arrStack(iStackTop).iLow = iLow
-				arrStack(iStackTop).iHigh = iR
-				iStackTop += 1
-			End If
-			If iSize2 > INSERTION_SORT_THRESHOLD Then
-				arrStack(iStackTop).iLow = iL
-				arrStack(iStackTop).iHigh = iHigh
-				iStackTop += 1
-			End If
-		End If
-	Loop
-	
-	Dim As Long i
-	Dim As Long j
-	For i = iLBound + 1 To iUBound
-		j = i
-		If iDirection = 1 Then
-           While j > iLBound AndAlso Item(j - 1) > Item(j)
-               Exchange j - 1, j
-               j -= 1
-           Wend
-       Else
-           While j > iLBound AndAlso Item(j - 1) < Item(j)
-               Exchange j - 1, j
-               j -= 1
-           Wend
-       End If
-	Next i
+	FItems.SortByKey(@IntegerListItemSortKey, iDirection)
 	FSorted = True
 	FDirection = iDirection
 	SortedDirection = iDirection

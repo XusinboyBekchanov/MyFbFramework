@@ -241,7 +241,7 @@ End Property
 
 Private Function OpenFileDialog.Execute As Boolean
 	#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
-		On Error Goto ErrorHandler
+	On Error Goto ErrorHandler
 	#endif
 	Dim bResult As Boolean
 	FileNames.Clear

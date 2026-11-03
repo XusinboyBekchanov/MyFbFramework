@@ -1243,7 +1243,7 @@ Namespace My.Sys.Forms
 			FChecked = value
 		#endif
 	End Property
-
+	
 	Private Property MenuItem.RadioItem As Boolean
 		Return FRadioItem
 	End Property
@@ -2734,7 +2734,7 @@ End Namespace
 		If Index < 0 OrElse Index > UBound(Items) Then Return 0
 		Return Items(Index)
 	End Function
-
+	
 	Sub MenuItemChoose(ByVal pItem As My.Sys.Forms.MenuItem Ptr)
 		If pItem = 0 Then Exit Sub
 		'Like GTK: OnClick sees the old Checked (e.g. Value = Not mi->Checked), the item gets the new one after it,
@@ -2749,7 +2749,7 @@ End Namespace
 	Function MenuItemItemsCount Alias "MenuItemItemsCount" (PMenuItem As My.Sys.Forms.MenuItem Ptr) As Integer Export
 		Return PMenuItem->Count
 	End Function
-	
+
 	Function MenuItemsCount Alias "MenuItemsCount" (PMenu As My.Sys.Forms.Menu Ptr) As Integer Export
 		Return PMenu->Count
 	End Function

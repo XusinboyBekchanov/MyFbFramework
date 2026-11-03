@@ -177,7 +177,7 @@ Namespace My.Sys.Forms
 		Private Function FormCaptionButton(ByRef Id As String, ByRef Kind As String, ByRef Hint As String, ByRef Glyph As String, Visible As Boolean) As String
 			Return "<div class=""mffcaptionbutton"" id=""" & Id & Kind & "Button"" data-glyph=""" & Glyph & """ title=""" & Hint & """" & IIf(Visible, "", " style=""display: none""") & "></div>"
 		End Function
-
+		
 		Private Function Form.GetContent() As UString
 			'The class of the element (Control.CreateWnd calls GetContent before it uses FClass): a form which is
 			'not the main one has a border and a shadow, without a border (a splash screen) only a shadow
@@ -193,7 +193,7 @@ Namespace My.Sys.Forms
 			Dim As String CaptionButtons
 			If FBorderStyle <> FormBorderStyle.SizableToolWindow AndAlso FBorderStyle <> FormBorderStyle.FixedToolWindow Then
 				CaptionButtons = FormCaptionButton(Trim(Str(@This)), "Min", "Minimize", "min", FMinimizeBox) & _
-					FormCaptionButton(Trim(Str(@This)), "Max", "Maximize", "max", FMaximizeBox)
+				FormCaptionButton(Trim(Str(@This)), "Max", "Maximize", "max", FMaximizeBox)
 			End If
 			If FFormStyle = fsMDIForm Then
 				Return "<div id=""" & Trim(Str(@This)) & "Client""></div>"
@@ -297,7 +297,7 @@ Namespace My.Sys.Forms
 			#endif
 		End Sub
 	#endif
-
+	
 	Private Property Form.StartPosition(Value As FormStartPosition)
 		FStartPosition = Value
 		If Not FDesignMode Then
@@ -716,16 +716,16 @@ Namespace My.Sys.Forms
 			#ifdef __USE_WINAPI__
 				Dim As ITaskbarList Ptr pTaskbarList
 				'If SUCCEEDED(CoInitialize(NULL)) Then
-					If SUCCEEDED(CoCreateInstance(@CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, @IID_ITaskbarList, Cast(LPVOID, @pTaskbarList))) Then
-						pTaskbarList->lpVtbl->HrInit(pTaskbarList)
-						If Value Then
-							pTaskbarList->lpVtbl->DeleteTab(pTaskbarList, FHandle)
-						Else
-							pTaskbarList->lpVtbl->AddTab(pTaskbarList, FHandle)
-						End If
-						pTaskbarList->lpVtbl->Release(pTaskbarList)
+				If SUCCEEDED(CoCreateInstance(@CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, @IID_ITaskbarList, Cast(LPVOID, @pTaskbarList))) Then
+					pTaskbarList->lpVtbl->HrInit(pTaskbarList)
+					If Value Then
+						pTaskbarList->lpVtbl->DeleteTab(pTaskbarList, FHandle)
+					Else
+						pTaskbarList->lpVtbl->AddTab(pTaskbarList, FHandle)
 					End If
-					'CoUninitialize()
+					pTaskbarList->lpVtbl->Release(pTaskbarList)
+				End If
+				'CoUninitialize()
 				'End If
 			#endif
 		End If
@@ -1095,7 +1095,7 @@ Namespace My.Sys.Forms
 			Return False
 		End Function
 	#endif
-
+	
 	#ifdef __USE_GTK4__
 		' The "close-request" signal (the delete event of GTK3). Returns True to keep the window
 		Private Function Form.Form_CloseRequest(window_ As GtkWindow Ptr, user_data As Any Ptr) As Boolean
@@ -1122,7 +1122,7 @@ Namespace My.Sys.Forms
 				Return True
 			End Select
 		End Function
-
+		
 		' The "notify::is-active" signal (the focus change event of GTK3)
 		Private Sub Form.Form_ActiveChanged(window_ As GtkWindow Ptr, pspec As GParamSpec Ptr, user_data As Any Ptr)
 			Dim As Form Ptr frm = user_data
@@ -1268,24 +1268,38 @@ Namespace My.Sys.Forms
 				'whole tree has the new scale (a paint in between shows a broken layout)
 				'(Not deferred: the tree spans many parents, see Control.ProcessMessage)
 				Dim As Integer iSavedAlignLock = AlignLock
+				Dim As Boolean bOwnDefer = (AlignDefer = 0)
 				AlignLock = iSavedAlignLock + 1
-				' A rescale always repaints: the fonts and the bounds changed
-				If iSavedAlignLock = 0 Then AlignClear: AlignMoved = 2
+				If bOwnDefer Then
+					AlignDefer = BeginDeferWindowPos(Max(8, ControlCount))
+					' A rescale always repaints: the fonts and the bounds changed
+					If iSavedAlignLock = 0 Then AlignMoved = 1
+				End If
 				LockWindowUpdate(FHandle)
 				Base.ProcessMessage(msg)
-				' OnResize of the new window size waited for the rescaled tree (see WM_SIZE):
-				'sizes computed from the children are right only now
-				If OnResize AndAlso Not IsIconic(FHandle) Then OnResize(*Designer, This, This.Width, This.Height)
 				LockWindowUpdate(0)
+				If bOwnDefer Then
+					Dim As HDWP hDefer = AlignDefer
+					AlignDefer = 0
+					If hDefer Then EndDeferWindowPos(hDefer)
+				End If
+				' OnResize of the new window size waited for the rescaled tree (see WM_SIZE):
+				'sizes computed from the children are right only now (the deferred moves are done)
+				If OnResize AndAlso Not IsIconic(FHandle) Then OnResize(*Designer, This, This.Width, This.Height)
 				AlignLock = iSavedAlignLock
-				If iSavedAlignLock = 0 Then AlignRedraw FHandle
+				If iSavedAlignLock = 0 AndAlso FHandle <> 0 AndAlso AlignMoved Then
+					RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
+					AlignMoved = 0
+				End If
 				FDPIChanging = False
 				Return
 			Case WM_SIZE
 				'xdpi = FDpiFormX
 				'ydpi = FDpiFormY
 				' In a rescale OnResize runs once, when the whole tree has the new scale
-				If OnResize AndAlso Not FDPIChanging Then OnResize(*Designer, This, This.Width, This.Height)
+				If Not FDPIChanging Then
+					If OnResize Then OnResize(*Designer, This, This.Width, This.Height)
+				End If
 				If Not IsIconic(FHandle) Then
 					'If Not FDPIChanging Then UpdateLock
 					'RequestAlign
@@ -1510,7 +1524,9 @@ Namespace My.Sys.Forms
 					If .Visible AndAlso .Bitmap.Handle > 0 Then
 						Select Case Graphic.StretchImage
 						Case StretchMode.smNone
-							Canvas.DrawAlpha .StartX, .StartY, , , .Bitmap
+							'The natural size is the design size: scaled with the scale of
+							'the monitor (the raw pixels would show half as big on a 200% one)
+							Canvas.DrawAlpha .StartX, .StartY, ScaleX(.Bitmap.Width), ScaleY(.Bitmap.Height), .Bitmap
 						Case StretchMode.smStretch
 							Canvas.DrawAlpha .StartX, .StartY, ScaleX(This.Width) * .ScaleFactor, ScaleY(This.Height) * .ScaleFactor, .Bitmap
 						Case Else 'StretchMode.smStretchProportional
@@ -1928,6 +1944,10 @@ Namespace My.Sys.Forms
 				'				This.SetFocus
 			Else
 				If Handle Then
+					'The window can sit on a monitor with another DPI than its scale says
+					'(it was hidden during a move): adopt the DPI of its monitor before it
+					'is shown, so the OnShow handlers read the right scale and bounds
+					SyncWindowDpi
 					ShowWindow Handle, FCmdShow(FWindowState)
 					If FParent Then Cast(Control Ptr, FParent)->RequestAlign
 				Else
@@ -2306,6 +2326,13 @@ Namespace My.Sys.Forms
 						gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_CENTER)
 						gtk_window_move(GTK_WINDOW(widget), ScaleX(.Left + (.Width - This.FWidth) \ 2), ScaleY(.Top + (.Height - This.FHeight) \ 2))
 					End If
+				#elseif defined(__USE_WINAPI__)
+					'Centered on the parent in physical pixels: the two forms can have different
+					'scales (they can sit on monitors with different DPI), so design units must
+					'not be mixed here
+					Dim As Integer iPhysLeft = .Left * .xdpi + (.Width * .xdpi - This.Width * This.xdpi) \ 2
+					Dim As Integer iPhysTop = .Top * .ydpi + (.Height * .ydpi - This.Height * This.ydpi) \ 2
+					This.SetBounds UnScaleX(iPhysLeft), UnScaleY(iPhysTop), This.Width, This.Height
 				#else
 					This.Move .Left + (.Width - This.Width) \ 2, .Top + (.Height - This.Height) \ 2, This.Width, This.Height
 				#endif
@@ -2659,7 +2686,7 @@ End Namespace
 		Dim As My.Sys.Forms.MenuItem Ptr mi = MenuItemShowItems(Frm->Menu->Item(Index), x, y)
 		If mi Then MenuItemChoose mi
 	End Sub
-
+	
 	'The main form got the size of the browser window (mff_lib.js): the anchored controls follow it
 	Sub OnResize(Id As Integer, NewWidth As Integer, NewHeight As Integer) Export
 		If Id > 0 Then
@@ -2670,12 +2697,12 @@ End Namespace
 			If Ctrl->OnResize Then Ctrl->OnResize(*Ctrl->Designer, *Ctrl, Ctrl->Width, Ctrl->Height)
 		End If
 	End Sub
-
+	
 	'Called by the setInterval of StartTimer (mff_lib.js)
 	Sub OnTimer(Id As Integer) Export
 		If TimerComponentProc Then TimerComponentProc(Id)
 	End Sub
-
+	
 	'The canvas of the control got a new size or a picture of it was loaded (mff_lib.js)
 	Sub OnPaint(Id As Integer) Export
 		If Id > 0 Then
@@ -2683,7 +2710,7 @@ End Namespace
 			If Ctrl Then Ctrl->PaintCanvas
 		End If
 	End Sub
-
+	
 	Sub OnLoad(Id As Integer) Export
 		If Id > 0 Then
 			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
@@ -2761,24 +2788,24 @@ End Namespace
 		If frm = 0 OrElse frm->ActiveControl = Ctrl Then Exit Sub
 		frm->ActiveControl = Ctrl
 	End Sub
-
+	
 	Sub OnLostFocus(Id As Integer) Export
 		If Id > 0 Then SendControlInputMessage(Cast(Any Ptr, Id), CM_KILLFOCUS, 0, 0)
 	End Sub
-
+	
 	'The key handlers return 1 if the control handled the key: mff_lib.js then stops the action of the browser
 	Function OnKeyDown(Id As Integer, Key As Integer, Shift As Integer) As Integer Export
 		If Id > 0 Then Return IIf(SendControlInputMessage(Cast(Any Ptr, Id), CM_KEYDOWN, Key, Shift), 1, 0)
 	End Function
-
+	
 	Function OnKeyPress(Id As Integer, Key As Integer, Shift As Integer) As Integer Export
 		If Id > 0 Then Return IIf(SendControlInputMessage(Cast(Any Ptr, Id), CM_CHAR, Key, Shift), 1, 0)
 	End Function
-
+	
 	Function OnKeyUp(Id As Integer, Key As Integer, Shift As Integer) As Integer Export
 		If Id > 0 Then Return IIf(SendControlInputMessage(Cast(Any Ptr, Id), CM_KEYUP, Key, Shift), 1, 0)
 	End Function
-
+	
 	'The key code of the key of a shortcut ("F", "F3", "Del", "PgUp", "+"), 0 - unknown
 	Private Function ShortcutKeyCode(ByRef KeyName As String) As Integer
 		Dim As String k = UCase(Trim(KeyName))
@@ -2819,7 +2846,7 @@ End Namespace
 		End Select
 		Return 0
 	End Function
-
+	
 	'The shortcut of an item (ShortCut, or the text after Chr(9) of its caption like on Windows) is Key with Shift
 	'(1 - Shift, 2 - Ctrl, 4 - Alt)
 	Private Function ShortcutIs(mi As My.Sys.Forms.MenuItem Ptr, Key As Integer, Shift As Integer) As Boolean
@@ -2843,7 +2870,7 @@ End Namespace
 		Loop
 		Return Mods = Shift AndAlso ShortcutKeyCode(sc) = Key
 	End Function
-
+	
 	'The enabled and visible item with the shortcut, in the item and its submenus
 	Private Function FindShortcutItem(mi As My.Sys.Forms.MenuItem Ptr, Key As Integer, Shift As Integer) As My.Sys.Forms.MenuItem Ptr
 		If CBool(mi = 0) OrElse Not mi->Enabled OrElse Not mi->Visible OrElse CBool(mi->Caption = "-") Then Return 0
@@ -2854,7 +2881,7 @@ End Namespace
 		Next
 		Return 0
 	End Function
-
+	
 	'Hot keys (the keys of the page, mff_lib.js): the item of the main menu of the form of the focused control Id (of
 	'the main form when no control has the focus, of the IDE and not of a designed form) whose shortcut is the key like
 	'the accelerators of Windows, 0 - none. The page clicks the item after the key event (OnShortcutClick): a click can
@@ -2875,7 +2902,7 @@ End Namespace
 		Next
 		Return 0
 	End Function
-
+	
 	'The minimize (1) and maximize (2) buttons of the title bar (the double click on it: 2): the next state of the form
 	Sub OnCaptionButton(Id As Integer, Button As Integer) Export
 		Dim As My.Sys.Forms.Form Ptr frm = Cast(Any Ptr, Id)
@@ -2886,11 +2913,11 @@ End Namespace
 			frm->WindowState = IIf(frm->WindowState = My.Sys.Forms.WindowStates.wsNormal, My.Sys.Forms.WindowStates.wsMaximized, My.Sys.Forms.WindowStates.wsNormal)
 		End If
 	End Sub
-
+	
 	Sub OnShortcutClick(Item As Integer) Export
 		If Item Then Cast(My.Sys.Forms.MenuItem Ptr, Item)->Click
 	End Sub
-
+	
 	'The right button (contextmenu of the page): the control Id or its parent with ContextMenu like WM_CONTEXTMENU of
 	'Windows (a designed control: the panel of the designer), 0 - none. The page shows it after the event
 	'(OnContextMenuPopup): the popup menu waits for the chosen item
@@ -2901,13 +2928,13 @@ End Namespace
 		Loop
 		Return Cast(Integer, Ctrl)
 	End Function
-
+	
 	'x, y: the place of the page
 	Sub OnContextMenuPopup(Id As Integer, x As Integer, y As Integer) Export
 		Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
 		If Ctrl AndAlso Ctrl->ContextMenu Then Ctrl->ContextMenu->Popup(x, y)
 	End Sub
-
+	
 	'Enter (13) and Escape (27) in a text box or a list of a form like a dialog of Windows: the button DefaultButton,
 	'CancelButton of the form of the control Id, 0 - none. The page clicks it after the key event (OnClick)
 	Function OnDialogKey(Id As Integer, Key As Integer) As Integer Export
@@ -2930,7 +2957,7 @@ End Namespace
 		msg.lParam = MffPoint(x, y)
 		DispatchControlMessage(Ctrl, msg)
 	End Sub
-
+	
 	Sub OnMouseDown(Id As Integer, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer) Export
 		If Id > 0 Then
 			Dim As My.Sys.Forms.Control Ptr Ctrl = Cast(Any Ptr, Id)
