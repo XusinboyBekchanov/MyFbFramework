@@ -28,9 +28,6 @@
 		#endif
 	#endif
 #endif
-'High precision monotonic timer in seconds (QueryPerformanceCounter on Windows);
-'use it instead of the built-in Timer when measuring short durations
-Declare Function TimerHiRes() As Double
 
 #if defined(__USE_WINAPI__) OrElse (defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK4__))
     #define UNICODE
@@ -76,8 +73,8 @@ Declare Function TimerHiRes() As Double
 	#define max(a, b) IIf((a) > (b), (a), (b))
 	#define min(a, b) IIf((a) < (b), (a), (b))
 #elseif defined(__USE_WASM__)
-	#define max(a, b) IIf((a) > (b), (a), (b))
-	#define min(a, b) IIf((a) < (b), (a), (b))
+	#define Max(a, b) IIf((a) > (b), (a), (b))
+	#define Min(a, b) IIf((a) < (b), (a), (b))
 	Declare Function TimerHiRes() As Double
 	Declare Sub AddColumn(Id As Any Ptr, Caption As String)
 	Declare Sub AddRow(Id As Any Ptr, Text As String)
@@ -614,7 +611,7 @@ Using ClassContainer
 
 Declare Function ErrDescription(Code As Integer) ByRef As WString
 
-Declare Function GetErrorString(ByVal Code As UInteger, ByVal MaxLen  As UShort = 1024, WithCode As Boolean = False) ByRef As WString
+Declare Function GetErrorString(ByVal Code As UInteger, ByVal MaxLen  As UShort = 1024, WithCode As Boolean = False) As UString
 
 #ifndef __USE_MAKE__
 	#include once "SysUtils.bas"

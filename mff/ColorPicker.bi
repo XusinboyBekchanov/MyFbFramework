@@ -193,7 +193,7 @@ Namespace My.Sys.Forms
 		'--- Web table ---
 		Declare Static Function WebColorCount() As Long
 		Declare Static Function WebColorAt(ByVal idx As Long) As ULong
-		Declare Static Function WebColorName(ByVal idx As Long) As WString
+		Declare Static Function WebColorName(ByVal idx As Long) As UString
 		'Measures a label on a private canvas so a live paint session is not disturbed
 		Declare Function TextWidthOf(ByRef Value As WString) As Long
 		'--- Painting helpers ---
@@ -249,7 +249,7 @@ Namespace My.Sys.Forms
 		Declare Property TextInitial(Value As WString)
 		Declare Property TextCurrent() ByRef As WString
 		Declare Property TextCurrent(Value As WString)
-		Declare Property TextFieldLabel(ByVal idx As Long) As WString
+		Declare Property TextFieldLabel(ByVal idx As Long) ByRef As WString
 		Declare Property TextFieldLabel(ByVal idx As Long, Value As WString)
 		Declare Property ChromeBackColor As ULong
 		Declare Property ChromeBackColor(Value As ULong)

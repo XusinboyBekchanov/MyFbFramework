@@ -54,7 +54,9 @@
 	#endif
 #endif
 
-Function TimerHiRes() As Double
+#ifndef MFF_TIMERHIRES_DEFINED
+#define MFF_TIMERHIRES_DEFINED
+Private Function TimerHiRes() As Double
     Static initialized As Long = 0
     #ifdef __FB_WIN32__
         Static freq As LARGE_INTEGER
@@ -79,33 +81,32 @@ Function TimerHiRes() As Double
         Return Timer
     #endif
 End Function
+#endif
 
-Private Function GetErrorString(ByVal Code As UInteger, ByVal MaxLen  As UShort = 1024, WithCode As Boolean = False) ByRef As WString
+Private Function GetErrorString(ByVal Code As UInteger, ByVal MaxLen  As UShort = 1024, WithCode As Boolean = False) As UString
 	#ifdef UNICODE
 		Dim ErrorString         As WString Ptr
 	#else
 		Dim ErrorString         As ZString Ptr
 	#endif
-	Static Result As WString * 1024
-	Result = ""
+	
 	If Code = 0 AndAlso WithCode Then 
-		Result = "e: " & Str(Code)
+		GetErrorString = "e: " & Str(Code)
 	Else
 		#ifdef __USE_WINAPI__
 			FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER Or FORMAT_MESSAGE_FROM_SYSTEM Or FORMAT_MESSAGE_IGNORE_INSERTS, NULL, Code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), Cast(LPWSTR, @ErrorString), 0, NULL)
-			If ErrorString <> 0 Then
+			If (ErrorString <> 0) Then
 				If WithCode Then
-					Result = Str(Code) & " - " & *ErrorString
+					GetErrorString = WStr(Code) & " - " & *ErrorString
 				Else
-					Result = *ErrorString
+					GetErrorString = *ErrorString
 				End If
 				LocalFree(ErrorString)
 			ElseIf WithCode Then
-				Result = "e: " & Str(Code)
+				GetErrorString = "e: " & WStr(Code)
 			End If
 		#endif
 	End If
-	Return Result
 End Function
 
 Namespace ClassContainer
@@ -208,12 +209,12 @@ End Namespace
 	Function GetIntField(obj As jobject, className As String, fieldName As String, typeName As String) As Integer
 		Return (*env)->GetIntField(env, obj, GetFieldID(className, fieldName, typeName))
 	End Function
-	
+
 	'The layout parameters of a view which is not in an AbsoluteLayout yet are null or of another class
 	Function IsAbsoluteLayoutParams(obj As jobject) As Boolean
 		Return obj <> 0 AndAlso (*env)->IsInstanceOf(env, obj, FindJNIClass("android/widget/AbsoluteLayout$LayoutParams")) <> 0
 	End Function
-	
+
 	Function CallIntMethod(obj As jobject, className As String, methodName As String, typeName As String) As Integer
 		Return (*env)->CallIntMethod(env, obj, GetMethodID(className, methodName, typeName))
 	End Function

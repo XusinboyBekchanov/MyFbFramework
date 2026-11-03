@@ -8,7 +8,6 @@
 	#endif
 	#include once "mff/Form.bi"
 	#include once "mff/Progress.bi"
-	#include once "mff/Progress.bi"
 	Using My.Sys.Forms
 	
 	Type Form1Type Extends Form

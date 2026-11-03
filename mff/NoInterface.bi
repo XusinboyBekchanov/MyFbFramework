@@ -206,6 +206,8 @@ Public Function MsgBox Alias "MsgBox" (ByRef MsgStr As WString, ByRef Caption As
 	Return Result
 End Function
 
+#ifndef MFF_TIMERHIRES_DEFINED
+#define MFF_TIMERHIRES_DEFINED
 Private Function TimerHiRes() As Double
     Static initialized As Long = 0
     #ifdef __FB_WIN32__
@@ -231,6 +233,7 @@ Private Function TimerHiRes() As Double
         Return Timer
     #endif
 End Function
+#endif
 
 Private Function CheckUTF8NoBOM(ByRef SourceStr As String, ByVal SampleSize As Long = 0) As Boolean
 	

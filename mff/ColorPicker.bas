@@ -182,7 +182,7 @@
 		Return gClrWebColor(idx)
 	End Function
 
-	Private Function ColorPicker.WebColorName(ByVal idx As Long) As WString
+	Private Function ColorPicker.WebColorName(ByVal idx As Long) As UString
 		If idx < 0 OrElse idx > 136 Then Return ""
 		Return WStr(gClrWebName(idx))
 	End Function
@@ -499,7 +499,7 @@
 		'The fields
 		For i As Long = 0 To cpFieldCount - 1
 			If m_ShowAlpha = False AndAlso i = cpFieldA Then Exit For
-			Dim sLabel As WString = *m_TextField(i)
+			Dim sLabel As UString = *m_TextField(i)
 			Canvas.TextOut(rcFieldLabel(i).Left, rcFieldLabel(i).Top + ((rcFieldLabel(i).Bottom - rcFieldLabel(i).Top) - ScaleY(Canvas.TextHeight(sLabel))) \ 2, sLabel, m_ForeColor, -1)
 			FillRectPath(rcField(i).Left, rcField(i).Top, rcField(i).Right - rcField(i).Left, rcField(i).Bottom - rcField(i).Top, m_FieldBackColor)
 			StrokeRectPath(rcField(i).Left, rcField(i).Top, rcField(i).Right - rcField(i).Left, rcField(i).Bottom - rcField(i).Top, IIf(i = m_FocusField, m_FieldBorderColorSel, m_FieldBorderColor), 1)
@@ -532,7 +532,7 @@
 		Canvas.Font = This.Font
 		Dim x As Long = rcTabs.Left
 		For i As Long = 0 To 1
-			Dim sCaption As WString = IIf(i = cpTabWeb, "Web", "Custom")
+			Dim sCaption As UString = IIf(i = cpTabWeb, "Web", "Custom")
 			Dim tw As Long = m_TabTextW(i)
 			If i = m_Tab Then
 				FillRectPath(x, rcTabs.Top, tw, rcTabs.Bottom - rcTabs.Top, m_TabBackColorSel)
@@ -1341,7 +1341,7 @@
 		Refresh
 	End Property
 
-	Private Property ColorPicker.TextFieldLabel(ByVal idx As Long) As WString
+	Private Property ColorPicker.TextFieldLabel(ByVal idx As Long) ByRef As WString
 		If idx < 0 OrElse idx >= cpFieldCount Then Return *m_TextOK
 		Return *m_TextField(idx)
 	End Property

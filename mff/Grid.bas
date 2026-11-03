@@ -654,17 +654,21 @@ Namespace My.Sys.Forms
 	End Function
 	
 	' ---- 行排序辅助: TimSortIndex 需要"行号"形式的比较回调 ----
-	Dim Shared GridRowsSortBase As WString Ptr Ptr
-	Dim Shared GridRowsSortCols As Long
-	Dim Shared GridRowsSortCol As Long
-	Dim Shared GridRowsSortMatchCase As Boolean
-	Dim Shared GridRowsSortNatural As Boolean
-
+	' 比较上下文经 ctx 传入 (不用模块级变量, 两个 Grid 同时排序互不干扰)
+	Type GridRowsSortCtx
+		Cells As WString Ptr Ptr
+		Cols As Long
+		Col As Long
+		MatchCase As Boolean
+		Natural As Boolean
+	End Type
+	
 	Private Function GridRowsRowCompare(ByVal a As Long, ByVal b As Long, ByVal ctx As Any Ptr) As Long
-		Dim As Long ia = a * GridRowsSortCols + GridRowsSortCol
-		Dim As Long ib = b * GridRowsSortCols + GridRowsSortCol
+		Dim As GridRowsSortCtx Ptr c = Cast(GridRowsSortCtx Ptr, ctx)
+		Dim As Long ia = a * c->Cols + c->Col
+		Dim As Long ib = b * c->Cols + c->Col
 		' 用框架统一的 StringsCompare(与 WStringList/Dictionary 一致), 方向由 TimSortIndex 施加
-		Return StringsCompare(*GridRowsSortBase[ia], *GridRowsSortBase[ib], GridRowsSortMatchCase, 1, GridRowsSortNatural)
+		Return StringsCompare(*c->Cells[ia], *c->Cells[ib], c->MatchCase, 1, c->Natural)
 	End Function
 
 	Sub GridRows.SortArray(iDataPtr() As WString Ptr, ByVal ColIndex As Integer, ByVal bSortOrder As SortStyle = SortStyle.ssSortAscending, ByVal bNaturalSort As Boolean = False, ByVal bMatchCase As Boolean = False)
@@ -698,7 +702,8 @@ Namespace My.Sys.Forms
 		Dim As Long ArrayLBound = LBound(iDataPtr, 2)
 		Dim As Long ArrayUBound = UBound(iDataPtr, 2)
 		Dim As Long  ArraryCol = ColIndex - IIf(pGrid->FixCols, 1, 0)
-		If ArraryCol > iDataCount - 1 OrElse ArraryCol < 0 Then
+		'The rows are 0 To iDataCount - 1 (the flat row access of the sort below), the column is of the second dimension
+		If LBound(iDataPtr, 1) <> 0 OrElse ArraryCol > ArrayUBound OrElse ArraryCol < ArrayLBound Then
 			Print Date & " " & Time & " " & Chr(9) & __FUNCTION__ & " " & Chr(9) & ML("The sort index is out of array data dimensions range!"), True
 			Return
 		End If
@@ -710,15 +715,16 @@ Namespace My.Sys.Forms
 
 		' TimSort: 只排行号索引(稳定, 最坏 O(n log n)), 每行数据只在最后搬一次,
 		' 不再像快排那样每次交换都搬整行。
-		GridRowsSortBase = Cast(WString Ptr Ptr, @iDataPtr(0, ArrayLBound))
-		GridRowsSortCols = ArrayUBound - ArrayLBound + 1
-		GridRowsSortCol = ArraryCol - ArrayLBound
-		GridRowsSortMatchCase = bMatchCase
-		GridRowsSortNatural = bNaturalSort
+		Dim As GridRowsSortCtx SortCtx
+		SortCtx.Cells = Cast(WString Ptr Ptr, @iDataPtr(0, ArrayLBound))
+		SortCtx.Cols = ArrayUBound - ArrayLBound + 1
+		SortCtx.Col = ArraryCol - ArrayLBound
+		SortCtx.MatchCase = bMatchCase
+		SortCtx.Natural = bNaturalSort
 
 		Dim As Long Ptr idx = New Long[iDataCount]
 		If idx = 0 Then Return
-		TimSortIndex(idx, iDataCount, @GridRowsRowCompare, iDirection, 0)
+		TimSortIndex(idx, iDataCount, @GridRowsRowCompare, iDirection, @SortCtx)
 
 		' 按 idx 重排所有列(循环置换, 只需一行临时缓冲)
 		Dim As WString Ptr iExchange(ArrayLBound To ArrayUBound)

@@ -16,8 +16,6 @@
 	#include once "mff/CheckBox.bi"
 	#include once "mff/CommandButton.bi"
 	#include once "mff/Label.bi"
-	#include once "C:/GitHub/VisualFBEditorPro/Controls/MyFbFramework/mff/CheckBox.bi"
-	#include once "C:/GitHub/VisualFBEditorPro/Controls/MyFbFramework/mff/CommandButton.bi"
 
 	Using My.Sys.Forms
 

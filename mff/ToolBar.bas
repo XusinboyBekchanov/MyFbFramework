@@ -462,26 +462,26 @@ Namespace My.Sys.Forms
 		#endif
 		Return FButtonWidth
 	End Property
-
-		Private Property ToolButton.Width(Value As Integer)
-			FButtonWidth = Value
-			#ifdef __USE_WINAPI__
-				If Ctrl AndAlso Ctrl->Handle Then
-					Var i = SendMessage(Ctrl->Handle, TB_COMMANDTOINDEX, FCommandID, 0)
-					Dim As TBBUTTONINFO tbbi
-					tbbi.cbSize = SizeOf(tbbi)
-					tbbi.dwMask = TBIF_SIZE Or TBIF_BYINDEX
-					tbbi.cx = QControl(Ctrl).ScaleX(Value)
-					SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, i, Cast(LPARAM, @tbbi))
-					If FChild Then
-						FChild->Width = Value
-						Dim As Rect R
-						SendMessage(Ctrl->Handle, TB_GETITEMRECT, i, CInt(@R))
-						'The rectangle of the item is realized with the scale of the toolbar
-						'(the child follows it): the getters of the child must divide by it
-						FChild->physXdpi = FChild->xdpi
-						FChild->physYdpi = FChild->ydpi
-						MoveWindow FChild->Handle, R.Left, R.Top, R.Right - R.Left, R.Bottom - R.Top, True
+	
+	Private Property ToolButton.Width(Value As Integer)
+		FButtonWidth = Value
+		#ifdef __USE_WINAPI__
+			If Ctrl AndAlso Ctrl->Handle Then
+				Var i = SendMessage(Ctrl->Handle, TB_COMMANDTOINDEX, FCommandID, 0)
+				Dim As TBBUTTONINFO tbbi
+				tbbi.cbSize = SizeOf(tbbi)
+				tbbi.dwMask = TBIF_SIZE Or TBIF_BYINDEX
+				tbbi.cx = QControl(Ctrl).ScaleX(Value)
+				SendMessage(Ctrl->Handle, TB_SETBUTTONINFO, i, Cast(LPARAM, @tbbi))
+				If FChild Then
+					FChild->Width = Value
+					Dim As Rect R
+					SendMessage(Ctrl->Handle, TB_GETITEMRECT, i, CInt(@R))
+					'The rectangle of the item is realized with the scale of the toolbar
+					'(the child follows it): the getters of the child must divide by it
+					FChild->physXdpi = FChild->xdpi
+					FChild->physYdpi = FChild->ydpi
+					MoveWindow FChild->Handle, R.Left, R.Top, R.Right - R.Left, R.Bottom - R.Top, True
 				End If
 			End If
 		#endif

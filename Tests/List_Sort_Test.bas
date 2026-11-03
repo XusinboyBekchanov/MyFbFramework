@@ -262,8 +262,10 @@ Private Sub TestDoubleList
 	Next
 	'-0.0 sorts before +0.0 under the IEEE754 key mapping (strict order)
 	Dim As DoubleList dz
-	dz.Add 0.0
-	dz.Add -0.0
+	'-0.0 through a variable: fbc folds a -0.0 literal argument to +0.0
+	Dim As Double dPosZero = 0.0, dNegZero = -dPosZero
+	dz.Add dPosZero
+	dz.Add dNegZero
 	dz.Sort(1)
 	Dim d0 As Double = dz.Item(0)
 	Dim d1 As Double = dz.Item(1)

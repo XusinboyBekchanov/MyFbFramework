@@ -1277,15 +1277,15 @@ Namespace My.Sys.Forms
 				End If
 				LockWindowUpdate(FHandle)
 				Base.ProcessMessage(msg)
-				' OnResize of the new window size waited for the rescaled tree (see WM_SIZE):
-				'sizes computed from the children are right only now
-				'If OnResize AndAlso Not IsIconic(FHandle) Then OnResize(*Designer, This, This.Width, This.Height)
 				LockWindowUpdate(0)
 				If bOwnDefer Then
 					Dim As HDWP hDefer = AlignDefer
 					AlignDefer = 0
 					If hDefer Then EndDeferWindowPos(hDefer)
 				End If
+				' OnResize of the new window size waited for the rescaled tree (see WM_SIZE):
+				'sizes computed from the children are right only now (the deferred moves are done)
+				If OnResize AndAlso Not IsIconic(FHandle) Then OnResize(*Designer, This, This.Width, This.Height)
 				AlignLock = iSavedAlignLock
 				If iSavedAlignLock = 0 AndAlso FHandle <> 0 AndAlso AlignMoved Then
 					RedrawWindow FHandle, 0, 0, RDW_INVALIDATE Or RDW_ALLCHILDREN
@@ -1949,7 +1949,7 @@ Namespace My.Sys.Forms
 					'is shown, so the OnShow handlers read the right scale and bounds
 					SyncWindowDpi
 					ShowWindow Handle, FCmdShow(FWindowState)
-					'If FParent Then Cast(Control Ptr, FParent)->RequestAlign
+					If FParent Then Cast(Control Ptr, FParent)->RequestAlign
 				Else
 					CreateWnd
 					Exit Sub
@@ -2321,12 +2321,21 @@ Namespace My.Sys.Forms
 		#endif
 		If FParent Then
 			With *Cast(Control Ptr, FParent)
-				'Position at the right edge of the main form in physical pixels: the two forms
-					'can have different scales (they can sit on monitors with different DPI), so
-					'design units must not be mixed here
+				#ifdef __USE_GTK__
+					If GTK_IS_WINDOW(widget) Then
+						gtk_window_set_position(GTK_WINDOW(widget), GTK_WIN_POS_CENTER)
+						gtk_window_move(GTK_WINDOW(widget), ScaleX(.Left + (.Width - This.FWidth) \ 2), ScaleY(.Top + (.Height - This.FHeight) \ 2))
+					End If
+				#elseif defined(__USE_WINAPI__)
+					'Centered on the parent in physical pixels: the two forms can have different
+					'scales (they can sit on monitors with different DPI), so design units must
+					'not be mixed here
 					Dim As Integer iPhysLeft = .Left * .xdpi + (.Width * .xdpi - This.Width * This.xdpi) \ 2
-					Dim As Integer iPhysTop = .Top *.ydpi + (.Height *.ydpi - This.Height * This.ydpi) \ 2
+					Dim As Integer iPhysTop = .Top * .ydpi + (.Height * .ydpi - This.Height * This.ydpi) \ 2
 					This.SetBounds UnScaleX(iPhysLeft), UnScaleY(iPhysTop), This.Width, This.Height
+				#else
+					This.Move .Left + (.Width - This.Width) \ 2, .Top + (.Height - This.Height) \ 2, This.Width, This.Height
+				#endif
 			End With
 		End If
 	End Sub
