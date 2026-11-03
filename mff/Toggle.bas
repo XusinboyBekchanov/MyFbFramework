@@ -154,10 +154,20 @@
 		'---- the background -------------------------------------------------------
 		'A path fill, not Canvas.Rectangle: the GDI+ branch of Rectangle takes
 		'its colour from Canvas.FillColor/FillOpacity rather than Brush.Color
-		Dim backClr As ULong = This.BackColor
-		If backClr = Cast(ULong, -1) Then backClr = clBtnFace
+		'No BackColor of its own: blend into the parent, so the area outside
+		'the pill is not painted with a foreign colour
+		Dim backClr As Integer = This.BackColor
+		If backClr = -1 AndAlso This.Parent <> 0 Then
+			backClr = This.Parent->BackColor
+			#ifdef __USE_WINAPI__
+				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso This.Parent->FDefaultBackColor = This.Parent->FBackColor Then backClr = darkBkColor
+			#endif
+		End If
+		If backClr = -1 Then backClr = clBtnFace
 		Canvas.PathStart
-		Canvas.PathRoundRect(0, 0, ScaleX(This.ClientWidth), ScaleY(This.ClientHeight), 0)
+		'One pixel past every edge: antialiasing would otherwise blend the half
+		'covered top/left pixels with the black of the fresh buffer bitmap
+		Canvas.PathRoundRect(-1, -1, ScaleX(This.ClientWidth) + 2, ScaleY(This.ClientHeight) + 2, 0)
 		Canvas.FillPath(ARGB(backClr), 100)
 		Canvas.PathDiscard
 
@@ -410,7 +420,6 @@
 			#ifdef __USE_WINAPI__
 				.Canvas.UsingGdip = True
 			#endif
-			.BackColor = PRGB(33, 37, 43)
 		End With
 		tmrHotTrack.Designer = @This
 		tmrHotTrack.Interval = 0

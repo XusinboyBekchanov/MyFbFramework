@@ -339,8 +339,16 @@
 		Dim clr1 As ULong, clr2 As ULong
 
 		'---- the background -------------------------------------------------------
-		Dim backClr As ULong = This.BackColor
-		If backClr = Cast(ULong, -1) Then backClr = clBtnFace
+		'No BackColor of its own: blend into the parent, so the area outside
+		'the rounded track is not painted with a foreign colour
+		Dim backClr As Integer = This.BackColor
+		If backClr = -1 AndAlso This.Parent <> 0 Then
+			backClr = This.Parent->BackColor
+			#ifdef __USE_WINAPI__
+				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso This.Parent->FDefaultBackColor = This.Parent->FBackColor Then backClr = darkBkColor
+			#endif
+		End If
+		If backClr = -1 Then backClr = clBtnFace
 		'A path fill, not Canvas.Rectangle: the GDI+ branch of Rectangle takes
 		'its colour from Canvas.FillColor/FillOpacity rather than Brush.Color
 		Canvas.PathStart
@@ -531,6 +539,10 @@
 				bufBMP = CreateCompatibleBitmap(Dc, mClientWidth, mClientHeight)
 				SelectObject(hd, bufBMP)
 				Canvas.SetHandle(hd)
+				'Pixel i covers [i, i+1]: with the default offset mode an edge at 0 or
+				'at the client width falls on a pixel centre, leaving a half-blended
+				'dark line at the top/left and clipping the bottom/right
+				If Canvas.GdipGraphics Then GdipSetPixelOffsetMode(Canvas.GdipGraphics, PixelOffsetModeHalf)
 				Draw()
 				Canvas.UnSetHandle
 				BitBlt(Dc, 0, 0, mClientWidth, mClientHeight, hd, 0, 0, SRCCOPY)
@@ -623,7 +635,6 @@
 			#ifdef __USE_WINAPI__
 				.Canvas.UsingGdip = True
 			#endif
-			.BackColor = PRGB(33, 37, 43)
 		End With
 		tmrMarquee.Designer = @This
 		tmrMarquee.Interval = 0

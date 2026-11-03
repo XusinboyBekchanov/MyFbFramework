@@ -67,6 +67,7 @@
 #include once "CheckedListBox.bi"
 #include once "Classes.bi"
 #include once "Clipboard.bi"
+#include once "ColorPicker.bi"
 #include once "ComboBoxEdit.bi"
 #include once "ComboBoxEx.bi"
 #include once "CommandButton.bi"
@@ -81,6 +82,7 @@
 #include once "Graphics.bi"
 #include once "Grid.bi"
 #include once "GridData.bi"
+#include once "GridDataEx.bi"
 #include once "GroupBox.bi"
 #include once "GUI.bi"
 #include once "Header.bi"
@@ -89,6 +91,7 @@
 #include once "HTTP.bi"
 #include once "HTTPServer.bi"
 #include once "Icon.bi"
+#include once "IconPanel.bi"
 #include once "ImageBox.bi"
 #include once "ImageList.bi"
 #include once "IPAddress.bi"
@@ -115,6 +118,7 @@
 #include once "PrintPreviewControl.bi"
 #include once "PrintPreviewDialog.bi"
 #include once "Printer.bi"
+#include once "Progress.bi"
 #include once "ProgressBar.bi"
 #include once "RadioButton.bi"
 #include once "ReBar.bi"
@@ -125,6 +129,7 @@
 #include once "ScrollBarControl.bi"
 #include once "ScrollControl.bi"
 #include once "SearchBox.bi"
+#include once "SelectBar.bi"
 #include once "HScrollBar.bi"
 #include once "VScrollBar.bi"
 #include once "Splitter.bi"
@@ -134,6 +139,7 @@
 #include once "TabControl.bi"
 #include once "TextBox.bi"
 #include once "TimerComponent.bi"
+#include once "Toggle.bi"
 #include once "ToolBar.bi"
 #include once "ToolPalette.bi"
 #include once "ToolTips.bi"
@@ -172,6 +178,7 @@ Using My.Sys.Forms
 		Case "chart": Ctrl = _New( Chart)
 		Case "checkbox": Ctrl = _New( CheckBox)
 		Case "checkedlistbox": Ctrl = _New( CheckedListBox)
+		Case "colorpicker": Ctrl = _New( ColorPicker)
 		Case "comboboxedit": Ctrl = _New( ComboBoxEdit)
 		Case "comboboxex": Ctrl = _New( ComboBoxEx)
 		Case "commandbutton": Ctrl = _New( CommandButton)
@@ -179,11 +186,13 @@ Using My.Sys.Forms
 		Case "form": Ctrl = _New( Form)
 		Case "grid": Ctrl = _New( Grid)
 		Case "griddata": Ctrl = _New( GridData)
+		Case "griddataex": Ctrl = _New( GridDataEx)
 		Case "groupbox": Ctrl = _New( GroupBox)
 		Case "header": Ctrl = _New( Header)
 		Case "horizontalbox": Ctrl = _New(HorizontalBox)
 		Case "hotkey": Ctrl = _New( HotKey)
 		Case "ipaddress": Ctrl = _New( IPAddress)
+		Case "iconpanel": Ctrl = _New( IconPanel)
 		Case "imagebox": Ctrl = _New( ImageBox)
 		Case "label": Ctrl = _New( Label)
 		Case "linklabel": Ctrl = _New( LinkLabel)
@@ -197,6 +206,7 @@ Using My.Sys.Forms
 		Case "panel": Ctrl = _New( Panel)
 		Case "picture": Ctrl = _New( Picture)
 		Case "printpreviewcontrol": Ctrl = _New(PrintPreviewControl)
+		Case "progress": Ctrl = _New( Progress)
 		Case "progressbar": Ctrl = _New( ProgressBar)
 		Case "radiobutton": Ctrl = _New( RadioButton)
 		Case "rebar": Ctrl = _New( ReBar)
@@ -207,11 +217,13 @@ Using My.Sys.Forms
 		Case "scrollbarcontrol": Ctrl = _New( ScrollBarControl)
 		Case "scrollcontrol": Ctrl = _New(ScrollControl)
 		Case "searchbox": Ctrl = _New(SearchBox)
+		Case "selectbar": Ctrl = _New( SelectBar)
 		Case "hscrollbar": Ctrl = _New( HScrollBar)
 		Case "vscrollbar": Ctrl = _New( VScrollBar)
 		Case "splitter": Ctrl = _New( Splitter)
 		Case "statusbar": Ctrl = _New( StatusBar)
 		Case "textbox": Ctrl = _New( TextBox)
+		Case "toggle": Ctrl = _New( Toggle)
 		Case "toolbar": Ctrl = _New( ToolBar)
 		Case "toolpalette": Ctrl = _New( ToolPalette)
 		Case "trackbar": Ctrl = _New( TrackBar)
@@ -334,6 +346,7 @@ Using My.Sys.Forms
 		Case "checkbox" :_Delete( Cast(CheckBox Ptr, Ctrl))
 		Case "checkedlistbox": _Delete( Cast(CheckedListBox Ptr, Ctrl))
 		Case "colordialog": _Delete( Cast(ColorDialog Ptr, Ctrl))
+		Case "colorpicker": _Delete( Cast(ColorPicker Ptr, Ctrl))
 		Case "comboboxedit": _Delete( Cast(ComboBoxEdit Ptr, Ctrl))
 		Case "comboboxex": _Delete( Cast(ComboBoxEx Ptr, Ctrl))
 		Case "commandbutton": _Delete( Cast(CommandButton Ptr, Ctrl))
@@ -343,6 +356,7 @@ Using My.Sys.Forms
 		Case "form": _Delete( Cast(Form Ptr, Ctrl))
 		Case "grid": _Delete( Cast(Grid Ptr, Ctrl))
 		Case "griddata": _Delete( Cast(GridData Ptr, Ctrl))
+		Case "griddataex": _Delete( Cast(GridDataEx Ptr, Ctrl))
 		Case "groupbox": _Delete( Cast(GroupBox Ptr, Ctrl))
 		Case "header": _Delete( Cast(Header Ptr, Ctrl))
 		Case "horizontalbox": _Delete(Cast(HorizontalBox Ptr, Ctrl))
@@ -350,6 +364,7 @@ Using My.Sys.Forms
 		Case "hscrollbar": _Delete( Cast(HScrollBar Ptr, Ctrl))
 		Case "httpconnection": _Delete(Cast(HTTPConnection Ptr, Ctrl))
 		Case "httpserver": _Delete(Cast(HTTPServer Ptr, Ctrl))
+		Case "iconpanel": _Delete( Cast(IconPanel Ptr, Ctrl))
 		Case "imagebox": _Delete( Cast(ImageBox Ptr, Ctrl))
 		Case "imagelist": _Delete( Cast(ImageList Ptr, Ctrl))
 		Case "ipaddress": _Delete( Cast(IPAddress Ptr, Ctrl))
@@ -374,6 +389,7 @@ Using My.Sys.Forms
 		Case "printer": _Delete( Cast(Printer Ptr, Ctrl))
 		Case "printpreviewcontrol": _Delete( Cast(PrintPreviewControl Ptr, Ctrl))
 		Case "printpreviewdialog": _Delete( Cast(PrintPreviewDialog Ptr, Ctrl))
+		Case "progress": _Delete( Cast(Progress Ptr, Ctrl))
 		Case "progressbar": _Delete( Cast(ProgressBar Ptr, Ctrl))
 		Case "radiobutton": _Delete( Cast(RadioButton Ptr, Ctrl))
 		Case "rebar": _Delete( Cast(ReBar Ptr, Ctrl))
@@ -391,12 +407,14 @@ Using My.Sys.Forms
 		Case "scrollbarcontrol": _Delete( Cast(ScrollBarControl Ptr, Ctrl))
 		Case "scrollcontrol": _Delete( Cast(ScrollControl Ptr, Ctrl))
 		Case "searchbox": _Delete( Cast(SearchBox Ptr, Ctrl))
+		Case "selectbar": _Delete( Cast(SelectBar Ptr, Ctrl))
 		Case "splitter": _Delete( Cast(Splitter Ptr, Ctrl))
 		Case "statusbar": _Delete( Cast(StatusBar Ptr, Ctrl))
 		Case "tabcontrol": _Delete( Cast(TabControl Ptr, Ctrl))
 		Case "tabpage": _Delete( Cast(TabPage Ptr, Ctrl))
 		Case "textbox": _Delete( Cast(TextBox Ptr, Ctrl))
 		Case "timercomponent": _Delete( Cast(TimerComponent Ptr, Ctrl))
+		Case "toggle": _Delete( Cast(Toggle Ptr, Ctrl))
 		Case "toolbar": _Delete( Cast(ToolBar Ptr, Ctrl))
 		Case "toolpalette": _Delete( Cast(ToolPalette Ptr, Ctrl))
 		Case "tooltips": _Delete( Cast(ToolTips Ptr, Ctrl))
