@@ -56,6 +56,7 @@
 #include once "Form.bi"
 #include once "Ruler.bi"
 #include once "Report.bi"
+#include once "PrintDocument.bi"
 #include once "Label.bi"
 #include once "CommandButton.bi"
 #include once "GridDataExEnums.bi"
@@ -682,6 +683,14 @@ Namespace My.Sys.Forms
 	Dim FPrevDragging As Boolean = False
 	Dim FPrevRulerH As Ruler Ptr = 0      'preview scales (Report.Bas style)
 	Dim FPrevRulerV As Ruler Ptr = 0
+	'The printing (PrintOut): the title, the orientation and the next page; GTK, the Web
+	'and Android record the pages in a PrintDocument
+	Dim FPrintTitle As WString Ptr = 0
+	Dim FPrintLandscape As Boolean = False
+	Dim FPrintPageNo As Long = 0
+	#ifndef __USE_WINAPI__
+		Dim FPrintDoc As PrintDocument Ptr = 0
+	#endif
 	Dim FReportFitWidth As Boolean = True 'shrink all columns onto one page width
 	Dim FRptBuf As WString Ptr = 0         'module callback return buffer
 		Declare Sub InvalidateMergeCache
@@ -697,8 +706,10 @@ Namespace My.Sys.Forms
 		Declare Function CollectVisRows(RowList() As Long) As Long
 		Declare Function CollectVisCols(ColList() As Long) As Long
 		Declare Sub BuildReportLayout(ByRef Lay As FlexReportLayout, ByVal Landscape As Boolean, ByVal XDpi As Double, ByVal YDpi As Double)
-		#ifdef __USE_WINAPI__
-			Declare Sub RenderReportPage(ByVal Dc As HDC, ByVal PageNo As Long, ByRef Lay As FlexReportLayout, ByRef Title As WString)
+		Declare Sub RenderReportPage(ByRef Cv As My.Sys.Drawing.Canvas, ByVal PageNo As Long, ByRef Lay As FlexReportLayout, ByRef Title As WString, ByVal OffX As Double, ByVal OffY As Double, ByVal Dpi As Double)
+		Declare Sub ReportText(ByRef Cv As My.Sys.Drawing.Canvas, ByRef Value As WString, ByVal BoxLeft As Double, ByVal BoxTop As Double, ByVal BoxRight As Double, ByVal BoxBottom As Double, ByVal Align As Integer, ByVal TextColor As Long)
+		#ifndef __USE_WINAPI__
+			Declare Static Sub PrintDoc_PrintPage(ByRef Designer As My.Sys.Object, ByRef Sender As PrintDocument, ByRef Cv As My.Sys.Drawing.Canvas, ByRef HasMorePages As Boolean)
 		#endif
 		Declare Sub PreviewShowPage(ByVal Delta As Long, ByVal Absolute As Long)
 		Declare Sub PreviewDoPrint()

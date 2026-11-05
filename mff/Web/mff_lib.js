@@ -3215,6 +3215,9 @@ var MffLibrary = {
 		// The element takes the focus (a canvas has no tabindex); a handled key does not do the action of the browser
 		var el = mff.el(Id);
 		if (el && !el.hasAttribute("tabindex")) el.tabIndex = 0;
+		// like a text box (CREATEELEMENT): the console of FreeBASIC (termlib) takes the keys of the page
+		// (capturing keydown/keypress of the document) until it is locked
+		if (typeof Terminal !== "undefined" && Terminal.prototype.globals && Terminal.prototype.globals.activeTerm) Terminal.prototype.globals.activeTerm.lock = true;
 		mff.on(Id, "keydown", function(e) { if (mff.call("ONKEYDOWN", [Id, mff.key(e), mff.shift(e)])) mff.prevent(e); });
 	},
 

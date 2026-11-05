@@ -19,7 +19,7 @@
     Dim Shared As Boolean DataReady 
 	Type Form1Type Extends Form
 		Dim As GridDataEx GridData1
-		Dim As CommandButton cmdSort, cmdCheck, cmdUndo, cmdRedo, cmdCopy, cmdPaste, cmdAutoSize, cmdAltColor, cmdMerge, cmdFrozen
+		Dim As CommandButton cmdSort, cmdCheck, cmdUndo, cmdRedo, cmdCopy, cmdPaste, cmdAutoSize, cmdAltColor, cmdMerge, cmdFrozen, cmdPreview
 		Dim As Panel Panel1
 		Dim As Label lblInfo
 		Dim As Integer AltMode = 0
@@ -33,6 +33,8 @@
 		Declare Sub cmdAltColor_Click(ByRef Sender As Control)
 		Declare Sub cmdMerge_Click(ByRef Sender As Control)
 		Declare Sub cmdFrozen_Click(ByRef Sender As Control)
+		Declare Sub cmdPreview_Click(ByRef Sender As Control)
+		Declare Sub LogEvent(ByRef Msg As WString)
 		Declare Sub grid_CellClick(ByRef Sender As GridDataEx, ByVal Row As Long, ByVal Col As Long, ByVal Button As Integer)
 		Declare Sub grid_CellCheck(ByRef Sender As GridDataEx, ByVal Row As Long, ByVal Col As Long)
 		Declare Sub grid_BeforeEdit(ByRef Sender As GridDataEx, ByVal Row As Long, ByVal Col As Long, ByVal Reason As Integer, ByRef Cancel As Boolean)
@@ -250,17 +252,35 @@
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFrozen_Click)
 			.Parent = @Panel1
 		End With
+		With cmdPreview
+			.Name = "cmdPreview" : .Text = "Preview" : .Designer = @This
+			.SetBounds 758, 2, 70, 24
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdPreview_Click)
+			.Parent = @Panel1
+		End With
 		' Info label
 		With lblInfo
 			.Name = "lblInfo" 
 			.Text = "Cell: -,  -    SelectedRows: 0    F2/double-click/type to edit; Ctrl+click toggles row select" 
 			.AutoSize = True 
-			.SetBounds 750, 2, 400, 30
+			.SetBounds 832, 2, 400, 30
 			.Designer = @This
 			.Parent = @Panel1
 		End With
 	End Constructor
 
+	Sub Form1Type.cmdPreview_Click(ByRef Sender As Control)
+		GridData1.PrintPreview "GridDataEx Example"
+	End Sub
+	
+	'The events of the grid go to the debug output; not on the Web: there Debug.Print
+	'opens the console of the page, which takes the keys of the grid
+	Sub Form1Type.LogEvent(ByRef Msg As WString)
+		#ifndef __USE_WASM__
+			Debug.Print Msg
+		#endif
+	End Sub
+	
 	Sub Form1Type.cmdSort_Click(ByRef Sender As Control)
 		GridData1.Sort 2, FlexSortNumericAscending
 		GridData1.ColSortArrow(2) = FlexSortArrowAscending
@@ -286,7 +306,7 @@
 
 	Sub Form1Type.cmdCopy_Click(ByRef Sender As Control)
 		GridData1.Copy
-		Debug.Print "Copied: " & GridData1.Clip
+		LogEvent "Copied: " & GridData1.Clip
 	End Sub
 
 	Sub Form1Type.cmdPaste_Click(ByRef Sender As Control)
@@ -330,21 +350,21 @@
 	End Sub
 
 	Sub Form1Type.grid_CellClick(ByRef Sender As GridDataEx, ByVal Row As Long, ByVal Col As Long, ByVal Button As Integer)
-		Debug.Print "CellClick " & Row & "," & Col
+		LogEvent "CellClick " & Row & "," & Col
 	End Sub
 
 	Sub Form1Type.grid_CellCheck(ByRef Sender As GridDataEx, ByVal Row As Long, ByVal Col As Long)
-		Debug.Print "CellCheck " & Row & "," & Col & " = " & Sender.CellChecked
+		LogEvent "CellCheck " & Row & "," & Col & " = " & Sender.CellChecked
 	End Sub
 
 	Sub Form1Type.grid_BeforeEdit(ByRef Sender As GridDataEx, ByVal Row As Long, ByVal Col As Long, ByVal Reason As Integer, ByRef Cancel As Boolean)
 		'Column 0 (index column) stays read-only.
 		If Col = 0 Then Cancel = True
-		Debug.Print "BeforeEdit " & Row & "," & Col & " reason=" & Reason
+		LogEvent "BeforeEdit " & Row & "," & Col & " reason=" & Reason
 	End Sub
 
 	Sub Form1Type.grid_AfterEdit(ByRef Sender As GridDataEx, ByVal Row As Long, ByVal Col As Long, ByRef NewText As WString)
-		Debug.Print "AfterEdit " & Row & "," & Col & " -> " & NewText
+		LogEvent "AfterEdit " & Row & "," & Col & " -> " & NewText
 	End Sub
 
 	Sub Form1Type.grid_RowColChange(ByRef Sender As GridDataEx)
@@ -352,19 +372,19 @@
 	End Sub
 
 	Sub Form1Type.grid_EnterCell(ByRef Sender As GridDataEx)
-		If DataReady Then Debug.Print "EnterCell " & Sender.Row & "," & Sender.Col
+		If DataReady Then LogEvent "EnterCell " & Sender.Row & "," & Sender.Col
 	End Sub
 
 	Sub Form1Type.grid_BeforeUserResize(ByRef Sender As GridDataEx, ByVal Row As Long, ByVal Col As Long, ByRef Cancel As Boolean)
-		Debug.Print "BeforeUserResize row=" & Row & " col=" & Col
+		LogEvent "BeforeUserResize row=" & Row & " col=" & Col
 	End Sub
 
 	Sub Form1Type.grid_AfterUserResize(ByRef Sender As GridDataEx, ByVal Row As Long, ByVal Col As Long, ByVal NewSize As Long)
-		Debug.Print "AfterUserResize row=" & Row & " col=" & Col & " newSize=" & NewSize
+		LogEvent "AfterUserResize row=" & Row & " col=" & Col & " newSize=" & NewSize
 	End Sub
 
 	Sub Form1Type.grid_KeyDown(ByRef Sender As GridDataEx, ByRef KeyCode As Integer, ByVal Shift As Integer)
-		Debug.Print "KeyDown code=" & KeyCode & " shift=" & Shift
+		LogEvent "KeyDown code=" & KeyCode & " shift=" & Shift
 	End Sub
 
 	Dim Shared Form1 As Form1Type

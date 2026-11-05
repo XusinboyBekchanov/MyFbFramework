@@ -358,6 +358,11 @@ Namespace My.Sys.Forms
 
 	Destructor GridDataEx
 		CancelEdit
+		#ifndef __USE_WINAPI__
+			If FPrintDoc <> 0 Then Delete FPrintDoc
+			FPrintDoc = 0
+		#endif
+		WDeAllocate(FPrintTitle)
 		#ifdef __USE_WINAPI__
 			DestroyMemSurface
 		#endif
@@ -455,7 +460,12 @@ Namespace My.Sys.Forms
 	Function GridDataEx.TextMatrix(ByVal aRow As Long, ByVal aCol As Long) ByRef As WString
 		Dim As FlexCell Ptr C = CellAt(aRow, aCol)
 		If C <> 0 Then Return C->Text
-		Return ""
+		'Not the literal "": "Grid.TextMatrix(r, c) = Text" (VB style, the setter is
+		'TextMatrix(r, c, Text)) writes into the returned string, the shared literal would
+		'change every other "" of the program
+		Static As WString * 2 EmptyText
+		EmptyText = ""
+		Return EmptyText
 	End Function
 
 	Sub GridDataEx.TextMatrix(ByVal aRow As Long, ByVal aCol As Long, ByRef Value As WString)
@@ -1130,8 +1140,10 @@ Namespace My.Sys.Forms
 		Dim As Boolean CancelFlag = False
 		If OnEditQueryClose Then OnEditQueryClose(*Designer, This, FlexEditCloseModeEscape, CancelFlag)
 		If CancelFlag Then Return False
-		If EditText_ <> 0 Then EditText_->Visible = False
+		'Like CommitEditInternal: hiding the editor takes its focus, the lost focus must
+		'not commit the canceled edit
 		FInEdit = False
+		If EditText_ <> 0 Then EditText_->Visible = False
 		FEditCloseMode = FlexEditCloseModeEscape
 		FEditRow = -1
 		FEditCol = -1
@@ -3091,118 +3103,112 @@ Namespace My.Sys.Forms
 		Lay.RowPages = rPages
 	End Sub
 
-	#ifdef __USE_WINAPI__
-	Sub GridDataEx.RenderReportPage(ByVal Dc As HDC, ByVal PageNo As Long, ByRef Lay As FlexReportLayout, ByRef Title As WString)
-		'Draws one report page (light palette, GDI) into Dc at the DPI the
-		'layout was built for. Page order: column groups outer, row pages
-		'inner, like a classic printout.
+	'A text of a report in the box (Left, Top) - (Right, Bottom): Align 0 - left,
+	'1 - center, 2 - right, vertically centered, cut with "..." when it is too long
+	Sub GridDataEx.ReportText(ByRef Cv As My.Sys.Drawing.Canvas, ByRef Value As WString, ByVal BoxLeft As Double, ByVal BoxTop As Double, ByVal BoxRight As Double, ByVal BoxBottom As Double, ByVal Align As Integer, ByVal TextColor As Long)
+		Dim As Double Pad = Max(1.0, (BoxBottom - BoxTop) * 0.12)
+		Dim As Double Avail = BoxRight - BoxLeft - Pad * 2
+		If Avail <= 0 OrElse Len(Value) = 0 Then Exit Sub
+		Dim As UString T = Value
+		If Cv.TextWidth(T) > Avail Then
+			Dim As Long n = Len(T)
+			Do While n > 0 AndAlso Cv.TextWidth(Mid(T, 1, n) & "...") > Avail
+				n -= 1
+			Loop
+			T = Mid(T, 1, n) & "..."
+		End If
+		Dim As Double TW = Cv.TextWidth(T), TH = Cv.TextHeight(T)
+		Dim As Double X = BoxLeft + Pad
+		If Align = 1 Then X = BoxLeft + (BoxRight - BoxLeft - TW) / 2
+		If Align = 2 Then X = BoxRight - Pad - TW
+		Cv.TextOut(X, BoxTop + (BoxBottom - BoxTop - TH) / 2, T, TextColor, -1)
+	End Sub
+
+	'One page of the report through a Canvas: the preview (every platform) and the
+	'printing. (OffX, OffY) is the corner of the page, Dpi the pixels of the Canvas
+	'per inch; the fonts follow the scale of the fonts of the Canvas (Font.ydpi).
+	'Page order: column groups outer, row pages inner, like a classic printout.
+	Sub GridDataEx.RenderReportPage(ByRef Cv As My.Sys.Drawing.Canvas, ByVal PageNo As Long, ByRef Lay As FlexReportLayout, ByRef Title As WString, ByVal OffX As Double, ByVal OffY As Double, ByVal Dpi As Double)
 		Dim RowList(Any) As Long, ColList(Any) As Long
 		Dim As Long nR = CollectVisRows(RowList()), nC = CollectVisCols(ColList())
-		If nR < 1 OrElse nC < 1 Then Exit Sub
-		Dim As Long XDpi = GetDeviceCaps(Dc, LOGPIXELSX)
-		Dim As Long YDpi = GetDeviceCaps(Dc, LOGPIXELSY)
-		Dim As Double PageW = Lay.PageWIn * XDpi, PageH = Lay.PageHIn * YDpi
-		Dim As Double MarginL = 0.6 * XDpi, MarginT = 0.6 * YDpi
-		Dim As Double MarginR = PageW - 0.6 * XDpi
-		'Background.
-		Dim As Rect RC
-		RC.Left = 0 : RC.Top = 0 : RC.Right = CInt(PageW) : RC.Bottom = CInt(PageH)
-		Dim As HBRUSH WhiteBr = GetStockObject(WHITE_BRUSH)
-		FillRect(Dc, @RC, WhiteBr)
-		'Header: title (bold) left, page x/y right, rule underneath.
-		Dim As HFONT HdrFont = CreateFontW(-CInt(11.0 / 72.0 * YDpi), 0, 0, 0, FW_BOLD, 0, 0, 0, DEFAULT_CHARSET, 0, 0, CLEARTYPE_QUALITY, 0, 0)
-		Dim As HGDIOBJ OldF = SelectObject(Dc, Cast(HGDIOBJ, HdrFont))
-		SetBkMode(Dc, TRANSPARENT)
-		SetTextColor(Dc, &H000000)
-		Dim As UString PgTxt = "第 " & (PageNo + 1) & " / " & (Lay.ColPages * Lay.RowPages) & " 页"
-		Dim As Rect RH
-		RH.Left = CInt(MarginL) : RH.Top = CInt(MarginT) : RH.Right = CInt(MarginR) : RH.Bottom = CInt(MarginT + 0.25 * YDpi)
-		Dim As UString TitleTxt = IIf(Len(Title) > 0, Title, WStr("GridDataEx 报表"))
-		If Lay.ColPages > 1 Then TitleTxt &= "  （列组 " & (PageNo \ Lay.RowPages + 1) & "/" & Lay.ColPages & "）"
-		DrawTextW(Dc, TitleTxt, Len(TitleTxt), @RH, DT_LEFT Or DT_VCENTER Or DT_SINGLELINE Or DT_END_ELLIPSIS)
-		DrawTextW(Dc, PgTxt, Len(PgTxt), @RH, DT_RIGHT Or DT_VCENTER Or DT_SINGLELINE)
-		SelectObject(Dc, Cast(HGDIOBJ, GetStockObject(BLACK_PEN)))
-		Dim As HGDIOBJ HdrBrush = SelectObject(Dc, GetStockObject(NULL_BRUSH))
-		RC.Left = CInt(MarginL) : RC.Top = CInt(MarginT + 0.27 * YDpi) : RC.Right = CInt(MarginR) : RC.Bottom = CInt(MarginT + 0.27 * YDpi) + 1
-		FillRect(Dc, @RC, Cast(HBRUSH, GetStockObject(BLACK_BRUSH)))
-		SelectObject(Dc, HdrBrush)
-		SelectObject(Dc, OldF)
-		DeleteObject(Cast(HGDIOBJ, HdrFont))
-		'Body font.
-		Dim As HFONT BodyFont = CreateFontW(-CInt(9.0 / 72.0 * YDpi), 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET, 0, 0, CLEARTYPE_QUALITY, 0, 0)
-		OldF = SelectObject(Dc, Cast(HGDIOBJ, BodyFont))
-		Dim As HPEN LinePen = CreatePen(PS_SOLID, 1, &H808080)
-		Dim As HGDIOBJ OldPen = SelectObject(Dc, Cast(HGDIOBJ, LinePen))
-		Dim As HBRUSH HdrBack = CreateSolidBrush(&HF0F0F0)
-		Dim As HBRUSH OldBr = Cast(HBRUSH, SelectObject(Dc, Cast(HGDIOBJ, HdrBack)))
-		'Column band of this page.
+		If nR < 1 OrElse nC < 1 OrElse Lay.ColPages < 1 OrElse Lay.RowPages < 1 OrElse Dpi <= 0 Then Exit Sub
+		Dim As Single FontScale = IIf(Cv.Font.ydpi > 0, Cv.Font.ydpi, 1)
+		Dim As Double PageW = Lay.PageWIn * Dpi, PageH = Lay.PageHIn * Dpi
+		Dim As Double MarginL = OffX + 0.6 * Dpi, MarginT = OffY + 0.6 * Dpi
+		Dim As Double MarginR = OffX + PageW - 0.6 * Dpi
+		Dim As Long LineW = Max(1, CLng(Dpi / 96))
+		Dim As My.Sys.Drawing.Rect R
+		R.Left = OffX : R.Top = OffY : R.Right = OffX + PageW : R.Bottom = OffY + PageH
+		Cv.FillRect(R, &HFFFFFF)
+		Dim As UString SavedName = Cv.Font.Name
+		Dim As Integer SavedSize = Cv.Font.Size
+		Dim As Boolean SavedBold = Cv.Font.Bold
+		Cv.Font.Name = This.Font.Name
+		'The header: the title (bold) at the left, the page at the right, a rule under them.
+		'A font of P points is P * Dpi / 72 pixels high; the Canvas makes Size * 96 / 72 * FontScale.
+		Cv.Font.Bold = True
+		Cv.Font.Size = Max(1, CInt(11 * Dpi / (96 * FontScale)))
+		Dim As UString PgTxt = ML("Page") & " " & (PageNo + 1) & " / " & (Lay.ColPages * Lay.RowPages)
+		Dim As UString TitleTxt = IIf(Len(Title) > 0, Title, "GridDataEx")
+		If Lay.ColPages > 1 Then TitleTxt &= "  (" & ML("Columns") & " " & (PageNo \ Lay.RowPages + 1) & "/" & Lay.ColPages & ")"
+		Dim As Double HdrBottom = MarginT + 0.25 * Dpi
+		ReportText(Cv, PgTxt, MarginL, MarginT, MarginR, HdrBottom, 2, &H000000)
+		ReportText(Cv, TitleTxt, MarginL, MarginT, MarginR - Cv.TextWidth(PgTxt) - 0.2 * Dpi, HdrBottom, 0, &H000000)
+		R.Left = MarginL : R.Top = MarginT + 0.27 * Dpi : R.Right = MarginR : R.Bottom = R.Top + LineW
+		Cv.FillRect(R, &H000000)
+		'The body.
+		Cv.Font.Bold = False
+		Cv.Font.Size = Max(1, CInt(9 * Dpi / (96 * FontScale)))
 		Dim As Long cg = PageNo \ Lay.RowPages
 		Dim As Long rg = PageNo Mod Lay.RowPages
 		Dim As Long c0 = Lay.ColStart(cg)
 		Dim As Long c1 = IIf(cg + 1 <= Lay.ColPages - 1, Lay.ColStart(cg + 1) - 1, nC - 1)
-		'Y walk: repeated fixed header rows, then this page's data rows.
-		Dim As Double Y = MarginT + 0.35 * YDpi
-		Dim As HGDIOBJ OldMap = 0
-		'Repeated header rows.
-		For k As Long = 0 To nR - 1
-			If RowList(k) >= FFixedRows Then Exit For
-			Dim As Double RHt = GetRowHeightPx(RowList(k)) / 96.0 * YDpi
-			Dim As Double X = MarginL
-			For m As Long = c0 To c1
-				Dim As Double CW = GetColWidthPx(ColList(m)) / 96.0 * XDpi * Lay.ColScale
-				If CW < 20 Then CW = 20
-				Dim As Rect Cell
-				Cell.Left = CInt(X) : Cell.Top = CInt(Y) : Cell.Right = CInt(X + CW) : Cell.Bottom = CInt(Y + RHt)
-				FillRect(Dc, @Cell, HdrBack)
-				Dim As UString HT = TextDisplay(RowList(k), ColList(m))
-				SetTextColor(Dc, &H000000)
-				DrawTextW(Dc, HT, Len(HT), @Cell, DT_CENTER Or DT_VCENTER Or DT_SINGLELINE Or DT_END_ELLIPSIS)
-				MoveToEx(Dc, Cell.Left, Cell.Bottom - 1, NULL) : LineTo(Dc, Cell.Right, Cell.Bottom - 1)
-				MoveToEx(Dc, Cell.Right - 1, Cell.Top, NULL) : LineTo(Dc, Cell.Right - 1, Cell.Bottom)
-				X += CW
-			Next m
-			Y += RHt
-		Next k
-		'Data rows of this row group.
+		'Y walk: the repeated fixed header rows, then the data rows of this page.
+		Dim As Double Y = MarginT + 0.35 * Dpi
 		Dim As Long r0 = Lay.RowStart(rg)
 		Dim As Long r1 = IIf(rg + 1 <= Lay.RowPages - 1, Lay.RowStart(rg + 1) - 1, nR - 1)
-		For k As Long = r0 To r1
-			If RowList(k) < FFixedRows Then Continue For
-			Dim As Double RHt = GetRowHeightPx(RowList(k)) / 96.0 * YDpi
-			Dim As Double X = MarginL
-			For m As Long = c0 To c1
-				Dim As Double CW = GetColWidthPx(ColList(m)) / 96.0 * XDpi * Lay.ColScale
-				If CW < 20 Then CW = 20
-				Dim As Rect Cell
-				Cell.Left = CInt(X) : Cell.Top = CInt(Y) : Cell.Right = CInt(X + CW) : Cell.Bottom = CInt(Y + RHt)
-				Dim As UString VT = TextDisplay(RowList(k), ColList(m))
-				SetTextColor(Dc, &H000000)
-				Dim As Long Al = ColsArr(ColList(m)).Alignment
-				Dim As Long DTF = DT_VCENTER Or DT_SINGLELINE Or DT_END_ELLIPSIS
-				Select Case Al
-					Case FlexAlignmentLeftCenter : DTF Or= DT_LEFT
-					Case FlexAlignmentCenterCenter : DTF Or= DT_CENTER
-					Case FlexAlignmentRightCenter : DTF Or= DT_RIGHT
-					Case FlexAlignmentGeneral, FlexAlignmentGeneralCenter, FlexAlignmentGeneralTop, FlexAlignmentGeneralBottom
-						If IsNumericText(VT) Then DTF Or= DT_RIGHT Else DTF Or= DT_LEFT
-					Case Else : DTF Or= DT_LEFT
-				End Select
-				DrawTextW(Dc, VT, Len(VT), @Cell, DTF)
-				MoveToEx(Dc, Cell.Left, Cell.Bottom - 1, NULL) : LineTo(Dc, Cell.Right, Cell.Bottom - 1)
-				MoveToEx(Dc, Cell.Right - 1, Cell.Top, NULL) : LineTo(Dc, Cell.Right - 1, Cell.Bottom)
-				X += CW
-			Next m
-			Y += RHt
-			If Y > PageH - 0.6 * YDpi Then Exit For
-		Next k
-		SelectObject(Dc, Cast(HGDIOBJ, OldBr))
-		SelectObject(Dc, OldPen)
-		SelectObject(Dc, OldF)
-		DeleteObject(Cast(HGDIOBJ, HdrBack))
-		DeleteObject(Cast(HGDIOBJ, LinePen))
-		DeleteObject(Cast(HGDIOBJ, BodyFont))
+		For Pass As Integer = 0 To 1
+			Dim As Long k0 = IIf(Pass = 0, 0, r0), k1 = IIf(Pass = 0, nR - 1, r1)
+			For k As Long = k0 To k1
+				Dim As Boolean IsHeader = RowList(k) < FFixedRows
+				If Pass = 0 AndAlso IsHeader = False Then Exit For
+				If Pass = 1 AndAlso IsHeader Then Continue For
+				Dim As Double RHt = GetRowHeightPx(RowList(k)) / 96.0 * Dpi
+				Dim As Double X = MarginL
+				For m As Long = c0 To c1
+					Dim As Double CW = GetColWidthPx(ColList(m)) / 96.0 * Dpi * Lay.ColScale
+					If CW < 20 * Dpi / 96 Then CW = 20 * Dpi / 96
+					If IsHeader Then
+						R.Left = X : R.Top = Y : R.Right = X + CW : R.Bottom = Y + RHt
+						Cv.FillRect(R, &HF0F0F0)
+					End If
+					Dim As UString VT = TextDisplay(RowList(k), ColList(m))
+					Dim As Integer Al = 1
+					If IsHeader = False Then
+						Select Case ColsArr(ColList(m)).Alignment
+							Case FlexAlignmentCenterCenter : Al = 1
+							Case FlexAlignmentRightCenter : Al = 2
+							Case FlexAlignmentGeneral, FlexAlignmentGeneralCenter, FlexAlignmentGeneralTop, FlexAlignmentGeneralBottom
+								Al = IIf(IsNumericText(VT), 2, 0)
+							Case Else : Al = 0
+						End Select
+					End If
+					ReportText(Cv, VT, X, Y, X + CW, Y + RHt, Al, &H000000)
+					'The grid lines under and at the right of the cell
+					R.Left = X : R.Top = Y + RHt - LineW : R.Right = X + CW : R.Bottom = Y + RHt
+					Cv.FillRect(R, &H808080)
+					R.Left = X + CW - LineW : R.Top = Y : R.Right = X + CW : R.Bottom = Y + RHt
+					Cv.FillRect(R, &H808080)
+					X += CW
+				Next m
+				Y += RHt
+				If Pass = 1 AndAlso Y > OffY + PageH - 0.6 * Dpi Then Exit For
+			Next k
+		Next Pass
+		Cv.Font.Name = SavedName
+		Cv.Font.Size = SavedSize
+		Cv.Font.Bold = SavedBold
 	End Sub
-	#endif
 
 	Property GridDataEx.ReportFitWidth As Boolean
 		Return FReportFitWidth
@@ -3218,7 +3224,7 @@ Namespace My.Sys.Forms
 		If NP < 1 Then NP = 1
 		If NP > FPrevPages Then NP = FPrevPages
 		FPrevPage = NP
-		If FPrevLbl <> 0 Then FPrevLbl->Text = "第 " & NP & " / " & FPrevPages & " 页"
+		If FPrevLbl <> 0 Then FPrevLbl->Text = ML("Page") & " " & NP & " / " & FPrevPages
 		If FPrevHost <> 0 Then FPrevHost->Repaint
 	End Sub
 
@@ -3230,17 +3236,18 @@ Namespace My.Sys.Forms
 	Sub GridDataEx.PreviewBtn_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Dim As GridDataEx Ptr G = PreviewGrid
 		If G = 0 Then Exit Sub
-		Select Case Sender.Text
-			Case "首页" : G->PreviewShowPage(0, 1)
-			Case "上一页" : G->PreviewShowPage(-1, 0)
-			Case "下一页" : G->PreviewShowPage(1, 0)
-			Case "末页" : G->PreviewShowPage(0, G->FPrevPages)
-			Case "打印" : G->PreviewDoPrint()
-			Case "-" : G->PreviewHost_Wheel(Designer, Sender, -1, 0, 0, 0)
-			Case "+" : G->PreviewHost_Wheel(Designer, Sender, 1, 0, 0, 0)
-			Case "100%" : G->PreviewSetZoom(1.0)
-			Case "适应" : G->PreviewSetZoom(0)
-			Case "关闭" : If G->FPrevForm <> 0 Then G->FPrevForm->CloseForm
+		'The buttons are pvBtn0 .. pvBtn9 (their captions are translated by ML)
+		Select Case Val(Mid(Sender.Name, 6))
+			Case 0 : G->PreviewShowPage(0, 1)
+			Case 1 : G->PreviewShowPage(-1, 0)
+			Case 2 : G->PreviewShowPage(1, 0)
+			Case 3 : G->PreviewShowPage(0, G->FPrevPages)
+			Case 4 : G->PreviewDoPrint()
+			Case 5 : If G->FPrevHost <> 0 Then G->PreviewHost_Wheel(Designer, *G->FPrevHost, -1, 0, 0, 0)
+			Case 6 : If G->FPrevHost <> 0 Then G->PreviewHost_Wheel(Designer, *G->FPrevHost, 1, 0, 0, 0)
+			Case 7 : G->PreviewSetZoom(1.0)
+			Case 8 : G->PreviewSetZoom(0)
+			Case 9 : If G->FPrevForm <> 0 Then G->FPrevForm->CloseForm
 		End Select
 	End Sub
 
@@ -3250,81 +3257,70 @@ Namespace My.Sys.Forms
 		If G = 0 OrElse G->FPrevHost = 0 Then Exit Sub
 		Dim As Long FW = Sender.ClientWidth, FH = Sender.ClientHeight
 		If FW < 100 OrElse FH < 100 Then Exit Sub
-		G->FPrevHost->SetBounds 4, 36, FW - 8, FH - 40
+		'The rulers stay at the top and the left of the page host (like PrintPreview made them)
+		If G->FPrevRulerH <> 0 Then G->FPrevRulerH->SetBounds 28, 36, FW - 32, 24
+		If G->FPrevRulerV <> 0 Then G->FPrevRulerV->SetBounds 4, 60, 24, FH - 64
+		G->FPrevHost->SetBounds 28, 60, FW - 32, FH - 64
 		G->FPrevHost->Repaint
 	End Sub
 
 	Sub GridDataEx.PreviewHost_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Cv As My.Sys.Drawing.Canvas)
 		Dim As GridDataEx Ptr G = PreviewGrid
 		If G = 0 Then Exit Sub
-		#ifdef __USE_WINAPI__
-		Dim As HDC Dc = Cast(HDC, Cv.Handle)
-		If Dc = 0 Then Exit Sub
-		'Physical host size: ClientWidth would be logical pixels while the DC
-		'is physical - mixing them made the page blow up on high DPI.
-		Dim As RECT HRC
-		GetClientRect(Sender.Handle, @HRC)
-		Dim As Long CW = HRC.Right, CH = HRC.Bottom
-		Dim As RECT BG
-		BG.Left = 0 : BG.Top = 0 : BG.Right = CW : BG.Bottom = CH
-		Dim As HBRUSH GrayBr = CreateSolidBrush(&H3C3C3C)
-		FillRect(Dc, @BG, GrayBr)
-		DeleteObject(Cast(HGDIOBJ, GrayBr))
+		'The page is drawn in the pixels of the host (like the grid in PaintOwn): the
+		'Canvas must not scale them again
+		Dim As Single SavedX = Cv.xdpi, SavedY = Cv.ydpi
+		Dim As Long CW = Sender.ScaleX(Sender.ClientWidth), CH = Sender.ScaleY(Sender.ClientHeight)
+		Dim As Single HostScale = IIf(Sender.xdpi > 0, Sender.xdpi, 1)
+		Cv.xdpi = 1
+		Cv.ydpi = 1
+		Dim As My.Sys.Drawing.Rect R
+		R.Left = 0 : R.Top = 0 : R.Right = CW : R.Bottom = CH
+		Cv.FillRect(R, &H3C3C3C)
 		Dim As FlexReportLayout Lay
 		G->BuildReportLayout(Lay, G->FPrevLandscape, 96, 96)
-		If Lay.ColPages < 1 OrElse Lay.RowPages < 1 Then Exit Sub
-		Dim As Double BaseW = Lay.PageWIn * 96, BaseH = Lay.PageHIn * 96 'logical page px
-		'Zoom: 0 = fit the whole page into the host (with padding).
-		Dim As Double Z = G->FPrevZoom
-		If Z <= 0 Then
-			Z = Min((CW - 24) / BaseW, (CH - 24) / BaseH)
-			If Z < 0.05 Then Z = 0.05
+		If Lay.ColPages >= 1 AndAlso Lay.RowPages >= 1 Then
+			'The page at 100%: its size in inches at the DPI of the screen
+			Dim As Double BaseW = Lay.PageWIn * 96 * HostScale, BaseH = Lay.PageHIn * 96 * HostScale
+			'Zoom: 0 = fit the whole page into the host (with padding).
+			Dim As Double Z = G->FPrevZoom
+			If Z <= 0 Then
+				Z = Min((CW - 24) / BaseW, (CH - 24) / BaseH)
+				If Z < 0.05 Then Z = 0.05
+			End If
+			Dim As Long PW = CInt(BaseW * Z)
+			Dim As Long PH = CInt(BaseH * Z)
+			Dim As Long PX = (CW - PW) \ 2 + G->FPrevOffX
+			Dim As Long PY = (CH - PH) \ 2 + G->FPrevOffY
+			'Clamp the pan so a page edge never leaves the host completely.
+			If PX > CW - 24 Then PX = CW - 24
+			If PY > CH - 24 Then PY = CH - 24
+			If PX + PW < 24 Then PX = 24 - PW
+			If PY + PH < 24 Then PY = 24 - PH
+			'Rulers mirror the page origin/zoom (Report.Bas designer style), in the units of the form.
+			'The rulers start at the corner of the host: their zero is the corner of the page and
+			'their inch follows the zoom (both in the units of the form)
+			If G->FPrevRulerH <> 0 AndAlso (G->FPrevRulerH->ZeroOffset <> CInt(PX / HostScale) OrElse G->FPrevRulerH->DPI <> Max(1, CInt(96 * Z))) Then
+				G->FPrevRulerH->DPI = Max(1, CInt(96 * Z))
+				G->FPrevRulerH->ZeroOffset = CInt(PX / HostScale)
+			End If
+			If G->FPrevRulerV <> 0 AndAlso (G->FPrevRulerV->ZeroOffset <> CInt(PY / HostScale) OrElse G->FPrevRulerV->DPI <> Max(1, CInt(96 * Z))) Then
+				G->FPrevRulerV->DPI = Max(1, CInt(96 * Z))
+				G->FPrevRulerV->ZeroOffset = CInt(PY / HostScale)
+			End If
+			'Page shadow.
+			R.Left = PX + 3 : R.Top = PY + 3 : R.Right = PX + PW + 3 : R.Bottom = PY + PH + 3
+			Cv.FillRect(R, &H141414)
+			G->RenderReportPage(Cv, G->FPrevPage - 1, Lay, IIf(G->FPrevTitle <> 0, *G->FPrevTitle, WStr("")), PX, PY, 96 * HostScale * Z)
+			'Zoom level caption on the host.
+			Dim As Integer SavedSize = Cv.Font.Size
+			Cv.Font.Size = 9
+			Dim As UString ZTxt = IIf(G->FPrevZoom <= 0, ML("Fit") & " " & CInt(Z * 100) & "%", CInt(Z * 100) & "%")
+			G->ReportText(Cv, ZTxt, 6, CH - 26 * HostScale, CW - 6, CH - 6 * HostScale, 2, &HFFFFFF)
+			Cv.Font.Size = SavedSize
 		End If
-		Dim As Long PW = CInt(BaseW * Z)
-		Dim As Long PH = CInt(BaseH * Z)
-		Dim As Long PX = (CW - PW) \ 2 + G->FPrevOffX
-		Dim As Long PY = (CH - PH) \ 2 + G->FPrevOffY
-		'Rulers mirror the page origin/zoom (Report.Bas designer style).
-		If G->FPrevRulerH <> 0 Then G->FPrevRulerH->ZeroOffset = CInt(PX / Z)
-		If G->FPrevRulerV <> 0 Then G->FPrevRulerV->ZeroOffset = CInt(PY / Z)
-		'Clamp the pan so a page edge never leaves the host completely.
-		If PX > CW - 24 Then PX = CW - 24
-		If PY > CH - 24 Then PY = CH - 24
-		If PX + PW < 24 Then PX = 24 - PW
-		If PY + PH < 24 Then PY = 24 - PH
-		'Page shadow + border.
-		Dim As HBRUSH ShBr = CreateSolidBrush(&H141414)
-		Dim As Rect ShRect
-		ShRect.Left = PX + 3 : ShRect.Top = PY + 3 : ShRect.Right = PX + PW + 3 : ShRect.Bottom = PY + PH + 3
-		FillRect(Dc, @ShRect, ShBr)
-		DeleteObject(Cast(HGDIOBJ, ShBr))
-		'Render at the display resolution (crisper when zoomed in) and blit.
-		Dim As Long PgDpi = Max(96, CInt(96 * Z))
-		Dim As Long BMW = CInt(Lay.PageWIn * PgDpi)
-		Dim As Long BMH = CInt(Lay.PageHIn * PgDpi)
-		Dim As HDC Mem = CreateCompatibleDC(Dc)
-		Dim As HBITMAP Bmp = CreateCompatibleBitmap(Dc, BMW, BMH)
-		Dim As HGDIOBJ OldSel = SelectObject(Mem, Cast(HGDIOBJ, Bmp))
-		Dim As FlexReportLayout LayHi
-		G->BuildReportLayout(LayHi, G->FPrevLandscape, PgDpi, PgDpi)
-		G->RenderReportPage(Mem, G->FPrevPage - 1, LayHi, IIf(G->FPrevTitle <> 0, *G->FPrevTitle, WStr("")))
-		SetStretchBltMode(Dc, HALFTONE)
-		StretchBlt(Dc, PX, PY, PW, PH, Mem, 0, 0, BMW, BMH, SRCCOPY)
-		SelectObject(Mem, OldSel)
-		DeleteObject(Cast(HGDIOBJ, Bmp))
-		DeleteDC(Mem)
-		'Zoom level caption on the host.
-		Dim As HFONT CapFont = CreateFontW(-CInt(9.0 / 72.0 * GetDeviceCaps(Dc, LOGPIXELSY)), 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET, 0, 0, CLEARTYPE_QUALITY, 0, 0)
-		Dim As HGDIOBJ OldF = SelectObject(Dc, Cast(HGDIOBJ, CapFont))
-		SetBkMode(Dc, TRANSPARENT)
-		SetTextColor(Dc, &HFFFFFF)
-		Dim As UString ZTxt = IIf(G->FPrevZoom <= 0, "适应 " & CInt(Z * 100) & "%", CInt(Z * 100) & "%")
-		Dim As Rect ZR
-		ZR.Left = 6 : ZR.Top = CH - 26 : ZR.Right = CW - 6 : ZR.Bottom = CH - 6
-		DrawTextW(Dc, ZTxt, Len(ZTxt), @ZR, DT_RIGHT Or DT_VCENTER Or DT_SINGLELINE)
-		SelectObject(Dc, OldF)
-		DeleteObject(Cast(HGDIOBJ, CapFont))
-		#endif
+		Cv.xdpi = SavedX
+		Cv.ydpi = SavedY
 	End Sub
 
 	Sub GridDataEx.PreviewSetZoom(ByVal NewZoom As Double)
@@ -3346,7 +3342,8 @@ Namespace My.Sys.Forms
 		If Cur <= 0 Then
 			'Adopt the current fit level as the zoom base first.
 			Dim As Long HostW = Sender.ScaleX(Sender.ClientWidth), HostH = Sender.ScaleY(Sender.ClientHeight)
-			Dim As Double BaseW = 8.27 * 96, BaseH = 11.69 * 96
+			Dim As Single HostScale = IIf(Sender.xdpi > 0, Sender.xdpi, 1)
+			Dim As Double BaseW = 8.27 * 96 * HostScale, BaseH = 11.69 * 96 * HostScale
 			If G->FPrevLandscape Then Swap BaseW, BaseH
 			Cur = Min((HostW - 24) / BaseW, (HostH - 24) / BaseH)
 			If Cur < 0.05 Then Cur = 0.05
@@ -3388,10 +3385,6 @@ Namespace My.Sys.Forms
 
 	Sub GridDataEx.PrintPreview(ByRef Title As WString = "", ByVal Landscape As Boolean = False)
 		'Builds the pagination at preview DPI and shows the preview window.
-		#ifndef __USE_WINAPI__
-			'The pages are drawn with GDI (RenderReportPage): Windows only
-			Exit Sub
-		#endif
 		Dim As FlexReportLayout Lay
 		BuildReportLayout(Lay, Landscape, 96, 96)
 		If Lay.ColPages < 1 OrElse Lay.RowPages < 1 Then Exit Sub
@@ -3404,19 +3397,19 @@ Namespace My.Sys.Forms
 			FPrevForm = New Form
 			With *FPrevForm
 				.Name = "GridDataPreview"
-				.Text = "打印预览 - GridDataEx"
+				.Text = ML("Print Preview") & " - GridDataEx"
 				.Designer = FPrevForm
 				.SetBounds 120, 80, 860, 640
 				.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @PreviewForm_Resize)
 			End With
-			Dim As String Caps(0 To 9) = {"首页", "上一页", "下一页", "末页", "打印", "-", "+", "100%", "适应", "关闭"}
+			Dim As UString Caps(0 To 9) = {ML("First"), ML("Previous"), ML("Next"), ML("Last"), ML("Print"), "-", "+", "100%", ML("Fit"), ML("Close")}
 			For i As Long = 0 To 9
 				Dim As CommandButton Ptr B = New CommandButton
 				With *B
 					.Name = "pvBtn" & i
 					.Text = Caps(i)
 					.Designer = FPrevForm
-					.SetBounds 6 + i * 64, 6, 60, 24
+					.SetBounds 6 + i * 72, 6, 68, 24
 					.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @PreviewBtn_Click)
 					.Parent = FPrevForm
 				End With
@@ -3427,7 +3420,7 @@ Namespace My.Sys.Forms
 				.Orientation = ruHorizontal
 				.Units = ruCentimeters
 				.Designer = FPrevForm
-				.SetBounds 4, 36, 830, 24
+				.SetBounds 28, 36, 806, 24
 				.Parent = FPrevForm
 			End With
 			FPrevRulerV = New Ruler
@@ -3442,9 +3435,9 @@ Namespace My.Sys.Forms
 			FPrevLbl = New Label
 			With *FPrevLbl
 				.Name = "pvLbl"
-				.Text = "第 1 / 1 页"
+				.Text = ML("Page") & " 1 / 1"
 				.Designer = FPrevForm
-				.SetBounds 660, 8, 180, 20
+				.SetBounds 730, 10, 120, 20
 				.Parent = FPrevForm
 			End With
 			FPrevHost = New Panel
@@ -3462,7 +3455,7 @@ Namespace My.Sys.Forms
 		Else
 			'Window exists: it may have been closed - just reshow.
 		End If
-		FPrevLbl->Text = "第 " & FPrevPage & " / " & FPrevPages & " 页"
+		FPrevLbl->Text = ML("Page") & " " & FPrevPage & " / " & FPrevPages
 		FPrevForm->Show
 		PreviewShowPage(0, FPrevPage)
 	End Sub
@@ -3491,7 +3484,7 @@ Namespace My.Sys.Forms
 			Dim As DOCINFOW DI
 			DI.cbSize = SizeOf(DOCINFOW)
 			Dim As WString Ptr DocName
-			WLet(DocName, IIf(Len(Title) > 0, Title, WStr("GridDataEx Report")))
+			WLet(DocName, IIf(Len(Title) > 0, Title, WStr("GridDataEx " & ML("Report"))))
 			DI.lpszDocName = DocName
 			If StartDocW(PDc, @DI) <= 0 Then
 				DeleteDC(PDc)
@@ -3499,15 +3492,52 @@ Namespace My.Sys.Forms
 				Exit Sub
 			End If
 			_Deallocate(DocName)
+			'The Canvas of the grid draws in the pixels of the printer
+			Dim As Single SavedX = Canvas.xdpi, SavedY = Canvas.ydpi
+			Canvas.SetHandle(PDc)
+			Canvas.xdpi = 1
+			Canvas.ydpi = 1
 			For pg As Long = 0 To TotalPages - 1
 				StartPage(PDc)
-				RenderReportPage(PDc, pg, Lay, Title)
+				RenderReportPage(Canvas, pg, Lay, Title, 0, 0, YDpi)
 				EndPage(PDc)
 			Next pg
+			Canvas.UnSetHandle
+			Canvas.xdpi = SavedX
+			Canvas.ydpi = SavedY
 			EndDoc(PDc)
 			DeleteDC(PDc)
+		#else
+			'GTK, the Web and Android: PrintDocument records the pages (96 pixels per inch)
+			'and prints them with the print dialog of the platform
+			Dim As FlexReportLayout Lay
+			BuildReportLayout(Lay, Landscape, 96, 96)
+			If Lay.ColPages * Lay.RowPages < 1 Then Exit Sub
+			If FPrintDoc = 0 Then FPrintDoc = New PrintDocument
+			FPrintLandscape = Landscape
+			FPrintPageNo = 0
+			WLet(FPrintTitle, Title)
+			With *FPrintDoc
+				.Designer = @This
+				.DocumentName = IIf(Len(Title) > 0, Title, WStr("GridDataEx"))
+				.PrinterSettings.Orientation = IIf(Landscape, PrinterOrientation.poLandscape, PrinterOrientation.poPortait)
+				.OnPrintPage = @PrintDoc_PrintPage
+				.Repaint
+				.Print
+			End With
 		#endif
 	End Sub
+
+	#ifndef __USE_WINAPI__
+		Sub GridDataEx.PrintDoc_PrintPage(ByRef Designer As My.Sys.Object, ByRef Sender As PrintDocument, ByRef Cv As My.Sys.Drawing.Canvas, ByRef HasMorePages As Boolean)
+			Dim As GridDataEx Ptr G = Cast(GridDataEx Ptr, @Designer)
+			Dim As FlexReportLayout Lay
+			G->BuildReportLayout(Lay, G->FPrintLandscape, 96, 96)
+			G->RenderReportPage(Cv, G->FPrintPageNo, Lay, IIf(G->FPrintTitle <> 0, *G->FPrintTitle, WStr("")), 0, 0, 96)
+			G->FPrintPageNo += 1
+			HasMorePages = G->FPrintPageNo < Lay.ColPages * Lay.RowPages
+		End Sub
+	#endif
 	'=== MFF Report.Bas bridge: full band-based report pipeline ===
 
 	Function GridDataEx.BuildReportObject(ByRef Title As WString, ByVal GroupCol As Long) As Report Ptr
@@ -3570,12 +3600,12 @@ Namespace My.Sys.Forms
 		Next m
 		'Page footer: page number + title left.
 		Dim As ReportLabel Ptr FL = New ReportLabel
-		FL->Text = IIf(Len(Title) > 0, Title, WStr("GridDataEx Report"))
+		FL->Text = IIf(Len(Title) > 0, Title, WStr("GridDataEx " & ML("Report")))
 		FL->SetBounds(8, 4, PageW \ 2, 16)
 		BF->Components.Add(FL)
 		Dim As ReportField Ptr FP = New ReportField
 		FP->DataField = "PAGENUMBER"
-		FP->Text = "第 1 页"
+		FP->Text = ML("Page") & " 1"
 		FP->SetBounds(PageW - 140, 4, 130, 16)
 		BF->Components.Add(FP)
 		Return R
@@ -3618,7 +3648,7 @@ Namespace My.Sys.Forms
 		R->RowCount = CollectVisRows(RowList()) - FFixedRows
 		If R->RowCount < 0 Then R->RowCount = 0
 		If ToPDF Then
-			R->ExportToPDF(IIf(Len(Title) > 0, Title, WStr("GridDataEx Report")))
+			R->ExportToPDF(IIf(Len(Title) > 0, Title, WStr("GridDataEx " & ML("Report"))))
 		Else
 			R->PrintPreview
 		End If
@@ -7334,6 +7364,11 @@ Namespace My.Sys.Forms
 			Dim pixbuf As GdkPixbuf Ptr = Cast(GdkPixbuf Ptr, Handle)
 			W = gdk_pixbuf_get_width(pixbuf)
 			H = gdk_pixbuf_get_height(pixbuf)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			'The graphic is a file of the page / of the app (Bitmap.Handle): its pixel size is
+			'not known here, the cell takes 16 x 16 units (PictureWidth/Height set another one)
+			W = LogicalToPxX(16)
+			H = LogicalToPxY(16)
 		#elseif defined(__USE_WINAPI__)
 			If IsIcon Then
 				Dim As ICONINFO II
@@ -7378,6 +7413,8 @@ Namespace My.Sys.Forms
 			cairo_rectangle(cr, 0, 0, NW, NH)
 			cairo_fill(cr)
 			cairo_restore(cr)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+			Cv.DrawAlpha(X, Y, W, H, Handle)
 		#elseif defined(__USE_WINAPI__)
 			If IsIcon Then
 				DrawIconEx(Cast(HDC, Cv.Handle), X, Y, Cast(HICON, Handle), W, H, 0, NULL, DI_NORMAL)

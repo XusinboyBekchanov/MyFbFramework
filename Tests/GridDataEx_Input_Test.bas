@@ -68,7 +68,7 @@ With f.grid
 	.FixedCols = 1
 	For r As Long = 1 To 199
 		For c As Long = 1 To 5
-			.TextMatrix(r, c) = "R" & r & "C" & c
+			.TextMatrix(r, c, "R" & r & "C" & c)
 		Next
 	Next
 	.AllowUserEditing = True
