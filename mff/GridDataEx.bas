@@ -782,8 +782,11 @@ Namespace My.Sys.Forms
 
 	Property GridDataEx.FixedRows(ByVal Value As Long)
 		Value = Max(0, Min(Value, FRows))
+		'A view at the first scrollable row stays there (fewer fixed rows: the rows which
+		'were fixed are shown, not scrolled away)
+		Dim As Long OldFirst = FFixedRows + FFrozenRows
 		FFixedRows = Value
-		FTopRow = Max(FTopRow, FFixedRows + FFrozenRows)
+		If FTopRow <= OldFirst Then FTopRow = FFixedRows + FFrozenRows Else FTopRow = Max(FTopRow, FFixedRows + FFrozenRows)
 		SetScrollBarsInternal
 		If FRedraw AndAlso Handle <> 0 Then RepaintGrid
 	End Property
@@ -794,8 +797,10 @@ Namespace My.Sys.Forms
 
 	Property GridDataEx.FixedCols(ByVal Value As Long)
 		Value = Max(0, Min(Value, FCols))
+		'Like FixedRows: a view at the first scrollable column stays there
+		Dim As Long OldFirst = FFixedCols + FFrozenCols
 		FFixedCols = Value
-		FLeftCol = Max(FLeftCol, FFixedCols + FFrozenCols)
+		If FLeftCol <= OldFirst Then FLeftCol = FFixedCols + FFrozenCols Else FLeftCol = Max(FLeftCol, FFixedCols + FFrozenCols)
 		SetScrollBarsInternal
 		If FRedraw AndAlso Handle <> 0 Then RepaintGrid
 	End Property
@@ -4345,8 +4350,9 @@ Namespace My.Sys.Forms
 	Property GridDataEx.FrozenRows(ByVal Value As Long)
 		Value = Max(0, Min(Value, FRows - FFixedRows))
 		If Value = FFrozenRows Then Exit Property
+		Dim As Long OldFirst = FFixedRows + FFrozenRows
 		FFrozenRows = Value
-		FTopRow = Max(FTopRow, FFixedRows + FFrozenRows)
+		If FTopRow <= OldFirst Then FTopRow = FFixedRows + FFrozenRows Else FTopRow = Max(FTopRow, FFixedRows + FFrozenRows)
 		SetScrollBarsInternal
 		If FRedraw AndAlso Handle <> 0 Then RepaintGrid
 	End Property
@@ -4358,8 +4364,9 @@ Namespace My.Sys.Forms
 	Property GridDataEx.FrozenCols(ByVal Value As Long)
 		Value = Max(0, Min(Value, FCols - FFixedCols))
 		If Value = FFrozenCols Then Exit Property
+		Dim As Long OldFirst = FFixedCols + FFrozenCols
 		FFrozenCols = Value
-		FLeftCol = Max(FLeftCol, FFixedCols + FFrozenCols)
+		If FLeftCol <= OldFirst Then FLeftCol = FFixedCols + FFrozenCols Else FLeftCol = Max(FLeftCol, FFixedCols + FFrozenCols)
 		SetScrollBarsInternal
 		If FRedraw AndAlso Handle <> 0 Then RepaintGrid
 	End Property
