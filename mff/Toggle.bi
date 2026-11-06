@@ -43,6 +43,13 @@ Namespace My.Sys.Forms
 	Private Const TOGGLE_DEFAULT_FOCUS_GAP As Long = 3
 	Private Const TOGGLE_DEFAULT_FOCUS_THICK As Long = 1
 	Private Const TOGGLE_HOTTRACK_MS As Long = 100
+	'Caption layout: the gap between the pill and the caption, and the padding
+	'between the caption/pill block and the client edges (logical pixels)
+	Private Const TOGGLE_DEFAULT_TEXTGAP As Long = 8
+	Private Const TOGGLE_DEFAULT_PADLEFT As Long = 0
+	Private Const TOGGLE_DEFAULT_PADTOP As Long = 0
+	Private Const TOGGLE_DEFAULT_PADRIGHT As Long = 0
+	Private Const TOGGLE_DEFAULT_PADBOTTOM As Long = 0
 
 	'`Toggle` is an owner-drawn toggle switch Control within the MyFbFramework,
 	'part of the freeBasic framework (Windows, Linux, WASM, Android).
@@ -53,6 +60,7 @@ Namespace My.Sys.Forms
 		Dim isHot As Boolean = False        'the mouse is over the client
 		Dim isFocused As Boolean = False
 		Dim isPressed As Boolean = False    'a live left press (capture held)
+		Dim bTextRight As Boolean = False   'the caption sits LEFT of a right-pinned pill (layout output)
 		'--- Layout (logical pixels; device values scale by nScale) ---
 		Dim m_TrackWidth As Long = TOGGLE_DEFAULT_TRACK_W
 		Dim m_TrackHeight As Long = TOGGLE_DEFAULT_TRACK_H
@@ -61,9 +69,24 @@ Namespace My.Sys.Forms
 		Dim m_FocusGap As Long = TOGGLE_DEFAULT_FOCUS_GAP
 		Dim m_FocusThickness As Long = TOGGLE_DEFAULT_FOCUS_THICK
 		Dim m_Justify As ToggleJustifies = tjCenter
+		'--- Caption layout (logical pixels; device values scale by nScale).
+		'A non-empty Text puts the caption on the side OPPOSITE the pill:
+		'tjLeft/tjCenter = pill left + caption right, tjRight = caption left +
+		'pill right. The empty-text geometry is exactly what it always was.
+		Dim m_TextGap As Long = TOGGLE_DEFAULT_TEXTGAP
+		Dim m_PadLeft As Long = TOGGLE_DEFAULT_PADLEFT
+		Dim m_PadTop As Long = TOGGLE_DEFAULT_PADTOP
+		Dim m_PadRight As Long = TOGGLE_DEFAULT_PADRIGHT
+		Dim m_PadBottom As Long = TOGGLE_DEFAULT_PADBOTTOM
+		Dim m_AutoSize As Boolean = False
 		Dim rcTrack As ToggleRect
 		Dim rcKnob As ToggleRect
 		Dim rcVisual As ToggleRect
+		Dim rcText As ToggleRect
+		Dim nTextWidth As Long = 0
+		Dim nTextHeight As Long = 0
+		Dim nIdealW As Long = 0
+		Dim nIdealH As Long = 0
 		Dim bLayoutDirty As Boolean = True
 		'--- Colors (COLORREF layout on every platform) ---
 		Dim m_FocusRingColor As ULong = PRGB(86, 156, 214)
@@ -94,8 +117,6 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
-			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		#elseif defined(__USE_GTK__)
 			Dim As PangoContext Ptr pcontext
 			Dim As PangoLayout Ptr layout
@@ -112,6 +133,12 @@ Namespace My.Sys.Forms
 		Declare Sub LayoutToggle()
 		Declare Function RingPad() As Long
 		Declare Function KnobDiameter() As Long
+		'--- Caption helpers ---
+		Declare Function HasText() As Boolean
+		Declare Sub MeasureText(ByRef nWidth As Long, ByRef nHeight As Long)
+		Declare Function AutoFore() As ULong
+		Declare Function Ellipsize(ByRef sText As WString, ByVal nMaxWidth As Long) As WString Ptr
+		Declare Sub ApplyAutoSize()
 		'--- Painting helpers ---
 		Declare Function ARGB(clr As ULong, Opacity As Long = 100) As ULong
 		Declare Sub TrackColors(ByRef clrTrack As ULong, ByRef clrBorder As ULong, ByRef clrKnob As ULong)
@@ -145,6 +172,21 @@ Namespace My.Sys.Forms
 		Declare Property FocusThickness(Value As Long)
 		Declare Property Justify As ToggleJustifies
 		Declare Property Justify(Value As ToggleJustifies)
+		'Caption layout: the gap between the pill and the caption, the padding
+		'around the caption/pill block, and the opt-in self-sizing. A caption
+		'sits OPPOSITE the pill (tjLeft/tjCenter: pill left; tjRight: pill right).
+		Declare Property TextGap As Long
+		Declare Property TextGap(Value As Long)
+		Declare Property PadLeft As Long
+		Declare Property PadLeft(Value As Long)
+		Declare Property PadTop As Long
+		Declare Property PadTop(Value As Long)
+		Declare Property PadRight As Long
+		Declare Property PadRight(Value As Long)
+		Declare Property PadBottom As Long
+		Declare Property PadBottom(Value As Long)
+		Declare Property AutoSize As Boolean
+		Declare Property AutoSize(Value As Boolean)
 		Declare Property FocusRingColor As ULong
 		Declare Property FocusRingColor(Value As ULong)
 		Declare Property TrackColorOn As ULong

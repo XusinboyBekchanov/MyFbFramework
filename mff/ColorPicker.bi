@@ -82,7 +82,7 @@ Namespace My.Sys.Forms
 	Private Const COLORPICKER_LABEL_W As Long = 52
 	Private Const COLORPICKER_OK_W As Long = 92
 	Private Const COLORPICKER_OK_H As Long = 30
-	Private Const COLORPICKER_CURVATURE As Long = 4
+	Private Const COLORPICKER_CURVATURE As Long = 4   'corner RADIUS (logical px) of the swatches and buttons; -1 on the control follows the framework default
 	Private Const COLORPICKER_RING_INSET As Long = 1
 	Private Const COLORPICKER_HOTTRACK_MS As Long = 100
 	Private Const COLORPICKER_CARET_MS As Long = 500
@@ -101,13 +101,16 @@ Namespace My.Sys.Forms
 		Dim m_ShowAlpha As Boolean = True
 		Dim m_BodySel As Long = -1        'cell of the current tab's body, re-derived
 		Dim m_ScrollTop As Long = 0       'first visible row of the Web list
-		'--- Modal-free state ---
-		Dim m_IsDragging As Boolean = False
-		Dim m_HotTab As Long = -1
-		Dim m_HotSwatch As Long = -1
-		Dim m_HotField As Long = -1
-		Dim m_OKHot As Boolean = False
-		Dim m_OKPressed As Boolean = False
+	'--- Modal-free state ---
+	Dim m_IsDragging As Boolean = False
+	Dim m_HotTab As Long = -1
+	Dim m_HotSwatch As Long = -1
+	Dim m_HotField As Long = -1
+	Dim m_OKHot As Boolean = False
+	Dim m_OKPressed As Boolean = False
+	'--- Corner radius (LOGICAL pixels) of the swatches and buttons; -1 follows
+	'the framework default (g_DefaultCornerRadius) ---
+	Dim m_Curvature As Long = -1
 		'--- The one edit buffer (only the focused field can be edited) ---
 		Dim m_FocusField As Long = -1
 		Dim m_Edit As String
@@ -166,8 +169,6 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			Declare Static Sub WndProc(ByRef Message As Message)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
-			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		#elseif defined(__USE_GTK__)
 			Dim As PangoContext Ptr pcontext
 			Dim As PangoLayout Ptr layout
@@ -195,11 +196,13 @@ Namespace My.Sys.Forms
 		'--- Web table ---
 		Declare Static Function WebColorCount() As Long
 		Declare Static Function WebColorAt(ByVal idx As Long) As ULong
-		Declare Static Function WebColorName(ByVal idx As Long) As UString
+		Declare Static Function WebColorName(ByVal idx As Long) As WString
 		'Measures a label on a private canvas so a live paint session is not disturbed
 		Declare Function TextWidthOf(ByRef Value As WString) As Long
 		'--- Painting helpers ---
 		Declare Function ARGB(clr As ULong, Opacity As Long = 100) As ULong
+		'This picker's resolved corner radius (DEVICE pixels) for swatches/buttons
+		Declare Function CurvDev() As Long
 		Declare Sub FillRectPath(ByVal x As Long, ByVal y As Long, ByVal w As Long, ByVal h As Long, clr As ULong)
 		Declare Sub StrokeRectPath(ByVal x As Long, ByVal y As Long, ByVal w As Long, ByVal h As Long, clr As ULong, ByVal PenWidth As Single = 1)
 		Declare Sub Draw()
@@ -245,13 +248,17 @@ Namespace My.Sys.Forms
 		Declare Property ShowAlpha(Value As Boolean)
 		Declare Property PickerTab As Long
 		Declare Property PickerTab(Value As Long)
+		'Corner RADIUS (logical pixels) of the swatches and buttons; -1 follows
+		'the framework default (Application.DefaultCornerRadius)
+		Declare Property CornerCurvature As Long
+		Declare Property CornerCurvature(Value As Long)
 		Declare Property TextOK() ByRef As WString
 		Declare Property TextOK(Value As WString)
 		Declare Property TextInitial() ByRef As WString
 		Declare Property TextInitial(Value As WString)
 		Declare Property TextCurrent() ByRef As WString
 		Declare Property TextCurrent(Value As WString)
-		Declare Property TextFieldLabel(ByVal idx As Long) ByRef As WString
+		Declare Property TextFieldLabel(ByVal idx As Long) As WString
 		Declare Property TextFieldLabel(ByVal idx As Long, Value As WString)
 		Declare Property ChromeBackColor As ULong
 		Declare Property ChromeBackColor(Value As ULong)

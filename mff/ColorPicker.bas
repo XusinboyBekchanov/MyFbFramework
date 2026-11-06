@@ -182,7 +182,7 @@
 		Return gClrWebColor(idx)
 	End Function
 
-	Private Function ColorPicker.WebColorName(ByVal idx As Long) As UString
+	Private Function ColorPicker.WebColorName(ByVal idx As Long) As WString
 		If idx < 0 OrElse idx > 136 Then Return ""
 		Return WStr(gClrWebName(idx))
 	End Function
@@ -403,18 +403,26 @@
 		Canvas.PathDiscard
 	End Sub
 
+	'This picker's corner radius for the swatches/buttons, in DEVICE pixels:
+	'the own CornerCurvature (>= 0) wins, then the framework default
+	'(g_DefaultCornerRadius), then the built-in
+	Private Function ColorPicker.CurvDev() As Long
+		Return ResolveCornerRadius(m_Curvature, COLORPICKER_CURVATURE) * nScale
+	End Function
+
 	Private Sub ColorPicker.DrawMatrix
 		Dim nCols As Long = COLORPICKER_MATRIX_COLS
 		Dim nRows As Long = COLORPICKER_MATRIX_ROWS
 		Dim nScaleCellW As Long = COLORPICKER_CELL_W * nScale
 		Dim nScaleCellH As Long = COLORPICKER_CELL_H * nScale
+		Dim nCurvDev As Long = CurvDev()
 		For r As Long = 0 To nRows - 1
 			For c As Long = 0 To nCols - 1
 				Dim x As Long = rcMatrix.Left + c * nScaleCellW
 				Dim yy As Long = rcMatrix.Top + r * nScaleCellH
 				Dim cellClr As ULong = MatrixColorAt(c, r, nCols, nRows)
 				Canvas.PathStart
-				Canvas.PathRoundRect(x, yy, nScaleCellW, nScaleCellH, COLORPICKER_CURVATURE * nScale)
+				Canvas.PathRoundRect(x, yy, nScaleCellW, nScaleCellH, nCurvDev)
 				Canvas.FillPath(ARGB(cellClr), 100)
 				Canvas.PathDiscard
 				'The selection ring, inset so it reads as being ON the swatch
@@ -432,6 +440,7 @@
 		Dim nScaleSwatchW As Long = COLORPICKER_SWATCH_W * nScale
 		Dim nScaleRowH As Long = COLORPICKER_ROW_H * nScale
 		Dim nScaleRingIn As Long = COLORPICKER_RING_INSET
+		Dim nCurvDev As Long = CurvDev()
 		Dim visible As Long = (rcList.Bottom - rcList.Top) \ nScaleRowH
 		If visible < 1 Then visible = 1
 
@@ -459,7 +468,7 @@
 			Dim swY As Long = yy + (nScaleRowH - (nScaleRowH - 4)) \ 2
 			Dim swH As Long = nScaleRowH - 4
 			Canvas.PathStart
-			Canvas.PathRoundRect(swX, swY, nScaleSwatchW, swH, COLORPICKER_CURVATURE * nScale)
+			Canvas.PathRoundRect(swX, swY, nScaleSwatchW, swH, nCurvDev)
 			Canvas.FillPath(ARGB(WebColorAt(idx)), 100)
 			Canvas.PathDiscard
 			If idx = m_BodySel Then
@@ -485,13 +494,14 @@
 		Canvas.TextOut(rcCurrentLabel.Left, rcCurrentLabel.Top, *m_TextCurrent, m_ForeColor, -1)
 
 		'The split box: the alpha of each half is drawn as opacity over the chrome
+		Dim nCurvDev As Long = CurvDev()
 		Canvas.PathStart
-		Canvas.PathRoundRect(rcInitial.Left, rcInitial.Top, rcInitial.Right - rcInitial.Left, rcInitial.Bottom - rcInitial.Top, COLORPICKER_CURVATURE * nScale)
+		Canvas.PathRoundRect(rcInitial.Left, rcInitial.Top, rcInitial.Right - rcInitial.Left, rcInitial.Bottom - rcInitial.Top, nCurvDev)
 		Canvas.FillPath(ARGB(m_InitialColor), m_InitialAlpha * 100 \ 255)
 		Canvas.StrokePath(ARGB(m_BorderColor), 1, 100)
 		Canvas.PathDiscard
 		Canvas.PathStart
-		Canvas.PathRoundRect(rcCurrent.Left, rcCurrent.Top, rcCurrent.Right - rcCurrent.Left, rcCurrent.Bottom - rcCurrent.Top, COLORPICKER_CURVATURE * nScale)
+		Canvas.PathRoundRect(rcCurrent.Left, rcCurrent.Top, rcCurrent.Right - rcCurrent.Left, rcCurrent.Bottom - rcCurrent.Top, nCurvDev)
 		Canvas.FillPath(ARGB(m_Color), m_Alpha * 100 \ 255)
 		Canvas.StrokePath(ARGB(m_BorderColor), 1, 100)
 		Canvas.PathDiscard
@@ -499,7 +509,7 @@
 		'The fields
 		For i As Long = 0 To cpFieldCount - 1
 			If m_ShowAlpha = False AndAlso i = cpFieldA Then Exit For
-			Dim sLabel As UString = *m_TextField(i)
+			Dim sLabel As WString = *m_TextField(i)
 			Canvas.TextOut(rcFieldLabel(i).Left, rcFieldLabel(i).Top + ((rcFieldLabel(i).Bottom - rcFieldLabel(i).Top) - ScaleY(Canvas.TextHeight(sLabel))) \ 2, sLabel, m_ForeColor, -1)
 			FillRectPath(rcField(i).Left, rcField(i).Top, rcField(i).Right - rcField(i).Left, rcField(i).Bottom - rcField(i).Top, m_FieldBackColor)
 			StrokeRectPath(rcField(i).Left, rcField(i).Top, rcField(i).Right - rcField(i).Left, rcField(i).Bottom - rcField(i).Top, IIf(i = m_FocusField, m_FieldBorderColorSel, m_FieldBorderColor), 1)
@@ -524,7 +534,7 @@
 
 		'---- the background and the border ----------------------------------------
 		Dim backClr As ULong = m_ChromeBackColor
-		If backClr = Cast(ULong, -1) Then backClr = clBtnFace
+		If backClr = Cast(ULong, -1) Then backClr = GetSysColor(COLOR_BTNFACE)
 		FillRectPath(0, 0, ScaleX(This.ClientWidth), ScaleY(This.ClientHeight), backClr)
 		StrokeRectPath(0, 0, ScaleX(This.ClientWidth), ScaleY(This.ClientHeight), m_BorderColor, 1)
 
@@ -532,7 +542,7 @@
 		Canvas.Font = This.Font
 		Dim x As Long = rcTabs.Left
 		For i As Long = 0 To 1
-			Dim sCaption As UString = IIf(i = cpTabWeb, "Web", "Custom")
+			Dim sCaption As WString = IIf(i = cpTabWeb, "Web", "Custom")
 			Dim tw As Long = m_TabTextW(i)
 			If i = m_Tab Then
 				FillRectPath(x, rcTabs.Top, tw, rcTabs.Bottom - rcTabs.Top, m_TabBackColorSel)
@@ -560,7 +570,7 @@
 			clrOK = m_OKBackColorHot
 		End If
 		Canvas.PathStart
-		Canvas.PathRoundRect(rcOK.Left, rcOK.Top, rcOK.Right - rcOK.Left, rcOK.Bottom - rcOK.Top, COLORPICKER_CURVATURE * nScale)
+		Canvas.PathRoundRect(rcOK.Left, rcOK.Top, rcOK.Right - rcOK.Left, rcOK.Bottom - rcOK.Top, CurvDev())
 		Canvas.FillPath(ARGB(clrOK), 100)
 		Canvas.StrokePath(ARGB(m_OKBorderColor), 1, 100)
 		Canvas.PathDiscard
@@ -1305,6 +1315,16 @@
 		Refresh
 	End Property
 
+	Private Property ColorPicker.CornerCurvature As Long
+		Return m_Curvature
+	End Property
+
+	Private Property ColorPicker.CornerCurvature(Value As Long)
+		'-1 = follow the framework default (g_DefaultCornerRadius)
+		m_Curvature = IIf(Value < -1, -1, Value)
+		Refresh
+	End Property
+
 	Private Sub ColorPicker.SetInitialColor(ByVal clr As ULong, ByVal nAlpha As UByte = 255)
 		m_InitialColor = clr
 		m_InitialAlpha = nAlpha
@@ -1341,7 +1361,7 @@
 		Refresh
 	End Property
 
-	Private Property ColorPicker.TextFieldLabel(ByVal idx As Long) ByRef As WString
+	Private Property ColorPicker.TextFieldLabel(ByVal idx As Long) As WString
 		If idx < 0 OrElse idx >= cpFieldCount Then Return *m_TextOK
 		Return *m_TextField(idx)
 	End Property

@@ -18,6 +18,10 @@
 		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 			Return IIf(ydpi > 0, ydpi, 1#)
 		#elseif defined(__USE_WINAPI__)
+			'Per-monitor: prefer the scale the framework adopted for THIS control
+			'(WM_DPICHANGED keeps it current); the screen DC answers for the
+			'PRIMARY monitor and lies on every other one.
+			If xdpi > 0 Then Return xdpi
 			Dim hDC As HDC, LPX As Double
 			hDC = GetDC(0)
 			LPX = CDbl(GetDeviceCaps(hDC, LOGPIXELSX))
@@ -139,7 +143,7 @@
 
 		'---- the background -------------------------------------------------------
 		Dim backClr As ULong = m_BackColor
-		If backClr = Cast(ULong, -1) Then backClr = clBtnFace
+		If backClr = Cast(ULong, -1) Then backClr = EffectiveParentBack()
 		FillRectPath(0, 0, ScaleX(This.ClientWidth), ScaleY(This.ClientHeight), backClr)
 
 		Canvas.Font = This.Font
@@ -168,9 +172,16 @@
 
 					'The glyph, centred in the icon square
 					If Len(.Glyph) > 0 Then
-						Dim tW As Long = ScaleX(Canvas.TextWidth(.Glyph))
-						Dim tH As Long = ScaleY(Canvas.TextHeight(.Glyph))
-						Canvas.TextOut(.rcIcon.Left + (cw - tW) \ 2, .rcIcon.Top + (ch - tH) \ 2, .Glyph, clrGlyph, -1)
+						'TextOut is LOGICAL space (it scales by the DPI itself);
+						'the icon rect is device pixels - convert or the glyph
+						'drifts down/right above 96 DPI
+						Dim gW As Long = Canvas.TextWidth(.Glyph)
+						Dim gH As Long = Canvas.TextHeight(.Glyph)
+						Dim xL As Long = UnScaleX(.rcIcon.Left)
+						Dim yL As Long = UnScaleY(.rcIcon.Top)
+						Dim wL As Long = UnScaleX(cw)
+						Dim hL As Long = UnScaleY(ch)
+						Canvas.TextOut(xL + (wL - gW) \ 2, yL + (hL - gH) \ 2, .Glyph, clrGlyph, -1)
 					End If
 				End If
 			End With
@@ -243,6 +254,17 @@
 	Private Sub IconPanel.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
+			Case WM_DPICHANGED
+				'Cross-monitor moves keep the HWND: the per-monitor scale cached at
+				'creation must follow the monitor, or every metric stays on the old
+				'factor and the chrome clips (the missing bottom ring).
+				If Message.wParamLo > 0 Then
+					Dim nNewScale As Double = Message.wParamLo / 96
+					If nNewScale <> nScale Then
+						 nScale = nNewScale
+						 bLayoutDirty = True
+					End If
+				End If
 			Case WM_ERASEBKGND
 				Message.Result = 0
 				Exit Sub
