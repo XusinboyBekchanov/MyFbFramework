@@ -534,7 +534,7 @@
 
 		'---- the background and the border ----------------------------------------
 		Dim backClr As ULong = m_ChromeBackColor
-		If backClr = Cast(ULong, -1) Then backClr = GetSysColor(COLOR_BTNFACE)
+		If backClr = Cast(ULong, -1) Then backClr = EffectiveParentBack()
 		FillRectPath(0, 0, ScaleX(This.ClientWidth), ScaleY(This.ClientHeight), backClr)
 		StrokeRectPath(0, 0, ScaleX(This.ClientWidth), ScaleY(This.ClientHeight), m_BorderColor, 1)
 
@@ -1476,7 +1476,7 @@
 		CloseForm
 	End Sub
 
-	Public Function ShowColorPicker(ByRef InitialColor As ULong, ByRef OutColor As ULong, ByRef OutAlpha As UByte, ByVal ShowAlphaCh As Boolean = True, ByRef Caption As WString = "Select color") As Boolean
+	Public Function ShowColorPicker(ByRef InitialColor As ULong, ByRef OutColor As ULong, ByRef OutAlpha As UByte, ByVal ShowAlphaCh As Boolean = True, ByRef Caption As UString = "Select color") As Boolean
 		Dim dlg As ColorPickerDialog
 		dlg.Text = Caption
 		dlg.Picker.SetInitialColor(InitialColor, 255)
