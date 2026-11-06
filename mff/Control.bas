@@ -853,7 +853,7 @@ Namespace My.Sys.Forms
 						#ifdef __USE_WINAPI__
 							Return GetSysColor(COLOR_BTNFACE)
 						#else
-							Return PRGB(240, 240, 240)
+							Return RGB(240, 240, 240)
 						#endif
 					End Function
 				#endif
