@@ -89,6 +89,10 @@
 		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 			Return IIf(ydpi > 0, ydpi, 1#)
 		#elseif defined(__USE_WINAPI__)
+			'Per-monitor: prefer the scale the framework adopted for THIS control
+			'(WM_DPICHANGED keeps it current); the screen DC answers for the
+			'PRIMARY monitor and lies on every other one.
+			If xdpi > 0 Then Return xdpi
 			Dim hDC As HDC, LPX As Double
 			hDC = GetDC(0)
 			LPX = CDbl(GetDeviceCaps(hDC, LOGPIXELSX))
@@ -102,17 +106,13 @@
 	End Function
 
 	Private Function Progress.ResolvedCurvature() As Long
-		'The stadium sentinel becomes the track's cross extent, which the round
-		'path clamps to half - both ends become exact semicircles
+		'The stadium sentinel becomes a huge radius, which the round path
+		'clamps to half the track - both ends become exact semicircles. An
+		'own value (>= 0) wins, then the framework default, then the stadium
+		'the control shipped with.
 		If m_Curvature >= 0 Then Return m_Curvature
-		Dim cross As Long
-		If m_Orientation = poVertical Then
-			cross = rcTrack.Right - rcTrack.Left
-		Else
-			cross = rcTrack.Bottom - rcTrack.Top
-		End If
-		If cross < 0 Then cross = 0
-		Return cross
+		If m_Curvature = PROGRESS_CURVATURE_FOLLOW AndAlso g_DefaultCornerRadius >= 0 Then Return g_DefaultCornerRadius
+		Return 100000
 	End Function
 
 	Private Function Progress.FillLength() As Long
@@ -201,6 +201,26 @@
 			Exit Sub
 		End If
 
+		'---- ring shapes: the geometry is a circle, not a strip --------------------
+		'rcTrack = the circle's square bounding box, centred in the client (the
+		'ring painter reads only rcTrack; rcFill/rcBar stay at the same bounds so
+		'the common text block has a rect to centre on)
+		If m_Shape <> pshBar Then
+			Dim nSide As Long = IIf(clientW < clientH, clientW, clientH)
+			If m_Shape = pshRingLarge Then
+				'A logical pixel of air on each side so the stroke never clips
+				nSide -= 2 * CLng(nScale)
+				If nSide < 4 Then nSide = 4
+			End If
+			Dim nLeft As Long = (clientW - nSide) \ 2
+			Dim nTop As Long = (clientH - nSide) \ 2
+			rcTrack.Left = nLeft: rcTrack.Top = nTop
+			rcTrack.Right = nLeft + nSide: rcTrack.Bottom = nTop + nSide
+			rcFill = rcTrack
+			rcBar = rcTrack
+			Exit Sub
+		End If
+
 		Dim nThick As Long = m_Thickness * nScale
 		Dim nInset As Long = m_BarInset * nScale
 
@@ -285,6 +305,16 @@
 		Return CLng(num \ Cast(LongInt, m_Max - m_Min))
 	End Function
 
+	'The position as a 0..1 fraction: the ring's arc sweep is smoother in
+	'floating point than the bar's integer Percent
+	Private Function Progress.Fraction() As Single
+		If m_Max <= m_Min Then Return 0
+		Dim p As Long = m_Position
+		If p < m_Min Then p = m_Min
+		If p > m_Max Then p = m_Max
+		Return Cast(Single, p - m_Min) / (m_Max - m_Min)
+	End Function
+
 	'Resolve the bar's two stops from the state. DISABLED beats everything, then
 	'the paused/error state. pfSolid uses the first colour only.
 	Private Function Progress.ResolveBarColors(ByRef clr2 As ULong) As ULong
@@ -339,22 +369,20 @@
 		Dim clr1 As ULong, clr2 As ULong
 
 		'---- the background -------------------------------------------------------
-		'No BackColor of its own: blend into the parent, so the area outside
-		'the rounded track is not painted with a foreign colour
-		Dim backClr As Integer = This.BackColor
-		If backClr = -1 AndAlso This.Parent <> 0 Then
-			backClr = This.Parent->BackColor
-			#ifdef __USE_WINAPI__
-				If g_darkModeSupported AndAlso g_darkModeEnabled AndAlso This.Parent->FDefaultBackColor = This.Parent->FBackColor Then backClr = darkBkColor
-			#endif
-		End If
-		If backClr = -1 Then backClr = clBtnFace
+		Dim backClr As ULong = This.BackColor
+		If backClr = Cast(ULong, -1) Then backClr = EffectiveParentBack()
 		'A path fill, not Canvas.Rectangle: the GDI+ branch of Rectangle takes
 		'its colour from Canvas.FillColor/FillOpacity rather than Brush.Color
 		Canvas.PathStart
 		Canvas.PathRoundRect(0, 0, ScaleX(This.ClientWidth), ScaleY(This.ClientHeight), 0)
 		Canvas.FillPath(ARGB(backClr), 100)
 		Canvas.PathDiscard
+
+		'---- ring shapes take their own painter ------------------------------------
+		If m_Shape <> pshBar Then
+			DrawRing()
+			Exit Sub
+		End If
 
 		'---- the track ------------------------------------------------------------
 		If rcTrack.Right > rcTrack.Left AndAlso rcTrack.Bottom > rcTrack.Top Then
@@ -440,7 +468,7 @@
 		Else
 			clrText = m_TextColor
 		End If
-		Canvas.TextOut(tX, tY, sText, clrText, -1)
+		Canvas.TextOut(UnScaleX(tX), UnScaleY(tY), sText, clrText, -1)
 
 		Exit Sub
 		ErrorHandler:
@@ -448,6 +476,93 @@
 		"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
 		"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
 		"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
+	End Sub
+
+	' ========================================================================================
+	' Ring shapes (pshRingLarge / pshRingSmall)
+	' ========================================================================================
+
+	'The ring painter: a full-circle track plus an arc that carries the
+	'progress - determinate, the sweep is the position; indeterminate, the arc
+	'is the ChunkPercent slice travelling around (msWrap wraps, msBounce
+	'ping-pongs) like a spinner. The stroke is centred on the circle, so the
+	'ring stays inside rcTrack on every side.
+	Private Sub Progress.DrawRing()
+		'The geometry is DEVICE pixels (rcTrack), the stroke LOGICAL (StrokePath
+		'scales the pen itself) - keep the two apart or the stroke double-scales
+		Dim sideD As Long = rcTrack.Right - rcTrack.Left
+		If sideD < 4 Then Exit Sub
+		Dim sideL As Long = UnScaleX(sideD)
+		'The stroke width: the host's Thickness wins, else one auto per shape
+		Dim strokeL As Long
+		If m_Thickness > 0 Then
+			strokeL = m_Thickness
+		ElseIf m_Shape = pshRingLarge Then
+			strokeL = Max(3, sideL \ 5)
+		Else
+			strokeL = Max(2, sideL \ 8)
+		End If
+		'The centre line radius, inset by half the stroke so the drawn ring
+		'fits the square exactly
+		Dim strokeD As Long = CLng(strokeL * nScale)
+		If strokeD < 1 Then strokeD = 1
+		Dim rad As Single = (sideD - strokeD) / 2
+		If rad < 1 Then Exit Sub
+		Dim cxD As Single = (rcTrack.Left + rcTrack.Right) / 2
+		Dim cyD As Single = (rcTrack.Top + rcTrack.Bottom) / 2
+
+		Dim clr1 As ULong, clr2 As ULong
+		clr1 = ResolveBarColors(clr2)
+		'The ring reads SOLID: a gradient along a stroked arc has no ramp axis
+		Dim clrBar As ULong = clr1
+
+		'---- the track ring --------------------------------------------------------
+		Canvas.PathStart
+		Canvas.PathArc(cxD - rad, cyD - rad, rad * 2, rad * 2, 0, 360)
+		Canvas.StrokePath(ARGB(m_TrackColor), strokeL, 100)
+		Canvas.PathDiscard
+
+		'---- the progress arc --------------------------------------------------------
+		Dim circum As Double = 2 * 3.14159265358979 * rad
+		Dim startDeg As Double = -90   '12 o'clock
+		Dim sweepDeg As Double = 0
+		If m_Mode = pmIndeterminate Then
+			Dim chunkPx As Double = circum * m_ChunkPercent / 100
+			If chunkPx < 1 Then chunkPx = 1
+			Dim ofsPx As Double = ComputeMarqueeOffset(CLng(circum), CLng(chunkPx), CLng(m_MarqueeStep * nScale), m_Tick, m_MarqueeStyle)
+			sweepDeg = 360 * chunkPx / circum
+			startDeg = -90 + 360 * ofsPx / circum
+			If m_Reverse Then startDeg = -90 - 360 * ofsPx / circum
+		Else
+			sweepDeg = 360 * Fraction()
+			If m_Reverse Then sweepDeg = -sweepDeg
+		End If
+		If Abs(sweepDeg) >= 0.25 Then
+			Canvas.PathStart
+			Canvas.PathArc(cxD - rad, cyD - rad, rad * 2, rad * 2, startDeg, sweepDeg)
+			'A round cap on the arc ends - the modern progress-ring look; the
+			'full-circle track keeps flat caps (they never show on a closed ring)
+			Canvas.StrokePath(ARGB(clrBar), strokeL, 100, True)
+			Canvas.PathDiscard
+		End If
+
+		'---- the centred text ---------------------------------------------------------
+		'Only the large ring has a hole wide enough; the text reads against the
+		'background in the hole, never against the arc
+		If m_Shape <> pshRingLarge Then Exit Sub
+		Dim sText As UString = DisplayText()
+		If Len(sText) = 0 Then Exit Sub
+		Canvas.Font = This.Font
+		Dim tWL As Long = Canvas.TextWidth(sText)
+		Dim tHL As Long = Canvas.TextHeight(sText)
+		'TextWidth/TextHeight and TextOut speak LOGICAL pixels; the hole comes
+		'from the device geometry - compare and place in logical space
+		Dim holeL As Long = UnScaleX(CLng(rad * 2 - strokeD))
+		If tWL > holeL OrElse tHL > holeL Then Exit Sub
+		Dim cXL As Long = UnScaleX(CLng(cxD))
+		Dim cYL As Long = UnScaleY(CLng(cyD))
+		Dim clrText As ULong = IIf(This.Enabled, m_TextColor, m_TextColorDisabled)
+		Canvas.TextOut(cXL - tWL \ 2, cYL - tHL \ 2, sText, clrText, -1)
 	End Sub
 
 	' ========================================================================================
@@ -518,6 +633,17 @@
 	Private Sub Progress.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
+			Case WM_DPICHANGED
+				'Cross-monitor moves keep the HWND: the per-monitor scale cached at
+				'creation must follow the monitor, or every metric stays on the old
+				'factor and the chrome clips (the missing bottom ring).
+				If Message.wParamLo > 0 Then
+					Dim nNewScale As Double = Message.wParamLo / 96
+					If nNewScale <> nScale Then
+						 nScale = nNewScale
+						 bLayoutDirty = True
+					End If
+				End If
 			Case WM_ERASEBKGND
 				Message.Result = 0
 				Exit Sub
@@ -539,10 +665,6 @@
 				bufBMP = CreateCompatibleBitmap(Dc, mClientWidth, mClientHeight)
 				SelectObject(hd, bufBMP)
 				Canvas.SetHandle(hd)
-				'Pixel i covers [i, i+1]: with the default offset mode an edge at 0 or
-				'at the client width falls on a pixel centre, leaving a half-blended
-				'dark line at the top/left and clipping the bottom/right
-				If Canvas.GdipGraphics Then GdipSetPixelOffsetMode(Canvas.GdipGraphics, PixelOffsetModeHalf)
 				Draw()
 				Canvas.UnSetHandle
 				BitBlt(Dc, 0, 0, mClientWidth, mClientHeight, hd, 0, 0, SRCCOPY)
@@ -635,6 +757,8 @@
 			#ifdef __USE_WINAPI__
 				.Canvas.UsingGdip = True
 			#endif
+			'BackColor stays at the base -1 (auto): the corner band then takes
+			'the PARENT's background (EffectiveParentBack)
 		End With
 		tmrMarquee.Designer = @This
 		tmrMarquee.Interval = 0
@@ -755,6 +879,19 @@
 		Refresh
 	End Property
 
+	Private Property Progress.Shape As ProgressShapes
+		Return m_Shape
+	End Property
+
+	Private Property Progress.Shape(Value As ProgressShapes)
+		'Rings ignore the bar's Orientation/Segmented/Curvature, so only a
+		'layout + repaint is owed here; the marquee timer follows Mode, not Shape
+		If m_Shape = Value Then Exit Property
+		m_Shape = Value
+		bLayoutDirty = True
+		Refresh
+	End Property
+
 	Private Property Progress.Segmented As Boolean
 		Return m_Segmented
 	End Property
@@ -828,6 +965,9 @@
 	End Property
 
 	Private Property Progress.Curvature(Value As Long)
+		'-2 = stadium, -1 = follow the framework default, >= 0 = own RADIUS
+		'(logical pixels); anything below the stadium sentinel parks there
+		If Value < PROGRESS_CURVATURE_STADIUM Then Value = PROGRESS_CURVATURE_STADIUM
 		m_Curvature = Value
 		Refresh
 	End Property
@@ -1004,10 +1144,44 @@
 
 	#ifndef ReadProperty_Off
 		Private Function Progress.ReadProperty(ByRef PropertyName As String) As Any Ptr
+			'Each answer is the ADDRESS of the stored field: the designer's
+			'property grid dereferences it with the Q* helpers
 			Select Case PropertyName
 			Case "MinValue": Return @m_Min
 			Case "MaxValue": Return @m_Max
 			Case "Position": Return @m_Position
+			Case "StepValue": Return @m_StepValue
+			Case "Mode": Return @m_Mode
+			Case "State": Return @m_State
+			Case "FillStyle": Return @m_FillStyle
+			Case "TextMode": Return @m_TextMode
+			Case "MarqueeStyle": Return @m_MarqueeStyle
+			Case "Orientation": Return @m_Orientation
+			Case "Shape": Return @m_Shape
+			Case "Segmented": Return @m_Segmented
+			Case "Reverse": Return @m_Reverse
+			Case "Thickness": Return @m_Thickness
+			Case "BarInset": Return @m_BarInset
+			Case "BlockLength": Return @m_BlockLength
+			Case "BlockGap": Return @m_BlockGap
+			Case "BorderThickness": Return @m_BorderThickness
+			Case "Curvature": Return @m_Curvature
+			Case "ChunkPercent": Return @m_ChunkPercent
+			Case "MarqueeInterval": Return @m_MarqueeInterval
+			Case "MarqueeStep": Return @m_MarqueeStep
+			Case "TrackColor": Return @m_TrackColor
+			Case "TrackBorderColor": Return @m_TrackBorderColor
+			Case "BarColor": Return @m_BarColor
+			Case "BarColorEnd": Return @m_BarColorEnd
+			Case "PausedColor": Return @m_BarColorPaused
+			Case "PausedColorEnd": Return @m_BarColorPausedEnd
+			Case "ErrorColor": Return @m_BarColorError
+			Case "ErrorColorEnd": Return @m_BarColorErrorEnd
+			Case "DisabledColor": Return @m_BarColorDisabled
+			Case "DisabledColorEnd": Return @m_BarColorDisabledEnd
+			Case "TextColor": Return @m_TextColor
+			Case "TextColorOnBar": Return @m_TextColorOnBar
+			Case "TextColorDisabled": Return @m_TextColorDisabled
 			End Select
 			Return Base.ReadProperty(PropertyName)
 		End Function
@@ -1019,6 +1193,38 @@
 			Case "MinValue": MinValue = QInteger(Value): Return True
 			Case "MaxValue": MaxValue = QInteger(Value): Return True
 			Case "Position": Position = QInteger(Value): Return True
+			Case "StepValue": StepValue = QInteger(Value): Return True
+			Case "Mode": Mode = Cast(ProgressModes, QInteger(Value)): Return True
+			Case "State": State = Cast(ProgressStates, QInteger(Value)): Return True
+			Case "FillStyle": FillStyle = Cast(ProgressFillStyles, QInteger(Value)): Return True
+			Case "TextMode": TextMode = Cast(ProgressTextModes, QInteger(Value)): Return True
+			Case "MarqueeStyle": MarqueeStyle = Cast(ProgressMarqueeStyles, QInteger(Value)): Return True
+			Case "Orientation": Orientation = Cast(ProgressOrientations, QInteger(Value)): Return True
+			Case "Shape": Shape = Cast(ProgressShapes, QInteger(Value)): Return True
+			Case "Segmented": Segmented = QBoolean(Value): Return True
+			Case "Reverse": Reverse = QBoolean(Value): Return True
+			Case "Thickness": Thickness = QInteger(Value): Return True
+			Case "BarInset": BarInset = QInteger(Value): Return True
+			Case "BlockLength": BlockLength = QInteger(Value): Return True
+			Case "BlockGap": BlockGap = QInteger(Value): Return True
+			Case "BorderThickness": BorderThickness = QInteger(Value): Return True
+			Case "Curvature": Curvature = QInteger(Value): Return True
+			Case "ChunkPercent": ChunkPercent = QInteger(Value): Return True
+			Case "MarqueeInterval": MarqueeInterval = QInteger(Value): Return True
+			Case "MarqueeStep": MarqueeStep = QInteger(Value): Return True
+			Case "TrackColor": TrackColor = QULong(Value): Return True
+			Case "TrackBorderColor": TrackBorderColor = QULong(Value): Return True
+			Case "BarColor": BarColor = QULong(Value): Return True
+			Case "BarColorEnd": BarColorEnd = QULong(Value): Return True
+			Case "PausedColor": PausedColor = QULong(Value): Return True
+			Case "PausedColorEnd": PausedColorEnd = QULong(Value): Return True
+			Case "ErrorColor": ErrorColor = QULong(Value): Return True
+			Case "ErrorColorEnd": ErrorColorEnd = QULong(Value): Return True
+			Case "DisabledColor": DisabledColor = QULong(Value): Return True
+			Case "DisabledColorEnd": DisabledColorEnd = QULong(Value): Return True
+			Case "TextColor": TextColor = QULong(Value): Return True
+			Case "TextColorOnBar": TextColorOnBar = QULong(Value): Return True
+			Case "TextColorDisabled": TextColorDisabled = QULong(Value): Return True
 			End Select
 			Return Base.WriteProperty(PropertyName, Value)
 		End Function

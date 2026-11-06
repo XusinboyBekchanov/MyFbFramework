@@ -66,13 +66,26 @@ Namespace My.Sys.Forms
 		poVertical
 	End Enum
 
+	'What geometry the progress draws as: the classic bar, a LARGE ring (thick
+	'stroke, room for the centred text in the hole) or a SMALL ring (thin
+	'stroke, spinner scale). A ring ignores Orientation/Segmented/Curvature;
+	'its stroke width is Thickness when set, else one per shape.
+	Private Enum ProgressShapes
+		pshBar
+		pshRingLarge
+		pshRingSmall
+	End Enum
+
 	Private Const PROGRESS_DEFAULT_MARQUEE_MS As Long = 30
 	Private Const PROGRESS_DEFAULT_MARQUEE_STEP As Long = 2
 	Private Const PROGRESS_DEFAULT_CHUNK_PERCENT As Long = 25
 	Private Const PROGRESS_DEFAULT_BLOCK_LEN As Long = 10
 	Private Const PROGRESS_DEFAULT_BLOCK_GAP As Long = 3
-	'Curvature sentinel: -1 = stadium (both ends exact semicircles)
-	Private Const PROGRESS_CURVATURE_STADIUM As Long = -1
+	'Curvature sentinels: -2 = stadium (both ends exact semicircles), the
+	'shipped look; -1 = follow the framework default (g_DefaultCornerRadius);
+	'>= 0 = this control's own corner RADIUS (logical pixels)
+	Private Const PROGRESS_CURVATURE_STADIUM As Long = -2
+	Private Const PROGRESS_CURVATURE_FOLLOW As Long = -1
 
 	'`Progress` is an owner-drawn progress bar Control within the MyFbFramework,
 	'part of the freeBasic framework (Windows, Linux, WASM, Android).
@@ -90,6 +103,7 @@ Namespace My.Sys.Forms
 		Dim m_TextMode As ProgressTextModes = ptNone
 		Dim m_MarqueeStyle As ProgressMarqueeStyles = msBounce
 		Dim m_Orientation As ProgressOrientations = poHorizontal
+		Dim m_Shape As ProgressShapes = pshBar
 		Dim m_Reverse As Boolean = False
 		Dim m_Segmented As Boolean = False
 		'--- Marquee (indeterminate mode only) ---
@@ -151,12 +165,14 @@ Namespace My.Sys.Forms
 		Declare Function FillLength() As Long
 		Declare Function BarLength() As Long
 		Declare Function BlockRectAt(ByVal idx As Long, ByRef rc As ProgressRect) As Boolean
-		'--- Painting helpers ---
-		Declare Function Percent() As Long
-		Declare Function ResolveBarColors(ByRef clr2 As ULong) As ULong
-		Declare Function DisplayText() As UString
-		Declare Function ARGB(clr As ULong, Opacity As Long = 100) As ULong
-		Declare Sub Draw()
+	'--- Painting helpers ---
+	Declare Function Percent() As Long
+	Declare Function Fraction() As Single
+	Declare Function ResolveBarColors(ByRef clr2 As ULong) As ULong
+	Declare Function DisplayText() As UString
+	Declare Function ARGB(clr As ULong, Opacity As Long = 100) As ULong
+	Declare Sub Draw()
+	Declare Sub DrawRing()
 		'--- Pure marquee/fill laws (no window, no state) ---
 		Declare Static Function ComputeBarLength(ByVal nPos As Long, ByVal nMin As Long, ByVal nMax As Long, ByVal nTrackLen As Long) As Long
 		Declare Static Function ComputeMarqueeOffset(ByVal nTrackLen As Long, ByVal nChunkLen As Long, ByVal nStep As Long, ByVal nTick As Long, ByVal nStyle As Long) As Long
@@ -194,6 +210,8 @@ Namespace My.Sys.Forms
 		Declare Property MarqueeStyle(Value As ProgressMarqueeStyles)
 		Declare Property Orientation As ProgressOrientations
 		Declare Property Orientation(Value As ProgressOrientations)
+		Declare Property Shape As ProgressShapes
+		Declare Property Shape(Value As ProgressShapes)
 		Declare Property Segmented As Boolean
 		Declare Property Segmented(Value As Boolean)
 		Declare Property Reverse As Boolean
