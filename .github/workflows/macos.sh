@@ -16,6 +16,16 @@ FB="$WORK/fbxl/usr/local"
 # are duplicated definitions
 git clone -q --depth 1 https://github.com/freebasic/fbc.git "$WORK/fbc"
 
+# MyFbFramework as a library, like on Windows and Linux (with the host of AppKit libmffCocoa.a)
+sh mff/Cocoa/build-lib.sh "$FB"
+cd mff
+"$FB/bin/fbc" -b "mff.bi" -dll -x "../libmff64_cocoa.dylib" -d FB_NO_USTRING -d __USE_COCOA__ -i "$WORK/fbc/inc" -v
+cd ..
+if [ ! -f libmff64_cocoa.dylib ]; then
+	echo "libmff64_cocoa.dylib does not exist"
+	exit 1
+fi
+
 mkdir -p build
 for f in examples/Hello.bas examples/WebAndroid/ControlsDemo.bas examples/WebAndroid/AllControlsDemo.bas examples/WebAndroid/CanvasDemo.bas; do
 	p="$(basename "$f" .bas)"
