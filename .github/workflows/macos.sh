@@ -24,7 +24,8 @@ DEFS="-d FB_NO_USTRING -d FB_NO_SFXLIB -d __USE_COCOA__"
 # code: the #inclib "framework:..." of mff/Apple/mffApple.bi are frameworks for clang
 sh mff/Cocoa/build-lib.sh "$FB"
 LIB="$FB/lib/freebasic/darwin-aarch64"
-"$FB/bin/fbc" -target darwin-aarch64 -gen gcc -r -dll $DEFS -i "$WORK/fbc/inc" -m mff mff/mff.bi
+"$FB/bin/fbc" -target darwin-aarch64 -gen gcc -r -dll $DEFS -i "$WORK/fbc/inc" -b mff/mff.bi
+ls mff/*.c
 sh mff/Apple/fix-c-code.sh mff/mff.c
 clang -c -O1 -w -fno-strict-aliasing -fwrapv -fno-math-errno -fno-exceptions -fno-asynchronous-unwind-tables -funwind-tables mff/mff.c -o mff/mff.o
 clang -dynamiclib -o libmff64_cocoa.dylib -install_name @rpath/libmff64_cocoa.dylib "$LIB/fbrt0.o" mff/mff.o -L"$LIB" -lmffCocoa -lfbmt -lpthread -lm -lncurses -framework Cocoa -framework WebKit -framework ApplicationServices
