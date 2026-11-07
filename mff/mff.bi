@@ -6,6 +6,10 @@
 '#define __USE_GTK3__
 #if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__) OrElse defined(__FB_JS__) OrElse defined(__FB_ANDROID__)
 	'Web and Android: no library, the program includes this file (the designer of VisualFBEditor creates the controls with it)
+#elseif defined(__USE_COCOA__)
+	'macOS (AppKit), this file itself: the library, with the host of AppKit libmffCocoa.a (mff/Cocoa/build-lib.sh).
+	'A program which includes this file has __USE_APPLE__ (mff/SysUtils.bi) and gets the branch above
+	#cmdline "-x ../libmff64_cocoa.dylib"
 #elseif defined(__USE_WINAPI__) OrElse defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK__)
 	#ifdef __FB_64BIT__
 		#cmdline "-x ../mff64.dll"

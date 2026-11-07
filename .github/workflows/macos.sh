@@ -20,12 +20,12 @@ git clone -q --depth 1 https://github.com/freebasic/fbc.git "$WORK/fbc"
 # own ones
 DEFS="-d FB_NO_USTRING -d FB_NO_SFXLIB -d __USE_COCOA__"
 
-# MyFbFramework as a library, like on Windows and Linux, with the host of AppKit libmffCocoa.a. fbc makes only the C
-# code: the #inclib "framework:..." of mff/Apple/mffApple.bi are frameworks for clang
+# MyFbFramework as a library, like on Windows and Linux, with the host of AppKit libmffCocoa.a; its name is the one of
+# mff.bi. fbc makes only the C code: this fbc does not know the #inclib "framework:..." of mff/Apple/mffApple.bi,
+# clang links the frameworks
 sh mff/Cocoa/build-lib.sh "$FB"
 LIB="$FB/lib/freebasic/darwin-aarch64"
 "$FB/bin/fbc" -target darwin-aarch64 -gen gcc -r -dll $DEFS -i "$WORK/fbc/inc" -b mff/mff.bi
-ls mff/*.c
 sh mff/Apple/fix-c-code.sh mff/mff.c
 clang -c -O1 -w -fno-strict-aliasing -fwrapv -fno-math-errno -fno-exceptions -fno-asynchronous-unwind-tables -funwind-tables mff/mff.c -o mff/mff.o
 clang -dynamiclib -o libmff64_cocoa.dylib -install_name @rpath/libmff64_cocoa.dylib "$LIB/fbrt0.o" mff/mff.o -L"$LIB" -lmffCocoa -lfbmt -lpthread -lm -lncurses -framework Cocoa -framework WebKit -framework ApplicationServices
