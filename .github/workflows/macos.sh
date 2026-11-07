@@ -32,7 +32,8 @@ for f in examples/Hello.bas examples/WebAndroid/ControlsDemo.bas examples/WebAnd
 	for t in "macos __USE_COCOA__ Cocoa $FBC" "ios __USE_UIKIT__ UIKit $WORK/fbc-ios"; do
 		set -- $t
 		echo "== $p ($1)"
-		"$FBCEXE" -target darwin-aarch64 -gen gcc -r -d "$2" -i "$FBC/inc" -i . -m "$p" "$f"
+		# FB_NO_USTRING: fbc of FBXL has its own type UString, MyFbFramework has its own one
+		"$FBCEXE" -target darwin-aarch64 -gen gcc -r -d FB_NO_USTRING -d "$2" -i "$FBC/inc" -i . -m "$p" "$f"
 		mv "${f%.bas}.c" "build/$1/"
 		sh "mff/$3/build.sh" "build/$1/$p.c" "build/$1/$p" "$4"
 		if [ ! -e "build/$1/$p.app" ] && [ ! -f "build/$1/$p" ]; then
