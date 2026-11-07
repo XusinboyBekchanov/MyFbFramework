@@ -15,6 +15,12 @@
 #include "../Apple/mffMainThread.h"
 #include "../Apple/mffApple.h"
 
+// The frameworks of the host are in this object (LC_LINKER_OPTION): ld links them with every program and library which
+// has it (libmffCocoa.a of mff/Apple/mffApple.bi), fbc does not need to know them
+__asm__(".linker_option \"-framework\", \"Cocoa\"\n"
+	".linker_option \"-framework\", \"WebKit\"\n"
+	".linker_option \"-framework\", \"ApplicationServices\"");
+
 static char kMffCtrlKey;
 /* The host sets the frame of a window (no mffOnResize then) / the user moved or resized it (mffOnResize, mffOnMove:
    the bounds which the control sets meanwhile are the ones of the window already) */

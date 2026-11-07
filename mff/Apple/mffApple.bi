@@ -11,11 +11,9 @@
 'All strings are UTF-8; a returned ZString Ptr is made with malloc and freed with Deallocate.
 'Colors are BGR (&hBBGGRR) like on Windows, -1 is the default color of the view.
 #ifdef __USE_COCOA__
-	'The host of AppKit (Cocoa/build-lib.sh): fbc links the program itself
+	'The host of AppKit (Cocoa/build-lib.sh): fbc links the program itself. The frameworks of the host (Cocoa, WebKit,
+	'ApplicationServices) are linked by its object (.linker_option of Cocoa/mffCocoa.m)
 	#inclib "mffCocoa"
-	#inclib "framework:Cocoa"
-	#inclib "framework:WebKit"
-	#inclib "framework:ApplicationServices"
 #endif
 Extern "C"
 	'Kind: the class name of the control ("Form", "CommandButton", "Label", "TextBox", "CheckBox", "RadioButton",
