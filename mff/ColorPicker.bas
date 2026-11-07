@@ -1476,7 +1476,7 @@
 		CloseForm
 	End Sub
 
-	Public Function ShowColorPicker(ByRef InitialColor As ULong, ByRef OutColor As ULong, ByRef OutAlpha As UByte, ByVal ShowAlphaCh As Boolean = True, ByRef Caption As UString = "Select color") As Boolean
+	Public Function ShowColorPicker(ByRef InitialColor As ULong, ByRef OutColor As ULong, ByRef OutAlpha As UByte, ByVal ShowAlphaCh As Boolean = True, ByRef Caption As WString = "Select color") As Boolean
 		Dim dlg As ColorPickerDialog
 		dlg.Text = Caption
 		dlg.Picker.SetInitialColor(InitialColor, 255)

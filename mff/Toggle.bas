@@ -212,14 +212,14 @@
 			End If
 		Else
 			x = nRingPad
-			If visualW < clientW Then
-				Select Case m_Justify
-				Case tjCenter
-					x = (clientW - trackW) \ 2
-				Case tjRight
-					x = clientW - nRingPad - trackW
-				End Select
-			End If
+		If visualW < clientW Then
+			Select Case m_Justify
+			Case tjCenter
+				x = (clientW - trackW) \ 2
+			Case tjRight
+				x = clientW - nRingPad - trackW
+			End Select
+		End If
 		End If
 		'Vertically centred in the padded client
 		Dim y As Long = padT + ((clientH - padT - padB - trackH) \ 2)

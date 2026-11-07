@@ -165,13 +165,13 @@ Namespace My.Sys.Forms
 		Declare Function FillLength() As Long
 		Declare Function BarLength() As Long
 		Declare Function BlockRectAt(ByVal idx As Long, ByRef rc As ProgressRect) As Boolean
-	'--- Painting helpers ---
-	Declare Function Percent() As Long
+		'--- Painting helpers ---
+		Declare Function Percent() As Long
 	Declare Function Fraction() As Single
-	Declare Function ResolveBarColors(ByRef clr2 As ULong) As ULong
-	Declare Function DisplayText() As UString
-	Declare Function ARGB(clr As ULong, Opacity As Long = 100) As ULong
-	Declare Sub Draw()
+		Declare Function ResolveBarColors(ByRef clr2 As ULong) As ULong
+		Declare Function DisplayText() As UString
+		Declare Function ARGB(clr As ULong, Opacity As Long = 100) As ULong
+		Declare Sub Draw()
 	Declare Sub DrawRing()
 		'--- Pure marquee/fill laws (no window, no state) ---
 		Declare Static Function ComputeBarLength(ByVal nPos As Long, ByVal nMin As Long, ByVal nMax As Long, ByVal nTrackLen As Long) As Long

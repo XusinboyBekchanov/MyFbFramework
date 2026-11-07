@@ -2411,11 +2411,11 @@ Namespace My.Sys.Drawing
 				PathLineTo(x - 0.5, y + H - 0.5)
 				PathClose
 			#else
-				PathMoveTo(x, y)
-				PathLineTo(x + W, y)
-				PathLineTo(x + W, y + H)
-				PathLineTo(x, y + H)
-				PathClose
+			PathMoveTo(x, y)
+			PathLineTo(x + W, y)
+			PathLineTo(x + W, y + H)
+			PathLineTo(x, y + H)
+			PathClose
 			#endif
 		Else
 			PathArc(x, y, r * 2, r * 2, 180, 90)
@@ -2944,7 +2944,7 @@ Namespace My.Sys.Drawing
 				SelectObject(hMemDC, Image) ' Select BITMAP in New Dc
 				Dim As BITMAP Bitmap01
 				GetObject(Image, SizeOf(Bitmap01), @Bitmap01)
-
+				
 				If nWidth = -1 Then nWidth = ScaleX(Bitmap01.bmWidth)
 				If nHeight = -1 Then nHeight = ScaleY(Bitmap01.bmHeight)
 				Dim As Integer dstW = CInt(nWidth + 0.5), dstH = CInt(nHeight + 0.5)
@@ -2959,18 +2959,18 @@ Namespace My.Sys.Drawing
 						StretchBlt(Handle, CInt(x + 0.5), CInt(y + 0.5), dstW, dstH, hMemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, SRCCOPY)
 					End If
 				Else
-					Dim As BLENDFUNCTION bfn ' Struct With info For AlphaBlend
-					bfn.BlendOp = AC_SRC_OVER
-					bfn.BlendFlags = 0
-					bfn.SourceConstantAlpha = iSourceAlpha
-					bfn.AlphaFormat = AC_SRC_ALPHA
+				Dim As BLENDFUNCTION bfn ' Struct With info For AlphaBlend
+				bfn.BlendOp = AC_SRC_OVER
+				bfn.BlendFlags = 0
+				bfn.SourceConstantAlpha = iSourceAlpha
+				bfn.AlphaFormat = AC_SRC_ALPHA
 					If dstW <> Bitmap01.bmWidth OrElse dstH <> Bitmap01.bmHeight Then
-						SetStretchBltMode(Handle, HALFTONE)
+				SetStretchBltMode(Handle, HALFTONE)
 					End If
-					AlphaBlend(Handle, x, y, nWidth, nHeight, hMemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, bfn) ' Display BITMAP
+				AlphaBlend(Handle, x, y, nWidth, nHeight, hMemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, bfn) ' Display BITMAP
 				End If
 				DeleteDC(hMemDC) ' Delete Dc
-
+				
 			End If
 		#elseif defined(__USE_GTK__)
 			Dim As cairo_surface_t Ptr image_surface

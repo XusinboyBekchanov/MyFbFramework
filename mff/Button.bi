@@ -110,11 +110,11 @@ Namespace My.Sys.Forms
 		Dim nTextHeight As Long = 0
 		Dim nIdealW As Long = 0
 		Dim nIdealH As Long = 0
-		Dim rcButton As Rect
-		Dim rcIconLeft As Rect
-		Dim rcText As Rect    'the SPAN between the icons, not the ink
-		Dim rcIconRight As Rect
-		Dim rcVisual As Rect
+		Dim rcButton As My.Sys.Drawing.Rect
+		Dim rcIconLeft As My.Sys.Drawing.Rect
+		Dim rcText As My.Sys.Drawing.Rect    'the SPAN between the icons, not the ink
+		Dim rcIconRight As My.Sys.Drawing.Rect
+		Dim rcVisual As My.Sys.Drawing.Rect
 		Dim bLayoutDirty As Boolean = True
 		'--- Colors (COLORREF layout on every platform). FOUR MOODS, precedence
 		'    disabled > pressed > hot > idle, with a real PRESSED set - a
@@ -186,7 +186,7 @@ Namespace My.Sys.Forms
 		#endif
 		Declare Function ResolveGlyphFontName() As WString Ptr
 		Declare Function Ellipsize(ByRef sText As WString, ByVal nMaxWidth As Long) As WString Ptr
-		Declare Sub DrawGlyph(ByRef rcCell As Rect, ByRef sGlyph As WString, ByVal clrIcon As ULong)
+		Declare Sub DrawGlyph(ByRef rcCell As My.Sys.Drawing.Rect, ByRef sGlyph As WString, ByVal clrIcon As ULong)
 		Declare Sub Draw()
 		'--- Interaction ---
 		Declare Sub CancelPress()

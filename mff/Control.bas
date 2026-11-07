@@ -1676,11 +1676,11 @@ Namespace My.Sys.Forms
 							'OnShow waits then out of main, which ends with End: fb_End would stop the program in the wait)
 						ElseIf FVisible Then
 							This.Show
-				Else
+						Else
 							'A hidden control (Visible = False before the element was made, pnlIntellisense of EditControl)
 							'is not shown: its new element is hidden
 							SetVisible(FHandle, False)
-				End If
+						End If
 						PaintCanvas
 					#endif
 				Else
@@ -2258,7 +2258,7 @@ Namespace My.Sys.Forms
 					'rectangles by the scale they were realized with (physXdpi/physYdpi),
 					'so the design bounds cannot be resynced from a rectangle of the
 					'old scale while the scale members are of the new monitor already
-' Rescaling the tree rebuilds the font of every control and moves it: like in
+					' Rescaling the tree rebuilds the font of every control and moves it: like in
 					'a layout pass only the outermost call repaints the container. The moves are
 					'not deferred: the tree spans many parents, and a nested pass must read the
 					'real bounds of the controls rescaled before it
@@ -4142,7 +4142,7 @@ Namespace My.Sys.Forms
 				End If
 			#endif
 		End Sub
-
+		
 		'Self + every descendant repaints. The one call a host needs after a
 		'GLOBAL theme flip (App.DarkMode = ...): every control resolves its
 		'colours at paint time, so a full-tree repaint re-themes everything -

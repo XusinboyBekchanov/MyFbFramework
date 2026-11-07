@@ -84,16 +84,16 @@
 				.Name = "lblHead" & i
 				.Text = sHead(i)
 				.SetBounds 140, 18 + i * 130, 380, 20
-				.Designer = @This
-				.Parent = @This
-			End With
+			.Designer = @This
+			.Parent = @This
+		End With
 			With lblNote(i)
 				.Name = "lblNote" & i
 				.Text = sNote(i)
 				.SetBounds 140, 42 + i * 130, 380, 56
-				.Designer = @This
-				.Parent = @This
-			End With
+			.Designer = @This
+			.Parent = @This
+		End With
 			With btnPick(i)
 				.Name = "btnPick" & i
 				.Text = "Pick colour..."

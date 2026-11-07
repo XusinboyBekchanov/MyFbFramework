@@ -101,13 +101,13 @@ Namespace My.Sys.Forms
 		Dim m_ShowAlpha As Boolean = True
 		Dim m_BodySel As Long = -1        'cell of the current tab's body, re-derived
 		Dim m_ScrollTop As Long = 0       'first visible row of the Web list
-	'--- Modal-free state ---
-	Dim m_IsDragging As Boolean = False
-	Dim m_HotTab As Long = -1
-	Dim m_HotSwatch As Long = -1
-	Dim m_HotField As Long = -1
-	Dim m_OKHot As Boolean = False
-	Dim m_OKPressed As Boolean = False
+		'--- Modal-free state ---
+		Dim m_IsDragging As Boolean = False
+		Dim m_HotTab As Long = -1
+		Dim m_HotSwatch As Long = -1
+		Dim m_HotField As Long = -1
+		Dim m_OKHot As Boolean = False
+		Dim m_OKPressed As Boolean = False
 	'--- Corner radius (LOGICAL pixels) of the swatches and buttons; -1 follows
 	'the framework default (g_DefaultCornerRadius) ---
 	Dim m_Curvature As Long = -1
@@ -168,6 +168,8 @@ Namespace My.Sys.Forms
 
 		#ifdef __USE_WINAPI__
 			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		#elseif defined(__USE_GTK__)
 			Dim As PangoContext Ptr pcontext
@@ -282,7 +284,7 @@ Namespace My.Sys.Forms
 
 	'Standalone modal helper: runs the picker in a fixed-dialog Form and returns
 	'TRUE with the chosen colour (and alpha) written back, FALSE if cancelled.
-	Declare Function ShowColorPicker(ByRef InitialColor As ULong, ByRef OutColor As ULong, ByRef OutAlpha As UByte, ByVal ShowAlphaCh As Boolean = True, ByRef Caption As UString = "Select color") As Boolean
+	Declare Function ShowColorPicker(ByRef InitialColor As ULong, ByRef OutColor As ULong, ByRef OutAlpha As UByte, ByVal ShowAlphaCh As Boolean = True, ByRef Caption As WString = "Select color") As Boolean
 End Namespace
 
 #ifndef __USE_MAKE__

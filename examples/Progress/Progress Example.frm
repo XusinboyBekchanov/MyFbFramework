@@ -19,7 +19,7 @@
 	' (bottom-up, reversed top-down, indeterminate blocks). A demo clock drives
 	' the determinate rows toward 100 and wraps; the Ps host-paint row and the
 	' tooltip doors have no MFF counterpart yet and are noted.
-
+	
 	Type Form1Type Extends Form
 		Declare Constructor
 		Declare Static Sub tmrDemo_Timer_(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent)
@@ -27,14 +27,14 @@
 		Declare Static Sub chkDark_Check_(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)
 		Declare Sub chkDark_Check(ByRef Sender As CheckBox)
 		Declare Sub LogLine(ByVal sMsg As String)
-
+		
 		Dim As Progress bar(0 To 11)   'the twelve horizontal variants
 		Dim As Progress vbar(0 To 4)   'the vertical strip
 		Dim As TextBox txtLog
 		Dim As CheckBox chkDark        'dark mode toggle (every example ships one)
 		Dim As TimerComponent tmrDemo  'the demo's own clock
 	End Type
-
+	
 	Constructor Form1Type
 		#if _MAIN_FILE_ = __FILE__
 			With App
@@ -58,10 +58,10 @@
 			.Multiline = True
 			.ReadOnly = True
 			.ScrollBars = ScrollBarsType.Vertical
-			.Designer = @This
-			.Parent = @This
-		End With
-
+		.Designer = @This
+		.Parent = @This
+	End With
+	
 		' chkDark - the dark mode toggle: one flip re-themes the whole tree
 		With chkDark
 			.Name = "chkDark"
@@ -189,9 +189,9 @@
 		App.DarkMode = Sender.Checked
 		This.RefreshAll
 	End Sub
-
+	
 	Dim Shared Form1 As Form1Type
-
+	
 	#if _MAIN_FILE_ = __FILE__
 		Form1.MainForm = True
 		Form1.Show

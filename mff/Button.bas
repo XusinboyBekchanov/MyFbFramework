@@ -502,7 +502,7 @@
 		"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 	End Sub
 
-Private Sub Button.DrawGlyph(ByRef rcCell As Rect, ByRef sGlyph As WString, ByVal clrIcon As ULong)
+Private Sub Button.DrawGlyph(ByRef rcCell As My.Sys.Drawing.Rect, ByRef sGlyph As WString, ByVal clrIcon As ULong)
 		'Centred in the declared cell; a glyph too large for the cell clips
 		If Len(sGlyph) = 0 Then Exit Sub
 		Dim cellW As Long = rcCell.Right - rcCell.Left
@@ -695,7 +695,59 @@ Private Sub Button.DrawGlyph(ByRef rcCell As Rect, ByRef sGlyph As WString, ByVa
 					Exit Sub
 				End If
 			End Select
-		#elseif defined(__USE_GTK__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_GTK__)
+			'GTK has no Msg: the events of the layout come in Message.Event
+			'(drawing goes through OnDraw)
+			Dim As GdkEvent Ptr e = Message.Event
+			If e <> 0 Then
+				Dim As Long nEvType, nBtn, nKey
+				Dim As Double ex, ey
+				#ifdef __USE_GTK4__
+					nEvType = gtk4compat_event_type(e)
+					gtk4compat_event_get_widget_position(widget, e, @ex, @ey)
+					If nEvType = GDK_BUTTON_PRESS OrElse nEvType = GDK_BUTTON_RELEASE Then nBtn = gdk_button_event_get_button(e)
+					If nEvType = GDK_KEY_PRESS Then nKey = gdk_key_event_get_keyval(e)
+				#else
+					nEvType = e->type
+					Select Case nEvType
+					Case GDK_BUTTON_PRESS, GDK_BUTTON_RELEASE
+						nBtn = e->button.button: ex = e->button.x: ey = e->button.y
+					Case GDK_MOTION_NOTIFY
+						ex = e->motion.x: ey = e->motion.y
+					Case GDK_KEY_PRESS
+						nKey = e->key.keyval
+					End Select
+				#endif
+				Select Case nEvType
+				Case GDK_BUTTON_PRESS
+					If nBtn = 1 AndAlso This.Enabled Then
+						isPressed = True
+						isHot = True
+						gtk_widget_grab_focus(widget)
+						Refresh
+					End If
+				Case GDK_MOTION_NOTIFY
+					Dim bInside As Boolean = ex >= 0 AndAlso ey >= 0 AndAlso ex < This.ClientWidth AndAlso ey < This.ClientHeight
+					If bInside <> isHot Then
+						isHot = bInside
+						Refresh
+					End If
+				Case GDK_BUTTON_RELEASE
+					If nBtn = 1 Then
+						Dim bWasPressed As Boolean = isPressed
+						CancelPress
+						If bWasPressed AndAlso isHot Then FireClick
+					End If
+				Case GDK_LEAVE_NOTIFY
+					If isPressed = False Then ClearHot
+				Case GDK_KEY_PRESS
+					If This.Enabled AndAlso (nKey = GDK_KEY_Return OrElse nKey = GDK_KEY_KP_Enter OrElse nKey = GDK_KEY_space) Then
+						FireClick
+						Message.Result = True
+					End If
+				End Select
+			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 			Select Case Message.Msg
 			Case CM_PAINT
 				'The base class has set Canvas.Handle to this control's platform
@@ -808,6 +860,7 @@ Private Sub Button.DrawGlyph(ByRef rcCell As Rect, ByRef sGlyph As WString, ByVa
 				GDK_FOCUS_CHANGE_MASK Or _
 				GDK_BUTTON_PRESS_MASK Or _
 				GDK_BUTTON_RELEASE_MASK Or _
+				GDK_LEAVE_NOTIFY_MASK Or _
 				GDK_POINTER_MOTION_MASK)
 				#ifdef __USE_GTK4__
 					mff_widget_set_size_allocate_func(widget, @OnSizeAllocate, @This)
