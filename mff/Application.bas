@@ -61,6 +61,15 @@ Namespace My
 		#endif
 		SetDarkMode Value, False
 	End Property
+
+	Private Property Application.DefaultCornerRadius As Long
+		'The knob lives on the Forms-level shared global every rounded control reads
+		Return My.Sys.Forms.GetDefaultCornerRadius()
+	End Property
+
+	Private Property Application.DefaultCornerRadius(Value As Long)
+		My.Sys.Forms.SetDefaultCornerRadius(Value)
+	End Property
 	
 	#ifndef APP_TITLE
 		#define APP_TITLE ""

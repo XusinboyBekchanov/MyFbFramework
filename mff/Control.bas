@@ -823,6 +823,67 @@ Namespace My.Sys.Forms
 			#endif
 		#endif
 		
+		'The colour the parent shows behind us: the parent's BackColor when it
+		'set one, otherwise the theme's form background (dark = darkBkColor,
+		'light = COLOR_BTNFACE). The corner band of every rounded owner-drawn
+		'chrome fills with this so the rounding reads against the container.
+				#ifndef Control_EffectiveParentBack_Off
+					Private Function Control.EffectiveParentBack() As ULong
+						'The nearest ancestor with an EXPLICIT colour paints the
+						'surface behind us; auto containers in between only pass it
+						'through, so walk over them before trusting any fallback
+						Dim pAnc As Control Ptr = Cast(Control Ptr, FParent)
+						#ifdef __USE_WINAPI__
+							Dim bDark As Boolean = g_darkModeSupported AndAlso g_darkModeEnabled
+							'A dark auto form PAINTS darkBkColor even though its stored
+							'FBackColor still reads the light F0F0F0 - follow the paint
+						If bDark Then
+							While pAnc <> 0
+								If pAnc->FDefaultBackColor <> pAnc->FBackColor Then Return pAnc->FBackColor
+								pAnc = pAnc->Parent
+							Wend
+							Return darkBkColor
+						End If
+						#endif
+						While pAnc <> 0
+							Dim clr As ULong = pAnc->BackColor
+							If clr <> Cast(ULong, -1) Then Return clr
+							pAnc = pAnc->Parent
+						Wend
+						#ifdef __USE_WINAPI__
+							Return GetSysColor(COLOR_BTNFACE)
+						#else
+							Return RGB(240, 240, 240)
+						#endif
+					End Function
+				#endif
+
+				#ifndef Control_ResolveCornerRadius_Off
+					Private Function Control.ResolveCornerRadius(ByVal nOwn As Long, ByVal nBuiltIn As Long) As Long
+						'An explicit own value wins; the -1 sentinel follows the
+						'framework-wide default; with neither set, the control keeps
+						'its built-in default. All three speak LOGICAL pixels.
+						If nOwn >= 0 Then Return nOwn
+						If g_DefaultCornerRadius >= 0 Then Return g_DefaultCornerRadius
+						Return nBuiltIn
+					End Function
+				#endif
+
+			#ifndef Control_SetDefaultCornerRadius_Off
+				Sub SetDefaultCornerRadius(ByVal nRadius As Long)
+					'One knob for every owner-drawn chrome in the app: a LOGICAL-pixel
+					'RADIUS each rounded control follows unless it overrides its own.
+					'-1 puts every control back on its built-in default.
+					g_DefaultCornerRadius = IIf(nRadius < -1, -1, nRadius)
+				End Sub
+			#endif
+
+			#ifndef Control_GetDefaultCornerRadius_Off
+				Function GetDefaultCornerRadius() As Long
+					Return g_DefaultCornerRadius
+				End Function
+			#endif
+		
 		#ifndef Control_StyleExists_Off
 			Private Function Control.StyleExists(iStyle As Integer) As Boolean
 				Return (Style And iStyle) = iStyle
@@ -1280,8 +1341,14 @@ Namespace My.Sys.Forms
 					'rectangle by it (CreateWnd of the fixup below sets the adopted one)
 					physXdpi = xdpi
 					physYdpi = ydpi
+					'The window class: FClassName unless the control registered its own
+					'under another name (a ClassName that is a Win32 predefined class,
+					'like the owner-drawn Button)
+					Dim As WString Ptr pWinClass = FClassName
+					If WGet(FWindowClassName) > "" Then pWinClass = FWindowClassName
+					If InStr(*FClassAncestor, "AtlAxWin") Then pWinClass = FClassAncestor
 					FHandle = CreateWindowExW(dExStyle, _
-					IIf(InStr(*FClassAncestor, "AtlAxWin"), FClassAncestor, FClassName), _
+					pWinClass, _
 					IIf(CInt(*FClassName = "WebBrowser") AndAlso CInt(FParent <> 0) AndAlso CInt(FParent->FDesignMode), 0, IIf(InStr(*FClassAncestor, "AtlAxWin"), FProgID, FText)), _
 					dStyle, _
 					nLeft, _
@@ -1609,11 +1676,11 @@ Namespace My.Sys.Forms
 							'OnShow waits then out of main, which ends with End: fb_End would stop the program in the wait)
 						ElseIf FVisible Then
 							This.Show
-						Else
+				Else
 							'A hidden control (Visible = False before the element was made, pnlIntellisense of EditControl)
 							'is not shown: its new element is hidden
 							SetVisible(FHandle, False)
-						End If
+				End If
 						PaintCanvas
 					#endif
 				Else
@@ -2191,7 +2258,7 @@ Namespace My.Sys.Forms
 					'rectangles by the scale they were realized with (physXdpi/physYdpi),
 					'so the design bounds cannot be resynced from a rectangle of the
 					'old scale while the scale members are of the new monitor already
-					' Rescaling the tree rebuilds the font of every control and moves it: like in
+' Rescaling the tree rebuilds the font of every control and moves it: like in
 					'a layout pass only the outermost call repaints the container. The moves are
 					'not deferred: the tree spans many parents, and a nested pass must read the
 					'real bounds of the controls rescaled before it
@@ -4075,7 +4142,24 @@ Namespace My.Sys.Forms
 				End If
 			#endif
 		End Sub
-		
+
+		'Self + every descendant repaints. The one call a host needs after a
+		'GLOBAL theme flip (App.DarkMode = ...): every control resolves its
+		'colours at paint time, so a full-tree repaint re-themes everything -
+		'owner-drawn chrome and native WM_CTLCOLOR surfaces alike. Repaint
+		'covers the children on Windows (RDW_ALLCHILDREN) but not on GTK, and
+		'a host should not have to know that.
+		Private Sub Control.RefreshAll
+			#ifdef __USE_GTK__
+				Repaint
+				For i As Integer = 0 To ControlCount - 1
+					Controls[i]->RefreshAll()
+				Next i
+			#else
+				Repaint
+			#endif
+		End Sub
+
 
 		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 			Private Sub Control.PaintCanvas()
@@ -4435,6 +4519,7 @@ Namespace My.Sys.Forms
 		Private Constructor Control
 			WLet(FClassName, "Control")
 			WLet(FClassAncestor, "")
+			WLet(FWindowClassName, "")
 			Text = ""
 			FLeft = 0
 			FTop = 0
@@ -4500,6 +4585,7 @@ Namespace My.Sys.Forms
 			FreeWnd
 			If FText Then _Deallocate(FText)
 			If FProgID Then _Deallocate(FProgID)
+			If FWindowClassName Then _Deallocate(FWindowClassName)
 			If FHint Then _Deallocate(FHint)
 			'			Dim As Integer i
 			'			For i = 0 To ControlCount -1

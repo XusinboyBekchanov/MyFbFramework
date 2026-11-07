@@ -2310,7 +2310,9 @@ Namespace My.Sys.Drawing
 		#elseif defined(__USE_WINAPI__)
 			If hGdipPath = 0 Then GdipCreatePath(0, @hGdipPath)
 			GdipStartPathFigure(hGdipPath)
-			GdipAddPathLineI(hGdipPath, x, y, x, y)
+			'The FLOAT variants: the I variants would truncate a fractional
+			'coordinate (a half-pixel outset) back to the integer grid
+			GdipAddPathLine(hGdipPath, x, y, x, y)
 		#endif
 	End Sub
 
@@ -2323,9 +2325,9 @@ Namespace My.Sys.Drawing
 			If hGdipPath = 0 Then GdipCreatePath(0, @hGdipPath)
 			Dim pLast As GpPointF
 			If GdipGetPathLastPoint(hGdipPath, @pLast) = 0 Then
-				GdipAddPathLineI(hGdipPath, pLast.x, pLast.y, x, y)
+				GdipAddPathLine(hGdipPath, pLast.x, pLast.y, x, y)
 			Else
-				GdipAddPathLineI(hGdipPath, x, y, x, y)
+				GdipAddPathLine(hGdipPath, x, y, x, y)
 			End If
 		#endif
 	End Sub
@@ -2394,11 +2396,27 @@ Namespace My.Sys.Drawing
 		If r > rMax Then r = rMax
 		If r < 0 Then r = 0
 		If r = 0 Then
-			PathMoveTo(x, y)
-			PathLineTo(x + W, y)
-			PathLineTo(x + W, y + H)
-			PathLineTo(x, y + H)
-			PathClose
+			#ifdef __USE_WINAPI__
+				'GDI+ maps path coordinates to PIXEL CENTRES, so a polygon
+				'stretched exactly over (x, y)-(x+W, y+H) runs its left and top
+				'edge through the centre of the first pixel row/column and
+				'half-covers it - blended with whatever the target bitmap held,
+				'that is the 1px grey line every owner-drawn control showed
+				'along its top and left edge. Outset by half a pixel so the fill
+				'covers the requested pixel rect EXACTLY (cairo/mcairo already
+				'speak the boundary convention and need no shift).
+				PathMoveTo(x - 0.5, y - 0.5)
+				PathLineTo(x + W - 0.5, y - 0.5)
+				PathLineTo(x + W - 0.5, y + H - 0.5)
+				PathLineTo(x - 0.5, y + H - 0.5)
+				PathClose
+			#else
+				PathMoveTo(x, y)
+				PathLineTo(x + W, y)
+				PathLineTo(x + W, y + H)
+				PathLineTo(x, y + H)
+				PathClose
+			#endif
 		Else
 			PathArc(x, y, r * 2, r * 2, 180, 90)
 			PathArc(x + W - r * 2, y, r * 2, r * 2, 270, 90)
@@ -2571,13 +2589,18 @@ Namespace My.Sys.Drawing
 		#endif
 	End Sub
 
-	Private Sub Canvas.StrokePath(PathColor As ULong, PenWidth As Single = 1, Opacity As Long = 100)
+	Private Sub Canvas.StrokePath(PathColor As ULong, PenWidth As Single = 1, Opacity As Long = 100, ByVal RoundCap As Boolean = False)
 		#ifdef __USE_CAIRO__
 			cairo_set_source_rgba(Handle, GetRedD(PathColor), GetGreenD(PathColor), GetBlueD(PathColor), Opacity / 100)
 			cairo_set_line_width(Handle, PenWidth)
+			'Set the round cap and put it back: the cap is canvas state, and the
+			'next stroke on this canvas expects the default butt
+			If RoundCap Then cairo_set_line_cap(Handle, CAIRO_LINE_CAP_ROUND)
 			cairo_stroke_preserve(Handle)
+			If RoundCap Then cairo_set_line_cap(Handle, CAIRO_LINE_CAP_BUTT)
 		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
-			'Same preserve trick as FillPath (the mcairo shim has no stroke_preserve)
+			'Same preserve trick as FillPath (the mcairo shim has no stroke_preserve);
+			'the shim has no cap state, so RoundCap stays flat there
 			Dim pKeep As Any Ptr = mcairo_copy_path(Handle)
 			mcairo_set_source_rgba(Handle, GetRedD(PathColor), GetGreenD(PathColor), GetBlueD(PathColor), Opacity / 100)
 			mcairo_set_line_width(Handle, PenWidth)
@@ -2590,6 +2613,7 @@ Namespace My.Sys.Drawing
 			If hGdipPath = 0 OrElse GdipGraphics = 0 Then Exit Sub
 			Dim hPen As GpPen Ptr = 0
 			GdipCreatePen1(PathColor, PenWidth, UnitPixel, @hPen)
+			If RoundCap Then GdipSetPenLineCap197819(hPen, LineCapRound, LineCapRound, DashCapFlat)
 			GdipDrawPath(GdipGraphics, hPen, hGdipPath)
 			GdipDeletePen(hPen)
 		#endif
@@ -2920,18 +2944,33 @@ Namespace My.Sys.Drawing
 				SelectObject(hMemDC, Image) ' Select BITMAP in New Dc
 				Dim As BITMAP Bitmap01
 				GetObject(Image, SizeOf(Bitmap01), @Bitmap01)
-				
-				Dim As BLENDFUNCTION bfn ' Struct With info For AlphaBlend
-				bfn.BlendOp = AC_SRC_OVER
-				bfn.BlendFlags = 0
-				bfn.SourceConstantAlpha = iSourceAlpha
-				bfn.AlphaFormat = AC_SRC_ALPHA
+
 				If nWidth = -1 Then nWidth = ScaleX(Bitmap01.bmWidth)
 				If nHeight = -1 Then nHeight = ScaleY(Bitmap01.bmHeight)
-				SetStretchBltMode(Handle, HALFTONE)
-				AlphaBlend(Handle, x, y, nWidth, nHeight, hMemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, bfn) ' Display BITMAP
+				Dim As Integer dstW = CInt(nWidth + 0.5), dstH = CInt(nHeight + 0.5)
+				If Bitmap01.bmBitsPixel <> 32 AndAlso iSourceAlpha = 255 Then
+					'No alpha channel to blend: plain BitBlt/StretchBlt, visibly
+					'faster than AlphaBlend on big images (HALFTONE only when
+					'stretching, BitBlt skips the stretch machinery at 1:1)
+					If dstW = Bitmap01.bmWidth AndAlso dstH = Bitmap01.bmHeight Then
+						BitBlt(Handle, CInt(x + 0.5), CInt(y + 0.5), dstW, dstH, hMemDC, 0, 0, SRCCOPY)
+					Else
+						SetStretchBltMode(Handle, HALFTONE)
+						StretchBlt(Handle, CInt(x + 0.5), CInt(y + 0.5), dstW, dstH, hMemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, SRCCOPY)
+					End If
+				Else
+					Dim As BLENDFUNCTION bfn ' Struct With info For AlphaBlend
+					bfn.BlendOp = AC_SRC_OVER
+					bfn.BlendFlags = 0
+					bfn.SourceConstantAlpha = iSourceAlpha
+					bfn.AlphaFormat = AC_SRC_ALPHA
+					If dstW <> Bitmap01.bmWidth OrElse dstH <> Bitmap01.bmHeight Then
+						SetStretchBltMode(Handle, HALFTONE)
+					End If
+					AlphaBlend(Handle, x, y, nWidth, nHeight, hMemDC, 0, 0, Bitmap01.bmWidth, Bitmap01.bmHeight, bfn) ' Display BITMAP
+				End If
 				DeleteDC(hMemDC) ' Delete Dc
-				
+
 			End If
 		#elseif defined(__USE_GTK__)
 			Dim As cairo_surface_t Ptr image_surface
@@ -3303,7 +3342,7 @@ Namespace My.Sys.Drawing
 		If Not HandleSetted Then ReleaseDevice Handle_
 	End Sub
 	
-	Private Sub Canvas.CopyRect(Dest As Rect, Canvas As Canvas, Source As Rect)
+	Private Sub Canvas.CopyRect(Dest As Rect, SrcCvs As Canvas, Source As Rect)
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		If Not HandleSetted Then ReleaseDevice Handle_

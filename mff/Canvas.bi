@@ -288,7 +288,9 @@ Namespace My.Sys.Drawing
 		Declare Sub PathDiscard()
 		Declare Sub FillPath(PathColor As ULong, Opacity As Long = 100)
 		Declare Sub FillPathGradient(PathColor As ULong, GradientColor As ULong, Opacity As Long = 100, GradientOpacity As Long = 10, RLeft As Double = 0, RTop As Double = 0, RWidth As Double = 0, RHeight As Double = 0, Angle As Single = 90)
-		Declare Sub StrokePath(PathColor As ULong, PenWidth As Single = 1, Opacity As Long = 100)
+		'RoundCap: rounded stroke ends (GDI+ LineCapRound / cairo LINE_CAP_ROUND);
+		'the WASM/Android shim keeps flat ends
+		Declare Sub StrokePath(PathColor As ULong, PenWidth As Single = 1, Opacity As Long = 100, ByVal RoundCap As Boolean = False)
 		'Strokes a flat polyline in one call (Windows: GdipDrawLinesI) - much
 		'faster than building a path for line charts with many points
 		Declare Sub StrokePolyline(ByVal Points As Any Ptr, ByVal Count As Long, PathColor As ULong, PenWidth As Single = 1, Opacity As Long = 100)
@@ -317,7 +319,7 @@ Namespace My.Sys.Drawing
 		Declare Sub Draw(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType)
 		Declare Sub Draw(x As Double, y As Double, ByRef Image As My.Sys.Drawing.Icon)
 		Declare Sub DrawStretch(x As Double, y As Double, nWidth As Integer, nHeight As Integer, Image As Any Ptr)
-		Declare Sub CopyRect(Dest As Rect, Canvas As Canvas, Source As Rect)
+		Declare Sub CopyRect(Dest As Rect, SrcCvs As Canvas, Source As Rect)
 		Declare Sub FloodFill(x As Double, y As Double, FillColorBK As Integer = -1, FillStyleBK As FillStyle)
 		Declare Sub FillRect(R As Rect, FillColorBK As Integer = -1)
 		Declare Sub DrawFocusRect(R As Rect)
