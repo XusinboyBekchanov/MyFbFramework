@@ -104,16 +104,16 @@ Namespace My.Sys.Forms
 		Dim m_ShowAlpha As Boolean = True
 		Dim m_BodySel As Long = -1        'cell of the current tab's body, re-derived
 		Dim m_ScrollTop As Long = 0       'first visible row of the Web list
-	'--- Modal-free state ---
-	Dim m_IsDragging As Boolean = False
-	Dim m_HotTab As Long = -1
-	Dim m_HotSwatch As Long = -1
-	Dim m_HotField As Long = -1
-	Dim m_OKHot As Boolean = False
-	Dim m_OKPressed As Boolean = False
-	'--- Corner radius (LOGICAL pixels) of the swatches and buttons; -1 follows
-	'the framework default (g_DefaultCornerRadius) ---
-	Dim m_Curvature As Long = -1
+		'--- Modal-free state ---
+		Dim m_IsDragging As Boolean = False
+		Dim m_HotTab As Long = -1
+		Dim m_HotSwatch As Long = -1
+		Dim m_HotField As Long = -1
+		Dim m_OKHot As Boolean = False
+		Dim m_OKPressed As Boolean = False
+		'--- Corner radius (LOGICAL pixels) of the swatches and buttons; -1 follows
+		'the framework default (g_DefaultCornerRadius) ---
+		Dim m_Curvature As Long = -1
 		'--- The one edit buffer (only the focused field can be edited) ---
 		Dim m_FocusField As Long = -1
 		Dim m_Edit As String
@@ -182,6 +182,8 @@ Namespace My.Sys.Forms
 
 		#ifdef __USE_WINAPI__
 			Declare Static Sub WndProc(ByRef Message As Message)
+			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		#elseif defined(__USE_GTK__)
 			Dim As PangoContext Ptr pcontext
