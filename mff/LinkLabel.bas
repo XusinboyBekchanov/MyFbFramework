@@ -107,7 +107,7 @@ Namespace My.Sys.Forms
 				Dim As UString sLink = IIf(pWide, *pWide, "")
 				If pWide Then WDeAllocate(pWide)
 				If OnLinkClicked Then OnLinkClicked(*Designer, This, Message.wParam, sLink, Action)
-				If Action = 1 AndAlso sLink <> "" Then OpenURL(ToUtf8(sLink))
+				If Action = 1 AndAlso sLink <> "" Then mffOpenURL(ToUtf8(sLink))
 				Message.Handled = True
 			End If
 		#endif
