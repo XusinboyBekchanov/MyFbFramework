@@ -116,6 +116,10 @@ Namespace My.Sys.Forms
 		Declare Sub UpdateListHeight
 		
 	Public:
+		#ifdef __USE_APPLE__
+			'Before its view is made: a list of rows in the place of the pop-up button (a list which stays open under the caret)
+			Declare Sub UseListView()
+		#endif
 		#ifdef __USE_GTK__
 			'Pointer to native list storage structure.
 			ListStore As GtkListStore Ptr

@@ -52,7 +52,7 @@ Namespace My.Sys.ComponentModel
 		Declare Sub FreeWidget()
 		Declare Virtual Sub Move(cLeft As Integer, cTop As Integer, cWidth As Integer, cHeight As Integer)
 	Public:
-		#ifdef __USE_JNI__
+		#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'Android: the title bar of the designed form (the designer of the IDE) is above its view like the one of a
 			'window of Windows: the view is lower by its height (FormDesignFrame draws it)
 			Declare Function DesignCaptionHeight() As Integer

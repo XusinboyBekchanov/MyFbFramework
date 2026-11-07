@@ -243,7 +243,7 @@ Namespace My.Sys.ComponentModel
 	#endif
 	
 	#ifndef Move_Off
-		#ifdef __USE_JNI__
+		#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Private Function Component.DesignCaptionHeight() As Integer
 				If FDesignMode AndAlso ClassName = "Form" Then Return 28
 				Return 0
@@ -410,7 +410,7 @@ Namespace My.Sys.ComponentModel
 			#elseif defined(__USE_APPLE__)
 				'The bounds are the ones of Move like Android (the host reports a resized window with mffOnResize)
 				FLeft = iLeft: FTop = iTop: FWidth = iWidth: FHeight = iHeight
-				If FHandle Then mffViewSetBounds(FHandle, FLeft, FTop, FWidth, FHeight)
+				If FHandle Then mffViewSetBounds(FHandle, FLeft, FTop + DesignCaptionHeight, FWidth, FHeight)
 			#endif
 		End Sub
 	#endif

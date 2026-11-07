@@ -53,7 +53,9 @@ Namespace My.Sys.Forms
 		Base.Text = Value
 		#ifdef __USE_GTK__
 			gtk_label_set_markup_with_mnemonic(GTK_LABEL(widget), ToUtf8(Replace(Value, "&", "_")))
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+		#elseif defined(__USE_APPLE__)
+			If FHandle Then mffLinkSetMarkup(FHandle, ToUtf8(Value))
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 			If FHandle Then SetInnerHTML(FHandle, ToUtf8(Value))
 		#endif
 	End Property
@@ -75,6 +77,8 @@ Namespace My.Sys.Forms
 				With QLinkLabel(Sender.Child)
 					#ifdef __USE_WASM__
 						SetLinkEvent(.FHandle)
+					#elseif defined(__USE_APPLE__)
+						If .FText Then mffLinkSetMarkup(.FHandle, ToUtf8(*.FText))
 					#else
 						If .FText Then SetInnerHTML(.FHandle, ToUtf8(*.FText))
 					#endif
@@ -95,6 +99,18 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub LinkLabel.ProcessMessage(ByRef Message As Message)
+		#ifdef __USE_APPLE__
+			'A link was clicked: wParam is its index, the host keeps its address
+			If Message.Msg = CM_CHANGE Then
+				Dim As Integer Action = 1
+				Dim As WString Ptr pWide = FromUtf8(Cast(ZString Ptr, mffLinkClicked()))
+				Dim As UString sLink = IIf(pWide, *pWide, "")
+				If pWide Then WDeAllocate(pWide)
+				If OnLinkClicked Then OnLinkClicked(*Designer, This, Message.wParam, sLink, Action)
+				If Action = 1 AndAlso sLink <> "" Then OpenURL(ToUtf8(sLink))
+				Message.Handled = True
+			End If
+		#endif
 		#ifdef __USE_WASM__
 			If Message.Msg = CM_CHANGE Then
 				Dim As Integer Action = 1, ItemIndex = GetPosition(FHandle)

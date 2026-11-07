@@ -7,6 +7,7 @@
 #   fbc -target darwin-aarch64 -gen gcc -r -d __USE_COCOA__ -i <MyFbFramework> -m Program Program.bas
 # FbcDir is the folder of the sources of fbc with the runtime of FreeBASIC built for the Mac (make rtlib),
 # ../fbc by default. The program is Program and its bundle Program.app.
+# With MFF_DEBUG=1 (fbc -g) the C code is compiled for the debugger (-g -O0), lldb finds its information in Program.dSYM.
 set -e
 SRC="$1"
 OUT="$2"
@@ -23,11 +24,15 @@ if [ ! -f "$LIB/libfbmt.a" ]; then
 fi
 sh "$DIR/../Apple/fix-c-code.sh" "$SRC"
 # The flags of fbc for the C code of -gen gcc
-clang -c -O1 -w -fno-strict-aliasing -fwrapv -fno-math-errno -fno-exceptions -fno-asynchronous-unwind-tables -funwind-tables "$SRC" -o "$OUT.o"
+OPT="-O1"
+[ -n "$MFF_DEBUG" ] && OPT="-g -O0"
+clang -c $OPT -w -fno-strict-aliasing -fwrapv -fno-math-errno -fno-exceptions -fno-asynchronous-unwind-tables -funwind-tables "$SRC" -o "$OUT.o"
 clang -c -O1 -fobjc-arc -Wall "$DIR/mffCocoa.m" -o "$OUT.mff.o"
 RT0=""
 [ -f "$LIB/fbrt0.o" ] && RT0="$LIB/fbrt0.o"
-clang -o "$OUT" $RT0 "$OUT.o" "$OUT.mff.o" -L"$LIB" -lfbmt -lpthread -lm -lncurses -framework Cocoa -framework WebKit
+clang -o "$OUT" $RT0 "$OUT.o" "$OUT.mff.o" -L"$LIB" -lfbmt -lpthread -lm -lncurses -framework Cocoa -framework WebKit -framework ApplicationServices
+rm -rf "$OUT.dSYM"
+[ -n "$MFF_DEBUG" ] && dsymutil "$OUT" -o "$OUT.dSYM"
 rm -f "$OUT.o" "$OUT.mff.o"
 
 # The bundle: a program of the Dock with its menu and its windows in front

@@ -97,6 +97,8 @@ Namespace My.Sys.Forms
 			Else
 				progress_bar_timer_id = 0
 			End If
+		#elseif defined(__USE_APPLE__)
+			If FHandle Then mffMarqueeSet(FHandle, FMarqueeOn)
 		#elseif defined(__USE_WASM__)
 			'A <progress> without a value is indeterminate
 			If FHandle Then SetAttribute(FHandle, "value", IIf(FMarqueeOn, "", "" & (FPosition - FMinValue)))
@@ -111,6 +113,11 @@ Namespace My.Sys.Forms
 			If progress_bar_timer_id <> 0 Then
 				'g_source_remove_ progress_bar_timer_id
 				progress_bar_timer_id = 0
+			End If
+		#elseif defined(__USE_APPLE__)
+			If FHandle Then
+				mffMarqueeSet(FHandle, 0)
+				mffPositionSet(FHandle, FPosition)
 			End If
 		#elseif defined(__USE_WASM__)
 			If FHandle Then SetAttribute(FHandle, "value", Str(FPosition - FMinValue))
@@ -264,6 +271,7 @@ Namespace My.Sys.Forms
 					#ifdef __USE_APPLE__
 						mffRangeSet(.FHandle, .FMinValue, .FMaxValue)
 						mffPositionSet(.FHandle, .FPosition)
+						If .FMarqueeOn Then mffMarqueeSet(.FHandle, 1)
 					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 						..SetRange(.FHandle, .FMinValue, .FMaxValue)
 						SetPosition(.FHandle, .FPosition)

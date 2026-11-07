@@ -737,9 +737,9 @@ Namespace My.Sys.Forms
 								End If
 							End If
 						#endif
-						#ifdef __USE_JNI__
-							'The buttons of Android are wider than the ones of Windows: the band of a ToolBar gets the width
-							'of its buttons (at least MinWidth), they were cut
+						#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+							'The buttons of Android and of the Mac are wider than the ones of Windows: the band of a ToolBar gets
+							'the width of its buttons (at least MinWidth), they were cut
 							If .Child->Handle <> 0 Then
 								Dim As Integer ContentWidth = ButtonsContentWidth(.Child->Handle)
 								If ContentWidth > 0 Then

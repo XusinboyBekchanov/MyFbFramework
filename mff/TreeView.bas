@@ -869,7 +869,7 @@ Namespace My.Sys.Forms
 				Next
 				Dim As WString * 3 Sign = IIf(PNode->Nodes.Count = 0, "  ", IIf(PNode->IsExpanded, WChr(&H25BC) & " ", WChr(&H25BA) & " "))
 				Dim As String Cells = Space(Level * 4) & ToUtf8(Sign & PNode->Text)
-				#ifdef __USE_JNI__
+				#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 					'The picture of the node: Chr(1) & path & Chr(1) after the indent and the sign (a picture in the text of the
 					'row of mffActivity)
 					If Images <> 0 AndAlso PNode->ImageKey <> "" Then Cells = Space(Level * 4) & ToUtf8(Sign) & Chr(1) & FindResourceFile(PNode->ImageKey) & Chr(1) & ToUtf8(PNode->Text)

@@ -2738,6 +2738,12 @@ End Namespace
 	Sub mffOnMenu Cdecl Alias "mffOnMenu"(ByVal Index As Long) Export
 		If Index >= 0 AndAlso Index <= UBound(MenuBarItems) Then MenuItemChoose MenuBarItems(Index)
 	End Sub
+
+	'Enabled and Checked of an item of the bar when its menu opens: 1 - Enabled, 2 - Checked, -1 - no item
+	Function mffMenuState Cdecl Alias "mffMenuState"(ByVal Index As Long) As Long Export
+		If Index < 0 OrElse Index > UBound(MenuBarItems) OrElse MenuBarItems(Index) = 0 Then Return -1
+		Return IIf(MenuBarItems(Index)->Enabled, 1, 0) Or IIf(MenuBarItems(Index)->Checked, 2, 0)
+	End Function
 #endif
 
 #if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)

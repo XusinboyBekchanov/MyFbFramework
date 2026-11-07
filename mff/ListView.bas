@@ -1274,7 +1274,7 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then Perform LVM_SETVIEW, Cast(WPARAM, Cast(DWORD, Value)), 0
-		#elseif defined(__USE_WASM__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 			If FHandle Then TableSetView(FHandle, WebViewName)
 		#elseif defined(__USE_JNI__)
 			'vsIcon: a grid of the pictures with the texts under them (mffActivity.createView "IconGrid", a GridView), the
@@ -1797,7 +1797,7 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
-	#ifdef __USE_WASM__
+	#if defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 		Private Function ListView.WebViewName() As String
 			Select Case FView
 			Case ViewStyle.vsIcon: Return "icon"
@@ -1850,7 +1850,7 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				With QListView(Sender.Child)
 					TableInit(.FHandle)
-					#ifdef __USE_WASM__
+					#if defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 						TableSetView(.FHandle, .WebViewName)
 					#endif
 					.UpdateColumns

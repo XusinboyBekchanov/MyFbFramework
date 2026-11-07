@@ -352,5 +352,8 @@ Sub SetDarkMode(useDark As Boolean, fixDarkScrollbar_ As Boolean)
 		setenv "MFF_DARKMODE", IIf(useDark, @"1", @"0"), 1
 		SetActivityDarkMode useDark
 		g_darkModeEnabled = useDark
+	#elseif defined(__USE_APPLE__)
+		mffAppSetDarkMode IIf(useDark, 1, 0)
+		g_darkModeEnabled = useDark
 	#endif
 End Sub

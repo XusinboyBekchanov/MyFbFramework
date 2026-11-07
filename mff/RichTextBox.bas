@@ -1373,6 +1373,9 @@ Namespace My.Sys.Forms
 	
 	Private Property RichTextBox.TextRTF(ByRef Value As WString)
 		WLet(FTextRTF, Value)
+		#ifdef __USE_APPLE__
+			If FHandle Then mffTextSetRTF(FHandle, ToUtf8(Value))
+		#endif
 		#ifdef __USE_WINAPI__
 			If FHandle Then
 				Dim As String Buffer
@@ -1899,6 +1902,18 @@ Namespace My.Sys.Forms
 		#endif
 	End Function
 	
+	#ifdef __USE_APPLE__
+		'The settings of TextBox, then TextRTF which was set before the view was made
+		Private Sub RichTextBox.HandleIsAllocated(ByRef Sender As Control)
+			TextBox.HandleIsAllocated(Sender)
+			If Sender.Child Then
+				With QRichTextBox(Sender.Child)
+					If .FTextRTF <> 0 AndAlso *.FTextRTF <> "" Then mffTextSetRTF(.FHandle, ToUtf8(*.FTextRTF))
+				End With
+			End If
+		End Sub
+	#endif
+
 	#ifdef __USE_WINAPI__
 		Private Sub RichTextBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
@@ -1982,6 +1997,9 @@ Namespace My.Sys.Forms
 			FTabStop           = True
 			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				.Multiline = True
+			#endif
+			#ifdef __USE_APPLE__
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#endif
 			#ifdef __USE_WASM__
 				'Web: a <div contenteditable> (.mffrichtext of mff.html, CREATEELEMENT of mff_lib.js) shows the formatting of

@@ -442,8 +442,13 @@ Namespace My.Sys.Forms
 			Base.SetMargins 0, 0, 0, 0
 			Exit Sub
 		#elseif defined(__USE_APPLE__)
-			'The strip of the tabs of the host is at the top or at the bottom
-			If FTabPosition = 3 Then Base.SetMargins 0, 0, 0, mffTabsStripHeight() Else Base.SetMargins 0, mffTabsStripHeight(), 0, 0
+			'The strip of the tabs of the host is at the top, at the bottom or turned at a side (mffTabsSetPosition)
+			Select Case FTabPosition
+			Case 0: Base.SetMargins mffTabsStripHeight(), 0, 0, 0
+			Case 1: Base.SetMargins 0, 0, mffTabsStripHeight(), 0
+			Case 3: Base.SetMargins 0, 0, 0, mffTabsStripHeight()
+			Case Else: Base.SetMargins 0, mffTabsStripHeight(), 0, 0
+			End Select
 			Exit Sub
 		#elseif defined(__USE_JNI__)
 			'The pages are beside the row of the tabs at its side (mffActivity.tabsSet)
@@ -645,6 +650,10 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Function TabControl.ItemHeight(Index As Integer) As Integer
+		#ifdef __USE_APPLE__
+			'A tab of the strip at the top or at the bottom is as high as the strip (a closed panel of the IDE has this height)
+			If FTabPosition <> tpLeft AndAlso FTabPosition <> tpRight AndAlso Index >= -1 Then Return mffTabsStripHeight()
+		#endif
 		#ifdef __USE_JNI__
 			'The row of the tabs has its height also without tabs
 			If Index = 0 AndAlso TabCount = 0 Then Index = -1
@@ -688,6 +697,10 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Function TabControl.ItemWidth(Index As Integer) As Integer
+		#ifdef __USE_APPLE__
+			'The turned strip at a side: a tab is as wide as the strip (a closed panel of the IDE has this width)
+			If (FTabPosition = tpLeft OrElse FTabPosition = tpRight) AndAlso Index >= -1 Then Return mffTabsStripHeight()
+		#endif
 		#ifdef __USE_JNI__
 			'The vertical tabs are turned: their width is the one of the column of the tabs, also without tabs
 			If FTabPosition = tpLeft OrElse FTabPosition = tpRight Then

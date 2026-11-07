@@ -142,7 +142,7 @@ Namespace My.Sys.Drawing
 			WLet(FResName, ResName)
 			#ifdef __USE_GTK__
 				Return Bitmap.LoadFromResourceName(ResName, ModuleHandle, cxDesired, cyDesired)
-			#elseif defined(__USE_WASM__)
+			#elseif defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 				Return Bitmap.LoadFromResourceName(ResName, ModuleHandle, cxDesired, cyDesired)
 			#elseif defined(__USE_WINAPI__)
 				If FindResource(ModuleHandle, ResName, RT_BITMAP) Then

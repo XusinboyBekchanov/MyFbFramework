@@ -19,6 +19,12 @@ static BOOL mffSilent, mffRunning, mffFormResizing;
 static int mffDblClick;
 static UIWindow *mffMainWindow;
 static UIView *mffMainFormView;
+/* The bar of the menu (mffMenuBarSet) and its lines */
+static UIView *mffMenuBar;
+static NSString *mffMenuBarItems;
+static void mffMenuBarOpen(NSUInteger start, int level, UIView *source);
+/* The dark mode set before the window was made (the settings of a program are read before App.Run) */
+static UIUserInterfaceStyle mffStyle = UIUserInterfaceStyleUnspecified;
 static NSMutableArray<UIView *> *mffFormsToShow;
 
 static void mffSetCtrl(id obj, void *ctrl) {
@@ -62,14 +68,180 @@ static UIViewController *mffTopController(void) {
 	return c;
 }
 
-/* The view of a control without a view of its own kind, the view of a form */
-@interface MffView : UIView
+/* The events of the program after the one of UIKit: UIKit gives no other touches while it handles one, a MsgBox of the
+   event (mffMessageBox waits in the run loop) could not be closed and would not be seen. A block of the run loop and not
+   of the main queue of GCD: the actions of a UIAlertController come by the main queue, which gives no other block while
+   one runs (the MsgBox or the pop-up menu of the event would wait for ever) */
+static void mffAfterEvent(void (^block)(void)) {
+	CFRunLoopPerformBlock(CFRunLoopGetMain(), kCFRunLoopCommonModes, block);
+	CFRunLoopWakeUp(CFRunLoopGetMain());
+}
+
+/* The views made before UIApplicationMain (MyFbFramework makes the forms before App.Run): their gesture recognizers
+   (of a scroll view, a table, a text view) are in no gesture environment, there is none yet. The first touch of one of
+   them ended the program (UIGestureGraphEdge: the system gesture gate got no targetNode): when the program runs they
+   are added again (mffRegisterGestures) */
+static NSHashTable *mffEarlyViews;
+
+static void mffRegisterGestures(UIView *v) {
+	for (UIGestureRecognizer *g in [v.gestureRecognizers copy]) {
+		[v removeGestureRecognizer:g];
+		[v addGestureRecognizer:g];
+	}
+	for (UIView *sub in v.subviews) mffRegisterGestures(sub);
+}
+
+/* A view taken away (a closed form, the buttons and tabs made again): it is freed a second later. UIKit keeps its
+   gesture recognizers for the next event, a freed one ends the program (UIGestureGraphEdge: no targetNode) */
+static void mffRemoveView(UIView *v) {
+	static NSMutableArray *dying;
+	if (!v) return;
+	[v removeFromSuperview];
+	if (!dying) dying = [NSMutableArray array];
+	[dying addObject:v];
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC), dispatch_get_main_queue(), ^{ [dying removeObject:v]; });
+}
+
+/* The modifiers of a key like mffShift of macOS: 1 - Shift, 2 - Ctrl (Command), 4 - Alt */
+static int mffKeyShift(UIKeyModifierFlags f) {
+	return ((f & UIKeyModifierShift) ? 1 : 0) | ((f & (UIKeyModifierCommand | UIKeyModifierControl)) ? 2 : 0) | ((f & UIKeyModifierAlternate) ? 4 : 0);
+}
+
+/* The key code of Windows (VK_*) of a key of a keyboard which gives no character (UIKeyboardHIDUsage), 0 - another key */
+static int mffKeyVirtual(UIKey *k) API_AVAILABLE(ios(13.4)) {
+	switch ((long)k.keyCode) {
+	case 0x4F: return 0x27; case 0x50: return 0x25; case 0x51: return 0x28; case 0x52: return 0x26; /* arrows */
+	case 0x4A: return 0x24; case 0x4D: return 0x23; case 0x4B: return 0x21; case 0x4E: return 0x22; /* Home End PgUp PgDn */
+	case 0x4C: return 0x2E; case 0x29: return 0x1B; /* Delete, Esc */
+	}
+	if (k.keyCode >= 0x3A && k.keyCode <= 0x45) return 0x70 + (int)(k.keyCode - 0x3A); /* F1 - F12 */
+	return 0;
+}
+
+/* A long press is the right button (the context menu of the control): a timer of the touch, not a gesture recognizer
+   (the recognizers of the views of MyFbFramework ended the program in UIGestureGraphEdge). Fired: the press was the
+   right button, the end of the touch is no click */
+static char kMffPressTimerKey, kMffPressFiredKey, kMffPressPointKey;
+
+static void mffPressCancel(UIView *v) {
+	[(NSTimer *)objc_getAssociatedObject(v, &kMffPressTimerKey) invalidate];
+	objc_setAssociatedObject(v, &kMffPressTimerKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+static void mffPressStart(UIView *v, UITouch *touch, BOOL leftWasDown) {
+	mffPressCancel(v);
+	objc_setAssociatedObject(v, &kMffPressFiredKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+	CGPoint p = [touch locationInView:v];
+	objc_setAssociatedObject(v, &kMffPressPointKey, [NSValue valueWithCGPoint:p], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+	__weak UIView *wv = v;
+	NSTimer *t = [NSTimer scheduledTimerWithTimeInterval:0.6 repeats:NO block:^(NSTimer *timer) {
+		UIView *sv = wv;
+		void *ctrl = sv ? mffGetCtrl(sv) : NULL;
+		if (!ctrl) return;
+		objc_setAssociatedObject(sv, &kMffPressFiredKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+		int x = (int)p.x, y = (int)p.y;
+		mffAfterEvent(^{
+			if (leftWasDown) mffOnMouse(ctrl, 1, 0, x, y, 0);
+			mffOnMouse(ctrl, 0, 1, x, y, 0);
+			mffOnMouse(ctrl, 1, 1, x, y, 0);
+		});
+	}];
+	objc_setAssociatedObject(v, &kMffPressTimerKey, t, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+/* The touch moved: no long press */
+static void mffPressMoved(UIView *v, UITouch *touch) {
+	CGPoint a = [objc_getAssociatedObject(v, &kMffPressPointKey) CGPointValue], b = [touch locationInView:v];
+	if (fabs(a.x - b.x) > 10 || fabs(a.y - b.y) > 10) mffPressCancel(v);
+}
+
+/* The end of the touch: YES if the long press was fired */
+static BOOL mffPressEnd(UIView *v) {
+	mffPressCancel(v);
+	BOOL fired = objc_getAssociatedObject(v, &kMffPressFiredKey) != nil;
+	objc_setAssociatedObject(v, &kMffPressFiredKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+	return fired;
+}
+
+/* The view of a control without a view of its own kind, the view of a form. With mffKeyboard (EditControl) it takes the
+   focus (the active control of the form) and the keys of the keyboard of the screen and of a keyboard of the Mac or of
+   an iPad (insertText, pressesBegan) */
+@interface MffView : UIView <UIKeyInput>
 @property (nonatomic, strong) UIImage *mffImage;
-@property (nonatomic) BOOL mffImageCenter, mffModal, mffModalDone, mffIsForm;
+@property (nonatomic) BOOL mffImageCenter, mffModal, mffModalDone, mffIsForm, mffKeyboard;
 @property (nonatomic) CGSize mffDesignSize;
 @end
 
 @implementation MffView
+/* Only the editor of the text takes the focus and the keyboard (an empty inputView of the other views, which the
+   system of the keyboard moved between them, left a gesture without its view: UIGestureGraphEdge) */
+- (BOOL)canBecomeFirstResponder { return mffGetCtrl(self) != NULL && !self.mffIsForm && self.mffKeyboard; }
+- (BOOL)becomeFirstResponder {
+	BOOL r = [super becomeFirstResponder];
+	void *ctrl = mffGetCtrl(self);
+	if (r && ctrl) mffOnKey(ctrl, 3, 0, 0);
+	return r;
+}
+- (BOOL)resignFirstResponder {
+	BOOL r = [super resignFirstResponder];
+	void *ctrl = mffGetCtrl(self);
+	if (r && ctrl) mffOnKey(ctrl, 4, 0, 0);
+	return r;
+}
+- (BOOL)hasText { return YES; }
+- (void)mffKey:(int)vk {
+	void *ctrl = mffGetCtrl(self);
+	if (!ctrl) return;
+	mffOnKey(ctrl, 0, vk, 0);
+	mffOnKey(ctrl, 1, vk, 0);
+}
+- (void)insertText:(NSString *)text {
+	void *ctrl = mffGetCtrl(self);
+	if (!ctrl) return;
+	for (NSUInteger i = 0; i < [text length]; i++) {
+		unichar c = [text characterAtIndex:i];
+		/* Enter and Tab are keys (Win32Compat gives their characters with the key like Windows) */
+		if (c == '\n' || c == '\r') [self mffKey:13];
+		else if (c == '\t') [self mffKey:9];
+		else mffOnKey(ctrl, 2, c, 0);
+	}
+}
+- (void)deleteBackward { [self mffKey:8]; }
+/* The keys without a character and the shortcuts with Ctrl or Command; the other keys come as insertText */
+- (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)e {
+	void *ctrl = mffGetCtrl(self);
+	BOOL handled = NO;
+	if (@available(iOS 13.4, *)) {
+		for (UIPress *p in presses) {
+			UIKey *k = p.key;
+			if (!k || !ctrl) continue;
+			int vk = mffKeyVirtual(k), shift = mffKeyShift(k.modifierFlags);
+			if (!vk && (shift & 2) && [k.charactersIgnoringModifiers length] == 1) {
+				unichar c = [[k.charactersIgnoringModifiers uppercaseString] characterAtIndex:0];
+				if ((c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) vk = c;
+			}
+			if (vk) { mffOnKey(ctrl, 0, vk, shift); handled = YES; }
+		}
+	}
+	if (!handled) [super pressesBegan:presses withEvent:e];
+}
+- (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)e {
+	void *ctrl = mffGetCtrl(self);
+	BOOL handled = NO;
+	if (@available(iOS 13.4, *)) {
+		for (UIPress *p in presses) {
+			UIKey *k = p.key;
+			if (!k || !ctrl) continue;
+			int vk = mffKeyVirtual(k), shift = mffKeyShift(k.modifierFlags);
+			if (!vk && (shift & 2) && [k.charactersIgnoringModifiers length] == 1) {
+				unichar c = [[k.charactersIgnoringModifiers uppercaseString] characterAtIndex:0];
+				if ((c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) vk = c;
+			}
+			if (vk) { mffOnKey(ctrl, 1, vk, shift); handled = YES; }
+		}
+	}
+	if (!handled) [super pressesEnded:presses withEvent:e];
+}
 - (instancetype)initWithFrame:(CGRect)f {
 	self = [super initWithFrame:f];
 	if (self) {
@@ -99,19 +271,37 @@ static UIViewController *mffTopController(void) {
 		mffFormResizing = NO;
 	}
 }
-- (void)touch:(NSSet *)t action:(int)action {
+- (void)touch:(NSSet *)t action:(int)action event:(UIEvent *)e {
 	void *ctrl = mffGetCtrl(self);
 	if (!ctrl) return;
 	CGPoint p = [[t anyObject] locationInView:self];
-	mffOnMouse(ctrl, action, action == 2 ? 0 : 0, (int)p.x, (int)p.y, 0);
+	/* The right button of a mouse of an iPad (iOS 13.4) */
+	int button = 0;
+	if (@available(iOS 13.4, *)) if (e.buttonMask & UIEventButtonMaskSecondary) button = 1;
+	/* After the touch, in their order (mffAfterEvent): a double click in the designer opens the code of the event */
+	int x = (int)p.x, y = (int)p.y;
+	mffAfterEvent(^{ mffOnMouse(ctrl, action, button, x, y, 0); });
 }
-- (void)touchesBegan:(NSSet *)t withEvent:(UIEvent *)e { [self touch:t action:0]; }
-- (void)touchesMoved:(NSSet *)t withEvent:(UIEvent *)e { [self touch:t action:2]; }
+- (void)touchesBegan:(NSSet *)t withEvent:(UIEvent *)e {
+	[self touch:t action:0 event:e];
+	if (!self.mffIsForm) mffPressStart(self, [t anyObject], YES);
+}
+- (void)touchesMoved:(NSSet *)t withEvent:(UIEvent *)e {
+	mffPressMoved(self, [t anyObject]);
+	[self touch:t action:2 event:e];
+}
+- (void)touchesCancelled:(NSSet *)t withEvent:(UIEvent *)e {
+	if (!mffPressEnd(self)) [self touch:t action:1 event:e];
+}
 - (void)touchesEnded:(NSSet *)t withEvent:(UIEvent *)e {
-	[self touch:t action:1];
+	/* After a long press (the context menu) the button is up already, there is no click */
+	if (mffPressEnd(self)) return;
+	[self touch:t action:1 event:e];
 	void *ctrl = mffGetCtrl(self);
 	if (ctrl && self != mffMainFormView) {
-		if ([[t anyObject] tapCount] == 2) mffOnDblClick(ctrl); else mffOnClick(ctrl);
+		BOOL dbl = [[t anyObject] tapCount] == 2;
+		/* After the touch (mffAfterEvent): the event can open a MsgBox */
+		mffAfterEvent(^{ if (dbl) mffOnDblClick(ctrl); else mffOnClick(ctrl); });
 	}
 }
 @end
@@ -148,7 +338,7 @@ static UIViewController *mffTopController(void) {
 	self.mffPos = value;
 	[self setNeedsDisplay];
 	void *ctrl = mffGetCtrl(self);
-	if (ctrl) mffOnChange(ctrl, value);
+	if (ctrl) mffAfterEvent(^{ mffOnChange(ctrl, value); });
 }
 - (void)mffPress:(CGFloat)a {
 	CGFloat off = [self mffThumbOffset];
@@ -196,25 +386,109 @@ static UIViewController *mffTopController(void) {
 }
 @end
 
+/* A TabControl: the tabs are the segments of a strip which scrolls when they are wider than it; the close buttons are
+   on the strip at the right of their tabs */
 @interface MffTabsView : MffView
+@property (nonatomic, strong) UIScrollView *scroller;
 @property (nonatomic, strong) UISegmentedControl *segments;
+@property (nonatomic, strong) NSMutableArray *closeButtons;
+/* The width of the text (and of the picture) of each tab */
+@property (nonatomic, strong) NSMutableArray<NSNumber *> *tabWidths;
 @property (nonatomic) int tabPosition;
+@end
+
+static MffTabsView *mffTabsOf(UIView *v) {
+	while (v && ![v isKindOfClass:[MffTabsView class]]) v = v.superview;
+	return (MffTabsView *)v;
+}
+
+/* The strip of the tabs: a second tap is a double click (the IDE pins its panel), without a gesture recognizer */
+@interface MffSegments : UISegmentedControl
+@end
+
+@implementation MffSegments
+- (void)touchesEnded:(NSSet<UITouch *> *)t withEvent:(UIEvent *)e {
+	[super touchesEnded:t withEvent:e];
+	if ([[t anyObject] tapCount] != 2) return;
+	void *ctrl = mffGetCtrl(mffTabsOf(self));
+	if (ctrl) mffAfterEvent(^{ mffOnDblClick(ctrl); });
+}
 @end
 
 @implementation MffTabsView
 - (void)layoutSubviews {
 	[super layoutSubviews];
 	CGRect b = self.bounds;
-	self.segments.frame = CGRectMake(0, self.tabPosition == 3 ? b.size.height - 28 : 0, b.size.width, 28);
+	/* 0 - on the left, 1 - on the right: the strip is turned clockwise, the first tab is at the top */
+	BOOL vertical = self.tabPosition == 0 || self.tabPosition == 1;
+	NSUInteger n = self.segments.numberOfSegments;
+	self.segments.transform = CGAffineTransformIdentity;
+	if (vertical) {
+		self.scroller.frame = b;
+		self.scroller.contentSize = b.size;
+		for (NSUInteger i = 0; i < n; i++) [self.segments setWidth:0 forSegmentAtIndex:i];
+		self.segments.bounds = CGRectMake(0, 0, b.size.height, 28);
+		self.segments.center = CGPointMake(self.tabPosition == 0 ? 14 : b.size.width - 14, b.size.height / 2);
+		self.segments.transform = CGAffineTransformMakeRotation(M_PI_2);
+		for (UIButton *c in self.closeButtons) c.hidden = YES;
+		return;
+	}
+	/* Each tab as wide as its text, the free width of the strip is shared */
+	CGRect strip = CGRectMake(0, self.tabPosition == 3 ? b.size.height - 28 : 0, b.size.width, 28);
+	CGFloat total = 0;
+	for (NSUInteger i = 0; i < n; i++) total += i < [self.tabWidths count] ? [self.tabWidths[i] doubleValue] : 60;
+	CGFloat more = n ? MAX(0, strip.size.width - total) / n : 0;
+	CGFloat x = 0;
+	NSMutableArray *ends = [NSMutableArray array];
+	for (NSUInteger i = 0; i < n; i++) {
+		CGFloat w = (i < [self.tabWidths count] ? [self.tabWidths[i] doubleValue] : 60) + more;
+		[self.segments setWidth:w forSegmentAtIndex:i];
+		x += w;
+		[ends addObject:@(x)];
+	}
+	self.scroller.frame = strip;
+	self.segments.frame = CGRectMake(0, 0, MAX(x, strip.size.width), 28);
+	self.scroller.contentSize = self.segments.frame.size;
+	for (UIButton *c in self.closeButtons) {
+		if (c.tag >= (NSInteger)n) { c.hidden = YES; continue; }
+		c.hidden = NO;
+		c.frame = CGRectMake([ends[c.tag] doubleValue] - 24, 2, 22, 24);
+		[self.scroller bringSubviewToFront:c];
+	}
 }
 @end
 
 @interface MffButtonsView : MffView
 @property (nonatomic, strong) NSMutableArray *buttons;
 @property (nonatomic) CGFloat contentWidth;
+@property (nonatomic) BOOL rows;
+@property (nonatomic, strong) NSMutableSet *expandGaps;
+- (void)layoutExpand;
 @end
 
+/* The place before an item (a separator) and the least width of a gap of Expand */
+static char kMffGapBeforeKey, kMffLeastWidthKey;
+
 @implementation MffButtonsView
+/* The gaps of Expand (flag 7) share the free width of the bar, what is after them moves (one row only) */
+- (void)layoutExpand {
+	if (self.rows || ![self.expandGaps count]) return;
+	CGFloat free = self.bounds.size.width - self.contentWidth, end = 0;
+	CGFloat more = MAX(0, free) / [self.expandGaps count];
+	for (id b in self.buttons) {
+		if (![b isKindOfClass:[UIView class]]) continue;
+		UIView *view = b;
+		CGRect f = view.frame;
+		f.origin.x = end + [objc_getAssociatedObject(view, &kMffGapBeforeKey) doubleValue];
+		if ([self.expandGaps containsObject:view]) f.size.width = [objc_getAssociatedObject(view, &kMffLeastWidthKey) doubleValue] + more;
+		view.frame = f;
+		end = CGRectGetMaxX(f);
+	}
+}
+- (void)layoutSubviews {
+	[super layoutSubviews];
+	[self layoutExpand];
+}
 @end
 
 /* A CheckBox, a RadioButton: a button with its mark before the text */
@@ -235,14 +509,31 @@ static UIViewController *mffTopController(void) {
 /* A ComboBoxEdit: a button, its items are chosen in a sheet */
 @interface MffComboButton : UIButton
 @property (nonatomic, strong) NSMutableArray<NSString *> *items;
+/* The pictures (UIImage or NSNull) and the indents (NSNumber) of the items (mffSelectItemImage of ComboBoxEx) */
+@property (nonatomic, strong) NSMutableArray *pictures, *indents;
 @property (nonatomic) int index;
 - (void)mffUpdate;
+- (void)mffInsertAt:(int)index;
+- (void)mffRemoveAt:(int)index;
 @end
 
 @implementation MffComboButton
 - (void)mffUpdate {
-	NSString *t = (self.index >= 0 && self.index < (int)[self.items count]) ? self.items[self.index] : @"";
+	BOOL has = self.index >= 0 && self.index < (int)[self.items count];
+	NSString *t = has ? self.items[self.index] : @"";
 	[self setTitle:[t stringByAppendingString:@" ▾"] forState:UIControlStateNormal];
+	id img = (has && self.index < (int)[self.pictures count]) ? self.pictures[self.index] : nil;
+	[self setImage:[img isKindOfClass:[UIImage class]] ? img : nil forState:UIControlStateNormal];
+}
+- (void)mffInsertAt:(int)index {
+	if (!self.pictures) { self.pictures = [NSMutableArray array]; self.indents = [NSMutableArray array]; }
+	while ([self.pictures count] < [self.items count] - 1) { [self.pictures addObject:[NSNull null]]; [self.indents addObject:@0]; }
+	if (index < 0 || index > (int)[self.pictures count]) index = (int)[self.pictures count];
+	[self.pictures insertObject:[NSNull null] atIndex:index];
+	[self.indents insertObject:@0 atIndex:index];
+}
+- (void)mffRemoveAt:(int)index {
+	if (index >= 0 && index < (int)[self.pictures count]) { [self.pictures removeObjectAtIndex:index]; [self.indents removeObjectAtIndex:index]; }
 }
 @end
 
@@ -277,12 +568,48 @@ static NSMutableIndexSet *mffChecks(id table) {
 	return s;
 }
 
+/* The text of a row without its picture "Chr(1) File Chr(1)" (a TreeView has the indent and the sign before it) */
 static NSString *mffCellText(NSString *s) {
-	if ([s hasPrefix:@"\x01"]) {
-		NSRange end = [s rangeOfString:@"\x01" options:0 range:NSMakeRange(1, [s length] - 1)];
-		if (end.location != NSNotFound) return [s substringFromIndex:end.location + 1];
-	}
-	return s;
+	NSRange start = [s rangeOfString:@"\x01"];
+	if (start.location == NSNotFound) return s;
+	NSRange end = [s rangeOfString:@"\x01" options:0 range:NSMakeRange(start.location + 1, [s length] - start.location - 1)];
+	if (end.location == NSNotFound) return s;
+	return [[s substringToIndex:start.location] stringByAppendingString:[s substringFromIndex:end.location + 1]];
+}
+
+/* The picture of a row (between Chr(1) and Chr(1)), 16 points high */
+static UIImage *mffCellPicture(NSString *s) {
+	NSRange start = [s rangeOfString:@"\x01"];
+	if (start.location == NSNotFound) return nil;
+	NSRange end = [s rangeOfString:@"\x01" options:0 range:NSMakeRange(start.location + 1, [s length] - start.location - 1)];
+	if (end.location == NSNotFound) return nil;
+	UIImage *img = [UIImage imageWithContentsOfFile:[s substringWithRange:NSMakeRange(start.location + 1, end.location - start.location - 1)]];
+	if (!img) return nil;
+	return [[[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(16, 16)] imageWithActions:^(UIGraphicsImageRendererContext *c) {
+		[img drawInRect:CGRectMake(0, 0, 16, 16)];
+	}];
+}
+
+/* The event of a tap on a row of a table; a second tap on the same row in time is a double click (mffTableDblClick) */
+static void mffTableTapped(UITableView *t, NSInteger row) {
+	static __weak UITableView *lastTable;
+	static NSInteger lastRow = -1;
+	static NSTimeInterval lastTime;
+	NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
+	BOOL twice = lastTable == t && lastRow == row && now - lastTime < 0.4;
+	lastTable = twice ? nil : t;
+	lastRow = row;
+	lastTime = now;
+	void *ctrl = mffGetCtrl(t);
+	if (!ctrl || mffSilent) return;
+	if (![t isFirstResponder]) [t becomeFirstResponder];
+	/* After the touch (mffAfterEvent): a double click can close the form of the table (New Project of the IDE) */
+	int index = (int)row;
+	mffAfterEvent(^{
+		mffDblClick = twice;
+		mffOnChange(ctrl, index);
+		mffDblClick = 0;
+	});
 }
 
 @implementation MffTarget
@@ -293,17 +620,23 @@ static NSString *mffCellText(NSString *s) {
 		c.mffChecked = c.mffRadio ? 1 : !c.mffChecked;
 		[c mffUpdate];
 	}
-	if (ctrl) mffOnClick(ctrl);
+	if (ctrl) mffAfterEvent(^{ mffOnClick(ctrl); });
 }
 - (void)comboTap:(MffComboButton *)b {
 	UIAlertController *a = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
 	for (NSUInteger i = 0; i < [b.items count]; i++) {
-		[a addAction:[UIAlertAction actionWithTitle:b.items[i] style:UIAlertActionStyleDefault handler:^(UIAlertAction *x) {
+		int indent = i < [b.indents count] ? [b.indents[i] intValue] : 0;
+		NSString *title = [[@"" stringByPaddingToLength:indent * 3 withString:@" " startingAtIndex:0] stringByAppendingString:b.items[i]];
+		UIAlertAction *act = [UIAlertAction actionWithTitle:title style:UIAlertActionStyleDefault handler:^(UIAlertAction *x) {
 			b.index = (int)i;
 			[b mffUpdate];
 			void *ctrl = mffGetCtrl(b);
 			if (ctrl) mffOnChange(ctrl, (int)i);
-		}]];
+		}];
+		/* The picture of the item (the image of an action of UIAlertController) */
+		id img = i < [b.pictures count] ? b.pictures[i] : nil;
+		if ([img isKindOfClass:[UIImage class]] && [act respondsToSelector:NSSelectorFromString(@"setImage:")]) [act setValue:img forKey:@"image"];
+		[a addAction:act];
 	}
 	[a addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
 	a.popoverPresentationController.sourceView = b;
@@ -333,13 +666,33 @@ static NSString *mffCellText(NSString *s) {
 }
 - (void)textFieldDidBeginEditing:(UITextField *)f { void *c = mffGetCtrl(f); if (c) mffOnKey(c, 3, 0, 0); }
 - (void)textFieldDidEndEditing:(UITextField *)f { void *c = mffGetCtrl(f); if (c) mffOnKey(c, 4, 0, 0); }
+/* The close button of a tab: a change with -1 - Index (TabControl.ProcessMessage), after the touch (mffAfterEvent) */
+- (void)tabsClose:(UIButton *)b {
+	void *ctrl = mffGetCtrl(mffTabsOf(b));
+	int index = (int)b.tag;
+	if (ctrl) mffAfterEvent(^{ mffOnChange(ctrl, -1 - index); });
+}
+/* After the touch (mffAfterEvent): the event makes the tabs and the buttons again, a view of the touch which is taken
+   away while UIKit handles it ends the program (UIGestureGraphEdge) */
 - (void)tabsTap:(UISegmentedControl *)s {
-	void *ctrl = mffGetCtrl(s.superview);
-	if (ctrl) mffOnChange(ctrl, (int)s.selectedSegmentIndex);
+	void *ctrl = mffGetCtrl(mffTabsOf(s));
+	int index = (int)s.selectedSegmentIndex;
+	if (ctrl) mffAfterEvent(^{ mffOnChange(ctrl, index); });
 }
 - (void)buttonsTap:(UIButton *)b {
 	void *ctrl = mffGetCtrl(b.superview);
-	if (ctrl) mffOnChange(ctrl, (int)b.tag);
+	int index = (int)b.tag;
+	if (ctrl) mffAfterEvent(^{ mffOnChange(ctrl, index); });
+}
+/* A menu of the bar: its tag is the index of its line; its items in a sheet, without items it is an item itself */
+- (void)menuBarTap:(UIButton *)b {
+	int index = (int)b.tag;
+	mffAfterEvent(^{
+		NSArray *lines = [mffMenuBarItems length] ? [mffMenuBarItems componentsSeparatedByString:@"\n"] : @[];
+		NSArray *n = index + 1 < (int)[lines count] ? [lines[index + 1] componentsSeparatedByString:@"\t"] : nil;
+		if ([n count] >= 4 && [n[0] intValue] > 0) mffMenuBarOpen((NSUInteger)index + 1, 1, b);
+		else mffOnMenu(index);
+	});
 }
 - (NSInteger)tableView:(UITableView *)t numberOfRowsInSection:(NSInteger)s { return [mffItems(t) count]; }
 - (UITableViewCell *)tableView:(UITableView *)t cellForRowAtIndexPath:(NSIndexPath *)p {
@@ -348,6 +701,7 @@ static NSString *mffCellText(NSString *s) {
 	id item = p.row < (NSInteger)[a count] ? a[p.row] : @"";
 	NSString *text = [item isKindOfClass:[NSArray class]] ? [(NSArray *)item componentsJoinedByString:@"   "] : item;
 	c.textLabel.text = mffCellText(text);
+	c.imageView.image = mffCellPicture(text);
 	c.accessoryType = (objc_getAssociatedObject(t, &kMffChecksKey) && [mffChecks(t) containsIndex:p.row]) ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
 	return c;
 }
@@ -358,8 +712,7 @@ static NSString *mffCellText(NSString *s) {
 	}
 	/* A tap in a file list opens a folder, or chooses a file */
 	if (objc_getAssociatedObject(t, &kMffFileViewKey)) { mffFileViewChoose(t, t, p.row, [mffItems(t)[p.row] hasSuffix:@"/"] || [mffItems(t)[p.row] isEqualToString:@".."]); return; }
-	void *ctrl = mffGetCtrl(t);
-	if (ctrl && !mffSilent) mffOnChange(ctrl, (int)p.row);
+	mffTableTapped(t, p.row);
 }
 - (void)timerFired:(NSTimer *)t {
 	mffOnTimer([[t userInfo] pointerValue]);
@@ -379,6 +732,133 @@ static UITableView *mffTable(void *view) {
 	id o = mffObj(view);
 	return [o isKindOfClass:[UITableView class]] ? o : nil;
 }
+
+/* vsIcon, vsSmallIcon, vsList, vsTile of a ListView: a grid over the table. The table keeps the items and the selection */
+@interface MffIconCell : UICollectionViewCell
+@property (nonatomic, strong) UIImageView *picture;
+@property (nonatomic, strong) UILabel *label;
+@property (nonatomic) BOOL small;
+@end
+
+@implementation MffIconCell
+- (instancetype)initWithFrame:(CGRect)f {
+	self = [super initWithFrame:f];
+	if (self) {
+		_picture = [[UIImageView alloc] init];
+		_picture.contentMode = UIViewContentModeScaleAspectFit;
+		_label = [[UILabel alloc] init];
+		_label.layer.cornerRadius = 4;
+		_label.layer.masksToBounds = YES;
+		[self.contentView addSubview:_picture];
+		[self.contentView addSubview:_label];
+	}
+	return self;
+}
+- (void)layoutSubviews {
+	[super layoutSubviews];
+	CGRect b = self.contentView.bounds;
+	if (self.small) {
+		self.picture.frame = CGRectMake(4, (b.size.height - 24) / 2, 24, 24);
+		self.label.frame = CGRectMake(32, 2, b.size.width - 34, b.size.height - 4);
+	} else {
+		self.picture.frame = CGRectMake((b.size.width - 48) / 2, 6, 48, 48);
+		self.label.frame = CGRectMake(2, 56, b.size.width - 4, b.size.height - 58);
+	}
+}
+- (void)mffUpdateSelection {
+	self.label.backgroundColor = self.selected ? [UIColor systemBlueColor] : [UIColor clearColor];
+	self.label.textColor = self.selected ? [UIColor whiteColor] : [UIColor labelColor];
+}
+- (void)setSelected:(BOOL)value { [super setSelected:value]; [self mffUpdateSelection]; }
+@end
+
+@class MffTableView;
+@interface MffIconGrid : UICollectionView <UICollectionViewDataSource, UICollectionViewDelegateFlowLayout>
+@property (nonatomic, weak) MffTableView *table;
+@property (nonatomic) BOOL small;
+- (void)refresh;
+- (void)showSelection;
+@end
+
+@interface MffTableView : UITableView
+@property (nonatomic, strong) MffIconGrid *grid;
+@end
+
+@implementation MffTableView
+/* The context menu of a list or a tree with a long press (mffPressStart) */
+- (void)touchesBegan:(NSSet *)t withEvent:(UIEvent *)e { [super touchesBegan:t withEvent:e]; mffPressStart(self, [t anyObject], NO); }
+- (void)touchesMoved:(NSSet *)t withEvent:(UIEvent *)e { [super touchesMoved:t withEvent:e]; mffPressMoved(self, [t anyObject]); }
+- (void)touchesEnded:(NSSet *)t withEvent:(UIEvent *)e { mffPressEnd(self); [super touchesEnded:t withEvent:e]; }
+- (void)touchesCancelled:(NSSet *)t withEvent:(UIEvent *)e { mffPressEnd(self); [super touchesCancelled:t withEvent:e]; }
+/* The focus of a list or a tree: the active control of the form (a tap, mffTableTapped) */
+- (BOOL)canBecomeFirstResponder { return mffGetCtrl(self) != NULL; }
+- (BOOL)becomeFirstResponder {
+	BOOL r = [super becomeFirstResponder];
+	if (r && mffGetCtrl(self)) mffOnKey(mffGetCtrl(self), 3, 0, 0);
+	return r;
+}
+- (BOOL)resignFirstResponder {
+	BOOL r = [super resignFirstResponder];
+	if (r && mffGetCtrl(self)) mffOnKey(mffGetCtrl(self), 4, 0, 0);
+	return r;
+}
+- (void)layoutSubviews {
+	[super layoutSubviews];
+	if (self.grid) {
+		self.grid.frame = self.bounds;
+		[self bringSubviewToFront:self.grid];
+	}
+}
+- (void)reloadData { [super reloadData]; [self.grid refresh]; }
+- (void)selectRowAtIndexPath:(NSIndexPath *)p animated:(BOOL)a scrollPosition:(UITableViewScrollPosition)sp { [super selectRowAtIndexPath:p animated:a scrollPosition:sp]; [self.grid showSelection]; }
+- (void)deselectRowAtIndexPath:(NSIndexPath *)p animated:(BOOL)a { [super deselectRowAtIndexPath:p animated:a]; [self.grid showSelection]; }
+@end
+
+@implementation MffIconGrid
+- (void)refresh { [self reloadData]; [self showSelection]; }
+- (void)showSelection {
+	for (NSIndexPath *p in self.indexPathsForSelectedItems) [self deselectItemAtIndexPath:p animated:NO];
+	NSIndexPath *p = self.table.indexPathForSelectedRow;
+	if (p && p.row < [self numberOfItemsInSection:0]) [self selectItemAtIndexPath:[NSIndexPath indexPathForItem:p.row inSection:0] animated:NO scrollPosition:UICollectionViewScrollPositionNone];
+}
+- (NSInteger)collectionView:(UICollectionView *)c numberOfItemsInSection:(NSInteger)s { return [mffItems(self.table) count]; }
+- (UICollectionViewCell *)collectionView:(UICollectionView *)c cellForItemAtIndexPath:(NSIndexPath *)p {
+	MffIconCell *cell = [c dequeueReusableCellWithReuseIdentifier:@"mff" forIndexPath:p];
+	NSArray *a = mffItems(self.table);
+	id item = p.item < (NSInteger)[a count] ? a[p.item] : @"";
+	NSString *text = [item isKindOfClass:[NSArray class]] ? ([item count] ? item[0] : @"") : item;
+	UIImage *img = nil;
+	if ([text hasPrefix:@"\x01"]) {
+		NSRange end = [text rangeOfString:@"\x01" options:0 range:NSMakeRange(1, [text length] - 1)];
+		if (end.location != NSNotFound) img = [UIImage imageWithContentsOfFile:[text substringWithRange:NSMakeRange(1, end.location - 1)]];
+	}
+	cell.picture.image = img ?: [UIImage systemImageNamed:@"doc"];
+	cell.label.text = mffCellText(text);
+	cell.small = self.small;
+	cell.label.numberOfLines = self.small ? 1 : 2;
+	cell.label.textAlignment = self.small ? NSTextAlignmentLeft : NSTextAlignmentCenter;
+	cell.label.font = [UIFont systemFontOfSize:self.small ? 15 : 13];
+	[cell mffUpdateSelection];
+	[cell setNeedsLayout];
+	return cell;
+}
+- (CGSize)collectionView:(UICollectionView *)c layout:(UICollectionViewLayout *)l sizeForItemAtIndexPath:(NSIndexPath *)p {
+	return self.small ? CGSizeMake(190, 34) : CGSizeMake(104, 100);
+}
+- (void)collectionView:(UICollectionView *)c didSelectItemAtIndexPath:(NSIndexPath *)p {
+	[self tapped:p];
+}
+- (BOOL)collectionView:(UICollectionView *)c shouldSelectItemAtIndexPath:(NSIndexPath *)p {
+	/* The tap on the selected item does not reach didSelectItem: it can be the second one of a double click */
+	if ([[c indexPathsForSelectedItems] containsObject:p]) { [self tapped:p]; return NO; }
+	return YES;
+}
+- (void)tapped:(NSIndexPath *)p {
+	NSIndexPath *row = [NSIndexPath indexPathForRow:p.item inSection:0];
+	if (![self.table.indexPathForSelectedRow isEqual:row]) [(UITableView *)self.table selectRowAtIndexPath:row animated:NO scrollPosition:UITableViewScrollPositionNone];
+	mffTableTapped(self.table, p.item);
+}
+@end
 
 void *mffViewCreate(const char *kind, void *ctrl) {
 	NSString *k = mffStr(kind);
@@ -415,8 +895,9 @@ void *mffViewCreate(const char *kind, void *ctrl) {
 		UILabel *l = [[UILabel alloc] initWithFrame:r];
 		l.numberOfLines = 0;
 		obj = l;
-	} else if ([k isEqualToString:@"TextBox"] || [k isEqualToString:@"ComboBox"] || [k isEqualToString:@"DateTimePicker"] || [k isEqualToString:@"IPAddress"] || [k isEqualToString:@"HotKey"]) {
-		UITextField *f = [[UITextField alloc] initWithFrame:r];
+	} else if ([k isEqualToString:@"SearchBox"] || [k isEqualToString:@"TextBox"] || [k isEqualToString:@"ComboBox"] || [k isEqualToString:@"DateTimePicker"] || [k isEqualToString:@"IPAddress"] || [k isEqualToString:@"HotKey"]) {
+		/* SearchBox: the text field with the search glass (UISearchTextField is a UITextField) */
+		UITextField *f = [k isEqualToString:@"SearchBox"] ? [[UISearchTextField alloc] initWithFrame:r] : [[UITextField alloc] initWithFrame:r];
 		f.borderStyle = UITextBorderStyleRoundedRect;
 		f.delegate = t;
 		[f addTarget:t action:@selector(textChanged:) forControlEvents:UIControlEventEditingChanged];
@@ -431,9 +912,13 @@ void *mffViewCreate(const char *kind, void *ctrl) {
 		obj = [[MffGroupView alloc] initWithFrame:r];
 	} else if ([k isEqualToString:@"TabControl"]) {
 		MffTabsView *v = [[MffTabsView alloc] initWithFrame:r];
-		v.segments = [[UISegmentedControl alloc] initWithFrame:CGRectZero];
+		v.scroller = [[UIScrollView alloc] initWithFrame:CGRectZero];
+		v.scroller.showsHorizontalScrollIndicator = NO;
+		v.scroller.clipsToBounds = NO;
+		[v addSubview:v.scroller];
+		v.segments = [[MffSegments alloc] initWithFrame:CGRectZero];
 		[v.segments addTarget:t action:@selector(tabsTap:) forControlEvents:UIControlEventValueChanged];
-		[v addSubview:v.segments];
+		[v.scroller addSubview:v.segments];
 		obj = v;
 	} else if ([k isEqualToString:@"ToolBar"] || [k isEqualToString:@"ToolPalette"]) {
 		MffButtonsView *v = [[MffButtonsView alloc] initWithFrame:r];
@@ -442,7 +927,7 @@ void *mffViewCreate(const char *kind, void *ctrl) {
 	} else if ([k isEqualToString:@"WebBrowser"]) {
 		obj = [[WKWebView alloc] initWithFrame:r configuration:[[WKWebViewConfiguration alloc] init]];
 	} else if ([k isEqualToString:@"ListControl"] || [k isEqualToString:@"CheckedListBox"] || [k isEqualToString:@"ListView"] || [k isEqualToString:@"TreeView"] || [k isEqualToString:@"TreeListView"] || [k isEqualToString:@"GridData"] || [k isEqualToString:@"Grid"] || [k isEqualToString:@"OpenFileControl"]) {
-		UITableView *v = [[UITableView alloc] initWithFrame:r style:UITableViewStylePlain];
+		UITableView *v = [[MffTableView alloc] initWithFrame:r style:UITableViewStylePlain];
 		v.dataSource = t;
 		v.delegate = t;
 		if ([k isEqualToString:@"CheckedListBox"]) (void)mffChecks(v);
@@ -473,9 +958,16 @@ void *mffViewCreate(const char *kind, void *ctrl) {
 		[s addTarget:t action:@selector(sliderChanged:) forControlEvents:UIControlEventValueChanged];
 		obj = s;
 	} else {
-		obj = [[MffView alloc] initWithFrame:r];
+		MffView *v = [[MffView alloc] initWithFrame:r];
+		/* The editor of the text (the IDE) types with the keyboard of the screen */
+		v.mffKeyboard = [k isEqualToString:@"EditControl"];
+		obj = v;
 	}
 	mffSetCtrl(obj, ctrl);
+	if (!mffRunning && [obj isKindOfClass:[UIView class]]) {
+		if (!mffEarlyViews) mffEarlyViews = [NSHashTable weakObjectsHashTable];
+		[mffEarlyViews addObject:obj];
+	}
 	return (__bridge_retained void *)obj;
 }
 
@@ -483,7 +975,7 @@ void mffViewFree(void *view) {
 	if (!view) return;
 	id o = (__bridge_transfer id)view;
 	mffSetCtrl(o, NULL);
-	if ([o isKindOfClass:[UIView class]]) [(UIView *)o removeFromSuperview];
+	if ([o isKindOfClass:[UIView class]]) mffRemoveView((UIView *)o);
 }
 
 void *mffViewControl(void *view) { return view ? mffGetCtrl(mffObj(view)) : NULL; }
@@ -603,6 +1095,11 @@ void mffViewSetAlignment(void *view, int value) {
 	NSTextAlignment a = value == 1 ? NSTextAlignmentCenter : (value == 2 ? NSTextAlignmentRight : NSTextAlignmentLeft);
 	if ([o respondsToSelector:@selector(setTextAlignment:)]) [o setTextAlignment:a];
 }
+void mffTextScrollTo(void *view, int toEnd) {
+	id o = mffObj(view);
+	if ([o isKindOfClass:[UITextView class]]) [(UITextView *)o scrollRangeToVisible:toEnd ? NSMakeRange([[(UITextView *)o text] length], 0) : [(UITextView *)o selectedRange]];
+}
+
 void mffTextSetSelection(void *view, int start, int length) {
 	id o = mffObj(view);
 	if ([o isKindOfClass:[UITextView class]]) [(UITextView *)o setSelectedRange:NSMakeRange(start, length)];
@@ -629,6 +1126,48 @@ void mffTextSetPassword(void *view, int value) {
 	if ([o isKindOfClass:[UITextField class]]) [(UITextField *)o setSecureTextEntry:value != 0];
 }
 
+void mffSelectItemImage(void *view, int index, const char *path, int indent) {
+	id o = mffObj(view);
+	if (![o isKindOfClass:[MffComboButton class]]) return;
+	MffComboButton *b = o;
+	if (index < 0 || index >= (int)[b.pictures count]) return;
+	UIImage *img = (path && *path) ? [UIImage imageWithContentsOfFile:mffStr(path)] : nil;
+	if (img) img = [[[[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(16, 16)] imageWithActions:^(UIGraphicsImageRendererContext *c) {
+		[img drawInRect:CGRectMake(0, 0, 16, 16)];
+	}] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+	b.pictures[index] = img ?: (id)[NSNull null];
+	b.indents[index] = @(indent);
+	if (index == b.index) [b mffUpdate];
+}
+
+/* The text with its formatting: {\\rtf or {\\urtf (the text is not in code pages) */
+void mffTextSetRTF(void *view, const char *rtf) {
+	id o = mffObj(view);
+	if (![o isKindOfClass:[UITextView class]]) return;
+	UITextView *tv = o;
+	NSString *s = mffStr(rtf);
+	s = [s stringByReplacingOccurrencesOfString:@"\\urtf1" withString:@"\\rtf1\\ansi "];
+	/* Lines of a comment and the letters which are not ASCII */
+	s = [[s stringByReplacingOccurrencesOfString:@"\r\n" withString:@"\\par "] stringByReplacingOccurrencesOfString:@"\n" withString:@"\\par "];
+	NSMutableString *out = [NSMutableString string];
+	for (NSUInteger i = 0; i < [s length]; i++) {
+		unichar c = [s characterAtIndex:i];
+		if (c > 126) [out appendFormat:@"\\u%d?", (int)(short)c]; else [out appendFormat:@"%C", c];
+	}
+	NSMutableAttributedString *a = [[NSMutableAttributedString alloc] initWithData:[out dataUsingEncoding:NSASCIIStringEncoding] options:@{NSDocumentTypeDocumentAttribute: NSRTFTextDocumentType} documentAttributes:nil error:NULL];
+	if (!a) { [tv setText:mffStr(rtf)]; return; }
+	[a addAttribute:NSForegroundColorAttributeName value:[tv textColor] ?: [UIColor labelColor] range:NSMakeRange(0, [a length])];
+	[tv setAttributedText:a];
+}
+
+void mffLinkSetMarkup(void *view, const char *markup) {
+	mffViewSetText(view, markup);
+}
+
+const char *mffLinkClicked(void) {
+	return "";
+}
+
 void mffListInsert(void *view, int index, const char *text) {
 	id o = mffObj(view);
 	NSString *s = mffStr(text);
@@ -639,7 +1178,9 @@ void mffListInsert(void *view, int index, const char *text) {
 		[t reloadData];
 	} else if ([o isKindOfClass:[MffComboButton class]]) {
 		MffComboButton *b = o;
-		if (index < 0 || index > (int)[b.items count]) [b.items addObject:s]; else [b.items insertObject:s atIndex:index];
+		int at = (index < 0 || index > (int)[b.items count]) ? (int)[b.items count] : index;
+		[b.items insertObject:s atIndex:at];
+		[b mffInsertAt:at];
 		[b mffUpdate];
 	}
 }
@@ -652,7 +1193,7 @@ void mffListRemove(void *view, int index) {
 		[t reloadData];
 	} else if ([o isKindOfClass:[MffComboButton class]]) {
 		MffComboButton *b = o;
-		if (index >= 0 && index < (int)[b.items count]) [b.items removeObjectAtIndex:index];
+		if (index >= 0 && index < (int)[b.items count]) { [b.items removeObjectAtIndex:index]; [b mffRemoveAt:index]; }
 		[b mffUpdate];
 	}
 }
@@ -660,7 +1201,7 @@ void mffListClear(void *view) {
 	id o = mffObj(view);
 	UITableView *t = mffTable(view);
 	if (t) { [mffItems(t) removeAllObjects]; [t reloadData]; }
-	else if ([o isKindOfClass:[MffComboButton class]]) { [((MffComboButton *)o).items removeAllObjects]; ((MffComboButton *)o).index = -1; [(MffComboButton *)o mffUpdate]; }
+	else if ([o isKindOfClass:[MffComboButton class]]) { MffComboButton *b = o; [b.items removeAllObjects]; [b.pictures removeAllObjects]; [b.indents removeAllObjects]; b.index = -1; [b mffUpdate]; }
 }
 int mffListGetIndex(void *view) {
 	id o = mffObj(view);
@@ -718,6 +1259,27 @@ void mffPositionSet(void *view, int value) {
 		[(UIProgressView *)o setProgress:hi > lo ? (float)(value - lo) / (hi - lo) : 0];
 	}
 }
+static char kMffMarqueeKey;
+
+/* UIProgressView has no indeterminate style: a timer moves its bar again and again */
+void mffMarqueeSet(void *view, int marqueeOn) {
+	id o = mffObj(view);
+	if (![o isKindOfClass:[UIProgressView class]]) return;
+	UIProgressView *p = o;
+	NSTimer *t = objc_getAssociatedObject(p, &kMffMarqueeKey);
+	[t invalidate];
+	objc_setAssociatedObject(p, &kMffMarqueeKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+	if (!marqueeOn) { [p setProgress:0 animated:NO]; return; }
+	__weak UIProgressView *wp = p;
+	t = [NSTimer scheduledTimerWithTimeInterval:0.05 repeats:YES block:^(NSTimer *timer) {
+		UIProgressView *sp = wp;
+		if (!sp) { [timer invalidate]; return; }
+		float v = sp.progress + 0.02f;
+		[sp setProgress:(v > 1.0f ? 0.0f : v) animated:NO];
+	}];
+	objc_setAssociatedObject(p, &kMffMarqueeKey, t, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
 int mffPositionGet(void *view) {
 	id o = mffObj(view);
 	if ([o isKindOfClass:[UISlider class]]) return (int)lround([(UISlider *)o value]);
@@ -774,7 +1336,124 @@ void mffFormHide(void *view) {
 void mffFormSetState(void *view, int state) { (void)view; (void)state; }
 void mffFormSetBorder(void *view, int style) { (void)view; (void)style; }
 void mffFormSetMainMenu(void *view, const char *items) { (void)view; (void)items; }
-void mffMenuBarSet(const char *items) { (void)items; }
+/* The bar of the menu: a row of buttons above the forms, each opens the menu of its items (mffMenuBarOpen). The lines are the
+   ones of mffPopupMenu: "Level Tab Enabled Tab Checked Tab Caption" (Chr(1) picture Chr(1) before the caption, Tab
+   shortcut after it), the index of a line is the one of mffOnMenu */
+
+/* The buttons of the bar in rows of the width (all the menus are seen); the height of the bar is returned */
+static CGFloat mffMenuBarLayout(CGFloat width) {
+	CGFloat x = 4, y = 0, h = 26;
+	UIFont *font = [UIFont systemFontOfSize:13];
+	for (UIView *v in mffMenuBar.subviews) {
+		if (![v isKindOfClass:[UIButton class]] || v.hidden) continue;
+		UIButton *b = (UIButton *)v;
+		b.titleLabel.font = font;
+		CGFloat w = ceil([[b titleForState:UIControlStateNormal] sizeWithAttributes:@{NSFontAttributeName: font}].width + 16);
+		if (x > 4 && x + w > width) { x = 4; y += h; }
+		b.frame = CGRectMake(x, y, w, h);
+		x += w;
+	}
+	return y + h;
+}
+
+/* The items of a menu of the bar (the lines after Start of the Level of Start) in an action sheet: an item with items
+   (▸) opens their sheet, the other ones raise mffOnMenu. Not UIMenu of a button: its interaction set again by the
+   bar, which the IDE sets often, left a gesture without its view (UIGestureGraphEdge: no targetNode) */
+static void mffMenuBarOpen(NSUInteger start, int level, UIView *source) {
+	NSArray *lines = [mffMenuBarItems length] ? [mffMenuBarItems componentsSeparatedByString:@"\n"] : @[];
+	UIAlertController *a = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+	for (NSUInteger i = start; i < [lines count]; i++) {
+		NSArray *f = [lines[i] componentsSeparatedByString:@"\t"];
+		if ([f count] < 4) continue;
+		int lv = [f[0] intValue];
+		if (lv < level) break;
+		if (lv > level) continue;
+		NSString *caption = f[3];
+		UIImage *img = nil;
+		if ([caption hasPrefix:@"\x01"]) {
+			NSRange end = [caption rangeOfString:@"\x01" options:0 range:NSMakeRange(1, [caption length] - 1)];
+			if (end.location != NSNotFound) {
+				img = [UIImage imageWithContentsOfFile:[caption substringWithRange:NSMakeRange(1, end.location - 1)]];
+				caption = [caption substringFromIndex:end.location + 1];
+			}
+		}
+		if ([caption isEqualToString:@"-"]) continue;
+		BOOL hasItems = NO;
+		if (i + 1 < [lines count]) {
+			NSArray *n = [lines[i + 1] componentsSeparatedByString:@"\t"];
+			hasItems = [n count] >= 4 && [n[0] intValue] > lv;
+		}
+		NSString *title = mffNoMnemonic(caption);
+		if ([f[2] intValue] != 0) title = [@"\u2713 " stringByAppendingString:title];
+		if (hasItems) title = [title stringByAppendingString:@"  \u25b8"];
+		int index = (int)i;
+		UIAlertAction *act = [UIAlertAction actionWithTitle:title style:UIAlertActionStyleDefault handler:^(UIAlertAction *x) {
+			if (hasItems) mffAfterEvent(^{ mffMenuBarOpen((NSUInteger)index + 1, lv + 1, source); });
+			else mffAfterEvent(^{ mffOnMenu(index); });
+		}];
+		act.enabled = [f[1] intValue] != 0;
+		if (img) {
+			img = [[[[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(20, 20)] imageWithActions:^(UIGraphicsImageRendererContext *c) {
+				[img drawInRect:CGRectMake(0, 0, 20, 20)];
+			}] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
+			if ([act respondsToSelector:NSSelectorFromString(@"setImage:")]) [act setValue:img forKey:@"image"];
+		}
+		[a addAction:act];
+	}
+	[a addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+	a.popoverPresentationController.sourceView = source ?: mffMainWindow;
+	a.popoverPresentationController.sourceRect = source ? source.bounds : CGRectZero;
+	[mffTopController() presentViewController:a animated:YES completion:nil];
+}
+
+static void mffMenuBarApply(void) {
+	UIView *root = mffMainWindow.rootViewController.view;
+	if (!root || !mffMenuBarItems) return;
+	if (!mffMenuBar) {
+		mffMenuBar = [[UIView alloc] initWithFrame:CGRectZero];
+		mffMenuBar.backgroundColor = [UIColor secondarySystemBackgroundColor];
+		[root addSubview:mffMenuBar];
+	}
+	/* The buttons stay and get the new items (their menu is made when it is opened, from the last items) */
+	NSMutableArray<UIButton *> *buttons = [NSMutableArray array];
+	for (UIView *v in mffMenuBar.subviews) if ([v isKindOfClass:[UIButton class]]) [buttons addObject:(UIButton *)v];
+	NSArray *lines = [mffMenuBarItems length] ? [mffMenuBarItems componentsSeparatedByString:@"\n"] : @[];
+	NSUInteger i = 0, n = 0;
+	while (i < [lines count]) {
+		NSArray *f = [lines[i] componentsSeparatedByString:@"\t"];
+		if ([f count] < 4 || [f[0] intValue] != 0) { i++; continue; }
+		int index = (int)i;
+		NSString *title = mffNoMnemonic(f[3]);
+		BOOL enabled = [f[1] intValue] != 0;
+		i++;
+		while (i < [lines count]) {
+			NSArray *n = [lines[i] componentsSeparatedByString:@"\t"];
+			if ([n count] >= 4 && [n[0] intValue] == 0) break;
+			i++;
+		}
+		UIButton *b = n < [buttons count] ? buttons[n] : nil;
+		if (!b) {
+			b = [UIButton buttonWithType:UIButtonTypeSystem];
+			b.titleLabel.font = [UIFont systemFontOfSize:15];
+			[b addTarget:mffTarget() action:@selector(menuBarTap:) forControlEvents:UIControlEventTouchUpInside];
+			[mffMenuBar addSubview:b];
+		}
+		n++;
+		b.hidden = NO;
+		b.tag = index;
+		if (![[b titleForState:UIControlStateNormal] isEqualToString:title]) [b setTitle:title forState:UIControlStateNormal];
+		b.enabled = enabled;
+	}
+	/* The buttons which are not needed now are hidden, not taken away */
+	for (NSUInteger k = n; k < [buttons count]; k++) buttons[k].hidden = YES;
+	/* The rows of the bar: mffLayoutForms */
+	[root setNeedsLayout];
+}
+
+void mffMenuBarSet(const char *items) {
+	mffMenuBarItems = mffStr(items);
+	mffMenuBarApply();
+}
 int mffScreenSize(int vertical) {
 	CGRect b = [UIScreen mainScreen].bounds;
 	return (int)(vertical ? b.size.height : b.size.width);
@@ -788,16 +1467,23 @@ int mffScreenSize(int vertical) {
 @end
 
 @implementation MffRootController
-/* A form fills the safe area; a form designed wider than the screen is scaled down, not cut (a form of the desktop stays
-   readable: not smaller than 60 %) */
+/* The bar of the menu and the forms in the safe area */
 - (void)mffLayoutForms {
 	CGRect a = self.view.safeAreaLayoutGuide.layoutFrame;
+	/* The bar of the menu is above the forms */
+	if (mffMenuBar && [mffMenuBar superview] == self.view) {
+		CGFloat h = mffMenuBarLayout(a.size.width);
+		mffMenuBar.frame = CGRectMake(a.origin.x, a.origin.y, a.size.width, h);
+		[self.view bringSubviewToFront:mffMenuBar];
+		a.origin.y += h;
+		a.size.height -= h;
+	}
+	/* A form fills the safe area in its own size, not scaled (the text stays readable): the controls which are docked
+	   follow the size of the screen */
 	for (UIView *v in self.view.subviews) {
-		CGFloat design = [v isKindOfClass:[MffView class]] ? ((MffView *)v).mffDesignSize.width : 0;
-		CGFloat s = (design > a.size.width && a.size.width > 0) ? MAX(a.size.width / design, 0.6) : 1;
-		v.transform = CGAffineTransformMakeScale(s, s);
-		v.bounds = CGRectMake(0, 0, a.size.width / s, a.size.height / s);
-		v.center = CGPointMake(CGRectGetMidX(a), CGRectGetMidY(a));
+		if (v == mffMenuBar) continue;
+		v.transform = CGAffineTransformIdentity;
+		v.frame = a;
 	}
 }
 - (void)viewSafeAreaInsetsDidChange {
@@ -823,6 +1509,7 @@ static UIButton *mffFindButton(UIView *v, NSString *title) {
 - (BOOL)application:(UIApplication *)a didFinishLaunchingWithOptions:(NSDictionary *)o {
 	self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
 	mffMainWindow = self.window;
+	self.window.overrideUserInterfaceStyle = mffStyle;
 	MffRootController *root = [[MffRootController alloc] init];
 	root.view.backgroundColor = [UIColor systemBackgroundColor];
 	self.window.rootViewController = root;
@@ -832,6 +1519,11 @@ static UIButton *mffFindButton(UIView *v, NSString *title) {
 		mffFormShow((__bridge void *)v, 0);
 	}
 	[self.window makeKeyAndVisible];
+	/* The gesture recognizers of the views made before App.Run in the gesture environment of the program */
+	for (UIView *v in mffEarlyViews) mffRegisterGestures(v);
+	mffEarlyViews = nil;
+	/* The bar of the menu set before the window was made */
+	mffMenuBarApply();
 	[root.view setNeedsLayout];
 	/* The test of CI: MFF_CLICK=Caption taps the button with that caption two seconds after the start */
 	const char *click = getenv("MFF_CLICK");
@@ -859,7 +1551,8 @@ void mffAppDoEvents(void) {
 	[[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate date]];
 }
 void mffAppSetDarkMode(int value) {
-	mffMainWindow.overrideUserInterfaceStyle = value < 0 ? UIUserInterfaceStyleUnspecified : (value ? UIUserInterfaceStyleDark : UIUserInterfaceStyleLight);
+	mffStyle = value < 0 ? UIUserInterfaceStyleUnspecified : (value ? UIUserInterfaceStyleDark : UIUserInterfaceStyleLight);
+	mffMainWindow.overrideUserInterfaceStyle = mffStyle;
 }
 int mffAppDarkMode(void) {
 	return [UITraitCollection currentTraitCollection].userInterfaceStyle == UIUserInterfaceStyleDark;
@@ -912,15 +1605,49 @@ void mffOpenURL(const char *url) {
 void mffTabsSet(void *view, const char *titles) {
 	id o = mffObj(view);
 	if (![o isKindOfClass:[MffTabsView class]]) return;
-	UISegmentedControl *seg = ((MffTabsView *)o).segments;
+	MffTabsView *tabs = o;
+	UISegmentedControl *seg = tabs.segments;
 	NSInteger selected = seg.selectedSegmentIndex;
 	[seg removeAllSegments];
+	for (UIButton *c in tabs.closeButtons) mffRemoveView(c);
+	tabs.closeButtons = [NSMutableArray array];
+	tabs.tabWidths = [NSMutableArray array];
 	NSArray *lines = [mffStr(titles) length] ? [mffStr(titles) componentsSeparatedByString:@"\n"] : @[];
 	for (NSUInteger i = 0; i < [lines count]; i++) {
 		NSArray *f = [lines[i] componentsSeparatedByString:@"\t"];
-		[seg insertSegmentWithTitle:mffNoMnemonic(f[0]) atIndex:i animated:NO];
+		NSString *title = mffNoMnemonic(f[0]);
+		UIImage *img = ([f count] > 2 && [f[2] length]) ? [UIImage imageWithContentsOfFile:f[2]] : nil;
+		BOOL closable = [f count] > 1 && [f[1] length];
+		CGFloat textWidth = ceil([title sizeWithAttributes:@{NSFontAttributeName: [UIFont systemFontOfSize:13]}].width);
+		[tabs.tabWidths addObject:@(textWidth + (img ? 20 : 0) + (closable ? 22 : 0) + 20)];
+		if (img || closable) {
+			/* A segment has a picture or a title: the picture of the tab with its title (and the place of the close button) */
+			UIFont *font = [UIFont systemFontOfSize:13];
+			NSDictionary *a = @{NSFontAttributeName: font, NSForegroundColorAttributeName: [UIColor labelColor]};
+			CGSize ts = [title sizeWithAttributes:a];
+			CGFloat iw = img ? 16 : 0, gap = img ? 4 : 0, cw = closable ? 22 : 0;
+			CGSize size = CGSizeMake(ceil(iw + gap + ts.width + cw), 20);
+			UIImage *composed = [[[UIGraphicsImageRenderer alloc] initWithSize:size] imageWithActions:^(UIGraphicsImageRendererContext *ctx) {
+				if (img) [img drawInRect:CGRectMake(0, 2, 16, 16)];
+				[title drawAtPoint:CGPointMake(iw + gap, (20 - ts.height) / 2) withAttributes:a];
+			}];
+			[seg insertSegmentWithImage:[composed imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] atIndex:i animated:NO];
+		} else {
+			[seg insertSegmentWithTitle:title atIndex:i animated:NO];
+		}
+		if (closable) {
+			UIButton *c = [UIButton buttonWithType:UIButtonTypeSystem];
+			[c setTitle:@"\u00D7" forState:UIControlStateNormal];
+			c.titleLabel.font = [UIFont systemFontOfSize:17];
+			[c setTitleColor:[UIColor secondaryLabelColor] forState:UIControlStateNormal];
+			c.tag = i;
+			[c addTarget:mffTarget() action:@selector(tabsClose:) forControlEvents:UIControlEventTouchUpInside];
+			[tabs.scroller addSubview:c];
+			[tabs.closeButtons addObject:c];
+		}
 	}
 	if (selected >= 0 && selected < (NSInteger)[lines count]) seg.selectedSegmentIndex = selected;
+	[tabs setNeedsLayout];
 }
 void mffTabsSetPosition(void *view, int position) {
 	id o = mffObj(view);
@@ -932,10 +1659,12 @@ void mffButtonsSet(void *view, const char *items) {
 	id o = mffObj(view);
 	if (![o isKindOfClass:[MffButtonsView class]]) return;
 	MffButtonsView *v = o;
-	for (id b in v.buttons) if ([b isKindOfClass:[UIView class]]) [(UIView *)b removeFromSuperview];
+	for (id b in v.buttons) if ([b isKindOfClass:[UIView class]]) mffRemoveView((UIView *)b);
 	[v.buttons removeAllObjects];
 	NSArray *lines = [mffStr(items) length] ? [mffStr(items) componentsSeparatedByString:@"\n"] : @[];
-	CGFloat x = 0, y = 0, rowHeight = 0, width = v.bounds.size.width, right = 0;
+	CGFloat x = 0, y = 0, rowHeight = 0, width = v.bounds.size.width, right = 0, rowEnd = 0;
+	v.expandGaps = [NSMutableSet set];
+	v.rows = NO;
 	for (NSUInteger i = 0; i < [lines count]; i++) {
 		NSArray *f = [lines[i] componentsSeparatedByString:@"\t"];
 		NSString *first = f[0];
@@ -945,10 +1674,30 @@ void mffButtonsSet(void *view, const char *items) {
 			if (flag == '3') x += 8;
 			continue;
 		}
+		/* A custom button: the gap of its control (ToolBar puts the control over it); 7 - its least width (Expand) */
+		if (flag == '6' || flag == '7') {
+			CGFloat gap = [[first substringFromIndex:1] doubleValue];
+			UIView *g = [[UIView alloc] initWithFrame:CGRectMake(x, y, gap, 24)];
+			/* Behind the control and without the touches: they are the ones of the control */
+			g.userInteractionEnabled = NO;
+			[v insertSubview:g atIndex:0];
+			[v.buttons addObject:g];
+			objc_setAssociatedObject(g, &kMffGapBeforeKey, @(x - rowEnd), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+			if (flag == '7') {
+				objc_setAssociatedObject(g, &kMffLeastWidthKey, @(gap), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+				[v.expandGaps addObject:g];
+			}
+			x += gap;
+			rowEnd = x;
+			right = MAX(right, x);
+			rowHeight = MAX(rowHeight, 24);
+			continue;
+		}
 		UIButton *b = [UIButton buttonWithType:UIButtonTypeSystem];
 		UIImage *img = ([f count] > 1 && [f[1] length]) ? [UIImage imageWithContentsOfFile:f[1]] : nil;
 		NSString *options = [f count] > 2 ? f[2] : @"";
-		if (img) [b setImage:img forState:UIControlStateNormal];
+		/* The colors of the picture: a system button would draw it in the color of its tint */
+		if (img) [b setImage:[img imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
 		if (!img || [options rangeOfString:@"S"].location != NSNotFound) [b setTitle:[first length] > 1 ? mffNoMnemonic([first substringFromIndex:1]) : @"" forState:UIControlStateNormal];
 		b.enabled = flag != '1';
 		b.selected = flag == '2';
@@ -959,20 +1708,25 @@ void mffButtonsSet(void *view, const char *items) {
 		s.width = MAX(s.width + 8, 32);
 		s.height = MAX(s.height, 32);
 		/* Only a tall view (ToolPalette) has more rows: a ToolBar gets its width after its buttons (ReBar) */
-		if (x > 0 && width > 0 && x + s.width > width && v.bounds.size.height >= s.height * 2) { x = 0; y += rowHeight; rowHeight = 0; }
+		if (x > 0 && width > 0 && x + s.width > width && v.bounds.size.height >= s.height * 2) { x = 0; y += rowHeight; rowHeight = 0; rowEnd = 0; v.rows = YES; }
 		b.frame = CGRectMake(x, y, s.width, s.height);
 		[v addSubview:b];
 		[v.buttons addObject:b];
+		objc_setAssociatedObject(b, &kMffGapBeforeKey, @(x - rowEnd), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 		x += s.width;
+		rowEnd = x;
 		right = MAX(right, x);
 		rowHeight = MAX(rowHeight, s.height);
 	}
 	v.contentWidth = right;
+	[v layoutExpand];
 }
 int mffButtonsItem(void *view, int index, int what) {
 	id o = mffObj(view);
 	if (![o isKindOfClass:[MffButtonsView class]]) return -1;
 	MffButtonsView *v = o;
+	/* The places after the last size of the bar (ToolBar puts the controls over the gaps now) */
+	[v layoutExpand];
 	if (index < 0) return (int)v.contentWidth;
 	if (index >= (int)[v.buttons count] || ![v.buttons[index] isKindOfClass:[UIView class]]) return -1;
 	CGRect f = [(UIView *)v.buttons[index] frame];
@@ -1079,7 +1833,32 @@ int mffRegexExec(int id_, const char *subject, int startByte, int *offsets, int 
 
 /* Tables */
 void mffTableInit(void *view) { (void)view; }
-void mffTableSetView(void *view, const char *viewName) { (void)view; (void)viewName; }
+void mffTableSetView(void *view, const char *viewName) {
+	UITableView *t = mffTable(view);
+	if (![t isKindOfClass:[MffTableView class]]) return;
+	MffTableView *table = (MffTableView *)t;
+	NSString *name = mffStr(viewName);
+	if ([name isEqualToString:@"report"] || ![name length]) {
+		mffRemoveView(table.grid);
+		table.grid = nil;
+		table.scrollEnabled = YES;
+		return;
+	}
+	if (!table.grid) {
+		MffIconGrid *g = [[MffIconGrid alloc] initWithFrame:table.bounds collectionViewLayout:[[UICollectionViewFlowLayout alloc] init]];
+		g.backgroundColor = [UIColor systemBackgroundColor];
+		g.table = table;
+		g.dataSource = g;
+		g.delegate = g;
+		[g registerClass:[MffIconCell class] forCellWithReuseIdentifier:@"mff"];
+		table.grid = g;
+		table.scrollEnabled = NO;
+		[table addSubview:g];
+	}
+	table.grid.small = ![name isEqualToString:@"icon"];
+	[table.grid refresh];
+	[table setNeedsLayout];
+}
 void mffTableSetColumns(void *view, const char *captions, const char *widths) { (void)view; (void)captions; (void)widths; }
 void mffTableInsertRow(void *view, int index, const char *cells) {
 	UITableView *t = mffTable(view);
@@ -1260,7 +2039,8 @@ static void mffFileViewChoose(id table, id owner, NSInteger row, BOOL activate) 
 		st[@"files"] = [st[@"dir"] stringByAppendingPathComponent:name];
 	}
 	void *ctrl = mffGetCtrl(owner);
-	if (ctrl) mffOnChange(ctrl, (int)row);
+	int index = (int)row;
+	if (ctrl) mffAfterEvent(^{ mffOnChange(ctrl, index); });
 }
 
 char *mffFileViewAttr(void *view, const char *name) {

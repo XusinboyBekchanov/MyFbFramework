@@ -739,8 +739,8 @@ Namespace My.Sys.Forms
 			Declare Function GetTextLength() As Integer
 			'Retrieves the form that the control is on (Windows, Linux, Android, Web).
 			Declare Function GetForm() As Control Ptr
-			#ifdef __USE_JNI__
-				'The control which got the focus is the active control of its form (Android only).
+			#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+				'The control which got the focus is the active control of its form (Android, macOS, iOS).
 				Declare Sub SetActiveInForm()
 			#endif
 			'Begins a drag operation (Windows only)

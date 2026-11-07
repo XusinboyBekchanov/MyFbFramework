@@ -918,6 +918,10 @@ Namespace My.Sys.Forms
 	
 	Private Sub Form.ActiveControlChanged(ByRef Sender As Control)
 		If Sender.Child Then
+			#ifdef __USE_APPLE__
+				'There is no WM_ACTIVATE: the form of the control which got the focus is the active one
+				If pApp Then pApp->ActiveForm = Cast(Form Ptr, Sender.Child)
+			#endif
 			With QForm(Sender.Child)
 				If .OnActiveControlChange Then .OnActiveControlChange(*QForm(Sender.Child).Designer, QForm(Sender.Child))
 			End With
@@ -2215,7 +2219,7 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_APPLE__)
 			'The window is hidden (a waiting ShowModal returns)
-			If FHandle AndAlso FVisible Then
+			If FHandle <> 0 AndAlso FVisible Then
 				If OnHide Then OnHide(*Designer, This)
 				FVisible = False
 				mffFormHide(FHandle)

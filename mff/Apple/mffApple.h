@@ -45,10 +45,15 @@ void mffViewSetReadOnly(void *view, int value);
 /* 0 - left, 1 - center, 2 - right */
 void mffViewSetAlignment(void *view, int value);
 void mffTextSetSelection(void *view, int start, int length);
+void mffTextScrollTo(void *view, int toEnd);
 int mffTextGetSelection(void *view, int getLength);
 void mffTextSetPassword(void *view, int value);
 
 void mffListInsert(void *view, int index, const char *text);
+void mffTextSetRTF(void *view, const char *rtf);
+void mffLinkSetMarkup(void *view, const char *markup);
+const char *mffLinkClicked(void);
+void mffSelectItemImage(void *view, int index, const char *path, int indent);
 void mffListRemove(void *view, int index);
 void mffListClear(void *view);
 int mffListGetIndex(void *view);
@@ -56,6 +61,8 @@ void mffListSetIndex(void *view, int index);
 
 void mffRangeSet(void *view, int minValue, int maxValue);
 void mffPositionSet(void *view, int value);
+/* A ProgressBar without a position (Marquee): its animation runs while MarqueeOn is not 0 */
+void mffMarqueeSet(void *view, int marqueeOn);
 void mffScrollPageSet(void *view, int page);
 int mffPositionGet(void *view);
 
@@ -160,6 +167,8 @@ void mffOnTimer(void *id);
 void mffOnPaint(void *ctrl);
 /* An item of the bar of the menu: the index of its line of mffMenuBarSet */
 void mffOnMenu(int index);
+/* The state of the item of the bar: 1 - Enabled, 2 - Checked, -1 - no item */
+int mffMenuState(int index);
 
 #ifdef __cplusplus
 }

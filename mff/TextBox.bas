@@ -154,6 +154,8 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_WINAPI__)
 			Perform EM_SCROLLCARET, 0, 0
+		#elseif defined(__USE_APPLE__)
+			If FHandle Then mffTextScrollTo(FHandle, False)
 		#endif
 	End Sub
 	
@@ -172,6 +174,8 @@ Namespace My.Sys.Forms
 			firstVisible = SendMessage(FHandle, EM_GETFIRSTVISIBLELINE, 0, 0)
 			visibleLines = totalLines - firstVisible
 			SendMessage(FHandle, EM_LINESCROLL, 0, totalLines - firstVisible - visibleLines + 1)
+		#elseif defined(__USE_APPLE__)
+			If FHandle Then mffTextScrollTo(FHandle, True)
 		#endif
 	End Sub
 	
@@ -1384,6 +1388,10 @@ Namespace My.Sys.Forms
 			Dim As UString sText = Text
 			Text = ..Left(*sText.vptr, LStart) & Value & Mid(*sText.vptr, LEnd + 1)
 			SetSel LStart + Len(Value), LStart + Len(Value)
+			#ifdef __USE_APPLE__
+				'The added text stays visible like with EM_REPLACESEL on Windows (the Output of the IDE)
+				ScrollToCaret
+			#endif
 		#endif
 	End Property
 	

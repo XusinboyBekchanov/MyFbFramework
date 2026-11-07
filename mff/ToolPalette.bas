@@ -748,8 +748,8 @@ Namespace My.Sys.Forms
 			Dim As UString Items
 			Dim As Integer Count
 			Erase FItemGroups, FItemButtons
-			#ifdef __USE_JNI__
-				'The first item 5: the palette is a column which scrolls vertically (mffActivity.buttonsSet)
+			#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+				'The first item 5: the palette is a column which scrolls vertically (mffActivity.buttonsSet, mffButtonsSet)
 				Items = "5"
 				Count = 0
 			#endif

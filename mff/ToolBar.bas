@@ -1189,7 +1189,12 @@ Namespace My.Sys.Forms
 							Items &= IIf(.Expand, "7", "6") & ScaleX(.Child->Width)
 						#else
 							'Web: the width of the button (like on Windows), 7 - the gap takes the free width of the bar (Expand)
-							Items &= IIf(.Expand, "7", "6") & ScaleX(IIf(.Width > 0 AndAlso Not .Expand, .Width, .Child->Width))
+							#ifdef __USE_APPLE__
+								'Expand: the least width, the host gives it the free width of the bar (the Child has the last one)
+								Items &= IIf(.Expand, "760", "6" & ScaleX(IIf(.Width > 0, .Width, .Child->Width)))
+							#else
+								Items &= IIf(.Expand, "7", "6") & ScaleX(IIf(.Width > 0 AndAlso Not .Expand, .Width, .Child->Width))
+							#endif
 						#endif
 						Continue For
 					End If
@@ -1313,7 +1318,7 @@ Namespace My.Sys.Forms
 								Message.Handled = True
 								Exit Sub
 							End If
-						#elseif defined(__USE_JNI__)
+						#elseif defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 							'The whole button (tbsWholeDropdown) or the arrow of a drop-down button shows its menu
 							If CBool((.Style And tbsWholeDropdown) = tbsWholeDropdown OrElse (Message.wParam And &h10000) <> 0) AndAlso .DropDownMenu.Count > 0 Then
 								.DropDownMenu.Popup(0, 0)
@@ -1538,6 +1543,12 @@ Namespace My.Sys.Forms
 					'The buttons are views of Android (32 dp with a picture): a lower wide toolbar would hide them
 					If .Height < 32 AndAlso .Width >= 64 Then
 						.Height = 32
+						If .Parent Then .Parent->RequestAlign
+					End If
+				#elseif defined(__USE_APPLE__)
+					'A toolbar without a height (Align at the top in a page or a panel) has the height of its buttons
+					If .Height < 26 AndAlso .Width >= .Height Then
+						.Height = 26
 						If .Parent Then .Parent->RequestAlign
 					End If
 				#endif

@@ -323,7 +323,7 @@ Namespace My.Sys.Forms
 			End Function
 		#endif
 		
-		#ifdef __USE_JNI__
+		#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			'The active control of the form like WM_SETFOCUS on Windows (Control.ProcessMessage)
 			Private Sub Control.SetActiveInForm()
 				If FDesignMode Then Exit Sub
@@ -528,7 +528,7 @@ Namespace My.Sys.Forms
 						End If
 					End If
 				#elseif defined(__USE_APPLE__)
-					If FHandle AndAlso FShowHint Then mffViewSetHint(FHandle, ToUtf8(Value))
+					If FHandle <> 0 AndAlso FShowHint Then mffViewSetHint(FHandle, ToUtf8(Value))
 				#endif
 			End Property
 		#endif
@@ -1418,9 +1418,9 @@ Namespace My.Sys.Forms
 					FLeft = 100: FTop = 100
 					If FStartPosition = 3 Then FWidth = 350: FHeight = 300
 				End Select
-				mffViewSetBounds(FHandle, FLeft, FTop, FWidth, FHeight)
+				mffViewSetBounds(FHandle, FLeft, FTop + DesignCaptionHeight, FWidth, FHeight)
 				If FText AndAlso *FText <> "" Then mffViewSetText(FHandle, ToUtf8(*FText))
-				If FHint AndAlso FShowHint Then mffViewSetHint(FHandle, ToUtf8(*FHint))
+				If FHint <> 0 AndAlso FShowHint Then mffViewSetHint(FHandle, ToUtf8(*FHint))
 			#endif
 			#if defined(__USE_WINAPI__) OrElse defined(__USE_JNI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 				If FHandle Then
@@ -1526,7 +1526,7 @@ Namespace My.Sys.Forms
 						If This.Font.Color <> 0 Then SetForeColor(FHandle, This.Font.Color)
 					#elseif defined(__USE_APPLE__)
 						'The default font keeps the font of the system of the view
-						If This.Font.Name <> DefaultFont.Name OrElse This.Font.Size <> DefaultFont.Size OrElse This.Font.Bold OrElse This.Font.Italic OrElse This.Font.Underline OrElse This.Font.StrikeOut Then
+						If CBool(This.Font.Name <> DefaultFont.Name) OrElse CBool(This.Font.Size <> DefaultFont.Size) OrElse This.Font.Bold OrElse This.Font.Italic OrElse This.Font.Underline OrElse This.Font.StrikeOut Then
 							Dim As String sFontName
 							If This.Font.Name <> DefaultFont.Name Then sFontName = ToUtf8(This.Font.Name)
 							mffViewSetFont(FHandle, sFontName, This.Font.Size, IIf(Font.Bold, 1, 0) Or IIf(Font.Italic, 2, 0) Or IIf(Font.Underline, 4, 0) Or IIf(Font.StrikeOut, 8, 0))
@@ -4294,6 +4294,12 @@ Namespace My.Sys.Forms
 						Ctrl->CreateWnd
 						'#ENDIF
 					End If
+				#elseif defined(__USE_APPLE__)
+					'A control added to a parent which has its view gets its own view, a view made without a parent (a
+					'designed form) goes into the view of this control
+					If FHandle Then
+						If Ctrl->Handle Then mffViewAddChild(FHandle, Ctrl->Handle) Else Ctrl->CreateWnd
+					End If
 				#elseif defined(__USE_JNI__)
 					'A control added to a parent which has its view already (a new page of a TabControl, ...) gets its own view now
 					If FHandle AndAlso Ctrl->Handle = 0 Then Ctrl->CreateWnd
@@ -4594,6 +4600,8 @@ End Namespace
 		Case 2: Return IIf(SendControlInputMessage(Ctrl, CM_CHAR, Key, Shift), 1, 0)
 		Case 3
 			SendControlInputMessage(Ctrl, CM_SETFOCUS, 0, 0)
+			'The menus of the program (Copy, Paste of the IDE) follow the active control of the form
+			Ctrl->SetActiveInForm
 		Case 4: SendControlInputMessage(Ctrl, CM_KILLFOCUS, 0, 0)
 		End Select
 		Return 0

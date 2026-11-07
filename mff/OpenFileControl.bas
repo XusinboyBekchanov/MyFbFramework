@@ -751,8 +751,9 @@ Namespace My.Sys.Forms
 					pApp->DoEvents
 				Loop
 			End If
-		#elseif defined(__USE_WASM__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 			'Web: the control is an element with the file list of the file dialog (FillFiles), not a dialog of a thread
+			'macOS, iOS: a table with the file list (mffFileViewFill)
 			Base.CreateWnd
 			FillFiles
 		#elseif defined(__USE_JNI__)

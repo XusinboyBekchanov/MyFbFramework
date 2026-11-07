@@ -1497,10 +1497,11 @@ End Namespace
 	End Sub
 	
 	'The picture ResName.png in the Resources of the program (of its bundle too) or in a folder of AddResourceSearchPath
+	'iOS does not install a bundle with a folder Resources or resources at its top: AppResources there
 	Function FindResourceFile(ResName As String) As String
 		If ResName = "" Then Return ""
 		Dim As String AppDir = ExePath
-		Dim As String Paths = AppDir & "/Resources" & Chr(10) & AppDir & "/../Resources" & Chr(10) & AppDir & "/resources" & Chr(10) & ResourceSearchPaths
+		Dim As String Paths = AppDir & "/Resources" & Chr(10) & AppDir & "/../Resources" & Chr(10) & AppDir & "/AppResources" & Chr(10) & AppDir & "/resources" & Chr(10) & ResourceSearchPaths
 		Dim As Integer StartPos = 1, EndPos, Fn
 		Do While StartPos <= Len(Paths)
 			EndPos = InStr(StartPos, Paths, Chr(10))

@@ -137,6 +137,9 @@ Namespace My.Sys.Forms
 		#ifdef __USE_JNI__
 			SetGravity
 		#endif
+		#ifdef __USE_APPLE__
+			If FHandle Then mffViewSetAlignment(FHandle, FAlignment)
+		#endif
 		If Style <> lsText Then
 			#ifdef __USE_WINAPI__
 				Base.Style = WS_CHILD Or SS_NOTIFY Or ABorder(abs_(FBorder)) Or AStyle(abs_(FStyle)) Or AWordWraps(abs_(FWordWraps)) Or ARealSizeImage(abs_(FRealSizeImage)) Or ACenterImage(abs_(FCenterImage))
@@ -324,6 +327,12 @@ Namespace My.Sys.Forms
 		End With
 	End Sub
 	
+	#ifdef __USE_APPLE__
+		Private Sub Label.HandleIsAllocated(ByRef Sender As Control)
+			If Sender.Child Then mffViewSetAlignment(Sender.Handle, QLabel(Sender.Child).FAlignment)
+		End Sub
+	#endif
+
 	#ifdef __USE_WINAPI__
 		Private Sub Label.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
@@ -447,6 +456,8 @@ Namespace My.Sys.Forms
 				.DoubleBuffered   = True
 				.OnHandleIsAllocated = @HandleIsAllocated
 				WLet(FClassAncestor, "Static")
+			#elseif defined(__USE_APPLE__)
+				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "android/widget/TextView")
 			#elseif defined(__USE_WASM__)

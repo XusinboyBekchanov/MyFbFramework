@@ -18,8 +18,22 @@ Namespace My.Sys.Forms
 			SetSelectItemImage(Item->Parent->Handle, ItemIndex, URLs, Item->Indent)
 		End Sub
 	#elseif defined(__USE_APPLE__)
-		'The items of the pop-up button of the host have only their text
+		'The picture and the indent of the item of the pop-up button of the host
 		Private Sub ComboBoxItemShowImage(Item As ComboBoxItem Ptr, ByVal ItemIndex As Integer)
+			If Item = 0 OrElse ItemIndex < 0 OrElse Item->Parent = 0 OrElse Item->Parent->Handle = 0 Then Exit Sub
+			'The lookup of a file once for a picture (a list of IntelliSense has many items)
+			Static As String Found
+			Dim As String sKey = Item->ImageKey, sPath
+			Dim As Integer Pos1 = InStr(Found, Chr(10) & sKey & Chr(9))
+			If Pos1 > 0 Then
+				Pos1 += Len(sKey) + 2
+				sPath = Mid(Found, Pos1, InStr(Pos1, Found, Chr(10)) - Pos1)
+			Else
+				sPath = FindResourceFile(sKey)
+				If Found = "" Then Found = Chr(10)
+				Found &= sKey & Chr(9) & sPath & Chr(10)
+			End If
+			mffSelectItemImage(Item->Parent->Handle, ItemIndex, sPath, Item->Indent)
 		End Sub
 	#elseif defined(__USE_JNI__)
 		'Android: the text of the row of the item: the indent, Chr(1) & the picture file & Chr(1) (a picture in the text of
@@ -271,6 +285,8 @@ Namespace My.Sys.Forms
 				SendMessage Parent->Handle, CBEM_INSERTITEM, 0, CInt(@cbei)
 			#elseif defined(__USE_JNI__)
 				If Parent->Handle Then InsertSelectItem(Parent->Handle, IIf(Cast(ComboBoxEx Ptr, Parent)->Sort, i, IIf(Index = -1, FItems.Count - 1, Index)), ComboBoxItemRowText(PItem))
+			#elseif defined(__USE_APPLE__)
+				If Parent->Handle Then InsertSelectItem(Parent->Handle, IIf(Cast(ComboBoxEx Ptr, Parent)->Sort, i, IIf(Index = -1, FItems.Count - 1, Index)), ToUtf8(FText))
 			#elseif defined(__USE_WASM__)
 				If Parent->Handle Then InsertSelectItem(Parent->Handle, IIf(Cast(ComboBoxEx Ptr, Parent)->Sort, i, IIf(Index = -1, FItems.Count - 1, Index)), ToUtf8(FText))
 				#ifdef __USE_WASM__
@@ -287,6 +303,9 @@ Namespace My.Sys.Forms
 			With *Cast(ComboBoxEx Ptr, Parent)->ImagesList
 				Value = Add(FText, Obj, .IndexOf(ImageKey), .IndexOf(SelectedImageKey), .IndexOf(OverlayKey), Indent, Index)
 				Value->ImageKey = ImageKey
+				#ifdef __USE_APPLE__
+					ComboBoxItemShowImage(Value, Value->Index)
+				#endif
 			End With
 		Else
 			Value = Add(FText, Obj, -1, -1, -1, Indent, Index)
@@ -513,6 +532,12 @@ Namespace My.Sys.Forms
 		#endif
 	End Property
 	
+	#ifdef __USE_APPLE__
+		Private Sub ComboBoxEx.UseListView()
+			WLet(FClassAncestor, "mff:ListControl")
+		End Sub
+	#endif
+	
 	Private Sub ComboBoxEx.UpdateListHeight
 		If This.Style <> cbSimple Then
 			#ifdef __USE_WINAPI__
@@ -613,6 +638,9 @@ Namespace My.Sys.Forms
 						AddSelectItem(.FHandle, ComboBoxItemRowText(.Items.Item(i)))
 					#else
 						AddSelectItem(.FHandle, ToUtf8(.Items.Item(i)->Text))
+						#ifdef __USE_APPLE__
+							ComboBoxItemShowImage(.Items.Item(i), i)
+						#endif
 					#endif
 					Next
 					If .FItemIndex <> -1 Then SetSelectedIndex(.FHandle, .FItemIndex)

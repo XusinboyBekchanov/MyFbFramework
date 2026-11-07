@@ -929,7 +929,7 @@ Private Function ToUtf8(ByRef nWString As WString) As String
 	'		Dim buffer As String = String(m_BufferLen * 5 + 1, 0)
 	'		Return *Cast(ZString Ptr, WCharToUTF(1, @nWString, m_BufferLen * 2, StrPtr(buffer), @cbLen))
 	Dim As Integer m_BufferLen = Len(nWString)
-	Dim i1 As ULong = m_BufferLen * 5 + 1                   'if all unicode chars use 5 bytes in utf8
+	Dim i1 As Integer = m_BufferLen * 5 + 1                   'if all unicode chars use 5 bytes in utf8
 	Dim As String ansiStr = String(i1, 0)
 	Return *Cast(ZString Ptr, WCharToUTF(1, @nWString, m_BufferLen, StrPtr(ansiStr), Cast(Integer Ptr, @i1)))
 End Function

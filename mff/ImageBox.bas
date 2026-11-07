@@ -196,6 +196,8 @@ Namespace My.Sys.Forms
 					If .Ctrl->Handle Then LoadImage(.Ctrl->Handle, .Bitmap.Handle, Cast(ImageBox Ptr, .Ctrl)->FCenterImage)
 				#elseif defined(__USE_JNI__)
 					If .Ctrl->Handle Then LoadImage(.Ctrl->Handle, ToUtf8(.Bitmap.ToString), Cast(ImageBox Ptr, .Ctrl)->FCenterImage)
+				#elseif defined(__USE_APPLE__)
+					If .Ctrl->Handle Then LoadImage(.Ctrl->Handle, ToUtf8(.Bitmap.Handle), Cast(ImageBox Ptr, .Ctrl)->FCenterImage)
 				#endif
 			End If
 		End With

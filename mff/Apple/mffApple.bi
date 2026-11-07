@@ -10,6 +10,13 @@
 'host returns; Ctrl is the Control Ptr which gets the events of the view (the mffOn* functions of Control.bas).
 'All strings are UTF-8; a returned ZString Ptr is made with malloc and freed with Deallocate.
 'Colors are BGR (&hBBGGRR) like on Windows, -1 is the default color of the view.
+#ifdef __USE_COCOA__
+	'The host of AppKit (Cocoa/build-lib.sh): fbc links the program itself
+	#inclib "mffCocoa"
+	#inclib "framework:Cocoa"
+	#inclib "framework:WebKit"
+	#inclib "framework:ApplicationServices"
+#endif
 Extern "C"
 	'Kind: the class name of the control ("Form", "CommandButton", "Label", "TextBox", "CheckBox", "RadioButton",
 	'"Panel", "GroupBox", "ListControl", "ComboBoxEdit", "ProgressBar", "TrackBar", ...) or the kind of its
@@ -51,11 +58,16 @@ Extern "C"
 	Declare Sub mffViewSetAlignment(ByVal Id As Any Ptr, ByVal Value As Long)
 	'TextBox: the selection in characters
 	Declare Sub mffTextSetSelection(ByVal Id As Any Ptr, ByVal Start As Long, ByVal Length As Long)
+	Declare Sub mffTextScrollTo(ByVal Id As Any Ptr, ByVal ToEnd As Long)
 	Declare Function mffTextGetSelection(ByVal Id As Any Ptr, ByVal GetLength As Long) As Long
 	Declare Sub mffTextSetPassword(ByVal Id As Any Ptr, ByVal Value As Long)
 
 	'ListBox, ComboBox: Index -1 appends the item
 	Declare Sub mffListInsert(ByVal Id As Any Ptr, ByVal Index As Long, ByVal Text As Const ZString Ptr)
+	Declare Sub mffTextSetRTF(ByVal Id As Any Ptr, ByVal Rtf As Const ZString Ptr)
+	Declare Sub mffLinkSetMarkup(ByVal Id As Any Ptr, ByVal Markup As Const ZString Ptr)
+	Declare Function mffLinkClicked() As Const ZString Ptr
+	Declare Sub mffSelectItemImage(ByVal Id As Any Ptr, ByVal Index As Long, ByVal Path As Const ZString Ptr, ByVal Indent As Long)
 	Declare Sub mffListRemove(ByVal Id As Any Ptr, ByVal Index As Long)
 	Declare Sub mffListClear(ByVal Id As Any Ptr)
 	Declare Function mffListGetIndex(ByVal Id As Any Ptr) As Long
@@ -64,6 +76,8 @@ Extern "C"
 	'ProgressBar, TrackBar, ScrollBar
 	Declare Sub mffRangeSet(ByVal Id As Any Ptr, ByVal MinValue As Long, ByVal MaxValue As Long)
 	Declare Sub mffPositionSet(ByVal Id As Any Ptr, ByVal Value As Long)
+	'A ProgressBar without a position (Marquee): its animation runs while MarqueeOn is not 0
+	Declare Sub mffMarqueeSet(ByVal Id As Any Ptr, ByVal MarqueeOn As Long)
 	Declare Sub mffScrollPageSet(ByVal Id As Any Ptr, ByVal PageSize As Long)
 	Declare Function mffPositionGet(ByVal Id As Any Ptr) As Long
 

@@ -6,11 +6,15 @@ F="$1"
 DIR="$(cd "$(dirname "$0")" && pwd)"
 [ -d "$F/src" ] || git clone --depth 1 https://github.com/freebasic/fbc.git "$F" || exit 1
 sh "$DIR/../Apple/patch-fbc-rtlib.sh" "$F" ios || exit 1
-make -k -C "$F" rtlib -j4 TARGET_OS=darwin TARGET_ARCH=aarch64 CC="xcrun --sdk iphonesimulator clang -target arm64-apple-ios14.0-simulator -I$DIR/../Apple/ios-include" > rtlib.log 2>&1
+# The Simulator runs the code of the processor of the Mac
+CPU="$(uname -m)"
+ARCH="$CPU"
+[ "$CPU" = "arm64" ] && ARCH=aarch64
+make -k -C "$F" rtlib -j4 TARGET_OS=darwin TARGET_ARCH=$ARCH CC="xcrun --sdk iphonesimulator clang -target $CPU-apple-ios14.0-simulator -I$DIR/../Apple/ios-include" > rtlib.log 2>&1
 grep -E "error:" rtlib.log | head -n 20 | sed 's/^/::warning::/'
-LIB="$F/lib/freebasic/darwin-aarch64"
+LIB="$F/lib/freebasic/darwin-$ARCH"
 mkdir -p "$LIB"
-OBJ="$F/src/rtlib/obj/darwin-aarch64"
+OBJ="$F/src/rtlib/obj/darwin-$ARCH"
 if [ ! -f "$LIB/libfbmt.a" ]; then
 	xcrun libtool -static -o "$LIB/libfbmt.a" "$OBJ"/mt/*.o || { tail -n 30 rtlib.log; echo "::error::No objects of the runtime"; exit 1; }
 fi
