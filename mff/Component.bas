@@ -463,8 +463,10 @@ Namespace My.Sys.ComponentModel
 						GetWindowRect Handle, @R
 						MapWindowPoints 0, GetParent(Handle), Cast(Point Ptr, @R), 2
 						'Divide by the scale the physical bounds were realized with: during
-						'a DPI rescale xdpi is of the new monitor, the rectangle of the old one
-						FLeft = (R.left + 0.5) / IIf(physXdpi > 0, physXdpi, xdpi)
+						'a DPI rescale xdpi is of the new monitor, the rectangle of the old one.
+						'The assignment to Integer rounds already: + 0.5 before the division made
+						'the odd sizes bigger by 1 at each reading at 100% (here and below)
+						FLeft = R.left / IIf(physXdpi > 0, physXdpi, xdpi)
 						'If FParent Then FLeft -= FParent->Margins.Left
 					End If
 				End If
@@ -529,7 +531,7 @@ Namespace My.Sys.ComponentModel
 							MapWindowPoints 0, GetParent(Handle), Cast(Point Ptr, @R), 2
 							'Divide by the scale the physical bounds were realized with: during
 							'a DPI rescale ydpi is of the new monitor, the rectangle of the old one
-							FTop = (R.top + 0.5) / IIf(physYdpi > 0, physYdpi, ydpi)
+							FTop = R.top / IIf(physYdpi > 0, physYdpi, ydpi)
 							'If FParent Then FTop -= FParent->Margins.Top
 						End If
 					End If
@@ -596,7 +598,7 @@ Namespace My.Sys.ComponentModel
 					'Divide by the scale the physical bounds were realized with: during a DPI
 					'rescale xdpi is of the new monitor, the window rectangle of the old one
 					Dim As Single sEff = IIf(physXdpi > 0, physXdpi, xdpi)
-					Dim As Integer iNewWidth = (R.right - R.left + 0.5) / sEff
+					Dim As Integer iNewWidth = (R.right - R.left) / sEff
 					#ifdef MFF_DPIDEBUG
 					If iNewWidth <> FWidth Then DpiLog("DPILOG WidthResync " & This.Name & " design " & FWidth & "->" & iNewWidth & " xdpi=" & Str(xdpi) & " physXdpi=" & Str(physXdpi) & " phys=" & (R.right - R.left))
 					#endif
@@ -661,7 +663,7 @@ Namespace My.Sys.ComponentModel
 					MapWindowPoints 0, GetParent(FHandle), Cast(Point Ptr, @R), 2
 					'Divide by the scale the physical bounds were realized with: during a DPI
 					'rescale ydpi is of the new monitor, the window rectangle of the old one
-					FHeight = (R.bottom - R.top + 0.5) / IIf(physYdpi > 0, physYdpi, ydpi)
+					FHeight = (R.bottom - R.top) / IIf(physYdpi > 0, physYdpi, ydpi)
 				End If
 			#elseif defined(__USE_JNI__)
 				If FHandle Then
