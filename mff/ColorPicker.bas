@@ -94,6 +94,69 @@
 	    PRGB(255,182,193) }
 
 	' ========================================================================================
+	' Colour readouts. RGBH is the usual #RRGGBB (red first), NOT the COLORREF
+	' dword whose hex digits come out as BBGGRR. HSL is degrees / percent.
+	' ========================================================================================
+
+	Public Sub ColorPickerRGBtoHSL(ByVal clr As ULong, ByRef nHue As Long, ByRef nSat As Long, ByRef nLum As Long)
+		Dim dRed As Double = (clr And 255) / 255.0
+		Dim dGreen As Double = ((clr Shr 8) And 255) / 255.0
+		Dim dBlue As Double = ((clr Shr 16) And 255) / 255.0
+		Dim dMax As Double = dRed
+		Dim dMin As Double = dRed
+		If dGreen > dMax Then dMax = dGreen
+		If dBlue > dMax Then dMax = dBlue
+		If dGreen < dMin Then dMin = dGreen
+		If dBlue < dMin Then dMin = dBlue
+		Dim dDelta As Double = dMax - dMin
+		nLum = CLng((dMax + dMin) * 50.0)
+		If nLum < 0 Then nLum = 0
+		If nLum > 100 Then nLum = 100
+		If dDelta <= 0.000001 Then
+			nHue = 0
+			nSat = 0
+			Exit Sub
+		End If
+		Dim dDenom As Double = 1.0 - Abs(dMax + dMin - 1.0)
+		If dDenom <= 0.000001 Then
+			nSat = 0
+		Else
+			nSat = CLng(dDelta / dDenom * 100.0)
+		End If
+		If nSat < 0 Then nSat = 0
+		If nSat > 100 Then nSat = 100
+		Dim dHue As Double
+		If dMax = dRed Then
+			dHue = (dGreen - dBlue) / dDelta
+			If dHue < 0 Then dHue += 6.0
+		ElseIf dMax = dGreen Then
+			dHue = (dBlue - dRed) / dDelta + 2.0
+		Else
+			dHue = (dRed - dGreen) / dDelta + 4.0
+		End If
+		dHue *= 60.0
+		If dHue >= 360.0 Then dHue -= 360.0
+		nHue = CLng(dHue + 0.5)
+		If nHue >= 360 Then nHue = 0
+	End Sub
+
+	Public Function ColorPickerHSL(ByVal clr As ULong) As String
+		Dim nHue As Long, nSat As Long, nLum As Long
+		ColorPickerRGBtoHSL(clr, nHue, nSat, nLum)
+		Return "H:" & nHue & " S:" & nSat & "% L:" & nLum & "%"
+	End Function
+
+	Public Function ColorPickerHSLCompact(ByVal clr As ULong) As String
+		Dim nHue As Long, nSat As Long, nLum As Long
+		ColorPickerRGBtoHSL(clr, nHue, nSat, nLum)
+		Return "HSL " & nHue & "," & nSat & "," & nLum
+	End Function
+
+	Public Function ColorPickerRGBH(ByVal clr As ULong) As String
+		Return "#" & Hex(clr And 255, 2) & Hex((clr Shr 8) And 255, 2) & Hex((clr Shr 16) And 255, 2)
+	End Function
+
+	' ========================================================================================
 	' Pure colour laws
 	' ========================================================================================
 
@@ -237,27 +300,47 @@
 	End Function
 
 	Private Sub ColorPicker.BodyRects
-		'rcBody must already be set; fills rcMatrix / rcList / rcScroll for the tab
-		Dim nScaleCellW As Long = COLORPICKER_CELL_W * nScale
-		Dim nScaleCellH As Long = COLORPICKER_CELL_H * nScale
-		Dim nScaleSwatchW As Long = COLORPICKER_SWATCH_W * nScale
-		Dim nScaleRowH As Long = COLORPICKER_ROW_H * nScale
+		'rcBody must already be set. The 16x14 grid is a colour LAW with a fixed
+		'cell count: only the block rectangles follow the body, so a picker that
+		'is stretched by its form gets bigger colour blocks, not dead chrome.
+		Dim nBodyW As Long = rcBody.Right - rcBody.Left
+		Dim nBodyH As Long = rcBody.Bottom - rcBody.Top
+		If nBodyW < COLORPICKER_MATRIX_COLS Then nBodyW = COLORPICKER_MATRIX_COLS
+		If nBodyH < COLORPICKER_MATRIX_ROWS Then nBodyH = COLORPICKER_MATRIX_ROWS
+		m_MatrixW = nBodyW
+		m_MatrixH = nBodyH
+		m_CellW = nBodyW \ COLORPICKER_MATRIX_COLS
+		m_CellH = nBodyH \ COLORPICKER_MATRIX_ROWS
+		If m_CellW < 1 Then m_CellW = 1
+		If m_CellH < 1 Then m_CellH = 1
+		'The Web list fills the same body height: more height means more rows.
+		m_ListRowH = nBodyH \ COLORPICKER_LIST_ROWS
+		If m_ListRowH < 1 Then m_ListRowH = 1
+
 		Dim nScaleScrollW As Long = COLORPICKER_SCROLL_W * nScale
+		If nScaleScrollW > nBodyW \ 3 Then nScaleScrollW = nBodyW \ 3
+		If nScaleScrollW < 1 Then nScaleScrollW = 1
 		If m_Tab = cpTabCustom Then
 			rcMatrix = rcBody
+			m_ListSwatchW = COLORPICKER_SWATCH_W * nScale
 			rcList.Left = 0: rcList.Top = 0: rcList.Right = 0: rcList.Bottom = 0
 			rcScroll.Left = 0: rcScroll.Top = 0: rcScroll.Right = 0: rcScroll.Bottom = 0
 		Else
 			rcMatrix.Left = 0: rcMatrix.Top = 0: rcMatrix.Right = 0: rcMatrix.Bottom = 0
 			rcList = rcBody
 			rcList.Right -= nScaleScrollW
+			Dim nListW As Long = rcList.Right - rcList.Left
+			If nListW < 1 Then nListW = 1
+			m_ListSwatchW = nListW \ 8
+			If m_ListSwatchW < 14 * nScale Then m_ListSwatchW = 14 * nScale
+			If m_ListSwatchW > 80 * nScale Then m_ListSwatchW = 80 * nScale
 			rcScroll.Left = rcBody.Right - nScaleScrollW
 			rcScroll.Top = rcBody.Top
 			rcScroll.Right = rcBody.Right
 			rcScroll.Bottom = rcBody.Bottom
 			'Thumb position from the scroll index
 			Dim nCount As Long = WebColorCount()
-			Dim visible As Long = (rcList.Bottom - rcList.Top) \ nScaleRowH
+			Dim visible As Long = (rcList.Bottom - rcList.Top) \ m_ListRowH
 			If visible < 1 Then visible = 1
 			Dim nMax As Long = nCount - visible
 			If nMax < 0 Then nMax = 0
@@ -296,6 +379,17 @@
 		Dim nScaleOKW As Long = COLORPICKER_OK_W * nScale
 		Dim nScaleOKH As Long = COLORPICKER_OK_H * nScale
 
+		'The preview block grows with the width: its two readout lines need room.
+		'The fields keep their minimum width, so a narrow control never pushes
+		'them off the right edge.
+		Dim nThird As Long = (clientW - nScalePad * 2) \ 3
+		If nThird > nScalePreviewW Then nScalePreviewW = nThird
+		Dim nMinFields As Long = nScaleLabelW + nScaleFieldW + nScalePad
+		If clientW - nScalePad - nScalePreviewW - nScaleGap < nMinFields Then
+			nScalePreviewW = clientW - nScalePad - nScaleGap - nMinFields
+		End If
+		If nScalePreviewW < 40 * nScale Then nScalePreviewW = 40 * nScale
+
 		Dim y As Long = nScalePad
 
 		'---- the tab strip (sized to its text, left-aligned) -----------------------
@@ -309,11 +403,20 @@
 		Next
 		y = rcTabs.Bottom + nScaleGap
 
-		'---- the body (fixed height across all tabs) -------------------------------
+		'---- the body takes ALL the height the footer and OK leave over -----------
+		'At GetIdealSize this is exactly 14 rows of 22px; stretching the control
+		'(or the form it is anchored to) stretches the colour blocks instead.
+		Dim nFooterH As Long = nScaleRowH + nScalePreviewH * 2 + nScaleRowH
+		Dim nFixedH As Long = nScalePad + nScaleTabH + nScaleGap + nScaleGap + _
+			nFooterH + nScaleGap + nScaleOKH + nScalePad
+		Dim nBodyH As Long = clientH - nFixedH
+		Dim nMinBodyH As Long = COLORPICKER_LIST_ROWS * nScaleRowH \ 2
+		If nMinBodyH < 1 Then nMinBodyH = 1
+		If nBodyH < nMinBodyH Then nBodyH = nMinBodyH
 		rcBody.Left = nScalePad
 		rcBody.Top = y
 		rcBody.Right = clientW - nScalePad
-		rcBody.Bottom = y + COLORPICKER_LIST_ROWS * nScaleRowH
+		rcBody.Bottom = y + nBodyH
 		BodyRects
 		y = rcBody.Bottom + nScaleGap
 
@@ -413,35 +516,59 @@
 	Private Sub ColorPicker.DrawMatrix
 		Dim nCols As Long = COLORPICKER_MATRIX_COLS
 		Dim nRows As Long = COLORPICKER_MATRIX_ROWS
-		Dim nScaleCellW As Long = COLORPICKER_CELL_W * nScale
-		Dim nScaleCellH As Long = COLORPICKER_CELL_H * nScale
+		Dim nBodyW As Long = rcMatrix.Right - rcMatrix.Left
+		Dim nBodyH As Long = rcMatrix.Bottom - rcMatrix.Top
+		If nBodyW < nCols Then nBodyW = nCols
+		If nBodyH < nRows Then nBodyH = nRows
+		'Cumulative integer edges: the cells tile the body EXACTLY, with no
+		'leftover strip, and CellFromPoint uses the very same division.
 		Dim nCurvDev As Long = CurvDev()
+		Dim nMinCell As Long = nBodyW \ nCols
+		If nBodyH \ nRows < nMinCell Then nMinCell = nBodyH \ nRows
+		If nCurvDev > nMinCell \ 8 Then nCurvDev = nMinCell \ 8
+		If nCurvDev < 0 Then nCurvDev = 0
+		Dim nInset As Long = COLORPICKER_RING_INSET * nScale
+		If nInset < 1 Then nInset = 1
 		For r As Long = 0 To nRows - 1
+			Dim y0 As Long = rcMatrix.Top + r * nBodyH \ nRows
+			Dim y1 As Long = rcMatrix.Top + (r + 1) * nBodyH \ nRows
 			For c As Long = 0 To nCols - 1
-				Dim x As Long = rcMatrix.Left + c * nScaleCellW
-				Dim yy As Long = rcMatrix.Top + r * nScaleCellH
+				Dim x0 As Long = rcMatrix.Left + c * nBodyW \ nCols
+				Dim x1 As Long = rcMatrix.Left + (c + 1) * nBodyW \ nCols
+				Dim nCellW As Long = x1 - x0
+				Dim nCellH As Long = y1 - y0
 				Dim cellClr As ULong = MatrixColorAt(c, r, nCols, nRows)
 				Canvas.PathStart
-				Canvas.PathRoundRect(x, yy, nScaleCellW, nScaleCellH, nCurvDev)
+				Canvas.PathRoundRect(x0, y0, nCellW, nCellH, nCurvDev)
 				Canvas.FillPath(ARGB(cellClr), 100)
 				Canvas.PathDiscard
 				'The selection ring, inset so it reads as being ON the swatch
 				Dim idx As Long = r * nCols + c
 				If idx = m_BodySel Then
-					StrokeRectPath(x + COLORPICKER_RING_INSET, yy + COLORPICKER_RING_INSET, nScaleCellW - COLORPICKER_RING_INSET * 2, nScaleCellH - COLORPICKER_RING_INSET * 2, m_SelRingColor, 2)
+					StrokeRectPath(x0 + nInset, y0 + nInset, nCellW - nInset * 2, nCellH - nInset * 2, m_SelRingColor, 2)
 				ElseIf idx = m_HotSwatch Then
-					StrokeRectPath(x + COLORPICKER_RING_INSET, yy + COLORPICKER_RING_INSET, nScaleCellW - COLORPICKER_RING_INSET * 2, nScaleCellH - COLORPICKER_RING_INSET * 2, m_HotRingColor, 1)
+					StrokeRectPath(x0 + nInset, y0 + nInset, nCellW - nInset * 2, nCellH - nInset * 2, m_HotRingColor, 1)
 				End If
 			Next
 		Next
 	End Sub
 
 	Private Sub ColorPicker.DrawList
-		Dim nScaleSwatchW As Long = COLORPICKER_SWATCH_W * nScale
-		Dim nScaleRowH As Long = COLORPICKER_ROW_H * nScale
-		Dim nScaleRingIn As Long = COLORPICKER_RING_INSET
+		Dim nRowH As Long = m_ListRowH
+		If nRowH < 1 Then nRowH = COLORPICKER_ROW_H * nScale
+		If nRowH < 1 Then nRowH = 1
+		Dim nScaleSwatchW As Long = m_ListSwatchW
+		Dim nListW As Long = rcList.Right - rcList.Left
+		If nScaleSwatchW > nListW \ 2 Then nScaleSwatchW = nListW \ 2
+		If nScaleSwatchW < 1 Then nScaleSwatchW = 1
+		Dim nSwH As Long = nRowH - 4 * nScale
+		If nSwH < 1 Then nSwH = 1
+		Dim nScaleRingIn As Long = COLORPICKER_RING_INSET * nScale
+		If nScaleRingIn < 1 Then nScaleRingIn = 1
 		Dim nCurvDev As Long = CurvDev()
-		Dim visible As Long = (rcList.Bottom - rcList.Top) \ nScaleRowH
+		If nCurvDev > nSwH \ 4 Then nCurvDev = nSwH \ 4
+		If nCurvDev < 0 Then nCurvDev = 0
+		Dim visible As Long = (rcList.Bottom - rcList.Top) \ nRowH
 		If visible < 1 Then visible = 1
 
 		'Bring the selected row into view. NO repaint here: this runs inside a
@@ -462,23 +589,24 @@
 		For k As Long = 0 To visible - 1
 			Dim idx As Long = m_ScrollTop + k
 			If idx >= WebColorCount() Then Exit For
-			Dim yy As Long = rcList.Top + k * nScaleRowH
-			'The swatch, then the name
+			Dim yy As Long = rcList.Top + k * nRowH
+			'The swatch, then the name. Both follow the derived row height.
 			Dim swX As Long = rcList.Left
-			Dim swY As Long = yy + (nScaleRowH - (nScaleRowH - 4)) \ 2
-			Dim swH As Long = nScaleRowH - 4
+			Dim swY As Long = yy + (nRowH - nSwH) \ 2
 			Canvas.PathStart
-			Canvas.PathRoundRect(swX, swY, nScaleSwatchW, swH, nCurvDev)
+			Canvas.PathRoundRect(swX, swY, nScaleSwatchW, nSwH, nCurvDev)
 			Canvas.FillPath(ARGB(WebColorAt(idx)), 100)
 			Canvas.PathDiscard
 			If idx = m_BodySel Then
-				StrokeRectPath(swX + nScaleRingIn, swY + nScaleRingIn, nScaleSwatchW - nScaleRingIn * 2, swH - nScaleRingIn * 2, m_SelRingColor, 2)
+				StrokeRectPath(swX + nScaleRingIn, swY + nScaleRingIn, nScaleSwatchW - nScaleRingIn * 2, nSwH - nScaleRingIn * 2, m_SelRingColor, 2)
 			ElseIf idx = m_HotSwatch Then
-				StrokeRectPath(swX + nScaleRingIn, swY + nScaleRingIn, nScaleSwatchW - nScaleRingIn * 2, swH - nScaleRingIn * 2, m_HotRingColor, 1)
+				StrokeRectPath(swX + nScaleRingIn, swY + nScaleRingIn, nScaleSwatchW - nScaleRingIn * 2, nSwH - nScaleRingIn * 2, m_HotRingColor, 1)
 			End If
 			Dim clrName As ULong = m_ForeColor
 			If idx = m_BodySel Then clrName = m_TabForeColorSel
-			Canvas.TextOut(swX + nScaleSwatchW + 6 * nScale, yy + (nScaleRowH - ScaleY(Canvas.TextHeight(WebColorName(idx)))) \ 2, WebColorName(idx), clrName, -1)
+			'Canvas.TextOut wants LOGICAL coords (it applies ScaleX/ScaleY itself);
+			'the layout rects are device pixels, so unscale before every text call.
+			Canvas.TextOut(UnScaleX(swX + nScaleSwatchW + 6 * nScale), UnScaleY(yy + (nRowH - ScaleY(Canvas.TextHeight(WebColorName(idx)))) \ 2), WebColorName(idx), clrName, -1)
 		Next
 
 		'The in-control scrollbar: track + thumb (keeps the popup child-free)
@@ -490,8 +618,8 @@
 	Private Sub ColorPicker.DrawFooter
 		'The Initial/Current labels
 		Canvas.Font = This.Font
-		Canvas.TextOut(rcInitialLabel.Left, rcInitialLabel.Top, *m_TextInitial, m_ForeColor, -1)
-		Canvas.TextOut(rcCurrentLabel.Left, rcCurrentLabel.Top, *m_TextCurrent, m_ForeColor, -1)
+		Canvas.TextOut(UnScaleX(rcInitialLabel.Left), UnScaleY(rcInitialLabel.Top), *m_TextInitial, m_ForeColor, -1)
+		Canvas.TextOut(UnScaleX(rcCurrentLabel.Left), UnScaleY(rcCurrentLabel.Top), *m_TextCurrent, m_ForeColor, -1)
 
 		'The split box: the alpha of each half is drawn as opacity over the chrome
 		Dim nCurvDev As Long = CurvDev()
@@ -506,15 +634,20 @@
 		Canvas.StrokePath(ARGB(m_BorderColor), 1, 100)
 		Canvas.PathDiscard
 
+		'Each selected colour prints its own HSL and #RRGGBB readout on its half
+		'of the preview - the initial one and the live current one.
+		DrawPreviewReadout(rcInitial, m_InitialColor, m_InitialAlpha)
+		DrawPreviewReadout(rcCurrent, m_Color, m_Alpha)
+
 		'The fields
 		For i As Long = 0 To cpFieldCount - 1
 			If m_ShowAlpha = False AndAlso i = cpFieldA Then Exit For
 			Dim sLabel As UString = *m_TextField(i)
-			Canvas.TextOut(rcFieldLabel(i).Left, rcFieldLabel(i).Top + ((rcFieldLabel(i).Bottom - rcFieldLabel(i).Top) - ScaleY(Canvas.TextHeight(sLabel))) \ 2, sLabel, m_ForeColor, -1)
+			Canvas.TextOut(UnScaleX(rcFieldLabel(i).Left), UnScaleY(rcFieldLabel(i).Top + ((rcFieldLabel(i).Bottom - rcFieldLabel(i).Top) - ScaleY(Canvas.TextHeight(sLabel))) \ 2), sLabel, m_ForeColor, -1)
 			FillRectPath(rcField(i).Left, rcField(i).Top, rcField(i).Right - rcField(i).Left, rcField(i).Bottom - rcField(i).Top, m_FieldBackColor)
 			StrokeRectPath(rcField(i).Left, rcField(i).Top, rcField(i).Right - rcField(i).Left, rcField(i).Bottom - rcField(i).Top, IIf(i = m_FocusField, m_FieldBorderColorSel, m_FieldBorderColor), 1)
 			Dim sText As String = IIf(i = m_FocusField, m_Edit, ChannelText(i))
-			Canvas.TextOut(rcField(i).Left + 4 * nScale, rcField(i).Top + ((rcField(i).Bottom - rcField(i).Top) - ScaleY(Canvas.TextHeight(WStr(sText)))) \ 2, WStr(sText), m_FieldForeColor, -1)
+			Canvas.TextOut(UnScaleX(rcField(i).Left + 4 * nScale), UnScaleY(rcField(i).Top + ((rcField(i).Bottom - rcField(i).Top) - ScaleY(Canvas.TextHeight(WStr(sText)))) \ 2), WStr(sText), m_FieldForeColor, -1)
 			'The caret, only while this field is focused and the blink is on
 			If i = m_FocusField AndAlso m_CaretOn Then
 				Dim cx As Long = rcField(i).Left + 4 * nScale + ScaleX(Canvas.TextWidth(WStr(Mid(sText, 1, m_Caret))))
@@ -525,6 +658,46 @@
 				Canvas.PathDiscard
 			End If
 		Next
+	End Sub
+
+	'Prints "RGBH #RRGGBB / HSL h,s,l" ON a preview half. The text colour is
+	'chosen from the composited swatch (colour + alpha over the chrome), so it
+	'stays readable from black to white and from opaque to transparent.
+	Private Sub ColorPicker.DrawPreviewReadout(ByRef rc As ColorPickerRect, ByVal clr As ULong, ByVal nA As UByte)
+		Dim nW As Long = rc.Right - rc.Left
+		Dim nH As Long = rc.Bottom - rc.Top
+		If nW < 30 * nScale OrElse nH < 14 * nScale Then Exit Sub
+
+		Dim nRed As Long = clr And 255
+		Dim nGreen As Long = (clr Shr 8) And 255
+		Dim nBlue As Long = (clr Shr 16) And 255
+		Dim nBackR As Long = m_ChromeBackColor And 255
+		Dim nBackG As Long = (m_ChromeBackColor Shr 8) And 255
+		Dim nBackB As Long = (m_ChromeBackColor Shr 16) And 255
+		Dim nBlendR As Long = (nRed * nA + nBackR * (255 - nA)) \ 255
+		Dim nBlendG As Long = (nGreen * nA + nBackG * (255 - nA)) \ 255
+		Dim nBlendB As Long = (nBlue * nA + nBackB * (255 - nA)) \ 255
+		Dim nLum As Long = (nBlendR * 299 + nBlendG * 587 + nBlendB * 114) \ 1000
+		Dim clrText As ULong
+		If nLum > 140 Then
+			clrText = PRGB(18, 20, 24)
+		Else
+			clrText = PRGB(245, 247, 250)
+		End If
+
+		Dim sLineA As String = ColorPickerRGBH(clr) & " A" & nA
+		Dim sLineB As String = ColorPickerHSLCompact(clr)
+		Dim nInset As Long = 4 * nScale
+		Dim nTextH As Long = ScaleY(Canvas.TextHeight(WStr(sLineA)))
+		If nTextH < 1 Then nTextH = 8 * nScale
+		Dim bTwoLines As Boolean = nH >= 2 * nTextH + 3 * nScale
+		Dim nBlockH As Long = IIf(bTwoLines, 2 * nTextH + nScale, nTextH)
+		Dim tx As Long = rc.Left + nInset
+		Dim ty As Long = rc.Top + (nH - nBlockH) \ 2
+		Canvas.TextOut(UnScaleX(tx), UnScaleY(ty), WStr(sLineA), Cast(Integer, clrText), -1)
+		If bTwoLines AndAlso ScaleX(Canvas.TextWidth(WStr(sLineB))) <= nW - nInset * 2 Then
+			Canvas.TextOut(UnScaleX(tx), UnScaleY(ty + nTextH + nScale), WStr(sLineB), Cast(Integer, clrText), -1)
+		End If
 	End Sub
 
 	Private Sub ColorPicker.Draw
@@ -550,7 +723,7 @@
 				FillRectPath(x, rcTabs.Top, tw, rcTabs.Bottom - rcTabs.Top, m_TabBackColorSel)
 			End If
 			Dim clrTab As ULong = IIf(i = m_Tab, m_TabForeColorSel, m_TabForeColor)
-			Canvas.TextOut(x + COLORPICKER_TAB_PAD * nScale, rcTabs.Top + ((rcTabs.Bottom - rcTabs.Top) - ScaleY(Canvas.TextHeight(sCaption))) \ 2, sCaption, clrTab, -1)
+			Canvas.TextOut(UnScaleX(x + COLORPICKER_TAB_PAD * nScale), UnScaleY(rcTabs.Top + ((rcTabs.Bottom - rcTabs.Top) - ScaleY(Canvas.TextHeight(sCaption))) \ 2), sCaption, clrTab, -1)
 			x += tw
 		Next
 
@@ -574,7 +747,7 @@
 		Canvas.FillPath(ARGB(clrOK), 100)
 		Canvas.StrokePath(ARGB(m_OKBorderColor), 1, 100)
 		Canvas.PathDiscard
-		Canvas.TextOut(rcOK.Left + ((rcOK.Right - rcOK.Left) - ScaleX(Canvas.TextWidth(*m_TextOK))) \ 2, rcOK.Top + ((rcOK.Bottom - rcOK.Top) - ScaleY(Canvas.TextHeight(*m_TextOK))) \ 2, *m_TextOK, m_OKForeColor, -1)
+		Canvas.TextOut(UnScaleX(rcOK.Left + ((rcOK.Right - rcOK.Left) - ScaleX(Canvas.TextWidth(*m_TextOK))) \ 2), UnScaleY(rcOK.Top + ((rcOK.Bottom - rcOK.Top) - ScaleY(Canvas.TextHeight(*m_TextOK))) \ 2), *m_TextOK, m_OKForeColor, -1)
 
 		Exit Sub
 		ErrorHandler:
@@ -626,8 +799,7 @@
 	End Sub
 
 	Private Sub ColorPicker.SetScrollTop(ByVal Value As Long, ByVal bRepaint As Boolean = True)
-		Dim visible As Long = (rcList.Bottom - rcList.Top) \ (COLORPICKER_ROW_H * nScale)
-		If visible < 1 Then visible = 1
+		Dim visible As Long = ListRowCount()
 		Dim nMax As Long = WebColorCount() - visible
 		If nMax < 0 Then nMax = 0
 		If Value > nMax Then Value = nMax
@@ -642,7 +814,12 @@
 	End Sub
 
 	Private Function ColorPicker.ListRowCount As Long
-		Return (rcList.Bottom - rcList.Top) \ (COLORPICKER_ROW_H * nScale)
+		Dim nRowH As Long = m_ListRowH
+		If nRowH < 1 Then nRowH = COLORPICKER_ROW_H * nScale
+		If nRowH < 1 Then nRowH = 1
+		Dim nCount As Long = (rcList.Bottom - rcList.Top) \ nRowH
+		If nCount < 1 Then nCount = 1
+		Return nCount
 	End Function
 
 	Private Function ColorPicker.MatrixIndexOf(ByVal clr As ULong, ByRef nCol As Long, ByRef nRow As Long) As Boolean
@@ -659,16 +836,21 @@
 	End Function
 
 	Private Function ColorPicker.CellFromPoint(ByVal x As Long, ByVal y As Long, ByRef rc As ColorPickerRect, ByVal nCols As Long, ByRef nCol As Long, ByRef nRow As Long) As Boolean
-		'Point -> cell, a plain division because the grid is an exact multiple of
-		'the cell size - this is what stops the hit test and the painter disagreeing
+		'Point -> cell. The painter tiles the body with cumulative integer edges,
+		'so the hit test divides the WHOLE body (no fixed cell size) - this is
+		'what keeps clicks and colours together at every control size.
 		nCol = -1: nRow = -1
 		Dim w As Long = rc.Right - rc.Left
+		Dim h As Long = rc.Bottom - rc.Top
+		If w < 1 OrElse h < 1 Then Return False
 		If x < rc.Left OrElse y < rc.Top OrElse x >= rc.Right OrElse y >= rc.Bottom Then Return False
 		nCol = (x - rc.Left) * nCols \ w
-		nRow = (y - rc.Top) \ (COLORPICKER_CELL_H * nScale)
+		nRow = (y - rc.Top) * COLORPICKER_MATRIX_ROWS \ h
+		If nCol < 0 Then nCol = 0
+		If nCol > nCols - 1 Then nCol = nCols - 1
 		If nRow < 0 Then nRow = 0
 		If nRow > COLORPICKER_MATRIX_ROWS - 1 Then nRow = COLORPICKER_MATRIX_ROWS - 1
-		Return nCol >= 0 AndAlso nRow >= 0
+		Return True
 	End Function
 
 	' ========================================================================================
@@ -936,7 +1118,7 @@
 					SetCapture(FHandle)
 				#endif
 			ElseIf x >= rcList.Left AndAlso x < rcList.Right AndAlso y >= rcList.Top AndAlso y < rcList.Bottom Then
-				Dim k As Long = (y - rcList.Top) \ (COLORPICKER_ROW_H * nScale)
+				Dim k As Long = (y - rcList.Top) \ m_ListRowH
 				Dim idx As Long = m_ScrollTop + k
 				If idx >= 0 AndAlso idx < WebColorCount() Then
 					m_BodySel = idx
@@ -979,7 +1161,7 @@
 		Else
 			Dim sw As Long = -1
 			If x >= rcList.Left AndAlso x < rcList.Right AndAlso y >= rcList.Top AndAlso y < rcList.Bottom Then
-				sw = m_ScrollTop + (y - rcList.Top) \ (COLORPICKER_ROW_H * nScale)
+				sw = m_ScrollTop + (y - rcList.Top) \ m_ListRowH
 				If sw >= WebColorCount() Then sw = -1
 			End If
 			SetHotSwatch(sw)
@@ -1291,6 +1473,22 @@
 		Refresh
 	End Property
 
+	Private Property ColorPicker.PickedColorHSL As String
+		Return ColorPickerHSL(m_Color)
+	End Property
+
+	Private Property ColorPicker.PickedColorRGBH As String
+		Return ColorPickerRGBH(m_Color)
+	End Property
+
+	Private Property ColorPicker.InitialColorHSL As String
+		Return ColorPickerHSL(m_InitialColor)
+	End Property
+
+	Private Property ColorPicker.InitialColorRGBH As String
+		Return ColorPickerRGBH(m_InitialColor)
+	End Property
+
 	Private Property ColorPicker.ShowAlpha As Boolean
 		Return m_ShowAlpha
 	End Property
@@ -1476,7 +1674,7 @@
 		CloseForm
 	End Sub
 
-	Public Function ShowColorPicker(ByRef InitialColor As ULong, ByRef OutColor As ULong, ByRef OutAlpha As UByte, ByVal ShowAlphaCh As Boolean = True, ByRef Caption As WString = "Select color") As Boolean
+	Public Function ShowColorPicker(ByRef InitialColor As ULong, ByRef OutColor As ULong, ByRef OutAlpha As UByte, ByVal ShowAlphaCh As Boolean = True, ByRef Caption As UString = "Select color") As Boolean
 		Dim dlg As ColorPickerDialog
 		dlg.Text = Caption
 		dlg.Picker.SetInitialColor(InitialColor, 255)

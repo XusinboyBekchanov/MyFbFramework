@@ -8,9 +8,12 @@
 '#  A fully owner-drawn colour picker rendered through the control Canvas       #
 '#  (GDI+ on Windows, cairo on GTK, mcairo on WASM/Android): a tab strip over   #
 '#  a Web named-colour list and a 16x14 hue/lightness matrix, a split           #
-'#  Initial/Current preview, hand-rolled R/G/B(/A) entry fields and a single    #
-'#  OK button that commits. Use the module-level ShowColorPicker to run it as   #
-'#  a modal dialog (MFF Form.ShowModal) and get the answer back.                #
+'#  Initial/Current preview (each half prints its own HSL and #RRGGBB readout), #
+'#  hand-rolled R/G/B(/A) entry fields and a single OK button that commits.     #
+'#  The colour blocks stretch with the control, so a picker anchored to a       #
+'#  resizable form scales its matrix/list instead of leaving dead chrome.        #
+'#  Use the module-level ShowColorPicker to run it as a modal dialog            #
+'#  (MFF Form.ShowModal) and get the answer back.                               #
 '#                                                                              #
 '#  Deliberate departures from PsColorPicker:                                   #
 '#   - The System tab reads GetSysColor (Windows-only) and is omitted.          #
@@ -101,13 +104,13 @@ Namespace My.Sys.Forms
 		Dim m_ShowAlpha As Boolean = True
 		Dim m_BodySel As Long = -1        'cell of the current tab's body, re-derived
 		Dim m_ScrollTop As Long = 0       'first visible row of the Web list
-		'--- Modal-free state ---
-		Dim m_IsDragging As Boolean = False
-		Dim m_HotTab As Long = -1
-		Dim m_HotSwatch As Long = -1
-		Dim m_HotField As Long = -1
-		Dim m_OKHot As Boolean = False
-		Dim m_OKPressed As Boolean = False
+	'--- Modal-free state ---
+	Dim m_IsDragging As Boolean = False
+	Dim m_HotTab As Long = -1
+	Dim m_HotSwatch As Long = -1
+	Dim m_HotField As Long = -1
+	Dim m_OKHot As Boolean = False
+	Dim m_OKPressed As Boolean = False
 	'--- Corner radius (LOGICAL pixels) of the swatches and buttons; -1 follows
 	'the framework default (g_DefaultCornerRadius) ---
 	Dim m_Curvature As Long = -1
@@ -136,6 +139,17 @@ Namespace My.Sys.Forms
 		Dim m_TabTextW(1) As Long
 		Dim bLayoutDirty As Boolean = True
 		Dim m_bScrollingThumb As Boolean = False
+		'--- Responsive geometry (DEVICE pixels, derived in BodyRects) ------------
+		'The 16x14 grid is a colour LAW, so the number of blocks never changes;
+		'only the block rectangles follow the control's (and therefore the
+		'form's) size. m_MatrixW/m_MatrixH are the exact body extents used by
+		'both the painter and the hit test.
+		Dim m_MatrixW As Long = 1
+		Dim m_MatrixH As Long = 1
+		Dim m_CellW As Long = 1
+		Dim m_CellH As Long = 1
+		Dim m_ListRowH As Long = 1
+		Dim m_ListSwatchW As Long = 1
 		'--- Colors (COLORREF layout on every platform) ---
 		Dim m_ChromeBackColor As ULong = PRGB(44, 49, 58)
 		Dim m_ForeColor As ULong = PRGB(200, 205, 214)
@@ -168,8 +182,6 @@ Namespace My.Sys.Forms
 
 		#ifdef __USE_WINAPI__
 			Declare Static Sub WndProc(ByRef Message As Message)
-			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As My.Sys.Forms.Control)
 		#elseif defined(__USE_GTK__)
 			Dim As PangoContext Ptr pcontext
@@ -211,6 +223,7 @@ Namespace My.Sys.Forms
 		Declare Sub DrawMatrix
 		Declare Sub DrawList
 		Declare Sub DrawFooter
+		Declare Sub DrawPreviewReadout(ByRef rc As ColorPickerRect, ByVal clr As ULong, ByVal nA As UByte)
 		Declare Function ChannelText(ByVal idx As Long) As String
 		'--- Interaction ---
 		Declare Function HitTestField(ByVal x As Long, ByVal y As Long) As Long
@@ -246,6 +259,12 @@ Namespace My.Sys.Forms
 		Declare Property PickedColor(Value As ULong)
 		Declare Property PickedAlpha As UByte
 		Declare Property PickedAlpha(Value As UByte)
+		'Read-only readouts of BOTH selected colours: the initial one and the
+		'current one. HSL is in degrees / percent, RGBH is #RRGGBB (R first).
+		Declare Property PickedColorHSL As String
+		Declare Property PickedColorRGBH As String
+		Declare Property InitialColorHSL As String
+		Declare Property InitialColorRGBH As String
 		Declare Property ShowAlpha As Boolean
 		Declare Property ShowAlpha(Value As Boolean)
 		Declare Property PickerTab As Long
@@ -282,9 +301,17 @@ Namespace My.Sys.Forms
 		OnCancel As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ColorPicker)
 	End Type
 
+	'Colour readout helpers, shared by the control's preview and by hosts:
+	'RGBtoHSL returns hue in 0..359 degrees and saturation/lightness in 0..100.
+	'HSL/RGBH are the verbose forms, HSLCompact fits on a small colour block.
+	Declare Sub ColorPickerRGBtoHSL(ByVal clr As ULong, ByRef nHue As Long, ByRef nSat As Long, ByRef nLum As Long)
+	Declare Function ColorPickerHSL(ByVal clr As ULong) As String
+	Declare Function ColorPickerHSLCompact(ByVal clr As ULong) As String
+	Declare Function ColorPickerRGBH(ByVal clr As ULong) As String
+
 	'Standalone modal helper: runs the picker in a fixed-dialog Form and returns
 	'TRUE with the chosen colour (and alpha) written back, FALSE if cancelled.
-	Declare Function ShowColorPicker(ByRef InitialColor As ULong, ByRef OutColor As ULong, ByRef OutAlpha As UByte, ByVal ShowAlphaCh As Boolean = True, ByRef Caption As WString = "Select color") As Boolean
+	Declare Function ShowColorPicker(ByRef InitialColor As ULong, ByRef OutColor As ULong, ByRef OutAlpha As UByte, ByVal ShowAlphaCh As Boolean = True, ByRef Caption As UString = "Select color") As Boolean
 End Namespace
 
 #ifndef __USE_MAKE__
