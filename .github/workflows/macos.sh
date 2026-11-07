@@ -19,7 +19,7 @@ git clone -q --depth 1 https://github.com/freebasic/fbc.git "$WORK/fbc"
 # MyFbFramework as a library, like on Windows and Linux (with the host of AppKit libmffCocoa.a)
 sh mff/Cocoa/build-lib.sh "$FB"
 cd mff
-"$FB/bin/fbc" -b "mff.bi" -dll -x "../libmff64_cocoa.dylib" -d FB_NO_USTRING -d __USE_COCOA__ -i "$WORK/fbc/inc" -v
+"$FB/bin/fbc" -b "mff.bi" -dll -x "../libmff64_cocoa.dylib" -d FB_NO_USTRING -d FB_NO_SFXLIB -d __USE_COCOA__ -i "$WORK/fbc/inc" -v
 cd ..
 if [ ! -f libmff64_cocoa.dylib ]; then
 	echo "libmff64_cocoa.dylib does not exist"
@@ -30,8 +30,9 @@ mkdir -p build
 for f in examples/Hello.bas examples/WebAndroid/ControlsDemo.bas examples/WebAndroid/AllControlsDemo.bas examples/WebAndroid/CanvasDemo.bas; do
 	p="$(basename "$f" .bas)"
 	echo "== $p"
-	# FB_NO_USTRING: this fbc has its own type UString, MyFbFramework has its own one
-	"$FB/bin/fbc" -target darwin-aarch64 -gen gcc -r -d FB_NO_USTRING -d __USE_COCOA__ -i "$WORK/fbc/inc" -i . -m "$p" "$f"
+	# FB_NO_USTRING, FB_NO_SFXLIB: this fbc has its own type UString and commands of sound (Midi), MyFbFramework has
+	# its own ones
+	"$FB/bin/fbc" -target darwin-aarch64 -gen gcc -r -d FB_NO_USTRING -d FB_NO_SFXLIB -d __USE_COCOA__ -i "$WORK/fbc/inc" -i . -m "$p" "$f"
 	mv "${f%.bas}.c" build/
 	sh mff/Cocoa/build.sh "build/$p.c" "build/$p" "$FB"
 	if [ ! -f "build/$p" ]; then
