@@ -72,53 +72,141 @@
 	'Android send them in CM_KEYDOWN, the keys of GTK are translated by FlexKeyToVK)
 	#ifndef VK_LBUTTON
 		#define VK_LBUTTON &h01
+	#endif
+	#ifndef VK_RBUTTON
 		#define VK_RBUTTON &h02
+	#endif
+	#ifndef VK_MBUTTON
 		#define VK_MBUTTON &h04
+	#endif
+	#ifndef VK_BACK
 		#define VK_BACK &h08
+	#endif
+	#ifndef VK_TAB
 		#define VK_TAB &h09
+	#endif
+	#ifndef VK_RETURN
 		#define VK_RETURN &h0D
+	#endif
+	#ifndef VK_SHIFT
 		#define VK_SHIFT &h10
+	#endif
+	#ifndef VK_CONTROL
 		#define VK_CONTROL &h11
+	#endif
+	#ifndef VK_MENU
 		#define VK_MENU &h12
+	#endif
+	#ifndef VK_ESCAPE
 		#define VK_ESCAPE &h1B
+	#endif
+	#ifndef VK_SPACE
 		#define VK_SPACE &h20
+	#endif
+	#ifndef VK_PRIOR
 		#define VK_PRIOR &h21
+	#endif
+	#ifndef VK_NEXT
 		#define VK_NEXT &h22
+	#endif
+	#ifndef VK_END
 		#define VK_END &h23
+	#endif
+	#ifndef VK_HOME
 		#define VK_HOME &h24
+	#endif
+	#ifndef VK_LEFT
 		#define VK_LEFT &h25
+	#endif
+	#ifndef VK_UP
 		#define VK_UP &h26
+	#endif
+	#ifndef VK_RIGHT
 		#define VK_RIGHT &h27
+	#endif
+	#ifndef VK_DOWN
 		#define VK_DOWN &h28
+	#endif
+	#ifndef VK_INSERT
 		#define VK_INSERT &h2D
+	#endif
+	#ifndef VK_DELETE
 		#define VK_DELETE &h2E
+	#endif
+	#ifndef VK_NUMPAD0
 		#define VK_NUMPAD0 &h60
+	#endif
+	#ifndef VK_MULTIPLY
 		#define VK_MULTIPLY &h6A
+	#endif
+	#ifndef VK_ADD
 		#define VK_ADD &h6B
+	#endif
+	#ifndef VK_SUBTRACT
 		#define VK_SUBTRACT &h6D
+	#endif
+	#ifndef VK_DECIMAL
 		#define VK_DECIMAL &h6E
+	#endif
+	#ifndef VK_DIVIDE
 		#define VK_DIVIDE &h6F
+	#endif
+	#ifndef VK_F1
 		#define VK_F1 &h70
+	#endif
+	#ifndef VK_F2
 		#define VK_F2 &h71
+	#endif
+	#ifndef VK_F4
 		#define VK_F4 &h73
+	#endif
+	#ifndef VK_F12
 		#define VK_F12 &h7B
 	#endif
 	'The indexes of the system colors of Windows (FlexSysColor)
-	#ifndef COLOR_WINDOW
+	#ifndef COLOR_SCROLLBAR
 		#define COLOR_SCROLLBAR 0
+	#endif
+	#ifndef COLOR_WINDOW
 		#define COLOR_WINDOW 5
+	#endif
+	#ifndef COLOR_WINDOWTEXT
 		#define COLOR_WINDOWTEXT 8
+	#endif
+	#ifndef COLOR_HIGHLIGHT
 		#define COLOR_HIGHLIGHT 13
+	#endif
+	#ifndef COLOR_HIGHLIGHTTEXT
 		#define COLOR_HIGHLIGHTTEXT 14
+	#endif
+	#ifndef COLOR_BTNFACE
 		#define COLOR_BTNFACE 15
+	#endif
+	#ifndef COLOR_BTNSHADOW
 		#define COLOR_BTNSHADOW 16
+	#endif
+	#ifndef COLOR_GRAYTEXT
 		#define COLOR_GRAYTEXT 17
+	#endif
+	#ifndef COLOR_BTNTEXT
 		#define COLOR_BTNTEXT 18
+	#endif
+	#ifndef COLOR_BTNHIGHLIGHT
 		#define COLOR_BTNHIGHLIGHT 20
+	#endif
+	#ifndef COLOR_3DDKSHADOW
 		#define COLOR_3DDKSHADOW 21
+	#endif
+	#ifndef COLOR_3DLIGHT
 		#define COLOR_3DLIGHT 22
+	#endif
+	#ifndef COLOR_INFOTEXT
 		#define COLOR_INFOTEXT 23
+	#endif
+	#ifndef COLOR_INFOBK
 		#define COLOR_INFOBK 24
+	#endif
+	#ifndef COLOR_HOTLIGHT
 		#define COLOR_HOTLIGHT 26
 	#endif
 	#ifndef GetSysColor

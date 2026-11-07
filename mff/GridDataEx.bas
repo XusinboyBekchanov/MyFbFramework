@@ -3638,7 +3638,7 @@ Namespace My.Sys.Forms
 		Return R
 	End Function
 
-	Function GridDataRptGetFieldValue(ByRef Designer As My.Sys.Object, ByRef FieldName As WString, RowIndex As Integer) ByRef As WString
+	Function GridDataRptGetFieldValue(ByRef DesignerObj As My.Sys.Object, ByRef FieldName As WString, RowIndex As Integer) ByRef As WString
 		'Resolves "C<col>" to the visible data row's cell (translated) text.
 		'Module-level: a Static member function cannot take ByRef parameters,
 		'which the Report.OnGetFieldValue delegate requires.
