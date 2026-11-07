@@ -16,11 +16,19 @@ FB="$WORK/fbxl/usr/local"
 # are duplicated definitions
 git clone -q --depth 1 https://github.com/freebasic/fbc.git "$WORK/fbc"
 
-# MyFbFramework as a library, like on Windows and Linux (with the host of AppKit libmffCocoa.a)
+# FB_NO_USTRING, FB_NO_SFXLIB: this fbc has its own type UString and commands of sound (Midi), MyFbFramework has its
+# own ones
+DEFS="-d FB_NO_USTRING -d FB_NO_SFXLIB -d __USE_COCOA__"
+
+# MyFbFramework as a library, like on Windows and Linux, with the host of AppKit libmffCocoa.a. fbc makes only the C
+# code: the #inclib "framework:..." of mff/Apple/mffApple.bi are frameworks for clang
 sh mff/Cocoa/build-lib.sh "$FB"
-cd mff
-"$FB/bin/fbc" -b "mff.bi" -dll -x "../libmff64_cocoa.dylib" -d FB_NO_USTRING -d FB_NO_SFXLIB -d __USE_COCOA__ -i "$WORK/fbc/inc" -v
-cd ..
+LIB="$FB/lib/freebasic/darwin-aarch64"
+"$FB/bin/fbc" -target darwin-aarch64 -gen gcc -r -dll $DEFS -i "$WORK/fbc/inc" -m mff mff/mff.bi
+sh mff/Apple/fix-c-code.sh mff/mff.c
+clang -c -O1 -w -fno-strict-aliasing -fwrapv -fno-math-errno -fno-exceptions -fno-asynchronous-unwind-tables -funwind-tables mff/mff.c -o mff/mff.o
+clang -dynamiclib -o libmff64_cocoa.dylib -install_name @rpath/libmff64_cocoa.dylib "$LIB/fbrt0.o" mff/mff.o -L"$LIB" -lmffCocoa -lfbmt -lpthread -lm -lncurses -framework Cocoa -framework WebKit -framework ApplicationServices
+rm -f mff/mff.c mff/mff.o
 if [ ! -f libmff64_cocoa.dylib ]; then
 	echo "libmff64_cocoa.dylib does not exist"
 	exit 1
@@ -30,9 +38,7 @@ mkdir -p build
 for f in examples/Hello.bas examples/WebAndroid/ControlsDemo.bas examples/WebAndroid/AllControlsDemo.bas examples/WebAndroid/CanvasDemo.bas; do
 	p="$(basename "$f" .bas)"
 	echo "== $p"
-	# FB_NO_USTRING, FB_NO_SFXLIB: this fbc has its own type UString and commands of sound (Midi), MyFbFramework has
-	# its own ones
-	"$FB/bin/fbc" -target darwin-aarch64 -gen gcc -r -d FB_NO_USTRING -d FB_NO_SFXLIB -d __USE_COCOA__ -i "$WORK/fbc/inc" -i . -m "$p" "$f"
+	"$FB/bin/fbc" -target darwin-aarch64 -gen gcc -r $DEFS -i "$WORK/fbc/inc" -i . -m "$p" "$f"
 	mv "${f%.bas}.c" build/
 	sh mff/Cocoa/build.sh "build/$p.c" "build/$p" "$FB"
 	if [ ! -f "build/$p" ]; then
