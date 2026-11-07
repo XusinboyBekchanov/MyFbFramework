@@ -12,13 +12,16 @@ mkdir -p "$WORK/fbxl"
 tar xf "$WORK/$FBXL" -C "$WORK/fbxl"
 FB="$WORK/fbxl/usr/local"
 "$FB/bin/fbc" -version
+# The headers of fbc of freebasic/fbc: with the ones of FBXL, FileExists (file.bi) and the macro of it of MyFbFramework
+# are duplicated definitions
+git clone -q --depth 1 https://github.com/freebasic/fbc.git "$WORK/fbc"
 
 mkdir -p build
 for f in examples/Hello.bas examples/WebAndroid/ControlsDemo.bas examples/WebAndroid/AllControlsDemo.bas examples/WebAndroid/CanvasDemo.bas; do
 	p="$(basename "$f" .bas)"
 	echo "== $p"
 	# FB_NO_USTRING: this fbc has its own type UString, MyFbFramework has its own one
-	"$FB/bin/fbc" -target darwin-aarch64 -gen gcc -r -d FB_NO_USTRING -d __USE_COCOA__ -i . -m "$p" "$f"
+	"$FB/bin/fbc" -target darwin-aarch64 -gen gcc -r -d FB_NO_USTRING -d __USE_COCOA__ -i "$WORK/fbc/inc" -i . -m "$p" "$f"
 	mv "${f%.bas}.c" build/
 	sh mff/Cocoa/build.sh "build/$p.c" "build/$p" "$FB"
 	if [ ! -f "build/$p" ]; then
