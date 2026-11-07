@@ -1,0 +1,16 @@
+﻿chinese
+[General]
+000001 Daily K-line  =  000001 每日K线
+All Data  =  所有数据
+Clicked the K line  =  点击了K线
+CSV Load failed! Please check '000001 SSE Composite Index Daily Data.csv'  =  CSV 加载失败！请检查文件'000001 SSE Composite Index Daily Data.csv'”
+is its MA5)  =  是MA5平均线
+Last 250 days  =  过去250天
+Loading CSV...  =  加载数据 CSV......
+Moving Averages  =  移动平均线
+Red up, green down  =  红色上涨，绿色下跌
+SSE Composite Index Daily Chart  =  SSE综合指数日线图
+Volume  =  成交量
+Zoom in  =  缩小
+Zoom out  =  放大
+After clicking To focus On the image: use the up/down Keys Or scroll wheel To zoom, And the Left/Right Keys Or drag To pan.  =  点击“聚焦图像”后：使用上下键或滚轮缩放，左右键或拖曳平移。

@@ -168,6 +168,11 @@ Namespace My
 		Declare Property ActiveMDIChild(Value As My.Sys.Forms.Form Ptr)
 		Declare Property DarkMode As Boolean
 		Declare Property DarkMode(Value As Boolean)
+		'The framework-wide default corner radius (a LOGICAL-pixel RADIUS) that
+		'every owner-drawn chrome follows unless it overrides its own; -1 puts
+		'every control back on its built-in default (Windows, Linux, Android, Web).
+		Declare Property DefaultCornerRadius As Long
+		Declare Property DefaultCornerRadius(Value As Long)
 		Declare Function FileName ByRef As WString
 		Declare Function Version() As String
 		Declare Function GetVerInfo(ByRef InfoName As String) As String

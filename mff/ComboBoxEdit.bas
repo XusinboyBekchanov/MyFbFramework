@@ -549,8 +549,8 @@ Namespace My.Sys.Forms
 				With QComboBoxEdit(Sender.Child)
 					#ifdef __USE_WASM__
 						If .FType = "text" Then
-							For i As Integer = 0 To .Items.Count - 1
-								AddSelectItem(.FHandle, ToUtf8(.Items.Item(i)))
+						For i As Integer = 0 To .Items.Count - 1
+							AddSelectItem(.FHandle, ToUtf8(.Items.Item(i)))
 							Next
 						End If
 					#endif

@@ -180,7 +180,7 @@ Namespace My.Sys.Forms
 					SetStyle(FHandle, "text-align", IIf(FAlignment = AlignmentConstants.taCenter, "center", IIf(FAlignment = AlignmentConstants.taRight, "right", "left")))
 					SetStyle(FHandle, "white-space", IIf(FWordWraps, "pre-wrap", "pre"))
 					SetStyle(FHandle, "text-overflow", IIf(FWordWraps, "", "ellipsis"))
-				End If
+		End If
 			#endif
 		End If
 		RecreateWnd

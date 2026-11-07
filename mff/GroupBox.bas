@@ -180,7 +180,7 @@ Namespace My.Sys.Forms
 					SetBkColor(Dc, darkBkColor)
 					Dim As HFONT OldFontHandle, NewFontHandle
 					OldFontHandle = SelectObject(Dc, This.Font.Handle)
-					TextOut(Dc, 6, 0, @This.Text, Len(This.Text))
+					TextOut(Dc, ScaleX(6), ScaleY(1), @This.Text, Len(This.Text))
 					This.Canvas.UnSetHandle
 					NewFontHandle = SelectObject(Dc, OldFontHandle)
 					SelectObject(Dc, PrevPen)

@@ -195,6 +195,7 @@ Namespace My.Sys.Drawing
 			Dim pBrushBorder As ID2D1SolidColorBrush Ptr = 0
 			Dim pBrushFill As ID2D1SolidColorBrush Ptr = 0
 			Dim pBrushOpacity As ID2D1Brush Ptr
+			Dim hGdipPath As GpPath Ptr = 0            'Current accumulated path for the Path* methods
 			Handle  As HDC
 			GdipToken As ULONG_PTR
 			GdipGraphics As GpGraphics Ptr
@@ -270,6 +271,30 @@ Namespace My.Sys.Drawing
 		Declare Sub PolylineTo(Points() As Point, Count As Long)
 		Declare Sub PolyBeizer(Points() As Point, Count As Long)
 		Declare Sub PolyBeizerTo(Points() As Point, Count As Long)
+		'Path-based drawing for complex shapes. All Path* methods work in device (physical)
+		'pixels without applying the Canvas scale transform, so a control that already
+		'scales its geometry (like Chart) can feed its coordinates in directly.
+		'Windows is backed by GDI+, GTK by cairo, WASM/JNI by mcairo.
+		Declare Sub PathStart()
+		Declare Sub PathMoveTo(x As Double, y As Double)
+		Declare Sub PathLineTo(x As Double, y As Double)
+		Declare Sub PathArc(x As Double, y As Double, W As Double, H As Double, StartAngle As Double, SweepAngle As Double)
+		Declare Sub PathPie(x As Double, y As Double, W As Double, H As Double, StartAngle As Double, SweepAngle As Double)
+		Declare Sub PathRoundRect(x As Double, y As Double, W As Double, H As Double, Radius As Double)
+		Declare Sub PathCurveTo(x1 As Double, y1 As Double, x2 As Double, y2 As Double, x3 As Double, y3 As Double)
+		Declare Sub PathAddPolyline(ByVal Points As Any Ptr, ByVal Count As Long)
+		Declare Sub PathAddCurve(ByVal Points As Any Ptr, ByVal Count As Long)
+		Declare Sub PathClose()
+		Declare Sub PathDiscard()
+		Declare Sub FillPath(PathColor As ULong, Opacity As Long = 100)
+		Declare Sub FillPathGradient(PathColor As ULong, GradientColor As ULong, Opacity As Long = 100, GradientOpacity As Long = 10, RLeft As Double = 0, RTop As Double = 0, RWidth As Double = 0, RHeight As Double = 0, Angle As Single = 90)
+		'RoundCap: rounded stroke ends (GDI+ LineCapRound / cairo LINE_CAP_ROUND);
+		'the WASM/Android shim keeps flat ends
+		Declare Sub StrokePath(PathColor As ULong, PenWidth As Single = 1, Opacity As Long = 100, ByVal RoundCap As Boolean = False)
+		'Strokes a flat polyline in one call (Windows: GdipDrawLinesI) - much
+		'faster than building a path for line charts with many points
+		Declare Sub StrokePolyline(ByVal Points As Any Ptr, ByVal Count As Long, PathColor As ULong, PenWidth As Single = 1, Opacity As Long = 100)
+		Declare Function PathCopy() As Any Ptr
 		Declare Sub SetPixel(x As Double, y As Double, PixelColor As Integer)
 		Declare Function GetPixel(x As Double, y As Double) As Integer
 		Declare Function Get(x As Double, y As Double, nWidth As Integer, nHeight As Integer, ByRef ImageSource As My.Sys.Drawing.BitmapType) As Any Ptr
@@ -294,7 +319,7 @@ Namespace My.Sys.Drawing
 		Declare Sub Draw(x As Double, y As Double, ByRef Image As My.Sys.Drawing.BitmapType)
 		Declare Sub Draw(x As Double, y As Double, ByRef Image As My.Sys.Drawing.Icon)
 		Declare Sub DrawStretch(x As Double, y As Double, nWidth As Integer, nHeight As Integer, Image As Any Ptr)
-		Declare Sub CopyRect(Dest As Rect, Canvas As Canvas, Source As Rect)
+		Declare Sub CopyRect(Dest As Rect, SrcCvs As Canvas, Source As Rect)
 		Declare Sub FloodFill(x As Double, y As Double, FillColorBK As Integer = -1, FillStyleBK As FillStyle)
 		Declare Sub FillRect(R As Rect, FillColorBK As Integer = -1)
 		Declare Sub DrawFocusRect(R As Rect)

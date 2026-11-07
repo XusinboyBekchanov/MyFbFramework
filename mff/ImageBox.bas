@@ -175,13 +175,13 @@ Namespace My.Sys.Forms
 					Select Case ImageType
 					Case 0
 						QImageBox(.Ctrl->Child).Style = ImageBoxStyle.ssBitmap
-						QImageBox(.Ctrl->Child).Perform(BM_SETIMAGE,ImageType,CInt(Sender.Bitmap.Handle))
+						QImageBox(.Ctrl->Child).UpdateImage
 					Case 1
 						QImageBox(.Ctrl->Child).Style = ImageBoxStyle.ssIcon
-						QImageBox(.Ctrl->Child).Perform(BM_SETIMAGE,ImageType,CInt(Sender.Icon.Handle))
+						QImageBox(.Ctrl->Child).UpdateImage
 					Case 2
 						QImageBox(.Ctrl->Child).Style = ImageBoxStyle.ssCursor
-						QImageBox(.Ctrl->Child).Perform(BM_SETIMAGE,ImageType,CInt(Sender.Icon.Handle))
+						QImageBox(.Ctrl->Child).UpdateImage
 					Case 3
 						QImageBox(.Ctrl->Child).Style = ImageBoxStyle.ssEmf
 						QImageBox(.Ctrl->Child).Perform(BM_SETIMAGE,ImageType,CInt(0))
@@ -204,11 +204,100 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
+			Private Sub ImageBox.ClearScaledImage
+				'Frees the image copy which UpdateImage has made (the original image
+				'of the Graphic stays owned by the Graphic)
+				If FScaledIsCopy AndAlso FScaledImage <> 0 Then
+					Select Case FScaledType
+					Case IMAGE_ICON: DestroyIcon Cast(HICON, FScaledImage)
+					Case IMAGE_CURSOR: DestroyCursor Cast(HCURSOR, FScaledImage)
+					Case Else: DeleteObject Cast(HBITMAP, FScaledImage)
+					End Select
+				End If
+				FScaledImage = 0
+				FScaledIsCopy = False
+			End Sub
+
+			Private Sub ImageBox.UpdateImage
+				'Shows the image scaled with the scale of the monitor: an image designed
+				'at 96 DPI shows only half as big on a 200% monitor (the picture in the
+				'About form had another size on every DPI). RealSizeImage shows the real
+				'pixels of the image instead
+				If FHandle = 0 Then Exit Sub
+				Dim As Any Ptr hSrc = Graphic.Image
+				If hSrc = 0 Then Exit Sub
+				Dim As Long nType = IIf(FImageStyle = ImageBoxStyle.ssIcon, IMAGE_ICON, IIf(FImageStyle = ImageBoxStyle.ssCursor, IMAGE_CURSOR, IMAGE_BITMAP))
+				If FRealSizeImage OrElse CBool(xdpi = 1.0 AndAlso ydpi = 1.0) Then
+					ClearScaledImage
+					Perform STM_SETIMAGE, nType, CInt(hSrc)
+					Exit Sub
+				End If
+				'The natural size of the source image
+				Dim As Long nW, nH
+				If nType = IMAGE_ICON OrElse nType = IMAGE_CURSOR Then
+					Dim As ICONINFO ii
+					If GetIconInfo(Cast(HICON, hSrc), @ii) Then
+						Dim As BITMAP bm
+						If ii.hbmColor Then
+							If GetObject(ii.hbmColor, SizeOf(bm), @bm) Then
+								nW = bm.bmWidth
+								nH = Abs(bm.bmHeight)
+							End If
+						End If
+						If nW = 0 AndAlso ii.hbmMask Then
+							If GetObject(ii.hbmMask, SizeOf(bm), @bm) Then
+								nW = bm.bmWidth
+								nH = Abs(bm.bmHeight) \ 2
+							End If
+						End If
+						If ii.hbmColor Then DeleteObject ii.hbmColor
+						If ii.hbmMask Then DeleteObject ii.hbmMask
+					End If
+				Else
+					Dim As BITMAP bm
+					If GetObject(hSrc, SizeOf(bm), @bm) Then
+						nW = bm.bmWidth
+						nH = Abs(bm.bmHeight)
+					End If
+				End If
+				If nW <= 0 OrElse nH <= 0 Then
+					ClearScaledImage
+					Perform STM_SETIMAGE, nType, CInt(hSrc)
+					Exit Sub
+				End If
+				Dim As Long nTw = ScaleX(nW), nTh = ScaleY(nH)
+				If nTw = nW AndAlso nTh = nH Then
+					ClearScaledImage
+					Perform STM_SETIMAGE, nType, CInt(hSrc)
+					Exit Sub
+				End If
+				ClearScaledImage
+				Dim As Any Ptr hNew = 0
+				If nType = IMAGE_ICON Then
+					hNew = CopyImage(hSrc, IMAGE_ICON, nTw, nTh, 0)
+				ElseIf nType = IMAGE_CURSOR Then
+					hNew = CopyImage(hSrc, IMAGE_CURSOR, nTw, nTh, 0)
+				Else
+					hNew = CopyImage(hSrc, IMAGE_BITMAP, nTw, nTh, LR_CREATEDIBSECTION)
+				End If
+				If hNew <> 0 Then
+					FScaledImage = hNew
+					FScaledIsCopy = True
+					FScaledType = nType
+				Else
+					'The copy failed: the original is shown (as before the DPI scaling)
+					hNew = hSrc
+				End If
+				Perform STM_SETIMAGE, nType, CInt(hNew)
+			End Sub
+		#endif
+
 		Private Sub ImageBox.HandleIsAllocated(ByRef Sender As Control)
 			If Sender.Child Then
 				With QImageBox(Sender.Child)
 					#ifdef __USE_WINAPI__
-						.Perform(STM_SETIMAGE, .Graphic.ImageType, CInt(.Graphic.Image))
+						.UpdateImage
 					#elseif defined(__USE_WASM__)
 					If .Graphic.Bitmap.Handle <> "" Then LoadImage(.FHandle, .Graphic.Bitmap.Handle, .FCenterImage)
 					#elseif defined(__USE_JNI__)
@@ -219,7 +308,7 @@ Namespace My.Sys.Forms
 				End With
 			End If
 		End Sub
-		
+
 		Private Sub ImageBox.WndProc(ByRef Message As Message)
 		End Sub
 	#endif
@@ -233,6 +322,16 @@ Namespace My.Sys.Forms
 	Private Sub ImageBox.ProcessMessage(ByRef Message As Message)
 		#ifdef __USE_WINAPI__
 			Select Case Message.Msg
+			Case WM_DPICHANGED
+				'The image follows the new scale of the monitor: adopt it before
+				'(the rescale of the bounds follows in Base.ProcessMessage)
+				If Message.lParam <> 0 AndAlso Message.wParamLo > 0 AndAlso Message.wParamHi > 0 Then
+					xdpi = Message.wParamLo / 96
+					ydpi = Message.wParamHi / 96
+					If xdpi = 0 Then xdpi = 1
+					If ydpi = 0 Then ydpi = 1
+				End If
+				UpdateImage
 			Case WM_SIZE
 				InvalidateRect(Handle,NULL,True)
 			Case CM_CTLCOLOR
@@ -328,5 +427,8 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Private Destructor ImageBox
+		#ifdef __USE_WINAPI__
+			ClearScaledImage
+		#endif
 	End Destructor
 End Namespace

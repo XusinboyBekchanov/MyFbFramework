@@ -167,6 +167,17 @@ Using My.Sys.ComponentModel
 Namespace My.Sys.Forms
 	#ifndef Control_Off
 		#define QControl(__Ptr__) (*Cast(Control Ptr,__Ptr__))
+
+		'The framework-wide default corner radius (a LOGICAL-pixel RADIUS) that
+		'every owner-drawn chrome follows when the control's own value is the
+		'-1 sentinel; -1 itself means "every control keeps its built-in
+		'default". Set it once for the whole app through SetDefaultCornerRadius
+		'(or the Application.DefaultCornerRadius property) and every rounded
+		'control matches; each control's own property still overrides it.
+		Dim Shared As Long g_DefaultCornerRadius = -1
+
+		Declare Sub SetDefaultCornerRadius(ByVal nRadius As Long)
+		Declare Function GetDefaultCornerRadius() As Long
 		
 		Private Enum BorderStyles
 			bsNone, bsClient
@@ -540,6 +551,11 @@ Namespace My.Sys.Forms
 			FText              As WString Ptr
 			FHint              As WString Ptr
 			FProgID             As WString Ptr
+			'Registered window class used to realize the handle. Empty = FClassName.
+			'Only controls whose ClassName is a Win32 PREDEFINED class name
+			'(Button, Edit, Static...) need it: RegisterClassEx refuses that name and
+			'CreateWindowEx then silently builds the system control instead
+			FWindowClassName    As WString Ptr
 			FShowCaption       As Boolean
 			FShowHint          As Boolean
 			FAlign             As DockStyle
@@ -714,6 +730,16 @@ Namespace My.Sys.Forms
 			'Returns/sets the parent container of the control (Windows, Linux, Android, Web).
 			Declare Property Parent As Control Ptr
 			Declare Property Parent(Value As Control Ptr)
+			'The colour the parent shows behind us: the parent's BackColor when
+			'it set one, otherwise the theme's form background. The corner band
+			'of every rounded owner-drawn chrome fills with this so the rounding
+			'reads against the container (Windows, Linux, Android, Web).
+			Declare Function EffectiveParentBack() As ULong
+			'Resolve this control's corner radius (a LOGICAL-pixel RADIUS): an
+			'explicit own value (>= 0) wins, then the framework default
+			'(g_DefaultCornerRadius), then the control's built-in default.
+			'nOwn = -1 means "follow the framework default" (Windows, Linux, Android, Web).
+			Declare Function ResolveCornerRadius(ByVal nOwn As Long, ByVal nBuiltIn As Long) As Long
 			'Returns/sets which control borders are docked to its parent control and determines how a control is resized with its parent (Windows, Linux, Android, Web).
 			Declare Property Align As DockStyle
 			Declare Property Align(Value As DockStyle)
@@ -772,6 +798,10 @@ Namespace My.Sys.Forms
 			Declare Sub Invalidate(ByVal iRect As Any Ptr = 0, ByVal bErase As Boolean = True)
 			'Forces the control to invalidate its client area and immediately redraw itself and any child controls (Windows, Linux).
 			Declare Sub Repaint
+			'The control AND every descendant repaints: the one call a host needs
+			'after a global theme flip (App.DarkMode) so no child is left in the
+			'old look (Windows, Linux).
+			Declare Sub RefreshAll
 			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				'Paints the canvas of the control now (Web, Android, macOS, iOS): sends CM_PAINT and raises OnPaint
 				Declare Sub PaintCanvas()
@@ -792,6 +822,11 @@ Namespace My.Sys.Forms
 			Declare Sub RequestAlign(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False, bWithoutControl As Control Ptr = 0)
 			'The layout pass itself, without the paint batching of RequestAlign
 			Declare Sub RequestAlignCore(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False, bWithoutControl As Control Ptr = 0)
+			#ifdef __USE_WINAPI__
+				'Adopts the DPI of the monitor the window sits on and rescales it from its
+				'design bounds (a window shown again can be on another monitor than its scale)
+				Declare Sub SyncWindowDpi
+			#endif
 			'Displays the control to the user (Windows, Linux, Android, Web).
 			Declare Virtual Sub Show
 			'Conceals the control from the user (Windows, Linux, Android, Web).

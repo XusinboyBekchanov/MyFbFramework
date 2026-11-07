@@ -42,6 +42,7 @@ Namespace My.Sys.Forms
 		CS_GroupedColumn
 		CS_StackedBars
 		CS_StackedBarsPercent
+		CS_CandleStick
 	End Enum
 	
 	Private Enum ChartOrientations
@@ -126,6 +127,24 @@ Namespace My.Sys.Forms
 			hPath(Any) As Any Ptr
 			LegendRect As RectL
 			CustomColors As IntegerList Ptr
+			'Flat copy of Values: iterating a DoubleList costs three nested
+			'property calls per point, which dominates the paint time at
+			'100000 points. Rebuilt when the list or its count changes.
+			ValuesCache As Double Ptr = 0
+			CacheList As DoubleList Ptr = 0
+			CacheCount As Long = -1
+		End Type
+		
+		'One candlestick (K线) record: date text and OHLC prices + volume
+		Type tCandle
+			CandleDate As WString Ptr
+			OpenPrice As Double
+			HighPrice As Double
+			LowPrice As Double
+			ClosePrice As Double
+			Volume As Double
+			'Close against the previous close, in percent
+			ChangePercent As Double
 		End Type
 		
 		Enum GDIPLUS_FONTSTYLE
@@ -200,6 +219,27 @@ Namespace My.Sys.Forms
 		Dim m_DoubleList1 As DoubleList Ptr
 		Dim m_DoubleList2 As DoubleList Ptr
 		
+		'Candlestick (K线) data and options
+		Dim m_Candle(Any) As tCandle
+		Dim m_CandleCount As Long
+		'First candle of the visible slice (0 based, the rest is drawn)
+		Dim m_CandleStart As Long
+		'Candles in the visible slice; 0 = from m_CandleStart to the end
+		Dim m_CandleVisible As Long
+		'True: rising candles red and falling green (CN convention),
+		'False: rising candles green and falling red (western convention)
+		Dim m_CandleUpRed As Boolean = True
+		Dim m_ShowVolume As Boolean = True
+		'Shows the MA5/10/20/30/60/250 lines over the price pane
+		Dim m_ShowMA As Boolean = True
+		Dim m_VolumePanePercent As Long = 20
+		Dim m_CandleWidthPercent As Long = 70
+		'Drag-pan bookkeeping: grab point in client X, its data index and
+		'whether the threshold of a real drag was passed
+		Dim m_CandleDragX As Single
+		Dim m_CandleDragIdx As Long
+		Dim m_CandleDragMoved As Boolean
+		
 		Dim m_PT As POINTL
 		Dim m_Left As Long
 		Dim m_Top As Long
@@ -265,7 +305,12 @@ Namespace My.Sys.Forms
 		Declare Function IsDarkColor(ByVal Color As Long) As Boolean
 		Declare Function GetMax() As Single
 		Declare Function GetMin() As Single
+		Declare Sub BuildValueCache(Index As Long)
 		Declare Function RoundInteger(X As Double, Drob As Integer = 0) As Integer
+		Declare Function CandleNiceStep(Range_ As Double) As Double
+		Declare Function CandleNumText(ByVal Value As Double) As String
+		'Sets the visible candle slice (VisibleCount 0 = from StartIdx to the end)
+		Declare Sub CandleSetView(ByVal StartIdx As Long, ByVal VisibleCount As Long)
 	Public:
 		Declare Function RGBtoARGB(ByVal RGBColor As ULong, ByVal Opacity As Long) As ULong
 		#ifndef ReadProperty_Off
@@ -318,6 +363,48 @@ Namespace My.Sys.Forms
 		Declare Sub AddAxisItems(AxisItems As WStringList Ptr, ByVal WordWrap As Boolean = False, AxisAngle As Single = 0, AxisAlign As TextAlignmentH = cCenter)
 		Declare Sub UpdateSerie(ByVal Index As Integer, ByVal SerieName As String, ByVal SerieColor As Long, Values As DoubleList Ptr)
 		Declare Function SeriesCount As Long
+		'Appends one candlestick (K线) record: date text, OHLC prices and volume
+		Declare Sub AddCandle(ByRef DateText As WString, ByVal OpenPrice As Double, ByVal HighPrice As Double, ByVal LowPrice As Double, ByVal ClosePrice As Double, ByVal Volume As Double = 0)
+		'Removes all candlestick records
+		Declare Sub ClearCandles()
+		'Number of candlestick records
+		Declare Property CandleCount() As Long
+		'First candle of the visible slice (0 based), the rest is drawn
+		Declare Property CandleStart() As Long
+		'First candle of the visible slice (0 based), the rest is drawn
+		Declare Property CandleStart(ByVal New_Value As Long)
+		'Number of candles in the visible slice; 0 = from CandleStart to the end
+		Declare Property CandleVisible() As Long
+		'Number of candles in the visible slice; 0 = from CandleStart to the end
+		Declare Property CandleVisible(ByVal New_Value As Long)
+		'Shows the MA5/10/20/30/60/250 lines over the price pane
+		Declare Property ShowMA() As Boolean
+		'Shows the MA5/10/20/30/60/250 lines over the price pane
+		Declare Property ShowMA(ByVal New_Value As Boolean)
+		'True: rising candles red, falling green (CN); False: rising green, falling red (western)
+		Declare Property CandleUpRed() As Boolean
+		'True: rising candles red, falling green (CN); False: rising green, falling red (western)
+		Declare Property CandleUpRed(ByVal New_Value As Boolean)
+		'Shows the volume (成交) sub-pane below the price pane
+		Declare Property ShowVolume() As Boolean
+		'Shows the volume (成交) sub-pane below the price pane
+		Declare Property ShowVolume(ByVal New_Value As Boolean)
+		'Height of the volume sub-pane in percent of the plot area (1-60)
+		Declare Property VolumePanePercent() As Long
+		'Height of the volume sub-pane in percent of the plot area (1-60)
+		Declare Property VolumePanePercent(ByVal New_Value As Long)
+		'Candle body width in percent of the slot distance (10-100)
+		Declare Property CandleWidthPercent() As Long
+		'Candle body width in percent of the slot distance (10-100)
+		Declare Property CandleWidthPercent(ByVal New_Value As Long)
+		'Loads candlesticks from a CSV file (UTF-8), columns: date, open, high, low, close, volume
+		Declare Function LoadCandlesFromCSV(ByRef FileName As WString, ByVal HasHeader As Boolean = True) As Boolean
+		'Average close of [Index-Period+1 .. Index]; 0 when not enough data
+		Declare Function CandleMA(ByVal Index As Long, ByVal Period As Long) As Double
+		'Zooms the visible slice around AnchorIdx (-1 = view center); Factor > 1 out, < 1 in
+		Declare Sub CandleZoom(ByVal Factor As Double, ByVal AnchorIdx As Long = -1)
+		'Shifts the visible slice (ShiftIdx > 0: towards newer candles)
+		Declare Sub CandlePan(ByVal ShiftIdx As Long)
 		'Returns number of axis label
 		Declare Function AxisItemsCount As Long
 		Declare Function SumSerieValues(Index As Long, bPositives As Boolean = False) As Single
@@ -424,6 +511,7 @@ Namespace My.Sys.Forms
 		Declare Constructor
 		Declare Destructor
 		OnItemClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Chart, Index As Long)
+		OnCandleClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Chart, Index As Long)
 	End Type
 End Namespace
 

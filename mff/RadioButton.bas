@@ -80,6 +80,16 @@ Namespace My.Sys.Forms
 		ChangeTabStop Value
 	End Property
 	
+	'Grouped is declared again here to keep the designer surface stable; the
+	'WS_GROUP logic itself lives in Control.Grouped
+	Private Property RadioButton.Grouped As Boolean
+		Return Cast(Control Ptr, @This)->Grouped
+	End Property
+	
+	Private Property RadioButton.Grouped(Value As Boolean)
+		Cast(Control Ptr, @This)->Grouped = Value
+	End Property
+	
 	Private Property RadioButton.Caption ByRef As WString
 		Return Text
 	End Property

@@ -46,8 +46,8 @@ Namespace My.Sys.Forms
 			If Imgs <> 0 AndAlso Item->ImageIndex >= 0 AndAlso Item->ImageIndex < Imgs->Items.Count Then sPicture = FindResourceFile(Imgs->Items.Item(Item->ImageIndex)->Text)
 			If sPicture <> "" Then sPicture = Chr(1) & sPicture & Chr(1)
 			Return Space(Item->Indent * 2) & sPicture & ToUtf8(Item->Text)
-		End Function
-
+	End Function
+	
 		Private Sub ComboBoxItemShowImage(Item As ComboBoxItem Ptr, ByVal ItemIndex As Integer)
 			If Item = 0 OrElse Item->Parent = 0 OrElse Item->Parent->Handle = 0 Then Exit Sub
 			TableSetRow(Item->Parent->Handle, ItemIndex, ComboBoxItemRowText(Item))

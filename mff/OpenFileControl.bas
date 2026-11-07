@@ -660,7 +660,7 @@ Namespace My.Sys.Forms
 			
 			If OpenDial = 0 Then Exit Sub
 			#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
-				On Error Goto ErrorHandler
+			On Error Goto ErrorHandler
 			#endif
 			
 			' The shell folder view (SHCreateShellFolderView) requires COM in this thread.

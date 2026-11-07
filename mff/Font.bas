@@ -87,8 +87,8 @@ Namespace My.Sys.Drawing
 				Dim As jstring jName = (*env)->NewStringUTF(env, sName)
 				(*env)->CallVoidMethod(env, Activity, ActivityMethodID("textSetFont", "(Ljava/lang/Object;Ljava/lang/String;DIIII)V"), QComponent(FParent).Handle, jName, _
 					dSize, CInt(FBold), CInt(FItalic), CInt(FUnderline), CInt(FStrikeOut))
-				(*env)->DeleteLocalRef(env, jName)
-			End If
+					(*env)->DeleteLocalRef(env, jName)
+				End If
 		#else
 			#ifdef __USE_GTK__
 				If Handle Then pango_font_description_free (Handle)

@@ -1996,6 +1996,7 @@ Namespace My.Sys.Forms
 			FTabIndex          = -1
 			FTabStop           = True
 			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+				'A multiline text box without the formatting of a rich edit
 				.Multiline = True
 			#endif
 			#ifdef __USE_APPLE__

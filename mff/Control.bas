@@ -841,6 +841,67 @@ Namespace My.Sys.Forms
 			#endif
 		#endif
 		
+		'The colour the parent shows behind us: the parent's BackColor when it
+		'set one, otherwise the theme's form background (dark = darkBkColor,
+		'light = COLOR_BTNFACE). The corner band of every rounded owner-drawn
+		'chrome fills with this so the rounding reads against the container.
+				#ifndef Control_EffectiveParentBack_Off
+					Private Function Control.EffectiveParentBack() As ULong
+						'The nearest ancestor with an EXPLICIT colour paints the
+						'surface behind us; auto containers in between only pass it
+						'through, so walk over them before trusting any fallback
+						Dim pAnc As Control Ptr = Cast(Control Ptr, FParent)
+						#ifdef __USE_WINAPI__
+							Dim bDark As Boolean = g_darkModeSupported AndAlso g_darkModeEnabled
+							'A dark auto form PAINTS darkBkColor even though its stored
+							'FBackColor still reads the light F0F0F0 - follow the paint
+						If bDark Then
+							While pAnc <> 0
+								If pAnc->FDefaultBackColor <> pAnc->FBackColor Then Return pAnc->FBackColor
+								pAnc = pAnc->Parent
+							Wend
+							Return darkBkColor
+						End If
+						#endif
+						While pAnc <> 0
+							Dim clr As ULong = pAnc->BackColor
+							If clr <> Cast(ULong, -1) Then Return clr
+							pAnc = pAnc->Parent
+						Wend
+						#ifdef __USE_WINAPI__
+							Return GetSysColor(COLOR_BTNFACE)
+						#else
+							Return RGB(240, 240, 240)
+						#endif
+					End Function
+				#endif
+
+				#ifndef Control_ResolveCornerRadius_Off
+					Private Function Control.ResolveCornerRadius(ByVal nOwn As Long, ByVal nBuiltIn As Long) As Long
+						'An explicit own value wins; the -1 sentinel follows the
+						'framework-wide default; with neither set, the control keeps
+						'its built-in default. All three speak LOGICAL pixels.
+						If nOwn >= 0 Then Return nOwn
+						If g_DefaultCornerRadius >= 0 Then Return g_DefaultCornerRadius
+						Return nBuiltIn
+					End Function
+				#endif
+
+			#ifndef Control_SetDefaultCornerRadius_Off
+				Sub SetDefaultCornerRadius(ByVal nRadius As Long)
+					'One knob for every owner-drawn chrome in the app: a LOGICAL-pixel
+					'RADIUS each rounded control follows unless it overrides its own.
+					'-1 puts every control back on its built-in default.
+					g_DefaultCornerRadius = IIf(nRadius < -1, -1, nRadius)
+				End Sub
+			#endif
+
+			#ifndef Control_GetDefaultCornerRadius_Off
+				Function GetDefaultCornerRadius() As Long
+					Return g_DefaultCornerRadius
+				End Function
+			#endif
+		
 		#ifndef Control_StyleExists_Off
 			Private Function Control.StyleExists(iStyle As Integer) As Boolean
 				Return (Style And iStyle) = iStyle
@@ -1118,6 +1179,48 @@ Namespace My.Sys.Forms
 			End Sub
 		#endif
 		
+		#ifdef __USE_WINAPI__
+			'Adopts the DPI of the monitor the window sits on and rescales its size from
+			'the design bounds: a window which was shown again can be on a monitor with
+			'another DPI than its scale says (it was hidden during a move, or born on
+			'another monitor). Without this the first Left/Top/Width/Height getter would
+			'resync FLeft/FTop/FWidth/FHeight to a wrong design size, and forms which are
+			'destroyed and created again on every Show would compound the error.
+			Private Sub Control.SyncWindowDpi
+				If FHandle = 0 Then Exit Sub
+				Dim As HDC WndDc = GetDC(FHandle)
+				Dim As Single NewXdpi = GetDeviceCaps(WndDc, LOGPIXELSX) / 96
+				Dim As Single NewYdpi = GetDeviceCaps(WndDc, LOGPIXELSY) / 96
+				ReleaseDC FHandle, WndDc
+				If NewXdpi <= 0 OrElse NewYdpi <= 0 Then Exit Sub
+				If NewXdpi = xdpi AndAlso NewYdpi = ydpi Then Exit Sub
+				xdpi = NewXdpi
+				ydpi = NewYdpi
+				oldxdpi = NewXdpi
+				oldydpi = NewYdpi
+				Canvas.xdpi = NewXdpi
+				Canvas.ydpi = NewYdpi
+				Font.xdpi = NewXdpi
+				Font.ydpi = NewYdpi
+				Font.Size = Font.Size
+				For i As Integer = 0 To ControlCount - 1
+					Controls[i]->xdpi = NewXdpi
+					Controls[i]->ydpi = NewYdpi
+					Controls[i]->Font.xdpi = NewXdpi
+					Controls[i]->Font.ydpi = NewYdpi
+				Next i
+				'The window stays where it is, only the size follows the new scale
+				Dim As RECT rCur
+				GetWindowRect FHandle, @rCur
+				physXdpi = NewXdpi
+				physYdpi = NewYdpi
+				MoveWindow FHandle, rCur.left, rCur.top, ScaleX(FWidth), ScaleY(FHeight), True
+				#ifdef MFF_DPIDEBUG
+				DpiLog("DPILOG SyncWindowDpi " & This.Name & " xdpi=" & Str(NewXdpi) & " designW=" & FWidth)
+				#endif
+			End Sub
+		#endif
+
 		Private Sub Control.CreateWnd
 			If FParent Then
 				xdpi = FParent->xdpi
@@ -1190,6 +1293,9 @@ Namespace My.Sys.Forms
 					XSelectInput(dpy, win, ExposureMask Or KeyPressMask)
 					XMapWindow(dpy, win)
 				#else
+					Dim As RECT rOwnerWnd
+					Dim As Boolean bHasOwnerWnd = (FParent <> 0) AndAlso (Cast(Control Ptr, FParent)->FHandle <> 0)
+					If bHasOwnerWnd Then GetWindowRect Cast(Control Ptr, FParent)->FHandle, @rOwnerWnd
 					Select Case FStartPosition
 					Case 0 ' Manual
 					Case 1, 4 ' CenterScreen, CenterParent
@@ -1197,10 +1303,25 @@ Namespace My.Sys.Forms
 							With *Cast(Control Ptr, FParent)
 								nLeft = ScaleX(.Left) + (ScaleX(.Width) - nWidth) \ 2: nTop  = ScaleY(.Top) + (ScaleY(.Height) - nHeight) \ 2
 							End With
+						ElseIf bHasOwnerWnd Then
+							'CenterScreen with an owner: on the monitor of the owner (the
+							'system metrics are of the primary monitor, the form would be
+							'born on another monitor with another DPI)
+							nLeft = rOwnerWnd.left + ((rOwnerWnd.right - rOwnerWnd.left) - nWidth) \ 2
+							nTop = rOwnerWnd.top + ((rOwnerWnd.bottom - rOwnerWnd.top) - nHeight) \ 2
 						Else ' CenterScreen
 							nLeft = (GetSystemMetrics(SM_CXSCREEN) - nWidth) \ 2: nTop  = (GetSystemMetrics(SM_CYSCREEN) - nHeight) \ 2
 						End If
-					Case 2: nLeft = CW_USEDEFAULT: nTop = CW_USEDEFAULT ' WindowsDefaultLocation
+					Case 2: ' WindowsDefaultLocation
+						If bHasOwnerWnd Then
+							'The default position of Windows can cascade onto a monitor with
+							'another DPI: centered on the owner the form is born on the
+							'monitor and with the scale of its owner
+							nLeft = rOwnerWnd.left + ((rOwnerWnd.right - rOwnerWnd.left) - nWidth) \ 2
+							nTop = rOwnerWnd.top + ((rOwnerWnd.bottom - rOwnerWnd.top) - nHeight) \ 2
+						Else
+							nLeft = CW_USEDEFAULT: nTop = CW_USEDEFAULT
+						End If
 					Case 3: nLeft = CW_USEDEFAULT: nTop = CW_USEDEFAULT: nWidth = CW_USEDEFAULT: nHeight = CW_USEDEFAULT ' WindowsDefaultBounds
 					End Select
 					Dim As Integer AControlParent(2) => {0, WS_EX_CONTROLPARENT}
@@ -1240,8 +1361,18 @@ Namespace My.Sys.Forms
 					'						mdicreate.lParam  = Cast(LPARAM, @This)
 					'						FHandle = Cast(HWND, SendMessage(HParent, WM_MDICREATE, 0, Cast(LPARAM, @mdicreate)))
 					'					Else
+					'The window is realized with the current scale: the getters divide its
+					'rectangle by it (CreateWnd of the fixup below sets the adopted one)
+					physXdpi = xdpi
+					physYdpi = ydpi
+					'The window class: FClassName unless the control registered its own
+					'under another name (a ClassName that is a Win32 predefined class,
+					'like the owner-drawn Button)
+					Dim As WString Ptr pWinClass = FClassName
+					If WGet(FWindowClassName) > "" Then pWinClass = FWindowClassName
+					If InStr(*FClassAncestor, "AtlAxWin") Then pWinClass = FClassAncestor
 					FHandle = CreateWindowExW(dExStyle, _
-					IIf(InStr(*FClassAncestor, "AtlAxWin"), FClassAncestor, FClassName), _
+					pWinClass, _
 					IIf(CInt(*FClassName = "WebBrowser") AndAlso CInt(FParent <> 0) AndAlso CInt(FParent->FDesignMode), 0, IIf(InStr(*FClassAncestor, "AtlAxWin"), FProgID, FText)), _
 					dStyle, _
 					nLeft, _
@@ -1254,15 +1385,26 @@ Namespace My.Sys.Forms
 					@This) ' '
 					'End If
 					'Per-monitor DPI: ScaleX initialized xdpi from the primary
-					'monitor, but this window may live on a monitor with another
-					'DPI and no WM_DPICHANGED arrives for the creation itself.
-					'Adopt the window's real DPI and rescale the window, fonts
-					'and children with the new factor.
-					If FHandle <> 0 Then
+					'monitor, but a top-level window may live on a monitor with
+					'another DPI and no WM_DPICHANGED arrives for the creation
+					'itself. Adopt the real DPI and rescale the window, fonts and
+					'children with the new factor.
+					'Only a top-level window (a root of its parent chain, owned dialogs
+					'included) adopts: a child window has the scale of its parent (the
+					'same monitor) - the rectangle of a hidden or off-screen child (a
+					'design panel at Top = -500) is on another monitor and its device
+					'context would return the DPI of that one, mixing two scales
+					'inside one window tree.
+					If FHandle <> 0 AndAlso GetAncestor(FHandle, GA_ROOT) = FHandle Then
 						Dim As HDC WndDc = GetDC(FHandle)
 						Dim As Single NewXdpi = GetDeviceCaps(WndDc, LOGPIXELSX) / 96
 						Dim As Single NewYdpi = GetDeviceCaps(WndDc, LOGPIXELSY) / 96
 						ReleaseDC FHandle, WndDc
+						#ifdef MFF_DPIDEBUG
+						Dim As RECT Rw
+						GetWindowRect FHandle, @Rw
+						DpiLog("DPILOG CreateWnd " & This.Name & " design " & FLeft & "," & FTop & "," & FWidth & "," & FHeight & " made " & (Rw.right - Rw.left) & "x" & (Rw.bottom - Rw.top) & " xdpi=" & Str(xdpi) & " adopt=" & Str(NewXdpi) & " top=" & (GetParent(FHandle) = 0))
+						#endif
 						If NewXdpi > 0 AndAlso NewYdpi > 0 AndAlso (NewXdpi <> xdpi OrElse NewYdpi <> ydpi) Then
 							xdpi = NewXdpi
 							ydpi = NewYdpi
@@ -1279,9 +1421,23 @@ Namespace My.Sys.Forms
 								Controls[i]->Font.xdpi = NewXdpi
 								Controls[i]->Font.ydpi = NewYdpi
 							Next i
-							'Do not override Windows-default placement (CW_USEDEFAULT).
-							If nLeft <> CW_USEDEFAULT AndAlso nTop <> CW_USEDEFAULT AndAlso nWidth <> CW_USEDEFAULT AndAlso nHeight <> CW_USEDEFAULT Then
-								MoveWindow FHandle, ScaleX(FLeft), ScaleY(FTop), ScaleX(FWidth), ScaleY(FHeight), True
+							'The size must follow the adopted scale even when Windows chose the
+							'position (CW_USEDEFAULT): the window was made with the scale of its
+							'owner (a default position can be on a monitor with another DPI) and
+							'staying at that physical size would make the next Left/Top/Width/
+							'Height getter resync FLeft/FWidth to a wrong design size. Dialogs
+							'are destroyed and created again on every Show, so the error would
+							'compound with every open (the form shrinks or grows each time).
+							Dim As RECT rMade
+							GetWindowRect FHandle, @rMade
+							'The window stays where it was born (the place of Windows or the
+							'owner-centered one): only the size follows the adopted scale -
+							'the design position would override the placement computed for
+							'this monitor (an owner-centered dialog would jump to 0,0)
+							If nWidth <> CW_USEDEFAULT AndAlso nHeight <> CW_USEDEFAULT Then
+								physXdpi = NewXdpi
+								physYdpi = NewYdpi
+								MoveWindow FHandle, rMade.left, rMade.top, ScaleX(FWidth), ScaleY(FHeight), True
 							End If
 						End If
 					End If
@@ -2159,6 +2315,29 @@ Namespace My.Sys.Forms
 						SendMessageW(Message.hWnd, WM_THEMECHANGED, 0, 0)
 					End If
 				Case WM_DPICHANGED
+					#ifdef MFF_DPIDEBUG
+					Dim As .Rect Ptr rctLog = Cast(Any Ptr, Message.lParam)
+					If rctLog Then
+						DpiLog("DPILOG WM_DPICHANGED " & This.Name & " newdpi=" & (Message.wParamLo / 96) & " oldxdpi=" & Str(oldxdpi) & " xdpi=" & Str(xdpi) & " suggest " & (rctLog->Right - rctLog->Left) & "x" & (rctLog->Bottom - rctLog->Top) & " designW=" & FWidth)
+					Else
+						DpiLog("DPILOG WM_DPICHANGED " & This.Name & " newdpi=" & (Message.wParamLo / 96) & " oldxdpi=" & Str(oldxdpi) & " xdpi=" & Str(xdpi) & " designW=" & FWidth & " (no rect)")
+					End If
+					#endif
+					'Windows also sends this message to the child windows of a rescaled
+					'window (per-monitor V2), before the parent propagates the change: a
+					'plain control has no scale update of its own, so it must adopt the
+					'new scale here, otherwise every following read of its bounds would
+					'use the factor of the old monitor (a Form has adopted it already)
+					If Message.lParam <> 0 AndAlso Message.wParamLo > 0 AndAlso Message.wParamHi > 0 Then
+						xdpi = Message.wParamLo / 96
+						ydpi = Message.wParamHi / 96
+						If xdpi = 0 Then xdpi = 1
+						If ydpi = 0 Then ydpi = 1
+					End If
+					'From here to the end of the rescale the getters divide the window
+					'rectangles by the scale they were realized with (physXdpi/physYdpi),
+					'so the design bounds cannot be resynced from a rectangle of the
+					'old scale while the scale members are of the new monitor already
 					' Rescaling the tree rebuilds the font of every control and moves it: like in
 					'a layout pass only the outermost call repaints the container. The moves are
 					'not deferred: the tree spans many parents, and a nested pass must read the
@@ -2185,7 +2364,14 @@ Namespace My.Sys.Forms
 					End If
 					If Message.lParam <> 0 Then
 						Dim As .Rect Ptr rct = Cast(Any Ptr, Message.lParam)
-						MoveWindow FHandle, rct->Left, rct->Top, rct->Right - rct->Left, rct->Bottom - rct->Top, False
+						'Keep the suggested position (it keeps the window on the monitor) but
+						'take the size from the design bounds: the suggested size scales the
+						'current physical size which can be out of sync with FWidth/FHeight
+						'(a window born on a monitor with another DPI than its scale) - using
+						'it would resync the design size wrongly at the next getter
+						physXdpi = xdpi
+						physYdpi = ydpi
+						MoveWindow FHandle, rct->Left, rct->Top, ScaleX(FWidth), ScaleY(FHeight), False
 					Else
 						If FParent = 0 OrElse FParent->ClassName <> "ReBar" Then
 							If FHandle = GetCapture Then
@@ -3617,7 +3803,7 @@ Namespace My.Sys.Forms
 			#ifdef __USE_WINAPI__
 				' A request of a rescale (no given client size, not a part of a running layout) is
 				'only noted: the outermost rescale lays out every noted container once at its end
-				If CBool(DpiPass > 0) AndAlso CBool(iClientWidth = -1) AndAlso CBool(iClientHeight = -1) AndAlso CBool(bInDraw = False) Then
+				If CBool(DpiPass > 0) AndAlso CBool(iClientWidth = -1) AndAlso CBool(iClientHeight = -1) AndAlso Not bInDraw Then
 					For i As Integer = 0 To DpiPendingCount - 1
 						If DpiPending[i] = @This Then Exit Sub
 					Next
@@ -4048,6 +4234,23 @@ Namespace My.Sys.Forms
 			#endif
 		End Sub
 		
+		'Self + every descendant repaints. The one call a host needs after a
+		'GLOBAL theme flip (App.DarkMode = ...): every control resolves its
+		'colours at paint time, so a full-tree repaint re-themes everything -
+		'owner-drawn chrome and native WM_CTLCOLOR surfaces alike. Repaint
+		'covers the children on Windows (RDW_ALLCHILDREN) but not on GTK, and
+		'a host should not have to know that.
+		Private Sub Control.RefreshAll
+			#ifdef __USE_GTK__
+				Repaint
+				For i As Integer = 0 To ControlCount - 1
+					Controls[i]->RefreshAll()
+				Next i
+			#else
+				Repaint
+			#endif
+		End Sub
+
 
 		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Private Sub Control.PaintCanvas()
@@ -4184,6 +4387,8 @@ Namespace My.Sys.Forms
 			If Ctrl Then
 				Dim As Control Ptr FSaveParent = Ctrl->Parent
 				Ctrl->FParent = @This
+				Ctrl->xdpi = This.xdpi
+				Ctrl->ydpi = This.ydpi
 				FControlCount += 1
 				Controls = _Reallocate(Controls, SizeOf(Control Ptr)*FControlCount)
 				If Index = -1 Then
@@ -4417,6 +4622,7 @@ Namespace My.Sys.Forms
 		Private Constructor Control
 			WLet(FClassName, "Control")
 			WLet(FClassAncestor, "")
+			WLet(FWindowClassName, "")
 			Text = ""
 			FLeft = 0
 			FTop = 0
@@ -4482,6 +4688,7 @@ Namespace My.Sys.Forms
 			FreeWnd
 			If FText Then _Deallocate(FText)
 			If FProgID Then _Deallocate(FProgID)
+			If FWindowClassName Then _Deallocate(FWindowClassName)
 			If FHint Then _Deallocate(FHint)
 			'			Dim As Integer i
 			'			For i = 0 To ControlCount -1

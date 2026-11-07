@@ -339,6 +339,11 @@ Namespace My.Sys.ComponentModel
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then
 					Dim As Integer nLeft = ScaleX(iLeft), nTop = ScaleY(iTop), nWidth = ScaleX(iWidth), nHeight = ScaleY(iHeight)
+					'The bounds are realized with the current scale: the getters divide the
+					'window rectangle by it (a DPI rescale in flight must not resync the
+					'design bounds from the rectangle of the old scale)
+					physXdpi = xdpi
+					physYdpi = ydpi
 					If AlignLock > 0 Then
 						' A layout pass is running and repaints the container when it ends.
 						' Repainting here would show a half finished layout and costs more than
@@ -450,17 +455,19 @@ Namespace My.Sys.ComponentModel
 							'If FParent Then FLeft -= FParent->Margins.Left
 						End If
 					End If
-				#elseif defined(__USE_WINAPI__)
-					If FHandle Then
-						If FParent AndAlso UCase(FParent->ClassName) = "TABCONTROL" Then
-						Else
-							Dim As RECT R
-							GetWindowRect Handle, @R
-							MapWindowPoints 0, GetParent(Handle), Cast(Point Ptr, @R), 2
-							FLeft = UnScaleX(R.left)
-							'If FParent Then FLeft -= FParent->Margins.Left
-						End If
+			#elseif defined(__USE_WINAPI__)
+				If FHandle Then
+					If FParent AndAlso UCase(FParent->ClassName) = "TABCONTROL" Then
+					Else
+						Dim As RECT R
+						GetWindowRect Handle, @R
+						MapWindowPoints 0, GetParent(Handle), Cast(Point Ptr, @R), 2
+						'Divide by the scale the physical bounds were realized with: during
+						'a DPI rescale xdpi is of the new monitor, the rectangle of the old one
+						FLeft = (R.left + 0.5) / IIf(physXdpi > 0, physXdpi, xdpi)
+						'If FParent Then FLeft -= FParent->Margins.Left
 					End If
+				End If
 				#elseif defined(__USE_JNI__)
 					If ClassName = "Form" Then
 						FLeft = 0
@@ -520,7 +527,9 @@ Namespace My.Sys.ComponentModel
 							Dim As RECT R
 							GetWindowRect Handle,@R
 							MapWindowPoints 0, GetParent(Handle), Cast(Point Ptr, @R), 2
-							FTop = UnScaleY(R.top)
+							'Divide by the scale the physical bounds were realized with: during
+							'a DPI rescale ydpi is of the new monitor, the rectangle of the old one
+							FTop = (R.top + 0.5) / IIf(physYdpi > 0, physYdpi, ydpi)
 							'If FParent Then FTop -= FParent->Margins.Top
 						End If
 					End If
@@ -584,7 +593,14 @@ Namespace My.Sys.ComponentModel
 					Dim As RECT R
 					GetWindowRect Handle, @R
 					MapWindowPoints 0, GetParent(FHandle), Cast(Point Ptr, @R), 2
-					FWidth = UnScaleX(R.right - R.left)
+					'Divide by the scale the physical bounds were realized with: during a DPI
+					'rescale xdpi is of the new monitor, the window rectangle of the old one
+					Dim As Single sEff = IIf(physXdpi > 0, physXdpi, xdpi)
+					Dim As Integer iNewWidth = (R.right - R.left + 0.5) / sEff
+					#ifdef MFF_DPIDEBUG
+					If iNewWidth <> FWidth Then DpiLog("DPILOG WidthResync " & This.Name & " design " & FWidth & "->" & iNewWidth & " xdpi=" & Str(xdpi) & " physXdpi=" & Str(physXdpi) & " phys=" & (R.right - R.left))
+					#endif
+					FWidth = iNewWidth
 					'#endif
 				End If
 			#elseif defined(__USE_JNI__)
@@ -643,7 +659,9 @@ Namespace My.Sys.ComponentModel
 					Dim As RECT R
 					GetWindowRect Handle, @R
 					MapWindowPoints 0, GetParent(FHandle), Cast(Point Ptr, @R), 2
-					FHeight = UnScaleY(R.bottom - R.top)
+					'Divide by the scale the physical bounds were realized with: during a DPI
+					'rescale ydpi is of the new monitor, the window rectangle of the old one
+					FHeight = (R.bottom - R.top + 0.5) / IIf(physYdpi > 0, physYdpi, ydpi)
 				End If
 			#elseif defined(__USE_JNI__)
 				If FHandle Then

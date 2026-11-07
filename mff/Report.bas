@@ -247,7 +247,6 @@ Namespace My.Sys.Forms
 			Return HtmlEscape(Cast(Component Ptr, Owner)->ReadProperty("text"))
 		End Function
 	#endif
-
 	Private Sub ReportControl.CreateHandle
 		#ifdef __USE_WASM__
 			If FHandle <> 0 Then Return

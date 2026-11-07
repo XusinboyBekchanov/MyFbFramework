@@ -18,6 +18,18 @@
 #define QObject(__Ptr__) (*Cast(My.Sys.Object Ptr, __Ptr__))
 	
 Namespace My.Sys
+
+#ifdef MFF_DPIDEBUG
+	'Writes one line to <exe>\DpiLog.txt: diagnostics of the per-monitor DPI scaling
+	'(enabled by compiling with -d MFF_DPIDEBUG)
+	Sub DpiLog(ByRef sMsg As WString)
+		Dim As Integer F = FreeFile
+		If Open(ExePath & "/DpiLog.txt" For Append Encoding "utf-8" As #F) = 0 Then
+			Print #F, Time & Chr(9) & sMsg
+			Close #F
+		End If
+	End Sub
+#endif
 	'Supports all classes in the MyFbFramework class hierarchy and provides low-level services to derived classes (Windows, Linux, Android, Web).
 	Private Type Object Extends Object
 	Protected:

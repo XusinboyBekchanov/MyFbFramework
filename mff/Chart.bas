@@ -29,6 +29,12 @@ Namespace My.Sys.Forms
 			Case "border": Return @m_Border
 			Case "bordercolor": Return @m_BorderColor
 			Case "borderround": Return @m_BorderRound
+			Case "candlecount": Return @m_CandleCount
+			Case "candlestart": Return @m_CandleStart
+			Case "candleupred": Return @m_CandleUpRed
+			Case "candlevisible": Return @m_CandleVisible
+			Case "candlewidthpercent": Return @m_CandleWidthPercent
+			Case "showma": Return @m_ShowMA
 			Case "canvas": Return @Canvas
 			Case "chartstyle": Return @m_ChartStyle
 			Case "chartorientation": Return @m_ChartOrientation
@@ -76,7 +82,11 @@ Namespace My.Sys.Forms
 				Case "backcoloropacity": BackColorOpacity = QLong(Value)
 				Case "border": Border = QBoolean(Value)
 				Case "bordercolor": BorderColor = QInteger(Value)
-				Case "borderround": BorderRound = QLong(Value)
+			Case "borderround": BorderRound = QLong(Value)
+				Case "candlestart": CandleStart = QLong(Value)
+				Case "candleupred": CandleUpRed = QBoolean(Value)
+				Case "candlevisible": CandleVisible = QLong(Value)
+				Case "candlewidthpercent": CandleWidthPercent = QLong(Value)
 				Case "chartstyle": ChartStyle = *Cast(ChartStyles Ptr, Value)
 				Case "chartorientation": ChartOrientation = *Cast(ChartOrientations Ptr, Value)
 				Case "designmode": FDesignMode = QBoolean(Value): If FDesignMode Then Example: Refresh
@@ -97,6 +107,9 @@ Namespace My.Sys.Forms
 				Case "rotation": Rotation = QLong(Value)
 				Case "separatorline": SeparatorLine = QBoolean(Value)
 				Case "separatorlinecolor": SeparatorLineColor = QInteger(Value)
+				Case "showma": ShowMA = QBoolean(Value)
+				Case "showvolume": ShowVolume = QBoolean(Value)
+				Case "volumepanepercent": VolumePanePercent = QLong(Value)
 				Case "separatorlinewidth": SeparatorLineWidth = QSingle(Value)
 					'Case "special": Special = QBoolean(Value)
 				Case "title": Title = QWString(Value)
@@ -384,6 +397,10 @@ Namespace My.Sys.Forms
 			m_FillOpacity = 50
 			m_Border = True
 			m_LabelsFormats = "{V}"
+		Case CS_CandleStick
+			m_FillOpacity = 100
+			m_Border = True
+			m_LabelsFormats = "{V}"
 		End Select
 		Refresh
 	End Property
@@ -539,6 +556,10 @@ Namespace My.Sys.Forms
 			m_LabelsFormats = "{V}"
 		Case CS_GroupedColumn To CS_StackedBarsPercent
 			m_FillOpacity = 50
+			m_Border = True
+			m_LabelsFormats = "{V}"
+		Case CS_CandleStick
+			m_FillOpacity = 100
 			m_Border = True
 			m_LabelsFormats = "{V}"
 		End Select
@@ -858,12 +879,26 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Sub Chart.MouseUp(Button As Integer, Shift As Integer, X As Single, Y As Single)
-		
+
 		Dim i As Long
 		Dim bResult As Boolean
-		
+
 		If Button <> 0 Then Exit Sub
-		
+
+		'Candlestick: mHotBar follows the mouse, raise OnCandleClick for it
+		'(suppressed after a real drag-pan)
+		If ChartStyle = CS_CandleStick Then
+			If m_CandleCount > 0 Then
+				Dim cndVEnd As Long = m_CandleCount
+				If m_CandleVisible > 0 AndAlso m_CandleStart + m_CandleVisible < cndVEnd Then cndVEnd = m_CandleStart + m_CandleVisible
+				If (Not m_CandleDragMoved) AndAlso mHotBar >= m_CandleStart AndAlso mHotBar < cndVEnd AndAlso OnCandleClick Then
+					OnCandleClick(*Designer, This, mHotBar)
+				End If
+			End If
+			m_CandleDragMoved = False
+			Exit Sub
+		End If
+
 		For i = 0 To ItemsCount - 1
 			
 			bResult = PtInPath(m_Item(i).hPath, X, Y)
@@ -954,6 +989,11 @@ Namespace My.Sys.Forms
 			Dim XX As Single, YY As Single, i As Long
 			If X > MarginLeft And Y > TopHeader And X < MarginLeft + mWidth And Y < TopHeader + mHeight Then
 				If SerieCount = 0 Then Exit Sub
+				If PtDistance <= 0 Then Exit Sub
+				'Remember the mouse position: the tooltip anchor when no per-point
+				'PT array exists (pixel-column downsampling mode)
+				m_PT.X = X
+				m_PT.Y = Y
 				XX = X - MarginLeft + PtDistance / 2
 				'YY = Y '- TopHeader
 				'Aborting due to runtime error 11 ("floating point error" signal)
@@ -983,6 +1023,44 @@ Namespace My.Sys.Forms
 			
 			If mHotSerie <> -1 Then
 				mHotSerie = -1
+				Me.Refresh
+			End If
+		Case CS_CandleStick
+			Dim cndI As Long
+			Dim cndVEnd As Long
+			If m_CandleCount = 0 OrElse PtDistance <= 0 Then
+				If mHotBar <> -1 Then
+					mHotBar = -1
+					Me.Refresh
+				End If
+				Exit Sub
+			End If
+			cndVEnd = m_CandleCount
+			If m_CandleVisible > 0 AndAlso m_CandleStart + m_CandleVisible < cndVEnd Then cndVEnd = m_CandleStart + m_CandleVisible
+			If X > MarginLeft And Y > TopHeader And X < MarginLeft + mWidth And Y < TopHeader + mHeight Then
+				'Left button held: drag the slice horizontally once the
+				'threshold is passed (a plain click still fires OnCandleClick)
+				If Button = 0 AndAlso m_CandleDragIdx >= 0 Then
+					If m_CandleDragMoved OrElse Abs(X - m_CandleDragX) > 3 Then
+						m_CandleDragMoved = True
+						cndI = m_CandleDragIdx - Int((X - m_CandleDragX) / PtDistance)
+						If cndI <> m_CandleStart Then CandlePan cndI - m_CandleStart
+					End If
+				End If
+				'Remember the mouse position for the crosshair
+				m_PT.X = X
+				m_PT.Y = Y
+				cndI = m_CandleStart + Int((X - MarginLeft) / PtDistance)
+				If cndI > cndVEnd - 1 Then cndI = cndVEnd - 1
+				If cndI < m_CandleStart Then cndI = m_CandleStart
+				If cndI <> mHotBar Then
+					mHotBar = cndI
+					Me.Refresh
+				End If
+				Exit Sub
+			End If
+			If mHotBar <> -1 Then
+				mHotBar = -1
 				Me.Refresh
 			End If
 		Case CS_GroupedColumn To CS_StackedBarsPercent
@@ -1225,61 +1303,98 @@ Namespace My.Sys.Forms
 		End If
 	End Function
 	
+	Private Sub Chart.BuildValueCache(Index As Long)
+		'Flat copy of the serie Values: iterating the DoubleList costs three
+		'nested property calls per point, which dominates the paint time at
+		'100000 points. The cache is rebuilt when the list object or its
+		'count changes (in-place edits of the same list are not tracked).
+		With m_Serie(Index)
+			If .Values <> .CacheList Then
+				If .ValuesCache <> 0 Then DeAllocate(.ValuesCache)
+				.ValuesCache = 0
+				.CacheCount = -1
+				.CacheList = .Values
+			End If
+			If .Values = 0 Then Exit Sub
+			If .CacheCount = .Values->Count Then Exit Sub
+			Dim n As Long = .Values->Count
+			If .ValuesCache <> 0 Then DeAllocate(.ValuesCache)
+			.ValuesCache = 0
+			If n <= 0 Then
+				.CacheCount = n
+				Exit Sub
+			End If
+			.ValuesCache = CAllocate(n * SizeOf(Double))
+			For j As Long = 0 To n - 1
+				.ValuesCache[j] = .Values->Item(j)
+			Next
+			.CacheCount = n
+		End With
+	End Sub
+
 	Private Function Chart.GetMax() As Single
 		Dim i As Long, j As Long, M As Single
 		Dim Sum As Single
 		If SerieCount = 0 Then Exit Function
 		If (m_ChartStyle = CS_StackedBars) Or (m_ChartStyle = CS_StackedBarsPercent) Then
-			For i = 1 To m_Serie(0).Values->Count
+			BuildValueCache(0)
+			For i = 1 To m_Serie(0).CacheCount
 				Sum = 0
 				For j = 0 To SerieCount - 1
-					Sum = Sum + m_Serie(j).Values->Item(i)
+					BuildValueCache(j)
+					If i <= m_Serie(j).CacheCount Then Sum = Sum + m_Serie(j).ValuesCache[i - 1]
 				Next
-				
+
 				If M < Sum Then M = Sum
 			Next
 		Else
 			For i = 0 To SerieCount - 1
-				For j = 1 To m_Serie(i).Values->Count
-					If M < m_Serie(i).Values->Item(j) Then
-						M = m_Serie(i).Values->Item(j)
+				BuildValueCache(i)
+				For j = 0 To m_Serie(i).CacheCount - 1
+					If M < m_Serie(i).ValuesCache[j] Then
+						M = m_Serie(i).ValuesCache[j]
 					End If
 				Next
 			Next
 		End If
-		
+
 		GetMax = M
-		
+
 	End Function
-	
-	
+
+
 	Private Function Chart.GetMin() As Single
 		Dim i As Long, j As Long, M As Single
 		Dim Sum As Single
 		If SerieCount = 0 Then Exit Function
 		If (m_ChartStyle = CS_StackedBars) Or (m_ChartStyle = CS_StackedBarsPercent) Then
-			For i = 1 To m_Serie(0).Values->Count
+			BuildValueCache(0)
+			For i = 1 To m_Serie(0).CacheCount
 				Sum = 0
 				For j = 0 To SerieCount - 1
-					If m_Serie(j).Values->Item(i) < 0 Then
-						Sum = Sum + m_Serie(j).Values->Item(i)
+					BuildValueCache(j)
+					If i <= m_Serie(j).CacheCount Then
+						If m_Serie(j).ValuesCache[i - 1] < 0 Then
+							Sum = Sum + m_Serie(j).ValuesCache[i - 1]
+						End If
 					End If
 				Next
-				
+
 				If M > Sum Then M = Sum
 			Next
 		Else
 			For i = 0 To SerieCount - 1
-				For j = 1 To m_Serie(i).Values->Count
-					If m_Serie(i).Values->Item(j) < M Then
-						M = m_Serie(i).Values->Item(j)
+				BuildValueCache(i)
+				For j = 0 To m_Serie(i).CacheCount - 1
+					If m_Serie(i).ValuesCache[j] < M Then
+						M = m_Serie(i).ValuesCache[j]
 					End If
 				Next
 			Next
 		End If
-		
+
 		GetMin = M
-		
+
 	End Function
 	
 	'*1
@@ -1291,7 +1406,257 @@ Namespace My.Sys.Forms
 		Next
 		SumSerieValues = M
 	End Function
-	
+
+	Private Function Chart.CandleNiceStep(Range_ As Double) As Double
+		'Nice axis step (1 / 2 / 2.5 / 5 x 10^n) close to the requested range
+		Dim mag As Double = 1
+		Dim norm As Double
+		If Range_ <= 0 Then Return 1
+		Do While mag * 10 <= Range_
+			mag = mag * 10
+		Loop
+		Do While mag > Range_
+			mag = mag / 10
+		Loop
+		norm = Range_ / mag
+		If norm >= 7.5 Then Return 10 * mag
+		If norm >= 3.5 Then Return 5 * mag
+		If norm >= 1.5 Then Return 2 * mag
+		Return mag
+	End Function
+
+	Private Function Chart.CandleNumText(ByVal Value As Double) As String
+		'Axis label without the trailing dot FB Format leaves for whole
+		'numbers ("3200." -> "3200"); the separator follows the locale ("3200,")
+		Dim s As String = Format(Value, "0.##")
+		If Mid(s, Len(s), 1) = "." OrElse Mid(s, Len(s), 1) = "," Then s = Mid(s, 1, Len(s) - 1)
+		Return s
+	End Function
+
+	Private Function Chart.CandleMA(ByVal Index As Long, ByVal Period As Long) As Double
+		'Average close of [Index-Period+1 .. Index]; 0 when not enough data
+		If Period < 1 OrElse Index < Period - 1 OrElse Index >= m_CandleCount Then Return 0
+		Dim s As Double = 0
+		For k As Long = Index - Period + 1 To Index
+			s = s + m_Candle(k).ClosePrice
+		Next
+		Return s / Period
+	End Function
+
+	Private Sub Chart.CandleSetView(ByVal StartIdx As Long, ByVal VisibleCount As Long)
+		'Clamps and applies the visible candle slice (VisibleCount 0 = to the end)
+		If m_CandleCount <= 0 Then Exit Sub
+		If VisibleCount > 0 Then
+			If VisibleCount < 10 Then VisibleCount = 10
+			If VisibleCount > m_CandleCount Then VisibleCount = 0
+		End If
+		If VisibleCount > 0 Then
+			If StartIdx > m_CandleCount - VisibleCount Then StartIdx = m_CandleCount - VisibleCount
+		Else
+			If StartIdx > m_CandleCount - 1 Then StartIdx = m_CandleCount - 1
+		End If
+		If StartIdx < 0 Then StartIdx = 0
+		m_CandleStart = StartIdx
+		m_CandleVisible = VisibleCount
+		mHotBar = -1
+		Refresh
+	End Sub
+
+	Private Sub Chart.CandleZoom(ByVal Factor As Double, ByVal AnchorIdx As Long)
+		'Factor > 1 zooms out, < 1 zooms in; AnchorIdx stays at its relative
+		'place in the view (-1 = the view center)
+		If m_CandleCount <= 0 Then Exit Sub
+		Dim vEnd As Long = m_CandleCount
+		If m_CandleVisible > 0 Then vEnd = m_CandleStart + m_CandleVisible
+		If vEnd > m_CandleCount Then vEnd = m_CandleCount
+		Dim nOld As Long = vEnd - m_CandleStart
+		If nOld < 1 Then Exit Sub
+		Dim nNew As Long = CInt(nOld * Factor)
+		If nNew < 10 Then nNew = 10
+		If AnchorIdx < m_CandleStart OrElse AnchorIdx >= vEnd Then AnchorIdx = (m_CandleStart + vEnd - 1) \ 2
+		Dim ratio As Double = (AnchorIdx - m_CandleStart) / nOld
+		Dim nStart As Long = CInt(AnchorIdx - ratio * nNew)
+		CandleSetView nStart, nNew
+	End Sub
+
+	Private Sub Chart.CandlePan(ByVal ShiftIdx As Long)
+		CandleSetView m_CandleStart + ShiftIdx, m_CandleVisible
+	End Sub
+
+	Private Property Chart.CandleVisible() As Long
+		Return m_CandleVisible
+	End Property
+
+	Private Property Chart.CandleVisible(ByVal New_Value As Long)
+		m_CandleVisible = New_Value
+		If m_CandleVisible < 0 Then m_CandleVisible = 0
+		mHotBar = -1
+		Refresh
+	End Property
+
+	Private Property Chart.ShowMA() As Boolean
+		Return m_ShowMA
+	End Property
+
+	Private Property Chart.ShowMA(ByVal New_Value As Boolean)
+		m_ShowMA = New_Value
+		Refresh
+	End Property
+
+	Private Sub Chart.AddCandle(ByRef DateText As WString, ByVal OpenPrice As Double, ByVal HighPrice As Double, ByVal LowPrice As Double, ByVal ClosePrice As Double, ByVal Volume As Double)
+		'Grow the array in chunks: a ReDim Preserve per row would be quadratic
+		'for files with thousands of rows
+		If m_CandleCount > UBound(m_Candle) Then
+			ReDim Preserve m_Candle(m_CandleCount + 1023)
+		End If
+		With m_Candle(m_CandleCount)
+			WLet(.CandleDate, DateText)
+			.OpenPrice = OpenPrice
+			.HighPrice = HighPrice
+			.LowPrice = LowPrice
+			.ClosePrice = ClosePrice
+			.Volume = Volume
+			If m_CandleCount > 0 AndAlso m_Candle(m_CandleCount - 1).ClosePrice <> 0 Then
+				.ChangePercent = (ClosePrice - m_Candle(m_CandleCount - 1).ClosePrice) / m_Candle(m_CandleCount - 1).ClosePrice * 100
+			Else
+				.ChangePercent = 0
+			End If
+		End With
+		m_CandleCount = m_CandleCount + 1
+	End Sub
+
+	Private Sub Chart.ClearCandles()
+		Dim i As Long
+		For i = 0 To m_CandleCount - 1
+			If m_Candle(i).CandleDate <> 0 Then WDeAllocate(m_Candle(i).CandleDate)
+		Next
+		ReDim m_Candle(0)
+		m_CandleCount = 0
+		m_CandleStart = 0
+		mHotBar = -1
+		Refresh
+	End Sub
+
+	Private Property Chart.CandleCount() As Long
+		Return m_CandleCount
+	End Property
+
+	Private Property Chart.CandleStart() As Long
+		Return m_CandleStart
+	End Property
+
+	Private Property Chart.CandleStart(ByVal New_Value As Long)
+		m_CandleStart = New_Value
+		If m_CandleStart > m_CandleCount - 1 Then m_CandleStart = m_CandleCount - 1
+		If m_CandleStart < 0 Then m_CandleStart = 0
+		mHotBar = -1
+		Refresh
+	End Property
+
+	Private Property Chart.CandleUpRed() As Boolean
+		Return m_CandleUpRed
+	End Property
+
+	Private Property Chart.CandleUpRed(ByVal New_Value As Boolean)
+		m_CandleUpRed = New_Value
+		Refresh
+	End Property
+
+	Private Property Chart.ShowVolume() As Boolean
+		Return m_ShowVolume
+	End Property
+
+	Private Property Chart.ShowVolume(ByVal New_Value As Boolean)
+		m_ShowVolume = New_Value
+		Refresh
+	End Property
+
+	Private Property Chart.VolumePanePercent() As Long
+		Return m_VolumePanePercent
+	End Property
+
+	Private Property Chart.VolumePanePercent(ByVal New_Value As Long)
+		m_VolumePanePercent = New_Value
+		If m_VolumePanePercent < 1 Then m_VolumePanePercent = 1
+		If m_VolumePanePercent > 60 Then m_VolumePanePercent = 60
+		Refresh
+	End Property
+
+	Private Property Chart.CandleWidthPercent() As Long
+		Return m_CandleWidthPercent
+	End Property
+
+	Private Property Chart.CandleWidthPercent(ByVal New_Value As Long)
+		m_CandleWidthPercent = New_Value
+		If m_CandleWidthPercent < 10 Then m_CandleWidthPercent = 10
+		If m_CandleWidthPercent > 100 Then m_CandleWidthPercent = 100
+		Refresh
+	End Property
+
+	Private Function Chart.LoadCandlesFromCSV(ByRef FileName As WString, ByVal HasHeader As Boolean = True) As Boolean
+		'CSV columns: date, open, high, low, close, volume (UTF-8, BOM optional)
+		Dim As Long Fn = FreeFile
+		Dim As Integer FileSize
+		Dim pBuff As WString Ptr = 0
+		Dim lines(Any) As WString Ptr
+		Dim fields(Any) As WString Ptr
+		Dim As Long i, k, nRows
+		Dim bHeader As Boolean = HasHeader
+		Dim As Double vOpen, vHigh, vLow, vClose, vVolume
+		Dim sVal As String
+
+		If Open(FileName For Input Encoding "utf-8" As #Fn) <> 0 Then Return False
+		FileSize = LOF(Fn)
+		If FileSize = 0 Then Close #Fn : Return False
+		WLet(pBuff, WInput(FileSize, #Fn))
+		Close #Fn
+		If pBuff = 0 Then Return False
+
+		ClearCandles
+		Split(*pBuff, WChr(10), lines())
+		WDeAllocate(pBuff)
+
+		For i = 0 To UBound(lines)
+			If lines(i) = 0 Then Continue For
+			If Trim(*lines(i), Any !" \r") = "" Then
+				_Deallocate(lines(i))
+				Continue For
+			End If
+			If bHeader Then
+				bHeader = False
+				_Deallocate(lines(i))
+				Continue For
+			End If
+			Split(*lines(i), ",", fields())
+			If UBound(fields) >= 4 Then
+				sVal = Trim(*fields(1)) : vOpen = Val(sVal)
+				sVal = Trim(*fields(2)) : vHigh = Val(sVal)
+				sVal = Trim(*fields(3)) : vLow = Val(sVal)
+				sVal = Trim(*fields(4)) : vClose = Val(sVal)
+				vVolume = 0
+				If UBound(fields) >= 5 Then
+					sVal = Trim(*fields(5)) : vVolume = Val(sVal)
+				End If
+				If fields(0) Then
+					AddCandle *fields(0), vOpen, vHigh, vLow, vClose, vVolume
+				Else
+					AddCandle "", vOpen, vHigh, vLow, vClose, vVolume
+				End If
+				nRows = nRows + 1
+			End If
+			For k = 0 To UBound(fields)
+				If fields(k) Then _Deallocate(fields(k))
+			Next
+			Erase fields
+			_Deallocate(lines(i))
+		Next
+		Erase lines
+
+		If nRows = 0 Then Return False
+		Refresh
+		Return True
+	End Function
+
 	Private Sub Chart.Draw()
 		#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
 			On Error Goto ErrorHandler
@@ -1346,10 +1711,22 @@ Namespace My.Sys.Forms
 		Dim BarSpace As Single
 		Dim BarWidth As Single
 		Dim LastPositive() As Long, LastNegative() As Long
+		'Fast path for large series (CS_Area): aggregated drawing points
+		Dim nCount As Long
+		Dim dStep As Single = 1
+		Dim nOut As Long
+		Dim pOut As POINTL Ptr = 0
+		Dim Out(Any) As POINTL
 		
 		#ifdef __USE_WINAPI__
-			If GdipCreateFromHDC(hd, @hGraphics) Then Exit Sub
-			
+			'The Canvas owns the GDI+ graphics during the paint session (WM_PAINT has
+			'called Canvas.SetHandle); fall back to the raw HDC for direct Paint calls
+			If Canvas.GdipGraphics <> 0 Then
+				hGraphics = Canvas.GdipGraphics
+			Else
+				If GdipCreateFromHDC(hd, @hGraphics) Then Exit Sub
+			End If
+
 			GdipSetSmoothingMode(hGraphics, SmoothingModeAntiAlias)
 			GdipSetCompositingQuality(hGraphics, &H3) 'CompositingQualityGammaCorrected
 		#endif
@@ -2446,7 +2823,12 @@ Namespace My.Sys.Forms
 			
 			If m_AxisXVisible Then
 				If cAxisItem <> 0 Then
-					For i = 0 To cAxisItem->Count - 1
+					'For huge item counts measure only a sample: the per-item text
+					'measurement would dominate the paint time (and the axis labels
+					'are skipped at small distances anyway)
+					Dim iMeasureStep As Long = 1
+					If cAxisItem->Count > 100 Then iMeasureStep = cAxisItem->Count \ 100
+					For i = 0 To cAxisItem->Count - 1 Step iMeasureStep
 						TextWidth = ScaleX(Canvas.TextWidth(cAxisItem->Item(i))) * 1.3
 						TextHeight = ScaleY(Canvas.TextHeight(cAxisItem->Item(i))) * 1.3
 						If TextWidth > AxisX.Width Then AxisX.Width = TextWidth
@@ -2552,12 +2934,18 @@ Namespace My.Sys.Forms
 				End Select
 			End If
 			
-			If cAxisItem AndAlso cAxisItem->Count Then
+			If cAxisItem AndAlso cAxisItem->Count > 1 Then
 				AxisDistance = (mWidth - mPenWidth) / (cAxisItem->Count - 1)
+			ElseIf cAxisItem AndAlso cAxisItem->Count = 1 Then
+				AxisDistance = mWidth
 			End If
-			
+
 			If SerieCount > 0 Then
-				PtDistance = (mWidth - mPenWidth) / (m_Serie(0).Values->Count - 1)
+				If m_Serie(0).Values->Count > 1 Then
+					PtDistance = (mWidth - mPenWidth) / (m_Serie(0).Values->Count - 1)
+				Else
+					PtDistance = mWidth
+				End If
 			End If
 			
 			'    If (m_ChartStyle = CS_StackedBars) Or (m_ChartStyle = CS_StackedBarsPercent) Then
@@ -2681,7 +3069,7 @@ Namespace My.Sys.Forms
 				yRange = yRange + CLng(iStep * NumDecim)
 			Next
 			
-			If m_VerticalLines And SerieCount > 0 Then
+			If m_VerticalLines AndAlso SerieCount > 0 AndAlso PtDistance >= 2 Then
 				For i = 0 To m_Serie(0).Values->Count - 1
 					XX = MarginLeft + PtDistance * i
 					#ifdef __USE_GTK__
@@ -2704,248 +3092,120 @@ Namespace My.Sys.Forms
 				GdipDeletePen hPen
 			#endif
 			
+			'Guard the point-to-pixel scaling against a zero span
+			'(a zero toLines or forLines would divide by zero below)
+			If toLines = 0 Then toLines = 1
+			If forLines = 0 Then forLines = -1
+
 			For i = 0 To SerieCount - 1
 				'Calculo
-				ReDim (m_Serie(i).PT)(m_Serie(i).Values->Count - 1)
-				
-				For j = 0 To m_Serie(i).Values->Count - 1
-					Value = m_Serie(i).Values->Item(j) ' + 1
-					With m_Serie(i).PT(j)
-						.x = MarginLeft + PtDistance * j
-						'.Y = TopHeader + mHeight - (m_Serie(i).Values(j + 1) * (Max * mHeight / toLines) / Max)
-						If Value >= 0 Then
-							.y = ZeroPoint - (Value * (ZeroPoint - TopHeader) / toLines)
+				BuildValueCache(i)
+				nCount = m_Serie(i).Values->Count
+				dStep = 1
+				If PtDistance > 0 AndAlso PtDistance < 1 Then dStep = 1 / PtDistance
+				'The value-to-screen factors of this serie (toLines/forLines are
+				'guarded against zero above)
+				Dim kPos As Single = (ZeroPoint - TopHeader) / toLines
+				Dim kNeg As Single = (TopHeader + mHeight - ZeroPoint) / forLines
+				nOut = 0
+				pOut = 0
+				If dStep <= 1 Then
+					'One pixel or more per point: fill the PT array (it is also
+					'used by the markers, the curve mode and the tooltip anchor)
+					ReDim (m_Serie(i).PT)(nCount - 1)
+					For j = 0 To nCount - 1
+						Value = m_Serie(i).ValuesCache[j]
+						With m_Serie(i).PT(j)
+							.x = MarginLeft + PtDistance * j
+							If Value >= 0 Then
+								.y = ZeroPoint - Value * kPos
+							Else
+								.y = ZeroPoint + Value * kNeg
+							End If
+						End With
+					Next
+					pOut = @m_Serie(i).PT(0)
+					nOut = nCount
+				ElseIf nCount > 1 Then
+					'More points than pixels: aggregate min/max per pixel column
+					'straight from the value cache. No per-point arrays are built,
+					'the number of drawn primitives follows the visible pixels
+					'(hit testing stays analytic through PtDistance)
+					ReDim Out(2 * (mWidth + 2) + 2)
+					Dim iCol As Long, i0 As Long, i1 As Long, jMin As Long, jMax As Long
+					Dim jFirst As Long, jSecond As Long
+					Dim vMin As Single, vMax As Single, vY As Single
+					For iCol = 0 To mWidth
+						i0 = CInt(iCol * dStep)
+						i1 = CInt((iCol + 1) * dStep) - 1
+						If i1 >= nCount Then i1 = nCount - 1
+						If i1 < i0 Then i1 = i0
+						If i0 > nCount - 1 Then Exit For
+						vMin = m_Serie(i).ValuesCache[i0]
+						vMax = vMin
+						jMin = i0
+						jMax = i0
+						For j = i0 + 1 To i1
+							If m_Serie(i).ValuesCache[j] < vMin Then
+								vMin = m_Serie(i).ValuesCache[j]
+								jMin = j
+							End If
+							If m_Serie(i).ValuesCache[j] > vMax Then
+								vMax = m_Serie(i).ValuesCache[j]
+								jMax = j
+							End If
+						Next
+						'The two extreme points of the column, in data order
+						If jMin <= jMax Then
+							jFirst = jMin
+							jSecond = jMax
 						Else
-							.y = ZeroPoint + (Value * (TopHeader + mHeight - ZeroPoint) / forLines)
+							jFirst = jMax
+							jSecond = jMin
 						End If
-					End With
-				Next
-				
-				'fill Line/Curve
-				If m_FillOpacity > 0 Then
-					#ifdef __USE_GTK__
-						cairo_new_path(cr)
-						If True Then
-					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-						mcairo_new_path(cr)
-						If True Then
-					#elseif defined(__USE_WINAPI__)
-						If GdipCreatePath(&H0, @hPath) = 0 Then
-					#else
-						If False Then
-					#endif
-						#ifdef __USE_GTK__
-							'cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-							cairo_move_to cr, MarginLeft, ZeroPoint
-							'cairo_line_to cr, MarginLeft, ZeroPoint
-						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-							'mcairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-							mcairo_move_to cr, MarginLeft, ZeroPoint
-							'mcairo_line_to cr, MarginLeft, ZeroPoint
-						#elseif defined(__USE_WINAPI__)
-							GdipAddPathLineI hPath, MarginLeft, ZeroPoint, MarginLeft, ZeroPoint
-						#endif
-						If m_LinesCurve Then
-							#ifdef __USE_GTK__
-								'cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-								cairo_line_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
-								For l As Integer = 1 To UBound(m_Serie(i).PT)
-									Dim As Single Y
-									If l Mod 2 = 1 Then
-										If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
-											Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-										Else
-											Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-										End If
-									ElseIf l Mod 2 = 0 Then
-										If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
-											Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-										Else
-											Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-										End If
-									End If
-									cairo_curve_to cr, m_Serie(i).PT(l - 1).x, m_Serie(i).PT(l - 1).y, (m_Serie(i).PT(l).x + m_Serie(i).PT(l - 1).x) / 2, Y, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
-								Next
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-								'mcairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-								mcairo_line_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
-								For l As Integer = 1 To UBound(m_Serie(i).PT)
-									Dim As Single Y
-									If l Mod 2 = 1 Then
-										If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
-											Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-										Else
-											Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-										End If
-									ElseIf l Mod 2 = 0 Then
-										If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
-											Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-										Else
-											Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-										End If
-									End If
-									mcairo_curve_to cr, m_Serie(i).PT(l - 1).x, m_Serie(i).PT(l - 1).y, (m_Serie(i).PT(l).x + m_Serie(i).PT(l - 1).x) / 2, Y, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
-								Next
-							#elseif defined(__USE_WINAPI__)
-								GdipAddPathCurveI hPath, Cast(GpPoint Ptr, @m_Serie(i).PT(0)), UBound(m_Serie(i).PT) + 1
-							#endif
-						Else
-							#ifdef __USE_GTK__
-								'cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-								cairo_line_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
-								For l As Integer = 1 To UBound(m_Serie(i).PT)
-									cairo_line_to cr, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
-								Next
-								'cairo_stroke(cr)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-								'mcairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-								mcairo_line_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
-								For l As Integer = 1 To UBound(m_Serie(i).PT)
-									mcairo_line_to cr, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
-								Next
-								'mcairo_stroke(cr)
-							#elseif defined(__USE_WINAPI__)
-								GdipAddPathLine2I hPath, Cast(GpPoint Ptr, @m_Serie(i).PT(0)), UBound(m_Serie(i).PT) + 1
-							#endif
-						End If
-						#ifdef __USE_GTK__
-							'cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-							'cairo_move_to(cr, MarginLeft + mWidth - mPenWidth, ZeroPoint)
-							cairo_line_to(cr, MarginLeft + mWidth - mPenWidth, ZeroPoint)
-							'cairo_stroke(cr)
-						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-							'mcairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-							'mcairo_move_to(cr, MarginLeft + mWidth - mPenWidth, ZeroPoint)
-							mcairo_line_to(cr, MarginLeft + mWidth - mPenWidth, ZeroPoint)
-							'mcairo_stroke(cr)
-						#elseif defined(__USE_WINAPI__)
-							GdipAddPathLineI hPath, MarginLeft + mWidth - mPenWidth, ZeroPoint, MarginLeft + mWidth - mPenWidth, ZeroPoint
-						#endif
-						
-						Dim As ULong BrushColor
-						If m_FillGradient Then
-							With RectL_
-								.Top = TopHeader
-								
-								.Right = mWidth
-								.Bottom = ZeroPoint - TopHeader
-							End With
-							#ifdef __USE_GTK__
-								BrushColor = RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-								BrushColor = RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity)
-							#elseif defined(__USE_WINAPI__)
-								GdipCreateLineBrushFromRectWithAngleI Cast(GpRect Ptr, @RectL_), RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity), RGBtoARGB(m_Serie(i).SerieColor, 10), 90, 0, WrapModeTileFlipXY, Cast(GpLineGradient Ptr Ptr, @hBrush)
-							#endif
-						Else
-							#ifdef __USE_GTK__
-								BrushColor = RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity)
-							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-								BrushColor = RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity)
-							#elseif defined(__USE_WINAPI__)
-								GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity), Cast(GpSolidFill Ptr Ptr, @hBrush)
-							#endif
-						End If
-						
-						#ifdef __USE_GTK__
-							cairo_close_path(cr)
-							cairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), m_FillOpacity / 100)
-							cairo_fill(cr)
-							
-							cairo_new_path(cr)
-						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-							mcairo_close_path(cr)
-							mcairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), m_FillOpacity / 100)
-							mcairo_fill(cr)
-							
-							mcairo_new_path(cr)
-						#elseif defined(__USE_WINAPI__)
-							GdipFillPath hGraphics, hBrush, hPath
-							GdipDeleteBrush hBrush
-							
-							GdipDeletePath hPath
-						#endif
+						Out(nOut).x = MarginLeft + PtDistance * jFirst
+						vY = m_Serie(i).ValuesCache[jFirst]
+						Out(nOut).y = IIf(vY >= 0, ZeroPoint - vY * kPos, ZeroPoint + vY * kNeg)
+						nOut += 1
+						Out(nOut).x = MarginLeft + PtDistance * jSecond
+						vY = m_Serie(i).ValuesCache[jSecond]
+						Out(nOut).y = IIf(vY >= 0, ZeroPoint - vY * kPos, ZeroPoint + vY * kNeg)
+						nOut += 1
+					Next
+					pOut = @Out(0)
+				End If
+
+				'fill Line/Curve through the Canvas path API
+				If m_FillOpacity > 0 AndAlso nOut > 1 Then
+					Canvas.PathStart
+					Canvas.PathMoveTo MarginLeft, ZeroPoint
+					Canvas.PathAddPolyline pOut, nOut
+					Canvas.PathLineTo MarginLeft + mWidth - mPenWidth, ZeroPoint
+					If m_FillGradient Then
+						Canvas.FillPathGradient(RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity), RGBtoARGB(m_Serie(i).SerieColor, 10), m_FillOpacity, 10, MarginLeft, TopHeader, mWidth, ZeroPoint - TopHeader, 90)
+					Else
+						Canvas.FillPath(RGBtoARGB(m_Serie(i).SerieColor, m_FillOpacity), m_FillOpacity)
+					End If
+					Canvas.PathDiscard
+				End If
+
+				'Draw Lines or Curve through the Canvas
+				If mHotSerie = i Then LW = m_LinesWidth * nScale * 1.5 Else LW = m_LinesWidth * nScale
+				If LW < 1 Then LW = 1
+				If nOut > 1 Then
+					If dStep <= 1 AndAlso m_LinesCurve AndAlso nCount > 2 Then
+						Canvas.PathStart
+						Canvas.PathMoveTo m_Serie(i).PT(0).x, m_Serie(i).PT(0).y
+						Canvas.PathAddCurve @m_Serie(i).PT(0), nCount
+						Canvas.StrokePath(RGBtoARGB(m_Serie(i).SerieColor, 100), LW, 100)
+						Canvas.PathDiscard
+					Else
+						'A flat polyline stroke is an order of magnitude faster
+						'than routing it through the path engine
+						Canvas.StrokePolyline(pOut, nOut, RGBtoARGB(m_Serie(i).SerieColor, 100), LW, 100)
 					End If
 				End If
-				
-				'Draw Lines or Curve
-				If mHotSerie = i Then LW = LW * 1.5 Else LW = m_LinesWidth * nScale
-				#ifdef __USE_GTK__
-					Var PenColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
-					cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-					cairo_set_line_width(cr, LW)
-				#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-					Var PenColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
-					mcairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-					mcairo_set_line_width(cr, LW)
-				#elseif defined(__USE_WINAPI__)
-					GdipCreatePen1 RGBtoARGB(m_Serie(i).SerieColor, 100), LW, &H2, @hPen
-				#endif
-				If m_LinesCurve Then
-					#ifdef __USE_GTK__
-						cairo_move_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
-						For l As Integer = 1 To UBound(m_Serie(i).PT)
-							Dim As Single Y
-							If l Mod 2 = 1 Then
-								If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
-									Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-								Else
-									Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-								End If
-							ElseIf l Mod 2 = 0 Then
-								If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
-									Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-								Else
-									Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-								End If
-							End If
-							cairo_curve_to cr, m_Serie(i).PT(l - 1).x, m_Serie(i).PT(l - 1).y, (m_Serie(i).PT(l).x + m_Serie(i).PT(l - 1).x) / 2, Y, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
-						Next
-						cairo_stroke(cr)
-					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-						mcairo_move_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
-						For l As Integer = 1 To UBound(m_Serie(i).PT)
-							Dim As Single Y
-							If l Mod 2 = 1 Then
-								If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
-									Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-								Else
-									Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-								End If
-							ElseIf l Mod 2 = 0 Then
-								If m_Serie(i).PT(l).y > m_Serie(i).PT(l - 1).y Then
-									Y = IIf(m_Serie(i).PT(l - 1).y < m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-								Else
-									Y = IIf(m_Serie(i).PT(l - 1).y > m_Serie(i).PT(l).y, m_Serie(i).PT(l - 1).y, m_Serie(i).PT(l).y)
-								End If
-							End If
-							mcairo_curve_to cr, m_Serie(i).PT(l - 1).x, m_Serie(i).PT(l - 1).y, (m_Serie(i).PT(l).x + m_Serie(i).PT(l - 1).x) / 2, Y, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
-						Next
-						mcairo_stroke(cr)
-					#elseif defined(__USE_WINAPI__)
-						GdipDrawCurveI hGraphics, hPen, Cast(GpPoint Ptr, @m_Serie(i).PT(0)), UBound(m_Serie(i).PT) + 1
-					#endif
-				Else
-					#ifdef __USE_GTK__
-						cairo_move_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
-						For l As Integer = 1 To UBound(m_Serie(i).PT)
-							cairo_line_to cr, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
-						Next
-						cairo_stroke(cr)
-					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-						mcairo_move_to(cr, m_Serie(i).PT(0).x, m_Serie(i).PT(0).y)
-						For l As Integer = 1 To UBound(m_Serie(i).PT)
-							mcairo_line_to cr, m_Serie(i).PT(l).x, m_Serie(i).PT(l).y
-						Next
-						mcairo_stroke(cr)
-					#elseif defined(__USE_WINAPI__)
-						GdipDrawLinesI hGraphics, hPen, Cast(GpPoint Ptr, @m_Serie(i).PT(0)), UBound(m_Serie(i).PT) + 1
-					#endif
-				End If
-				#ifdef __USE_WINAPI__
-					GdipDeletePen hPen
-				#endif
-				
+
 				If m_LegendVisible Then
 					Select Case m_LegendAlign
 					Case LA_RIGHT, LA_LEFT
@@ -3067,101 +3327,97 @@ Namespace My.Sys.Forms
 				'Marck Colors
 				Dim PTSZ As Single
 				PTSZ = LW * 2
-				'If mHotSerie = i Then PTSZ = LW * 1.2 Else PTSZ = LW * 1.2
-				'If PTSZ < 3 * nScale Then PTSZ = 3 * nScale
-				For j = 0 To m_Serie(i).Values->Count - 1
-					If mHotBar = j Then
-						#ifdef __USE_GTK__
-							Var PenColor = RGBtoARGB(m_LinesColor, 100)
-							cairo_set_line_width(cr, mPenWidth)
-						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-							Var PenColor = RGBtoARGB(m_LinesColor, 100)
-							mcairo_set_line_width(cr, mPenWidth)
-						#elseif defined(__USE_WINAPI__)
-							GdipCreatePen1(RGBtoARGB(m_LinesColor, 100), mPenWidth, &H2, @hPen)
-						#endif
-						XX = MarginLeft + PtDistance * j
-						#ifdef __USE_GTK__
-							cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-							cairo_move_to(cr, XX, TopHeader)
-							cairo_line_to(cr, XX, TopHeader + mHeight + 4 * nScale)
-							cairo_stroke(cr)
-						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-							mcairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
-							mcairo_move_to(cr, XX, TopHeader)
-							mcairo_line_to(cr, XX, TopHeader + mHeight + 4 * nScale)
-							mcairo_stroke(cr)
-						#elseif defined(__USE_WINAPI__)
-							GdipDrawLine hGraphics, hPen, XX, TopHeader, XX, TopHeader + mHeight + 4 * nScale
-							GdipDeletePen hPen
-						#endif
-					End If
-					
-					
+				'Hot marker: a single point, drawn without iterating the series
+				If mHotBar >= 0 AndAlso mHotBar < nCount Then
+					j = mHotBar
+					XX = MarginLeft + PtDistance * j
+					#ifdef __USE_GTK__
+						Var PenColor = RGBtoARGB(m_LinesColor, 100)
+						cairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
+						cairo_set_line_width(cr, mPenWidth)
+						cairo_move_to(cr, XX, TopHeader)
+						cairo_line_to(cr, XX, TopHeader + mHeight + 4 * nScale)
+						cairo_stroke(cr)
+					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+						Var PenColor = RGBtoARGB(m_LinesColor, 100)
+						mcairo_set_source_rgb(cr, GetRedD(PenColor), GetGreenD(PenColor), GetBlueD(PenColor))
+						mcairo_set_line_width(cr, mPenWidth)
+						mcairo_move_to(cr, XX, TopHeader)
+						mcairo_line_to(cr, XX, TopHeader + mHeight + 4 * nScale)
+						mcairo_stroke(cr)
+					#elseif defined(__USE_WINAPI__)
+						GdipCreatePen1(RGBtoARGB(m_LinesColor, 100), mPenWidth, &H2, @hPen)
+						GdipDrawLine hGraphics, hPen, XX, TopHeader, XX, TopHeader + mHeight + 4 * nScale
+						GdipDeletePen hPen
+					#endif
 					If mHotSerie = i Then
+						Dim vHot As Single = m_Serie(i).ValuesCache[j]
+						Dim yHot As Single = IIf(vHot >= 0, ZeroPoint - vHot * kPos, ZeroPoint + vHot * kNeg)
 						#ifdef __USE_GTK__
 							Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 50)
 							cairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), 0.5)
-							cairo_arc(cr, m_Serie(i).PT(j).x - PTSZ * 2 + PTSZ * 4 / 2 - 0.5, m_Serie(i).PT(j).y - PTSZ * 2 + PTSZ * 4 / 2 - 0.5, PTSZ * 4 / 2, 0, 2 * G_PI)
+							cairo_arc(cr, XX - PTSZ * 2 + PTSZ * 4 / 2 - 0.5, yHot - PTSZ * 2 + PTSZ * 4 / 2 - 0.5, PTSZ * 4 / 2, 0, 2 * G_PI)
 							cairo_fill(cr)
 						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 							Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 50)
 							mcairo_new_path(cr)
 							mcairo_set_source_rgba(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor), 0.5)
-							mcairo_arc(cr, m_Serie(i).PT(j).x, m_Serie(i).PT(j).y, PTSZ * 2, 0, 2 * G_PI)
+							mcairo_arc(cr, XX, yHot, PTSZ * 2, 0, 2 * G_PI)
 							mcairo_fill(cr)
 						#elseif defined(__USE_WINAPI__)
 							GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, 50), Cast(GpSolidFill Ptr Ptr, @hBrush)
-							GdipFillEllipseI hGraphics, hBrush, m_Serie(i).PT(j).x - PTSZ * 2, m_Serie(i).PT(j).y - PTSZ * 2, PTSZ * 4, PTSZ * 4
+							GdipFillEllipseI hGraphics, hBrush, XX - PTSZ * 2, yHot - PTSZ * 2, PTSZ * 4, PTSZ * 4
 							GdipDeleteBrush hBrush
 						#endif
 					End If
-					
-					#ifdef __USE_GTK__
-						Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
-						cairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
-						cairo_arc(cr, m_Serie(i).PT(j).x - PTSZ + PTSZ * 2 / 2 - 0.5, m_Serie(i).PT(j).y - PTSZ + PTSZ * 2 / 2 - 0.5, PTSZ * 2 / 2, 0, 2 * G_PI)
-						cairo_fill(cr)
-					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-						Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
-						mcairo_new_path(cr)
-						mcairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
-						mcairo_arc(cr, m_Serie(i).PT(j).x, m_Serie(i).PT(j).y, PTSZ, 0, 2 * G_PI)
-						mcairo_fill(cr)
-					#elseif defined(__USE_WINAPI__)
-						GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush)
-						GdipFillEllipseI hGraphics, hBrush, m_Serie(i).PT(j).x - PTSZ, m_Serie(i).PT(j).y - PTSZ, PTSZ * 2, PTSZ * 2
-						
-						'RectangleI hGraphics, hBrush, This.ClientWidth - MarginRight + MaxAxisHeight / 3, TopHeader + MaxAxisHeight * i + MaxAxisHeight / 4, MaxAxisHeight / 2, MaxAxisHeight / 2
-						GdipDeleteBrush hBrush
-					#endif
-					
-					#ifdef __USE_GTK__
-						Var BrushColor1 = RGBtoARGB(FBackColor, 100 - m_FillOpacity)
-						cairo_set_source_rgba(cr, GetRedD(BrushColor1), GetGreenD(BrushColor1), GetBlueD(BrushColor1), (100 - m_FillOpacity) / 100)
-						cairo_arc(cr, m_Serie(i).PT(j).x - PTSZ + PTSZ * 2 / 2 - 0.5, m_Serie(i).PT(j).y - PTSZ + PTSZ * 2 / 2 - 0.5, PTSZ * 2 / 2, 0, 2 * G_PI)
-						cairo_stroke(cr)
-					#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-						Var BrushColor1 = RGBtoARGB(FBackColor, 100 - m_FillOpacity)
-						mcairo_new_path(cr)
-						mcairo_set_line_width(cr, mPenWidth)
-						mcairo_set_source_rgba(cr, GetRedD(BrushColor1), GetGreenD(BrushColor1), GetBlueD(BrushColor1), (100 - m_FillOpacity) / 100)
-						mcairo_arc(cr, m_Serie(i).PT(j).x, m_Serie(i).PT(j).y, PTSZ, 0, 2 * G_PI)
-						mcairo_stroke(cr)
-					#elseif defined(__USE_WINAPI__)
-						GdipCreatePen1(RGBtoARGB(FBackColor, 100 - m_FillOpacity), mPenWidth, &H2, @hPen)
-						GdipDrawEllipseI hGraphics, hPen, m_Serie(i).PT(j).x - PTSZ, m_Serie(i).PT(j).y - PTSZ, PTSZ * 2, PTSZ * 2
-						GdipDeletePen hPen
-					#endif
-					
-					'Serie Text
-					'  DrawText hGraphics, m_Serie(i).SerieName, This.ClientWidth - MarginRight + MaxAxisHeight, TopHeader + MaxAxisHeight * i, MarginRight, MaxAxisHeight, This.Font, lForeColor, cLeft, cMiddle
-				Next
+				End If
+				'Data markers: only while one point owns enough pixels, at 100000
+				'points the circles would only blur the line
+				If PtDistance >= 3 Then
+					For j = 0 To nCount - 1
+						#ifdef __USE_GTK__
+							Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
+							cairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
+							cairo_arc(cr, m_Serie(i).PT(j).x - PTSZ + PTSZ * 2 / 2 - 0.5, m_Serie(i).PT(j).y - PTSZ + PTSZ * 2 / 2 - 0.5, PTSZ * 2 / 2, 0, 2 * G_PI)
+							cairo_fill(cr)
+						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+							Var BrushColor = RGBtoARGB(m_Serie(i).SerieColor, 100)
+							mcairo_new_path(cr)
+							mcairo_set_source_rgb(cr, GetRedD(BrushColor), GetGreenD(BrushColor), GetBlueD(BrushColor))
+							mcairo_arc(cr, m_Serie(i).PT(j).x, m_Serie(i).PT(j).y, PTSZ, 0, 2 * G_PI)
+							mcairo_fill(cr)
+						#elseif defined(__USE_WINAPI__)
+							GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush)
+							GdipFillEllipseI hGraphics, hBrush, m_Serie(i).PT(j).x - PTSZ, m_Serie(i).PT(j).y - PTSZ, PTSZ * 2, PTSZ * 2
+							GdipDeleteBrush hBrush
+						#endif
+
+						#ifdef __USE_GTK__
+							Var BrushColor1 = RGBtoARGB(FBackColor, 100 - m_FillOpacity)
+							cairo_set_source_rgba(cr, GetRedD(BrushColor1), GetGreenD(BrushColor1), GetBlueD(BrushColor1), (100 - m_FillOpacity) / 100)
+							cairo_arc(cr, m_Serie(i).PT(j).x - PTSZ + PTSZ * 2 / 2 - 0.5, m_Serie(i).PT(j).y - PTSZ + PTSZ * 2 / 2 - 0.5, PTSZ * 2 / 2, 0, 2 * G_PI)
+							cairo_stroke(cr)
+						#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+							Var BrushColor1 = RGBtoARGB(FBackColor, 100 - m_FillOpacity)
+							mcairo_new_path(cr)
+							mcairo_set_line_width(cr, mPenWidth)
+							mcairo_set_source_rgba(cr, GetRedD(BrushColor1), GetGreenD(BrushColor1), GetBlueD(BrushColor1), (100 - m_FillOpacity) / 100)
+							mcairo_arc(cr, m_Serie(i).PT(j).x, m_Serie(i).PT(j).y, PTSZ, 0, 2 * G_PI)
+							mcairo_stroke(cr)
+						#elseif defined(__USE_WINAPI__)
+							GdipCreatePen1(RGBtoARGB(FBackColor, 100 - m_FillOpacity), mPenWidth, &H2, @hPen)
+							GdipDrawEllipseI hGraphics, hPen, m_Serie(i).PT(j).x - PTSZ, m_Serie(i).PT(j).y - PTSZ, PTSZ * 2, PTSZ * 2
+							GdipDeletePen hPen
+						#endif
+					Next
+				End If
 			Next
 			
 			'Horizontal Axis
 			If m_AxisXVisible Then
-				If cAxisItem Then
+				If cAxisItem AndAlso AxisDistance >= 8 * nScale Then
+					'Labels are skipped at small distances: with 100000 items each
+					'DrawText would cost more than the whole chart body
 					For i = 0 To cAxisItem->Count - 1
 						XX = MarginLeft + AxisDistance * (i) - (AxisDistance / 2) ' - 1
 						m_AxisAlign = cCenter
@@ -3171,6 +3427,396 @@ Namespace My.Sys.Forms
 			End If
 			
 			'End If
+		Case CS_CandleStick
+			'Stock candlestick (K线) chart: a price pane with OHLC candles and
+			'an optional volume sub-pane below. The data comes from AddCandle /
+			'LoadCandlesFromCSV, not from the series; the visible slice starts
+			'at CandleStart.
+			Canvas.Font = This.Font
+			PT16 = (ScaleX(This.ClientWidth) + ScaleY(This.ClientHeight)) * 2.5 / 100
+			PT24 = 24 * nScale
+			mPenWidth = 1 * nScale
+			lForeColor = RGBtoARGB(FForeColor, 100)
+
+			Dim cndUpColor As Long = IIf(m_CandleUpRed, clRed, clGreen)
+			Dim cndDownColor As Long = IIf(m_CandleUpRed, clGreen, clRed)
+			Dim cndVMax As Double, cndVMin As Double, cndVolMax As Double
+			Dim cndRange As Double
+			Dim cndPriceH As Single, cndVolH As Single, cndVolGap As Single, cndVolTop As Single
+			Dim cndPriceK As Double, cndVolK As Double
+			Dim cndBodyW As Single, cndXC As Single
+			Dim cndYH As Single, cndYL As Single, cndYO As Single, cndYC As Single
+			Dim cndBodyTop As Single, cndBodyH As Single
+			Dim cndRectF As RectF
+			Dim cndGridStep As Double, cndGridVal As Double
+			Dim cndLblH As Single, cndLblStep As Long, cndLblW As Single
+			Dim cndLastUp As Boolean
+			Dim cndLastY As Single
+			Dim cndInfo As UString
+			Dim cndDirColor As Long
+			Dim cndShowVol As Boolean
+			Dim cndFirst As Long, cndN As Long
+			Dim cndI As Long, cndJ As Long
+			Dim cndP As Long
+			Dim cndLastIdx As Long
+			Dim cndMAPeriod(5) As Long
+			Dim cndMACol(5) As Long
+			Dim cndMAV As Double
+			Dim cndMAStarted As Boolean
+			Dim cndRef As Long
+			Dim cndMAW As Single
+
+			'The visible candle slice (CandleVisible 0 = to the end)
+			cndMAPeriod(0) = 5:   cndMACol(0) = RGB(96, 96, 96)    'MA5  dark gray
+			cndMAPeriod(1) = 10:  cndMACol(1) = RGB(176, 176, 0)   'MA10 dark yellow
+			cndMAPeriod(2) = 20:  cndMACol(2) = RGB(255, 0, 255)   'MA20 magenta
+			cndMAPeriod(3) = 30:  cndMACol(3) = RGB(0, 160, 0)     'MA30 green
+			cndMAPeriod(4) = 60:  cndMACol(4) = RGB(0, 0, 255)     'MA60 blue
+			cndMAPeriod(5) = 250: cndMACol(5) = RGB(255, 96, 0)    'MA250 orange
+			cndFirst = m_CandleStart
+			If cndFirst > m_CandleCount - 1 Then cndFirst = m_CandleCount - 1
+			If cndFirst < 0 Then cndFirst = 0
+			cndN = m_CandleCount - cndFirst
+			If m_CandleVisible > 0 AndAlso m_CandleVisible < cndN Then cndN = m_CandleVisible
+			cndLastIdx = cndFirst + cndN - 1
+			cndVMax = -1E+308
+			cndVMin = 1E+308
+			cndVolMax = 0
+			For cndI = cndFirst To cndLastIdx
+				If m_Candle(cndI).HighPrice > cndVMax Then cndVMax = m_Candle(cndI).HighPrice
+				If m_Candle(cndI).LowPrice < cndVMin Then cndVMin = m_Candle(cndI).LowPrice
+				If m_Candle(cndI).Volume > cndVolMax Then cndVolMax = m_Candle(cndI).Volume
+			Next
+
+			'Measure the axis label areas from sample texts
+			cndLblH = ScaleY(Canvas.TextHeight("8888.88")) * 1.5
+			If m_AxisXVisible AndAlso cndN > 0 Then
+				sDisplay = *m_Candle(cndLastIdx).CandleDate
+				AxisX.Width = ScaleX(Canvas.TextWidth(sDisplay)) * 1.3
+				AxisX.Height = ScaleY(Canvas.TextHeight(sDisplay)) * 1.3
+			End If
+			If m_AxisYVisible AndAlso cndVMax > cndVMin Then
+				sDisplay = CandleNumText(cndVMax)
+				AxisY.Width = ScaleX(Canvas.TextWidth(sDisplay)) * 1.5
+				AxisY.Height = ScaleY(Canvas.TextHeight(sDisplay)) * 1.5
+			End If
+
+			If Len(m_Title) Then
+				GetTextSize(m_Title, ScaleX(This.ClientWidth), 0, m_TitleFont, True, TitleSize)
+			End If
+
+			MarginRight = PT16
+			TopHeader = PT16 + TitleSize.Height
+			MarginLeft = PT16 + AxisY.Width
+			Footer = PT16 + AxisX.Height
+
+			mWidth = ScaleX(This.ClientWidth) - MarginLeft - MarginRight
+			mHeight = ScaleY(This.ClientHeight) - TopHeader - Footer
+
+			'Background (also without data)
+			With cndRectF
+				.Width = ScaleX(This.ClientWidth) - 1 * nScale
+				.Height = ScaleY(This.ClientHeight) - 1 * nScale
+			End With
+			RoundRect cndRectF, RGBtoARGB(FBackColor, m_BackColorOpacity), RGBtoARGB(m_BorderColor, 100), m_BorderRound * nScale, m_Border, m_BackColorOpacity
+
+			If cndN > 0 AndAlso mWidth >= 10 AndAlso mHeight >= 10 Then
+
+				'Layout of the price pane and the volume sub-pane
+				cndShowVol = m_ShowVolume AndAlso cndVolMax > 0
+				cndPriceH = mHeight
+				cndVolH = 0
+				cndVolGap = 0
+				cndVolTop = TopHeader + mHeight
+				If cndShowVol Then
+					cndVolGap = PT16 / 4
+					cndVolH = mHeight * m_VolumePanePercent / 100
+					If cndVolH > mHeight / 2 Then cndVolH = mHeight / 2
+					If cndVolH < mPenWidth * 4 Then
+						cndShowVol = False
+						cndVolH = 0
+						cndVolGap = 0
+					Else
+						cndPriceH = mHeight - cndVolH - cndVolGap
+						cndVolTop = TopHeader + cndPriceH + cndVolGap
+					End If
+				End If
+
+				'Pad the price scale by 5% on both ends
+				cndRange = cndVMax - cndVMin
+				If cndRange <= 0 Then cndRange = Abs(cndVMax) * 0.1 + 1
+				cndVMax = cndVMax + cndRange * 0.05
+				cndVMin = cndVMin - cndRange * 0.05
+				cndRange = cndVMax - cndVMin
+				If cndRange <= 0 Then cndRange = 1
+				cndPriceK = cndPriceH / cndRange
+
+				'One slot per candle
+				PtDistance = mWidth / cndN
+				cndBodyW = PtDistance * m_CandleWidthPercent / 100
+				If cndBodyW < mPenWidth Then cndBodyW = mPenWidth
+				If cndBodyW > PtDistance Then cndBodyW = PtDistance
+
+				'--- Horizontal grid lines and the price axis labels
+				If m_HorizontalLines OrElse m_AxisYVisible Then
+					cndGridStep = CandleNiceStep(cndRange / 5)
+					'-Int(-x) is the bitness- and header-independent ceiling: Ceil
+					'is not an fbc builtin and crt/math.bi is not in this chain
+					cndGridVal = -Int(-(cndVMin / cndGridStep)) * cndGridStep
+					Canvas.PathStart
+					Do While cndGridVal <= cndVMax + cndGridStep / 2
+						YY = TopHeader + (cndVMax - cndGridVal) * cndPriceK
+						If m_HorizontalLines Then
+							Canvas.PathMoveTo MarginLeft, YY
+							Canvas.PathLineTo MarginLeft + mWidth, YY
+						End If
+						If m_AxisYVisible Then
+							sDisplay = CandleNumText(cndGridVal)
+							DrawText sDisplay, 0, YY - cndLblH / 2, MarginLeft - 8 * nScale, cndLblH, This.Font, lForeColor, cRight, cMiddle
+						End If
+						cndGridVal = cndGridVal + cndGridStep
+					Loop
+					Canvas.StrokePath(RGBtoARGB(m_LinesColor, 100), mPenWidth, 100)
+					Canvas.PathDiscard
+				End If
+
+				'--- The volume pane: separator line and the maximum label
+				If cndShowVol Then
+					cndVolK = cndVolH / cndVolMax
+					YY = TopHeader + cndPriceH + cndVolGap / 2
+					Canvas.PathStart
+					Canvas.PathMoveTo MarginLeft, YY
+					Canvas.PathLineTo MarginLeft + mWidth, YY
+					Canvas.StrokePath(RGBtoARGB(m_LinesColor, 100), mPenWidth, 100)
+					Canvas.PathDiscard
+					If m_AxisYVisible Then
+						sDisplay = Format(cndVolMax, "#,##0")
+						DrawText sDisplay, 0, cndVolTop - cndLblH / 2, MarginLeft - 8 * nScale, cndLblH, This.Font, lForeColor, cRight, cMiddle
+					End If
+				End If
+
+				'--- The candlesticks grouped by direction: wicks first, then the
+				'bodies; all figures of one color share a single path
+				If PtDistance >= 0.5 Then
+					For cndJ = 0 To 1
+						cndDirColor = IIf(cndJ = 0, cndUpColor, cndDownColor)
+						Canvas.PathStart
+						For cndI = cndFirst To cndLastIdx
+							cndLastUp = m_Candle(cndI).ClosePrice >= m_Candle(cndI).OpenPrice
+							If (cndJ = 0) <> cndLastUp Then Continue For
+							cndXC = MarginLeft + PtDistance * (cndI - cndFirst + 0.5)
+							cndYH = TopHeader + (cndVMax - m_Candle(cndI).HighPrice) * cndPriceK
+							cndYL = TopHeader + (cndVMax - m_Candle(cndI).LowPrice) * cndPriceK
+							Canvas.PathMoveTo cndXC, cndYH
+							Canvas.PathLineTo cndXC, cndYL
+						Next
+						Canvas.StrokePath(RGBtoARGB(cndDirColor, 100), mPenWidth, 100)
+						Canvas.PathDiscard
+					Next
+					If PtDistance >= 2 Then
+						For cndJ = 0 To 1
+							cndDirColor = IIf(cndJ = 0, cndUpColor, cndDownColor)
+							Canvas.PathStart
+							For cndI = cndFirst To cndLastIdx
+								cndLastUp = m_Candle(cndI).ClosePrice >= m_Candle(cndI).OpenPrice
+								If (cndJ = 0) <> cndLastUp Then Continue For
+								cndXC = MarginLeft + PtDistance * (cndI - cndFirst + 0.5)
+								cndYO = TopHeader + (cndVMax - m_Candle(cndI).OpenPrice) * cndPriceK
+								cndYC = TopHeader + (cndVMax - m_Candle(cndI).ClosePrice) * cndPriceK
+								If cndYO > cndYC Then
+									cndBodyTop = cndYC
+									cndBodyH = cndYO - cndYC
+								Else
+									cndBodyTop = cndYO
+									cndBodyH = cndYC - cndYO
+								End If
+								If cndBodyH < mPenWidth Then cndBodyH = mPenWidth
+								Canvas.PathMoveTo cndXC - cndBodyW / 2, cndBodyTop
+								Canvas.PathLineTo cndXC + cndBodyW / 2, cndBodyTop
+								Canvas.PathLineTo cndXC + cndBodyW / 2, cndBodyTop + cndBodyH
+								Canvas.PathLineTo cndXC - cndBodyW / 2, cndBodyTop + cndBodyH
+								Canvas.PathClose
+							Next
+							Canvas.FillPath(RGBtoARGB(cndDirColor, 100), 100)
+							Canvas.PathDiscard
+						Next
+					End If
+				Else
+					'More candles than pixels: one H-L line per pixel column
+					For cndJ = 0 To 1
+						cndDirColor = IIf(cndJ = 0, cndUpColor, cndDownColor)
+						Canvas.PathStart
+						For cndI = cndFirst To cndLastIdx
+							cndLastUp = m_Candle(cndI).ClosePrice >= m_Candle(cndI).OpenPrice
+							If (cndJ = 0) <> cndLastUp Then Continue For
+							XX = MarginLeft + PtDistance * (cndI - cndFirst + 0.5)
+							cndXC = Int(XX - MarginLeft)
+							If cndXC > mWidth - mPenWidth Then cndXC = mWidth - mPenWidth
+							cndYH = TopHeader + (cndVMax - m_Candle(cndI).HighPrice) * cndPriceK
+							cndYL = TopHeader + (cndVMax - m_Candle(cndI).LowPrice) * cndPriceK
+							Canvas.PathMoveTo MarginLeft + cndXC, cndYH
+							Canvas.PathLineTo MarginLeft + cndXC, cndYL
+						Next
+						Canvas.StrokePath(RGBtoARGB(cndDirColor, 100), mPenWidth, 100)
+						Canvas.PathDiscard
+					Next
+				End If
+
+				'--- The volume bars, also grouped by direction
+				If cndShowVol Then
+					For cndJ = 0 To 1
+						cndDirColor = IIf(cndJ = 0, cndUpColor, cndDownColor)
+						Canvas.PathStart
+						For cndI = cndFirst To cndLastIdx
+							cndLastUp = m_Candle(cndI).ClosePrice >= m_Candle(cndI).OpenPrice
+							If (cndJ = 0) <> cndLastUp Then Continue For
+							cndBodyH = m_Candle(cndI).Volume * cndVolK
+							If cndBodyH < mPenWidth Then cndBodyH = mPenWidth
+							cndBodyTop = TopHeader + mHeight - cndBodyH
+							If PtDistance >= 1 Then
+								cndXC = MarginLeft + PtDistance * (cndI - cndFirst + 0.5)
+								Canvas.PathMoveTo cndXC - cndBodyW / 2, cndBodyTop
+								Canvas.PathLineTo cndXC + cndBodyW / 2, cndBodyTop
+								Canvas.PathLineTo cndXC + cndBodyW / 2, TopHeader + mHeight
+								Canvas.PathLineTo cndXC - cndBodyW / 2, TopHeader + mHeight
+							Else
+								XX = MarginLeft + PtDistance * (cndI - cndFirst + 0.5)
+								cndXC = Int(XX - MarginLeft)
+								If cndXC > mWidth - mPenWidth Then cndXC = mWidth - mPenWidth
+								Canvas.PathMoveTo MarginLeft + cndXC, cndBodyTop
+								Canvas.PathLineTo MarginLeft + cndXC + mPenWidth, cndBodyTop
+								Canvas.PathLineTo MarginLeft + cndXC + mPenWidth, TopHeader + mHeight
+								Canvas.PathLineTo MarginLeft + cndXC, TopHeader + mHeight
+							End If
+							Canvas.PathClose
+						Next
+						Canvas.FillPath(RGBtoARGB(cndDirColor, 60), 60)
+						Canvas.PathDiscard
+					Next
+				End If
+
+				'--- The moving average lines over the price pane
+				If m_ShowMA Then
+					LW = m_LinesWidth * nScale
+					If LW < 1 Then LW = 1
+					For cndP = 0 To 5
+						Canvas.PathStart
+						cndMAStarted = False
+						For cndI = cndFirst To cndLastIdx
+							If cndI >= cndMAPeriod(cndP) - 1 Then
+								'Sum over the closes of the last Period candles
+								cndMAV = 0
+								For cndJ = cndI - cndMAPeriod(cndP) + 1 To cndI
+									cndMAV = cndMAV + m_Candle(cndJ).ClosePrice
+								Next
+								cndMAV = cndMAV / cndMAPeriod(cndP)
+								cndXC = MarginLeft + PtDistance * (cndI - cndFirst + 0.5)
+								YY = TopHeader + (cndVMax - cndMAV) * cndPriceK
+								If cndMAStarted Then
+									Canvas.PathLineTo cndXC, YY
+								Else
+									Canvas.PathMoveTo cndXC, YY
+									cndMAStarted = True
+								End If
+							End If
+						Next
+						If cndMAStarted Then
+							Canvas.StrokePath(RGBtoARGB(cndMACol(cndP), 100), LW, 100)
+						End If
+						Canvas.PathDiscard
+					Next
+				End If
+
+				'--- The last close as a horizontal line and an axis tag
+				cndLastUp = m_Candle(cndLastIdx).ClosePrice >= m_Candle(cndLastIdx).OpenPrice
+				cndDirColor = IIf(cndLastUp, cndUpColor, cndDownColor)
+				cndLastY = TopHeader + (cndVMax - m_Candle(cndLastIdx).ClosePrice) * cndPriceK
+				Canvas.PathStart
+				Canvas.PathMoveTo MarginLeft, cndLastY
+				Canvas.PathLineTo MarginLeft + mWidth, cndLastY
+				Canvas.StrokePath(RGBtoARGB(cndDirColor, 60), mPenWidth, 60)
+				Canvas.PathDiscard
+				'Axis tag with a background box
+				sDisplay = CandleNumText(m_Candle(cndLastIdx).ClosePrice)
+				Canvas.PathStart
+				Canvas.PathMoveTo 0, cndLastY - cndLblH / 2
+				Canvas.PathLineTo MarginLeft - 2 * nScale, cndLastY - cndLblH / 2
+				Canvas.PathLineTo MarginLeft - 2 * nScale, cndLastY + cndLblH / 2
+				Canvas.PathLineTo 0, cndLastY + cndLblH / 2
+				Canvas.PathClose
+				Canvas.FillPath(RGBtoARGB(FBackColor, 100), 100)
+				Canvas.PathDiscard
+				DrawText sDisplay, 0, cndLastY - cndLblH / 2, MarginLeft - 8 * nScale, cndLblH, This.Font, RGBtoARGB(cndDirColor, 100), cRight, cMiddle
+
+				'--- The date axis labels, thinned, anchored at the last candle
+				If m_AxisXVisible Then
+					cndLblStep = 1
+					If AxisX.Width > 0 AndAlso PtDistance > 0 Then cndLblStep = CInt(AxisX.Width / PtDistance) + 1
+					cndLblW = PtDistance * cndLblStep
+					cndI = cndLastIdx
+					Do While cndI >= cndFirst
+						cndXC = MarginLeft + PtDistance * (cndI - cndFirst + 0.5)
+						sDisplay = *m_Candle(cndI).CandleDate
+						DrawText sDisplay, cndXC - cndLblW / 2, TopHeader + mHeight + 2 * nScale, cndLblW, Footer, This.Font, lForeColor, cCenter, cTop
+						cndI = cndI - cndLblStep
+					Loop
+				End If
+
+				'--- The MA legend values, at the hot candle or the last visible one
+				If m_ShowMA Then
+					cndRef = cndLastIdx
+					YY = TopHeader + 2 * nScale
+					If mHotBar >= cndFirst AndAlso mHotBar < cndFirst + cndN Then
+						cndRef = mHotBar
+						YY = YY + cndLblH * 1.7
+					End If
+					XX = MarginLeft + 2 * nScale
+					For cndP = 0 To 5
+						cndMAV = CandleMA(cndRef, cndMAPeriod(cndP))
+						sDisplay = "MA" & WStr(cndMAPeriod(cndP)) & ":"
+						If cndMAV > 0 Then
+							sDisplay = sDisplay & CandleNumText(cndMAV)
+						Else
+							sDisplay = sDisplay & "-"
+						End If
+						cndMAW = ScaleX(Canvas.TextWidth(sDisplay)) * 1.3
+						DrawText sDisplay, XX, YY, cndMAW, cndLblH * 1.6, This.Font, RGBtoARGB(cndMACol(cndP), 100), cLeft, cTop
+						XX = XX + cndMAW + 6 * nScale
+					Next
+				End If
+
+				'--- The crosshair and the OHLC info of the hot candle
+				If mHotBar >= cndFirst AndAlso mHotBar < cndFirst + cndN Then
+					cndXC = MarginLeft + PtDistance * (mHotBar - cndFirst + 0.5)
+					Canvas.PathStart
+					Canvas.PathMoveTo cndXC, TopHeader
+					Canvas.PathLineTo cndXC, TopHeader + mHeight
+					If m_PT.Y > TopHeader AndAlso m_PT.Y < TopHeader + cndPriceH Then
+						Canvas.PathMoveTo MarginLeft, m_PT.Y
+						Canvas.PathLineTo MarginLeft + mWidth, m_PT.Y
+					End If
+					Canvas.StrokePath(RGBtoARGB(FForeColor, 40), mPenWidth, 100)
+					Canvas.PathDiscard
+					'Price tag of the crosshair
+					If m_PT.Y > TopHeader AndAlso m_PT.Y < TopHeader + cndPriceH Then
+						sDisplay = CandleNumText(cndVMax - (m_PT.Y - TopHeader) / cndPriceK)
+						Canvas.PathStart
+						Canvas.PathMoveTo 0, m_PT.Y - cndLblH / 2
+						Canvas.PathLineTo MarginLeft - 2 * nScale, m_PT.Y - cndLblH / 2
+						Canvas.PathLineTo MarginLeft - 2 * nScale, m_PT.Y + cndLblH / 2
+						Canvas.PathLineTo 0, m_PT.Y + cndLblH / 2
+						Canvas.PathClose
+						Canvas.FillPath(RGBtoARGB(FBackColor, 100), 100)
+						Canvas.PathDiscard
+						DrawText sDisplay, 0, m_PT.Y - cndLblH / 2, MarginLeft - 8 * nScale, cndLblH, This.Font, lForeColor, cRight, cMiddle
+					End If
+					'Info line: date, OHLC, change percent and volume
+					cndInfo = *m_Candle(mHotBar).CandleDate & "  开:" & Format(m_Candle(mHotBar).OpenPrice, "0.00") & "  高:" & Format(m_Candle(mHotBar).HighPrice, "0.00") & "  低:" & Format(m_Candle(mHotBar).LowPrice, "0.00") & "  收:" & Format(m_Candle(mHotBar).ClosePrice, "0.00") & "  涨跌:" & Format(m_Candle(mHotBar).ChangePercent, "0.00") & "%  量:" & Format(m_Candle(mHotBar).Volume, "#,##0")
+					DrawText cndInfo, MarginLeft + 2 * nScale, TopHeader + 2 * nScale, mWidth, cndLblH * 1.6, This.Font, lForeColor, cLeft, cTop
+				End If
+
+			End If
+
 		Case CS_GroupedColumn To CS_StackedBarsPercent
 			If m_ChartOrientation = CO_Vertical Then
 				
@@ -4480,7 +5126,10 @@ Namespace My.Sys.Forms
 		End Select
 		
 		#ifdef __USE_WINAPI__
-			GdipDeleteGraphics(hGraphics)
+			'Delete only a graphics this Draw created: the Canvas graphics belongs
+			'to the Canvas and is released by Canvas.UnSetHandle
+			If hGraphics <> Canvas.GdipGraphics Then GdipDeleteGraphics(hGraphics)
+			hGraphics = 0
 		#endif
 		
 		Exit Sub
@@ -4662,33 +5311,40 @@ Namespace My.Sys.Forms
 				LW = m_LinesWidth * nScale
 				TM = ScaleY(Canvas.TextHeight("Aj")) / 4
 				bBold = This.Font.Bold
-				
-				If cAxisItem->Count = m_Serie(i).Values->Count Then
+
+				If SerieCount = 0 Then Exit Sub
+				'Build the tooltip text from the hot index directly: a per-item scan
+				'would cost 100000 iterations per frame on large series
+				If mHotBar > m_Serie(0).Values->Count - 1 Then mHotBar = m_Serie(0).Values->Count - 1
+				If cAxisItem <> 0 AndAlso cAxisItem->Count = m_Serie(0).Values->Count Then
 					sText = cAxisItem->Item(mHotBar) & Chr(13, 10) ' + 1
 				End If
-				
+
 				For i = 0 To SerieCount - 1
 					If Max < m_Serie(i).Values->Item(mHotBar) Then ' + 1
 						Max = m_Serie(i).Values->Item(mHotBar) ' + 1
 						IndexMax = i
 					End If
-					
-					For j = 0 To m_Serie(i).Values->Count - 1
-						If mHotBar = j Then ' - 1
-							sDisplay = Replace(m_LabelsFormats, "{V}", FormatLabel(m_Serie(i).Values->Item(j), m_ToolTipsFormat))
-							sDisplay = Replace(sDisplay, "{LF}", Chr(10))
-							sText = sText & m_Serie(i).SerieName & ": " & sDisplay & Chr(13, 10)
-						End If
-					Next
+
+					sDisplay = Replace(m_LabelsFormats, "{V}", FormatLabel(m_Serie(i).Values->Item(mHotBar), m_ToolTipsFormat))
+					sDisplay = Replace(sDisplay, "{LF}", Chr(10))
+					sText = sText & m_Serie(i).SerieName & ": " & sDisplay & Chr(13, 10)
 				Next
 				sText = ..Left(sText, Len(sText) - 2)
 				
 				GetTextSize sText, 0, 0, This.Font, False, SZ
-				
+
 				With RectF_
 					If mHotBar > m_Serie(IndexMax).Values->Count - 1 Then mHotBar = m_Serie(IndexMax).Values->Count - 1
-					.X = m_Serie(IndexMax).PT(mHotBar).x - SZ.Width / 2
-					.Y = m_Serie(IndexMax).PT(mHotBar).y - SZ.Height - 10 * nScale - TM
+					If mHotBar >= 0 AndAlso UBound(m_Serie(IndexMax).PT) >= mHotBar Then
+						.X = m_Serie(IndexMax).PT(mHotBar).x - SZ.Width / 2
+						.Y = m_Serie(IndexMax).PT(mHotBar).y - SZ.Height - 10 * nScale - TM
+					Else
+						'Pixel-column mode: the per-point PT array is not built, anchor
+						'the tooltip at the mouse position recorded by MouseMove
+						.X = m_PT.X - SZ.Width / 2
+						.Y = m_PT.Y - SZ.Height - 10 * nScale - TM
+					End If
 					.Width = SZ.Width + TM * 5
 					.Height = SZ.Height + TM * 2
 					
@@ -4702,8 +5358,8 @@ Namespace My.Sys.Forms
 				
 				RectF_.X = RectF_.X + TM
 				RectF_.Y = RectF_.Y + TM
-				
-				If cAxisItem->Count = m_Serie(0).Values->Count Then
+
+				If cAxisItem <> 0 AndAlso cAxisItem->Count = m_Serie(0).Values->Count AndAlso mHotBar >= 0 Then
 					sText = cAxisItem->Item(mHotBar) ' + 1
 					With RectF_
 						GetTextSize sText, 0, 0, This.Font, False, SZ
@@ -4713,51 +5369,39 @@ Namespace My.Sys.Forms
 				End If
 				
 				For i = 0 To SerieCount - 1
-					For j = 0 To m_Serie(i).Values->Count - 1
-						
-						
-						If mHotBar = j Then  'mHotSerie = I And ' - 1
-							
-							
-							sDisplay = Replace(m_LabelsFormats, "{V}", FormatLabel(m_Serie(i).Values->Item(j), m_ToolTipsFormat))
-							sDisplay = Replace(sDisplay, "{LF}", Chr(10))
-							'sText =  & sDisplay
-							
-							With RectF_
-								sText = m_Serie(i).SerieName & ": "
-								GetTextSize sText, 0, 0, This.Font, False, SZ
-								#ifdef __USE_GTK__
-									cairo_set_source_rgba(cr, GetRedD(m_Serie(i).SerieColor), GetGreenD(m_Serie(i).SerieColor), GetBlueD(m_Serie(i).SerieColor), 1)
-									cairo_rectangle(cr, .X, .Y + SZ.Height / 4, SZ.Height / 2, SZ.Height / 2)
-									cairo_fill(cr)
-								#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-									mcairo_set_source_rgba(cr, GetRedD(m_Serie(i).SerieColor), GetGreenD(m_Serie(i).SerieColor), GetBlueD(m_Serie(i).SerieColor), 1)
-									mcairo_rectangle(cr, .X, .Y + SZ.Height / 4, SZ.Height / 2, SZ.Height / 2)
-									mcairo_fill(cr)
-								#elseif defined(__USE_WINAPI__)
-									GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush)
-									GdipFillRectangleI hGraphics, hBrush, .X, .Y + SZ.Height / 4, SZ.Height / 2, SZ.Height / 2
-									GdipDeleteBrush hBrush
-								#endif
-								
-								DrawText sText, .X + SZ.Height / 1.5, .Y, .Width, 0, This.Font, lForeColor, cLeft, cTop
-								
-								Canvas.Font.Bold = True
-								DrawText sDisplay, .X + SZ.Height / 1.5 + SZ.Width, .Y, .Width, 0, Canvas.Font, lForeColor, cLeft, cTop
-								Canvas.Font.Bold = False
-								
-								.Y = .Y + SZ.Height
-								' TextWidth = Canvas.TextWidth(m_Serie(I).SerieName) * 1.3
-								'DrawText hGraphics, m_Serie(I).SerieName & ": ", .Left, .Top, .Width, 0, This.Font, lForeColor, cLeft, cTop
-								' .Left = .Left + TextWidth
-								'
-								'This.Font.Bold = True
-								'DrawText hGraphics, sDisplay, .Left, .Top, .Width, 0, This.Font, lForeColor, cLeft, cTop
-								' This.Font.Bold = bBold
-							End With
-							
-						End If
-					Next
+					If mHotBar <= m_Serie(i).Values->Count - 1 Then
+						j = mHotBar
+
+						sDisplay = Replace(m_LabelsFormats, "{V}", FormatLabel(m_Serie(i).Values->Item(j), m_ToolTipsFormat))
+						sDisplay = Replace(sDisplay, "{LF}", Chr(10))
+
+						With RectF_
+							sText = m_Serie(i).SerieName & ": "
+							GetTextSize sText, 0, 0, This.Font, False, SZ
+							#ifdef __USE_GTK__
+								cairo_set_source_rgba(cr, GetRedD(m_Serie(i).SerieColor), GetGreenD(m_Serie(i).SerieColor), GetBlueD(m_Serie(i).SerieColor), 1)
+								cairo_rectangle(cr, .X, .Y + SZ.Height / 4, SZ.Height / 2, SZ.Height / 2)
+								cairo_fill(cr)
+							#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+								mcairo_set_source_rgba(cr, GetRedD(m_Serie(i).SerieColor), GetGreenD(m_Serie(i).SerieColor), GetBlueD(m_Serie(i).SerieColor), 1)
+								mcairo_rectangle(cr, .X, .Y + SZ.Height / 4, SZ.Height / 2, SZ.Height / 2)
+								mcairo_fill(cr)
+							#elseif defined(__USE_WINAPI__)
+								GdipCreateSolidFill RGBtoARGB(m_Serie(i).SerieColor, 100), Cast(GpSolidFill Ptr Ptr, @hBrush)
+								GdipFillRectangleI hGraphics, hBrush, .X, .Y + SZ.Height / 4, SZ.Height / 2, SZ.Height / 2
+								GdipDeleteBrush hBrush
+							#endif
+
+							DrawText sText, .X + SZ.Height / 1.5, .Y, .Width, 0, This.Font, lForeColor, cLeft, cTop
+
+							Canvas.Font.Bold = True
+							DrawText sDisplay, .X + SZ.Height / 1.5 + SZ.Width, .Y, .Width, 0, Canvas.Font, lForeColor, cLeft, cTop
+							Canvas.Font.Bold = False
+
+							.Y = .Y + SZ.Height
+						End With
+
+					End If
 				Next
 				Canvas.Font.Bold = bBold
 			End If
@@ -5014,6 +5658,16 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Private Sub Chart.Example()
+		If ChartStyle = CS_CandleStick Then
+			Me.AddCandle "2024-01-02", 2974.94, 2978.44, 2959.57, 2967.25, 278588100
+			Me.AddCandle "2024-01-03", 2967.25, 2979.30, 2955.80, 2969.60, 250928700
+			Me.AddCandle "2024-01-04", 2969.60, 2975.10, 2962.30, 2968.40, 240512000
+			Me.AddCandle "2024-01-05", 2968.40, 2976.50, 2950.20, 2954.35, 258756300
+			Me.AddCandle "2024-01-08", 2954.35, 2971.90, 2949.80, 2971.10, 269846200
+			Me.AddCandle "2024-01-09", 2971.10, 2992.30, 2968.70, 2989.75, 305438900
+			Me.AddCandle "2024-01-10", 2989.75, 2995.60, 2970.10, 2972.55, 322164500
+			Exit Sub
+		End If
 		Me.AddItem "Juan", 70, clRed
 		Me.AddItem "Adan", 20, clGreen
 		Me.AddItem "Pedro", 10, clBlue
@@ -5147,7 +5801,11 @@ Namespace My.Sys.Forms
 				Dim As HBRUSH hBufBrush = CreateSolidBrush(IIf(FParent, Cast(Control Ptr, FParent)->BackColor, GetSysColor(COLOR_BTNFACE)))
 				FillRect hd, @rcBuf, hBufBrush
 				DeleteObject hBufBrush
+				'The paint output goes through the control Canvas: it creates the GDI+ (or
+				'Direct2D) graphics on the buffer DC and releases them after This.Paint
+				Canvas.SetHandle(hd)
 				This.Paint
+				Canvas.UnSetHandle
 				BitBlt(Dc, 0, 0, mClientWidth, mClientHeight, hd, 0, 0, SRCCOPY)
 				DeleteDC hd
 				DeleteObject bufBMP
@@ -5164,7 +5822,67 @@ Namespace My.Sys.Forms
 				m_TitleFont.Size = Max(m_TitleFontSize, (m_TitleFontSize) * This.Height / m_Height)
 				m_SeparatorLineWidth = m_SeparatorLineWidth2 * This.Height / m_Height
 				m_DonutWidth = m_DonutWidth2 * This.Height / m_Height
-			Case WM_LBUTTONDOWN: DownButton = 0
+			Case WM_KEYDOWN
+				'Arrow keys while the chart has the focus: Up/Down zoom the
+				'visible slice, Left/Right pan it
+				If ChartStyle = CS_CandleStick AndAlso m_CandleCount > 0 Then
+					Dim cndStep As Long = m_CandleVisible
+					If cndStep <= 0 Then cndStep = m_CandleCount - m_CandleStart
+					cndStep = Max(1, cndStep \ 10)
+					Select Case LoWord(Message.wParam)
+					Case VK_UP
+						CandleZoom 1 / 1.3, -1
+						Message.Result = 0
+						Exit Sub
+					Case VK_DOWN
+						CandleZoom 1.3, -1
+						Message.Result = 0
+						Exit Sub
+					Case VK_LEFT
+						CandlePan -cndStep
+						Message.Result = 0
+						Exit Sub
+					Case VK_RIGHT
+						CandlePan cndStep
+						Message.Result = 0
+						Exit Sub
+					End Select
+				End If
+			Case WM_MOUSEWHEEL
+				'Wheel: zoom anchored at the candle under the mouse
+				If ChartStyle = CS_CandleStick AndAlso m_CandleCount > 0 Then
+					Dim wDelta As Integer = CInt((Message.wParam \ &H10000) And &HFFFF)
+					If wDelta > &H7FFF Then wDelta = wDelta - &H10000
+					Dim ptW As ..POINT
+					ptW.x = GET_X_LPARAM(Message.lParam)
+					ptW.y = GET_Y_LPARAM(Message.lParam)
+					..ScreenToClient(FHandle, @ptW)
+					Dim anchorIdx As Long = -1
+					If PtDistance > 0 AndAlso ptW.x > MarginLeft AndAlso ptW.x < MarginLeft + mWidth Then
+						anchorIdx = m_CandleStart + Int((ptW.x - MarginLeft) / PtDistance)
+					End If
+					If wDelta > 0 Then
+						CandleZoom 1 / 1.3, anchorIdx
+					Else
+						CandleZoom 1.3, anchorIdx
+					End If
+					Message.Result = 0
+					Exit Sub
+				End If
+			Case WM_LBUTTONDOWN
+				DownButton = 0
+				'Grab point for the drag-panning of the candlestick chart
+				m_CandleDragX = Message.lParamLo
+				m_CandleDragMoved = False
+				m_CandleDragIdx = -1
+				If ChartStyle = CS_CandleStick AndAlso m_CandleCount > 0 AndAlso PtDistance > 0 Then
+					m_CandleDragIdx = m_CandleStart + Int((Message.lParamLo - MarginLeft) / PtDistance)
+					Dim cndVEnd As Long = m_CandleCount
+					If m_CandleVisible > 0 AndAlso m_CandleStart + m_CandleVisible < cndVEnd Then cndVEnd = m_CandleStart + m_CandleVisible
+					If m_CandleDragIdx > cndVEnd - 1 Then m_CandleDragIdx = cndVEnd - 1
+					If m_CandleDragIdx < m_CandleStart Then m_CandleDragIdx = m_CandleStart
+					This.SetFocus
+				End If
 			Case WM_RBUTTONDOWN: DownButton = 1
 			Case WM_MBUTTONDOWN: DownButton = 2
 			Case WM_LBUTTONUP: MouseUp DownButton, Message.wParam And &HFFFF, Message.lParamLo, Message.lParamHi: DownButton = -1
@@ -5303,6 +6021,10 @@ Namespace My.Sys.Forms
 			.Height       = 21
 			.Child        = @This
 			.Canvas.Ctrl = @This
+			#ifdef __USE_WINAPI__
+				'The chart renders with GDI+ through its Canvas (WM_PAINT -> Canvas.SetHandle)
+				.Canvas.UsingGdip = True
+			#endif
 			.InitProperties()
 			.tmrMOUSEOVER.Designer = @This
 			.tmrMOUSEOVER.Interval = 0
@@ -5333,6 +6055,10 @@ Namespace My.Sys.Forms
 					If m_Serie(i).hPath(j) <> 0 Then GdipDeletePath m_Serie(i).hPath(j)
 				#endif
 			Next
+			If m_Serie(i).ValuesCache <> 0 Then DeAllocate(m_Serie(i).ValuesCache)
+		Next
+		For i = 0 To m_CandleCount - 1
+			If m_Candle(i).CandleDate <> 0 Then WDeAllocate(m_Candle(i).CandleDate)
 		Next
 		If m_WStringList <> 0 Then _Delete(m_WStringList)
 		If m_DoubleList1 <> 0 Then _Delete(m_DoubleList1)
