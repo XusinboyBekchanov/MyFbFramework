@@ -1558,7 +1558,14 @@ Namespace My.Sys.Forms
 		Function TreeListView.EditControlProc(hDlg As HWND, uMsg As UINT, wParam As WPARAM, lParam As LPARAM) As LRESULT
 			Select Case uMsg
 			Case WM_WINDOWPOSCHANGING
-				Cast(WINDOWPOS Ptr, lParam)->x = Cast(Integer, GetProp(hDlg, "@@@Left"))
+				'The editor fills the cell (the list view makes it as wide as the text)
+				With *Cast(WINDOWPOS Ptr, lParam)
+					.x = Cast(Integer, GetProp(hDlg, "@@@Left"))
+					.y = Cast(Integer, GetProp(hDlg, "@@@Top"))
+					.cx = Cast(Integer, GetProp(hDlg, "@@@Width"))
+					.cy = Cast(Integer, GetProp(hDlg, "@@@Height"))
+					.flags = .flags And Not (SWP_NOMOVE Or SWP_NOSIZE)
+				End With
 			End Select
 			Return CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
 		End Function
@@ -1759,6 +1766,10 @@ Namespace My.Sys.Forms
 				End If
 				If OnMeasureItem Then OnMeasureItem(*Designer, This, GetTreeListViewItem(ItemID), miStruct->itemWidth, miStruct->itemHeight)
 			Case WM_SIZE
+			Case WM_RBUTTONUP
+				'The menu is shown at NM_RCLICK (Control shows it at WM_RBUTTONUP)
+				If OnMouseUp Then OnMouseUp(*Designer, This, 1, UnScaleX(GET_X_LPARAM(Message.lParam)), UnScaleY(GET_Y_LPARAM(Message.lParam)), Message.wParam And &HFFFF)
+				Exit Sub
 			Case WM_LBUTTONDOWN
 				Dim lvhti As LVHITTESTINFO
 				lvhti.pt.X = Message.lParamLo
@@ -1812,6 +1823,13 @@ Namespace My.Sys.Forms
 				Select Case lvp->hdr.code
 				Case NM_CLICK: If OnItemClick Then OnItemClick(*Designer, This, GetTreeListViewItem(lvp->iItem))
 				Case NM_DBLCLK: If OnItemDblClick Then OnItemDblClick(*Designer, This, GetTreeListViewItem(lvp->iItem))
+				Case NM_RCLICK
+					'The menu: the list view gets WM_RBUTTONUP only sometimes (it waits for a drag after WM_RBUTTONDOWN)
+					If ContextMenu AndAlso ContextMenu->Handle Then
+						Dim As ..Point P
+						GetCursorPos(@P)
+						ContextMenu->Popup(P.X, P.Y)
+					End If
 				Case NM_KEYDOWN:
 					Dim nmk As NMKEY Ptr = Cast(NMKEY Ptr, Message.lParam)
 					If OnItemKeyDown Then OnItemKeyDown(*Designer, This, GetTreeListViewItem(lvp->iItem))
@@ -1882,13 +1900,23 @@ Namespace My.Sys.Forms
 					Dim bCancel As Boolean
 					Dim As TextBox txt
 					txt.Handle = Cast(HWND, SendMessage(FHandle, LVM_GETEDITCONTROL, 0, 0))
+					If GetWindowLongPtr(txt.Handle, GWLP_WNDPROC) <> @EditControlProc Then
+						SetProp(txt.Handle, "@@@Proc", Cast(..HANDLE, SetWindowLongPtr(txt.Handle, GWLP_WNDPROC, CInt(@EditControlProc))))
+					End If
+					'The rectangle of the cell: of the label for the first column (after the indent and the pictures)
+					Dim As ..Rect lpRect
+					ListView_GetSubItemRect(FHandle, lvp1->item.iItem, FPressedSubItem, IIf(FPressedSubItem = 0, LVIR_LABEL, LVIR_BOUNDS), @lpRect)
+					If FPressedSubItem = 0 AndAlso Columns.Count > 1 Then
+						'LVIR_LABEL of the first column ends at the end of the row
+						Dim As ..Rect lpRect1
+						ListView_GetSubItemRect(FHandle, lvp1->item.iItem, 1, LVIR_BOUNDS, @lpRect1)
+						lpRect.Right = lpRect1.Left
+					End If
+					SetProp(txt.Handle, "@@@Left", Cast(..HANDLE, Cast(Integer, lpRect.Left)))
+					SetProp(txt.Handle, "@@@Top", Cast(..HANDLE, Cast(Integer, lpRect.Top)))
+					SetProp(txt.Handle, "@@@Width", Cast(..HANDLE, Cast(Integer, lpRect.Right - lpRect.Left)))
+					SetProp(txt.Handle, "@@@Height", Cast(..HANDLE, Cast(Integer, lpRect.Bottom - lpRect.Top)))
 					If FPressedSubItem <> 0 Then
-						If GetWindowLongPtr(txt.Handle, GWLP_WNDPROC) <> @EditControlProc Then
-							SetProp(txt.Handle, "@@@Proc", Cast(..HANDLE, SetWindowLongPtr(txt.Handle, GWLP_WNDPROC, CInt(@EditControlProc))))
-						End If
-						Dim As ..Rect lpRect
-						ListView_GetSubItemRect(FHandle, lvp1->item.iItem, FPressedSubItem, LVIR_BOUNDS, @lpRect)
-						SetProp(txt.Handle, "@@@Left", Cast(..HANDLE, Cast(Integer, lpRect.Left)))
 						txt.Text = GetTreeListViewItem(lvp1->item.iItem)->Text(FPressedSubItem)
 					End If
 					If OnCellEditing Then OnCellEditing(*Designer, This, GetTreeListViewItem(lvp1->item.iItem), FPressedSubItem, @txt, bCancel)

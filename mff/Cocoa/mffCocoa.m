@@ -1702,6 +1702,24 @@ int mffMessageBox(const char *msg, const char *caption, int messageType, int but
 	return (i >= 0 && i < 3) ? results[i] : 1;
 }
 
+/* InputBox: an NSAlert with a text field, OK and Cancel */
+char *mffInputBox(const char *caption, const char *msg, const char *defaultText, int password) {
+	mffEnsureApp();
+	NSAlert *a = [[NSAlert alloc] init];
+	[a setMessageText:(caption && *caption) ? mffStr(caption) : [[NSProcessInfo processInfo] processName]];
+	[a setInformativeText:mffStr(msg)];
+	[a setIcon:[NSImage imageNamed:NSImageNameInfo]];
+	[a addButtonWithTitle:@"OK"];
+	[a addButtonWithTitle:@"Cancel"];
+	NSTextField *f = password ? [[NSSecureTextField alloc] initWithFrame:NSMakeRect(0, 0, 300, 24)] : [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 300, 24)];
+	[f setStringValue:mffStr(defaultText)];
+	[a setAccessoryView:f];
+	[[a window] setInitialFirstResponder:f];
+	[NSApp activateIgnoringOtherApps:YES];
+	if ([a runModal] != NSAlertFirstButtonReturn) return NULL;
+	return mffDup([f stringValue]);
+}
+
 void mffTimerStart(void *id_, int interval) {
 	mffTimerStop(id_);
 	MffTarget *t = mffTarget();

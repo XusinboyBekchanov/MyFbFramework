@@ -895,6 +895,20 @@ End Namespace
 		(*env)->DeleteLocalRef(env, jCaption)
 	End Function
 
+	Function ShowInputBox(Caption As String, Message As String, DefaultText As String, ByVal Password As Long) As ZString Ptr
+		If env = 0 OrElse Activity = 0 Then Return 0
+		Dim As jmethodID Method = ActivityMethodID("inputBox", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)Ljava/lang/String;")
+		If Method = 0 OrElse (*env)->ExceptionCheck(env) Then
+			(*env)->ExceptionClear(env)
+			Return 0
+		End If
+		Dim As jstring jCaption = (*env)->NewStringUTF(env, Caption), jMessage = (*env)->NewStringUTF(env, Message), jDefault = (*env)->NewStringUTF(env, DefaultText)
+		Function = JStringToNewZString((*env)->CallObjectMethod(env, Activity, Method, jCaption, jMessage, jDefault, CUByte(IIf(Password <> 0, 1, 0))))
+		(*env)->DeleteLocalRef(env, jDefault)
+		(*env)->DeleteLocalRef(env, jMessage)
+		(*env)->DeleteLocalRef(env, jCaption)
+	End Function
+
 	Function ShowFontDialog(FontName As String, ByVal Size As Long, ByVal Style As Long, ByVal FontColor As Long) As ZString Ptr
 		If env = 0 OrElse Activity = 0 Then Return 0
 		Dim As jstring jName = (*env)->NewStringUTF(env, FontName)
@@ -1328,6 +1342,10 @@ End Namespace
 		Return mffFileDialog(Mode, Caption, InitialDir, FileName, Filter, FilterIndex)
 	End Function
 	
+	Function ShowInputBox(Caption As String, Message As String, DefaultText As String, ByVal Password As Long) As ZString Ptr
+		Return mffInputBox(Caption, Message, DefaultText, Password)
+	End Function
+
 	Function ShowFontDialog(FontName As String, ByVal Size As Long, ByVal Style As Long, ByVal FontColor As Long) As ZString Ptr
 		Return mffFontDialog(FontName, Size, Style, FontColor)
 	End Function

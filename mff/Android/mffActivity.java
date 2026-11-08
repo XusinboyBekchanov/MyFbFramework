@@ -3376,6 +3376,42 @@ public class mffActivity extends AppCompatActivity implements View.OnClickListen
         return Integer.parseInt(result);
     }
 
+    // InputBox (Application.bas): an AlertDialog with the message and a text field, OK and Cancel.
+    // Returns the text, null - cancelled (Cancel, Back)
+    public String inputBox(String caption, String text, String defaultText, boolean password) {
+        if (caption == null) caption = "";
+        if (text == null) text = "";
+        if (defaultText == null) defaultText = "";
+        final android.widget.EditText edit = new android.widget.EditText(dialogOwner());
+        edit.setSingleLine(true);
+        edit.setText(defaultText);
+        edit.setSelectAllOnFocus(true);
+        if (password) edit.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        android.widget.FrameLayout frame = new android.widget.FrameLayout(dialogOwner());
+        frame.setPadding(dp(20), dp(8), dp(20), 0);
+        frame.addView(edit);
+        android.content.DialogInterface.OnClickListener click = new android.content.DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(android.content.DialogInterface d, int which) {
+                if (which == android.content.DialogInterface.BUTTON_POSITIVE) modalResults.put(d, "1" + edit.getText().toString());
+            }
+        };
+        android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(dialogOwner())
+                .setTitle(caption)
+                .setMessage(text)
+                .setView(frame)
+                .setPositiveButton(android.R.string.ok, click)
+                .setNegativeButton(android.R.string.cancel, click)
+                .create();
+        dialog.setCanceledOnTouchOutside(false);
+        // the keyboard for the text field
+        if (dialog.getWindow() != null) dialog.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        edit.requestFocus();
+        String result = modalShow(dialog);
+        if (result == null || !result.startsWith("1")) return null;
+        return result.substring(1);
+    }
+
     private int dp(int value) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().getDisplayMetrics());
     }

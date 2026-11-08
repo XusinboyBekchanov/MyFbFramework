@@ -2355,6 +2355,83 @@ var MffLibrary = {
 		});
 	},
 
+	// InputBox of Application.bas: a modal box like MESSAGEBOX with the message, a text field, OK and Cancel; the FreeBASIC
+	// code waits (ASYNCIFY). Returns the text (stringToNewUTF8, freed by the FreeBASIC code), 0 - cancelled
+	SHOWINPUTBOX__deps: ['$mff', '$Asyncify', '$stringToNewUTF8'],
+	SHOWINPUTBOX__async: true,
+	SHOWINPUTBOX: function(Caption, Message, DefaultText, Password) {
+		var ttl = mff.str(Caption), msg = mff.str(Message), def = mff.str(DefaultText);
+		// ASYNCIFY has one wait at a time: in a wait which runs the box of the browser is shown (it waits by itself)
+		if (Asyncify.state === Asyncify.State.Normal && mff.cannotWait()) {
+			var r = prompt((ttl ? ttl + "\n\n" : "") + msg, def);
+			return r === null ? 0 : stringToNewUTF8(r);
+		}
+		return Asyncify.handleSleep(function(wakeUp) {
+			var back = document.createElement("div");
+			back.style.cssText = "position: fixed; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.15); z-index: 10000; display: flex; align-items: center; justify-content: center;";
+			var box = document.createElement("div");
+			box.style.cssText = "background: var(--mff-window, #fff); color: var(--mff-text, #000); font: 8pt Tahoma, sans-serif; border: 1px solid var(--mff-frame, #5b7fae); border-radius: 6px; " +
+				"filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .35)); width: min(420px, calc(100vw - 32px)); max-height: calc(100vh - 32px); display: flex; flex-direction: column; overflow: hidden;";
+			var title = document.createElement("div");
+			title.style.cssText = "height: 28px; box-sizing: border-box; display: flex; align-items: center; padding: 0 4px 0 10px; " +
+				"background: var(--mff-caption, linear-gradient(#f4f8fc, #dce7f3)); border-bottom: 1px solid var(--mff-caption-line, #b9cbe0); color: var(--mff-caption-text, #1e3a5f); font-weight: bold; user-select: none; flex: 0 0 auto;";
+			var titleText = document.createElement("span");
+			titleText.textContent = ttl || document.title;
+			titleText.style.cssText = "flex: 1 1 auto; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;";
+			var x = document.createElement("div");
+			x.textContent = "\u2715";
+			x.title = "Close";
+			x.style.cssText = "flex: 0 0 auto; width: 30px; height: 20px; line-height: 20px; text-align: center; border-radius: 4px; color: var(--mff-caption-button, #44546a); font-size: 12px; font-weight: normal;";
+			x.onmouseenter = function() { x.style.background = "#e81123"; x.style.color = "#fff"; };
+			x.onmouseleave = function() { x.style.background = ""; x.style.color = "var(--mff-caption-button, #44546a)"; };
+			title.appendChild(titleText);
+			title.appendChild(x);
+			var body = document.createElement("div");
+			body.style.cssText = "display: flex; flex-direction: column; gap: 8px; padding: 14px 16px 12px 16px; overflow: auto;";
+			var text = document.createElement("div");
+			text.textContent = msg;
+			text.style.cssText = "white-space: pre-wrap; word-break: break-word; line-height: 1.4;";
+			var input = document.createElement("input");
+			input.type = Password ? "password" : "text";
+			input.value = def;
+			input.style.cssText = "font: inherit; height: 22px; box-sizing: border-box; width: 100%;";
+			body.appendChild(text);
+			body.appendChild(input);
+			var bar = document.createElement("div");
+			bar.style.cssText = "display: flex; justify-content: flex-end; gap: 8px; padding: 10px 12px; background: var(--mff-face, #f0f0f0); border-top: 1px solid var(--mff-line, #dfdfdf); flex: 0 0 auto;";
+			var done = false;
+			function close(ok) {
+				if (done) return;
+				done = true;
+				document.removeEventListener("keydown", onKey, true);
+				if (back.parentNode) back.parentNode.removeChild(back);
+				wakeUp(ok ? stringToNewUTF8(input.value) : 0);
+			}
+			[["OK", true], ["Cancel", false]].forEach(function(item) {
+				var b = document.createElement("button");
+				b.type = "button";
+				b.textContent = item[0];
+				b.style.cssText = "min-width: 75px; height: 23px; font: inherit; padding: 0 10px;";
+				b.addEventListener("click", function() { close(item[1]); });
+				bar.appendChild(b);
+			});
+			x.addEventListener("click", function() { close(false); });
+			function onKey(e) {
+				if (e.key == "Escape") { e.preventDefault(); e.stopPropagation(); close(false); }
+				else if (e.key == "Enter" && (document.activeElement === input || !bar.contains(document.activeElement))) { e.preventDefault(); e.stopPropagation(); close(true); }
+				else if (!box.contains(e.target)) { e.stopPropagation(); }
+			}
+			document.addEventListener("keydown", onKey, true);
+			box.appendChild(title);
+			box.appendChild(body);
+			box.appendChild(bar);
+			back.appendChild(box);
+			document.body.appendChild(back);
+			input.focus();
+			input.select();
+		});
+	},
+
 	// Regular expressions of Regex.bas. Flags: 1 - ignore case, 2 - multiline, 4 - dot matches all,
 	// 8 - extended (the spaces and # comments are removed from the pattern, RegExp has no such flag)
 	REGEXCOMPILE__deps: ['$mff'],

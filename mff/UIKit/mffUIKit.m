@@ -1577,6 +1577,23 @@ int mffMessageBox(const char *msg, const char *caption, int messageType, int but
 	return result;
 }
 
+/* InputBox: a UIAlertController with a text field, OK and Cancel */
+char *mffInputBox(const char *caption, const char *msg, const char *defaultText, int password) {
+	if (!mffRunning) return NULL;
+	UIAlertController *a = [UIAlertController alertControllerWithTitle:(caption && *caption) ? mffStr(caption) : [[NSProcessInfo processInfo] processName] message:mffStr(msg) preferredStyle:UIAlertControllerStyleAlert];
+	[a addTextFieldWithConfigurationHandler:^(UITextField *f) {
+		f.text = mffStr(defaultText);
+		f.secureTextEntry = password != 0;
+	}];
+	__block int result = -1;
+	[a addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction *x) { result = 1; }]];
+	[a addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *x) { result = 0; }]];
+	[mffTopController() presentViewController:a animated:YES completion:nil];
+	while (result < 0) [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
+	if (result != 1) return NULL;
+	return mffDup(a.textFields.firstObject.text ?: @"");
+}
+
 void mffTimerStop(void *id_) {
 	MffTarget *t = mffTarget();
 	NSValue *key = [NSValue valueWithPointer:id_];

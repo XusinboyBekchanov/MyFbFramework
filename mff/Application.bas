@@ -1104,7 +1104,7 @@ End Function
 Type TInputBox
 	#ifdef __USE_WINAPI__
 		As MSG msg
-		As HWND hWnd, hwnd1, hwnd2, hwnd3
+		As HWND hWnd, hwnd1, hwnd2, hwnd3, hwnd4
 		As WString * 1024 mess
 		As BOOL flag
 		As DEVMODE dm(0)
@@ -1138,6 +1138,11 @@ End Type
 		
 	End Sub
 	
+	Sub EventbuttonCancelInputBoxSub cdecl(Gwindow As GtkWidget Ptr,  data_ As gpointer) Export
+		Dim As TInputBox Ptr tib = data_
+		gtk_dialog_response(Cast(Any Ptr, tib->dialog) , GTK_RESPONSE_CANCEL)
+	End Sub
+
 	Function EventEntryInputBoxFunc cdecl( Gwindow As GtkWidget Ptr, gEvent As GdkEvent Ptr, data_ As gpointer) As gboolean Export
 		
 		Dim As TInputBox Ptr tib = data_
@@ -1171,51 +1176,89 @@ End Type
 
 Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WString = "Enter text:" , ByRef sDefaultText As WString = "" , iFlag As Long = 0 , iFlag2 As Long = 0, hParentWin As Any Ptr = 0) As UString __EXPORT__
 	#ifdef __USE_WINAPI__
+		'OK and Cancel (Enter and Esc, the close button of the window: Cancel). Cancel returns "".
+		'The message can have several lines (Chr(10) or Chr(13, 10) between them), a long line is wrapped
 		Dim As HWND hwFocus = GetFocus()
 		Dim InputBox_ As TInputBox
 		InputBox_.dm(0).dmSize = SizeOf(DEVMODE)
 		EnumDisplaySettings( 0, ENUM_CURRENT_SETTINGS, @InputBox_.dm(0))
-		InputBox_.hWnd  = CreateWindowEx(WS_EX_CONTROLPARENT, "#32770", @sCaption, WS_TILED Or WS_VISIBLE, InputBox_.dm(0).dmPelsWidth / 2 - 155, InputBox_.dm(0).dmPelsHeight / 2 - 70, 310, 130, hParentWin, 0, 0, 0 )
-		InputBox_.hwnd1 = CreateWindowEx(WS_EX_CLIENTEDGE, "Edit", @sDefaultText, WS_CHILD Or WS_VISIBLE Or WS_TABSTOP Or iFlag, 10, 33, 275, 25, InputBox_.hWnd, 0, 0, 0)
-		InputBox_.hwnd2 = CreateWindowEx(0, "Button", "OK", WS_CHILD Or WS_VISIBLE Or WS_TABSTOP, 106, 65, 80, 25, InputBox_.hWnd, 0, 0, 0)
-		InputBox_.hwnd3 = CreateWindowEx(0, "Static", @sMessageText, WS_CHILD Or WS_VISIBLE, 10, 10, 275, 20, InputBox_.hWnd, 0, 0, 0)
-		
-		InputBox_.size  = -MulDiv(10, GetDeviceCaps(CreateDC("DISPLAY",0,0,0), LOGPIXELSY), 72)
-		InputBox_.font  = CreateFont(InputBox_.size,0,0,0,0,1,0,0,DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,DEFAULT_PITCH Or FF_DONTCARE,"Times New Roman")
-		SendMessage(InputBox_.hwnd3,WM_SETFONT,Cast(WPARAM,InputBox_.font),0)
-		InputBox_.font1 = CreateFont(InputBox_.size,0,0,0,0,0,0,0,DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,DEFAULT_PITCH Or FF_DONTCARE,"Times New Roman")
-		SendMessage(InputBox_.hwnd2,WM_SETFONT,Cast(WPARAM,InputBox_.font1),0)
-		SendMessage(InputBox_.hwnd1,WM_SETFONT,Cast(WPARAM,InputBox_.font1),0)
+		'The font of the messages of Windows
+		Dim As NONCLIENTMETRICS ncm
+		ncm.cbSize = SizeOf(NONCLIENTMETRICS)
+		SystemParametersInfo(SPI_GETNONCLIENTMETRICS, SizeOf(NONCLIENTMETRICS), @ncm, 0)
+		InputBox_.font = CreateFontIndirect(@ncm.lfMessageFont)
+		Dim As HDC hDC = GetDC(0)
+		Dim As Double dScale = GetDeviceCaps(hDC, LOGPIXELSX) / 96
+		ReleaseDC(0, hDC)
+		'The lines of the message (about 60 characters on a line)
+		Dim As UString sMessage = Replace(Replace(sMessageText, WChr(13, 10), WChr(10)), WChr(13), WChr(10))
+		Dim As Integer nLines, iStart = 1, iPos
+		Do
+			iPos = InStr(iStart, sMessage, WChr(10))
+			Dim As Integer nLen = IIf(iPos, iPos - iStart, Len(sMessage) - iStart + 1)
+			nLines += 1 + IIf(nLen > 60, (nLen - 1) \ 60, 0)
+			If iPos = 0 Then Exit Do
+			iStart = iPos + 1
+		Loop
+		sMessage = Replace(sMessage, WChr(10), WChr(13, 10))
+		Dim As Integer W = 400 * dScale, hLine = Abs(ncm.lfMessageFont.lfHeight) * 1.4 + 1, hLabel = nLines * hLine
+		Dim As Integer M = 12 * dScale, hEdit = 24 * dScale, wButton = 88 * dScale, hButton = 28 * dScale
+		Dim As Integer yEdit = M + hLabel + 6 * dScale, yButton = yEdit + hEdit + M
+		Dim As ..RECT rc = Type(0, 0, W, yButton + hButton + M)
+		AdjustWindowRectEx(@rc, WS_CAPTION Or WS_SYSMENU, False, WS_EX_CONTROLPARENT Or WS_EX_DLGMODALFRAME)
+		Dim As Integer WW = rc.Right - rc.Left, WH = rc.Bottom - rc.Top
+		InputBox_.hWnd  = CreateWindowEx(WS_EX_CONTROLPARENT Or WS_EX_DLGMODALFRAME, "#32770", @sCaption, WS_CAPTION Or WS_SYSMENU Or WS_POPUP, InputBox_.dm(0).dmPelsWidth / 2 - WW / 2, InputBox_.dm(0).dmPelsHeight / 2 - WH / 2, WW, WH, hParentWin, 0, 0, 0 )
+		InputBox_.hwnd3 = CreateWindowEx(0, "Static", sMessage.vptr, WS_CHILD Or WS_VISIBLE Or SS_LEFT Or SS_NOPREFIX, M, M, W - 2 * M, hLabel, InputBox_.hWnd, 0, 0, 0)
+		InputBox_.hwnd1 = CreateWindowEx(WS_EX_CLIENTEDGE, "Edit", @sDefaultText, WS_CHILD Or WS_VISIBLE Or WS_TABSTOP Or ES_AUTOHSCROLL Or iFlag, M, yEdit, W - 2 * M, hEdit, InputBox_.hWnd, 0, 0, 0)
+		InputBox_.hwnd2 = CreateWindowEx(0, "Button", "OK", WS_CHILD Or WS_VISIBLE Or WS_TABSTOP Or BS_DEFPUSHBUTTON, W - M - 2 * wButton - 8 * dScale, yButton, wButton, hButton, InputBox_.hWnd, Cast(HMENU, IDOK), 0, 0)
+		InputBox_.hwnd4 = CreateWindowEx(0, "Button", "Cancel", WS_CHILD Or WS_VISIBLE Or WS_TABSTOP, W - M - wButton, yButton, wButton, hButton, InputBox_.hWnd, Cast(HMENU, IDCANCEL), 0, 0)
+		SendMessage(InputBox_.hwnd1, WM_SETFONT, Cast(WPARAM, InputBox_.font), 0)
+		SendMessage(InputBox_.hwnd2, WM_SETFONT, Cast(WPARAM, InputBox_.font), 0)
+		SendMessage(InputBox_.hwnd3, WM_SETFONT, Cast(WPARAM, InputBox_.font), 0)
+		SendMessage(InputBox_.hwnd4, WM_SETFONT, Cast(WPARAM, InputBox_.font), 0)
+		'Modal: the parent window does not take the input while the box is open
+		If hParentWin Then EnableWindow(Cast(HWND, hParentWin), False)
+		ShowWindow(InputBox_.hWnd, SW_SHOW)
 		SetFocus InputBox_.hwnd1
-		
-		While GetMessage(@InputBox_.msg, 0, 0, 0 )
-			If IsDialogMessage(InputBox_.hWnd ,@InputBox_.msg)  = 0 Then
-				TranslateMessage(@InputBox_.msg )
-				DispatchMessage(@InputBox_.msg )
+		SendMessage(InputBox_.hwnd1, EM_SETSEL, 0, -1)
+
+		Dim As Integer iResult = -1 '1 OK, 0 Cancel
+		While iResult = -1 AndAlso GetMessage(@InputBox_.msg, 0, 0, 0)
+			Dim As Integer iMsg = InputBox_.msg.message
+			Dim As HWND hMsg = InputBox_.msg.hwnd
+			Dim As Boolean bOwn = hMsg = InputBox_.hWnd OrElse GetParent(hMsg) = InputBox_.hWnd
+			If bOwn AndAlso iMsg = WM_KEYDOWN AndAlso InputBox_.msg.wParam = VK_ESCAPE Then
+				iResult = 0
+			ElseIf bOwn AndAlso iMsg = WM_KEYDOWN AndAlso InputBox_.msg.wParam = VK_RETURN AndAlso hMsg <> InputBox_.hwnd4 Then
+				iResult = 1
+			ElseIf hMsg = InputBox_.hWnd AndAlso (iMsg = WM_NCLBUTTONUP OrElse iMsg = WM_NCLBUTTONDOWN) AndAlso InputBox_.msg.wParam = HTCLOSE Then
+				iResult = 0
+			ElseIf bOwn AndAlso CBool(iMsg = WM_SYSKEYDOWN) AndAlso CBool(InputBox_.msg.wParam = VK_F4) Then
+				iResult = 0
+			ElseIf (hMsg = InputBox_.hwnd2 OrElse hMsg = InputBox_.hwnd4) AndAlso (iMsg = WM_LBUTTONUP OrElse (iMsg = WM_KEYUP AndAlso InputBox_.msg.wParam = VK_SPACE)) Then
+				iResult = IIf(hMsg = InputBox_.hwnd2, 1, 0)
+			Else
+				If IsDialogMessage(InputBox_.hWnd, @InputBox_.msg) = 0 Then
+					TranslateMessage(@InputBox_.msg)
+					DispatchMessage(@InputBox_.msg)
+				End If
+				If hMsg = InputBox_.hwnd1 AndAlso iMsg = WM_LBUTTONDOWN AndAlso iFlag2 <> 0 AndAlso InputBox_.flag = 0 Then
+					InputBox_.flag = 1
+					SetWindowText(InputBox_.hwnd1, "")
+				End If
 			End If
-			Select Case InputBox_.msg.hwnd
-			Case InputBox_.hwnd2
-				Dim As Integer iMsg = InputBox_.msg.message
-				If (iMsg = WM_LBUTTONDOWN) OrElse (iMsg = WM_KEYUP AndAlso (InputBox_.msg.wParam = 32 OrElse InputBox_.msg.wParam = 13)) Then
-					SendMessage(InputBox_.hwnd1,WM_GETTEXT,1024,Cast(LPARAM ,@InputBox_.mess))
-					Dim As UString sRet = InputBox_.mess
-					Function = sRet
-					DestroyWindow(InputBox_.hWnd)
-					InputBox_.flag=0
-					SetFocus(hwFocus)
-					Exit Function
-				End If
-			Case InputBox_.hwnd1
-				If InputBox_.msg.message=WM_LBUTTONDOWN Then
-					If iFlag2 <> 0 Then
-						If InputBox_.flag=0 Then
-							InputBox_.flag=1
-							SetWindowText(InputBox_.hwnd1 , "")
-						End If
-					End If
-				End If
-			End Select
+			If iResult = -1 AndAlso IsWindow(InputBox_.hWnd) = 0 Then iResult = 0
 		Wend
+		If iResult = 1 Then
+			SendMessage(InputBox_.hwnd1, WM_GETTEXT, 1024, Cast(LPARAM, @InputBox_.mess))
+			Dim As UString sRet = InputBox_.mess
+			Function = sRet
+		Else
+			Function = ""
+		End If
+		If hParentWin Then EnableWindow(Cast(HWND, hParentWin), True)
+		If IsWindow(InputBox_.hWnd) Then DestroyWindow(InputBox_.hWnd)
+		DeleteObject(InputBox_.font)
 		SetFocus(hwFocus)
 	#elseif defined(__USE_GTK__) AndAlso Not defined(__USE_GTK4__)
 		Dim As GtkWidget  Ptr dialog
@@ -1245,6 +1288,8 @@ Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WStrin
 		entry = gtk_entry_new ()
 		
 		button = gtk_button_new_with_label("OK")
+
+		Dim As GtkWidget Ptr buttonCancel = gtk_button_new_with_label("Cancel")
 		
 		vBox = gtk_vbox_new( 0 , 5)
 		
@@ -1270,7 +1315,9 @@ Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WStrin
 		
 		gtk_box_pack_start(Cast(Any Ptr , hBox2), entry , 1 , 1, 0)
 		
-		gtk_box_pack_start(Cast(Any Ptr , hBox3), button ,1 , 1, 100)
+		gtk_box_pack_start(Cast(Any Ptr , hBox3), button ,1 , 1, 20)
+
+		gtk_box_pack_start(Cast(Any Ptr , hBox3), buttonCancel ,1 , 1, 20)
 		
 		gtk_widget_set_size_request(entry, 300, 30)
 		
@@ -1291,6 +1338,8 @@ Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WStrin
 		tib->entry = entry
 		
 		g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK (@EventbuttonInputBoxSub),tib)
+
+		g_signal_connect(G_OBJECT(buttonCancel), "clicked", G_CALLBACK (@EventbuttonCancelInputBoxSub),tib)
 		
 		If iFlag2 Then
 			
@@ -1341,6 +1390,7 @@ Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WStrin
 		gtk_box_append(GTK_BOX(vBox), entry)
 		gtk_box_append(GTK_BOX(gtk_dialog_get_content_area(GTK_DIALOG(dialog))), vBox)
 		gtk_dialog_add_button(GTK_DIALOG(dialog), "_OK", GTK_RESPONSE_OK)
+		gtk_dialog_add_button(GTK_DIALOG(dialog), "_Cancel", GTK_RESPONSE_CANCEL)
 		gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK)
 		Dim As TInputBox Ptr tib = _New(TInputBox)
 		tib->dialog = dialog
@@ -1363,6 +1413,16 @@ Function InputBox(ByRef sCaption As WString  = "" , ByRef sMessageText As WStrin
 		End If
 		gtk_widget_destroy(dialog)
 		_Delete(tib)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+		'The box of the platform with OK and Cancel (ShowInputBox: mff_lib.js, mffActivity.inputBox, mffInputBox)
+		Dim As ZString Ptr pText = ShowInputBox(ToUtf8(sCaption), ToUtf8(sMessageText), ToUtf8(sDefaultText), IIf(iFlag <> 0, 1, 0))
+		If pText Then
+			Dim As WString Ptr pw = FromUtf8(pText)
+			If pw Then Function = *pw: _Deallocate(pw)
+			Deallocate(pText)
+		Else
+			Function = ""
+		End If
 	#else
 		Function = ""
 	#endif

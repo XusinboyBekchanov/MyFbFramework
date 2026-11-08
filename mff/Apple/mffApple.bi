@@ -145,6 +145,7 @@ Extern "C"
 	'The lines "Level Tab Enabled Tab Checked Tab Image Tab Caption": returns the index of the chosen line, -1 - none; x, y on the key window
 	Declare Function mffPopupMenu(ByVal Items As Const ZString Ptr, ByVal x As Long, ByVal y As Long) As Long
 	'Mode: 0 - open, 1 - open several files, 2 - save, 3 - folder; returns the paths separated with Chr(10), 0 - cancelled
+	Declare Function mffInputBox(ByVal Caption As Const ZString Ptr, ByVal Msg As Const ZString Ptr, ByVal DefaultText As Const ZString Ptr, ByVal Password As Long) As ZString Ptr
 	Declare Function mffFileDialog(ByVal Mode As Long, ByVal Caption As Const ZString Ptr, ByVal InitialDir As Const ZString Ptr, ByVal FileName As Const ZString Ptr, ByVal Filter As Const ZString Ptr, ByVal FilterIndex As Long) As ZString Ptr
 	Declare Function mffFontDialog(ByVal FontName As Const ZString Ptr, ByVal Size As Long, ByVal Style As Long, ByVal FontColor As Long) As ZString Ptr
 	Declare Function mffColorDialog(ByVal Caption As Const ZString Ptr, ByVal ColorValue As Long) As Long

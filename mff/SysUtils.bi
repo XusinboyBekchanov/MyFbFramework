@@ -463,6 +463,8 @@ Const HELP_SETPOPUP_POS = &Hd
 	Declare Function ShowFontDialog(FontName As String, ByVal Size As Long, ByVal Style As Long, ByVal FontColor As Long) As ZString Ptr
 	'Color is BGR (&hBBGGRR). Returns the chosen color, -1 if the dialog was cancelled
 	Declare Function ShowColorDialog(Caption As String, ByVal ColorValue As Long) As Long
+	'InputBox of Application.bas: the text (UTF-8) of the box with OK and Cancel, 0 - cancelled (freed with Deallocate)
+	Declare Function ShowInputBox(Caption As String, Message As String, DefaultText As String, ByVal Password As Long) As ZString Ptr
 	'The text of the system clipboard (UTF-8); ClipboardGetText returns a ZString freed with Deallocate (0 - no text)
 	Declare Sub ClipboardSetText(Text As String)
 	'A popup menu at x, y (the pixels of the page): Items are the lines "Level	Enabled	Checked	Image	Caption" (UTF-8, Level 0 -

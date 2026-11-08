@@ -113,6 +113,8 @@ void mffWebLoadHTML(void *Id, const char *HTML);
 void mffWebAction(void *Id, int Action);
 void mffViewLoadImage(void *Id, const char *Path, int Center);
 int mffPopupMenu(const char *Items, int x, int y);
+/* InputBox: the text of the box with OK and Cancel (malloc, NULL - cancelled) */
+char *mffInputBox(const char *caption, const char *msg, const char *defaultText, int password);
 char *mffFileDialog(int Mode, const char *Caption, const char *InitialDir, const char *FileName, const char *Filter, int FilterIndex);
 char *mffFontDialog(const char *FontName, int Size, int Style, int FontColor);
 int mffColorDialog(const char *Caption, int ColorValue);

@@ -81,6 +81,7 @@
 #define mffViewLoadImage real_mffViewLoadImage
 #define mffPopupMenu real_mffPopupMenu
 #define mffFileDialog real_mffFileDialog
+#define mffInputBox real_mffInputBox
 #define mffFontDialog real_mffFontDialog
 #define mffColorDialog real_mffColorDialog
 #define mffRegexCompile real_mffRegexCompile
@@ -196,6 +197,7 @@
 #undef mffViewLoadImage
 #undef mffPopupMenu
 #undef mffFileDialog
+#undef mffInputBox
 #undef mffFontDialog
 #undef mffColorDialog
 #undef mffRegexCompile
@@ -309,6 +311,7 @@ void mffWebLoadHTML(void *Id, const char *HTML) { if ([NSThread isMainThread]) r
 void mffWebAction(void *Id, int Action) { if ([NSThread isMainThread]) real_mffWebAction(Id, Action); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffWebAction(Id, Action); }); }
 void mffViewLoadImage(void *Id, const char *Path, int Center) { if ([NSThread isMainThread]) real_mffViewLoadImage(Id, Path, Center); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffViewLoadImage(Id, Path, Center); }); }
 int mffPopupMenu(const char *Items, int x, int y) { if ([NSThread isMainThread]) return real_mffPopupMenu(Items, x, y); __block int r_; dispatch_sync(dispatch_get_main_queue(), ^{ r_ = real_mffPopupMenu(Items, x, y); }); return r_; }
+char *mffInputBox(const char *caption, const char *msg, const char *defaultText, int password) { if ([NSThread isMainThread]) return real_mffInputBox(caption, msg, defaultText, password); __block char *r_; dispatch_sync(dispatch_get_main_queue(), ^{ r_ = real_mffInputBox(caption, msg, defaultText, password); }); return r_; }
 char *mffFileDialog(int Mode, const char *Caption, const char *InitialDir, const char *FileName, const char *Filter, int FilterIndex) { if ([NSThread isMainThread]) return real_mffFileDialog(Mode, Caption, InitialDir, FileName, Filter, FilterIndex); __block char *r_; dispatch_sync(dispatch_get_main_queue(), ^{ r_ = real_mffFileDialog(Mode, Caption, InitialDir, FileName, Filter, FilterIndex); }); return r_; }
 char *mffFontDialog(const char *FontName, int Size, int Style, int FontColor) { if ([NSThread isMainThread]) return real_mffFontDialog(FontName, Size, Style, FontColor); __block char *r_; dispatch_sync(dispatch_get_main_queue(), ^{ r_ = real_mffFontDialog(FontName, Size, Style, FontColor); }); return r_; }
 int mffColorDialog(const char *Caption, int ColorValue) { if ([NSThread isMainThread]) return real_mffColorDialog(Caption, ColorValue); __block int r_; dispatch_sync(dispatch_get_main_queue(), ^{ r_ = real_mffColorDialog(Caption, ColorValue); }); return r_; }
