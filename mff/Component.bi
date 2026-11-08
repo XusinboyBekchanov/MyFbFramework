@@ -260,6 +260,39 @@ End Type
 		Const GDK_KEY_F22 = &hffd3
 		Const GDK_KEY_F23 = &hffd4
 		Const GDK_KEY_F24 = &hffd5
+		'The keys of the keypad and the modifiers (GridDataEx): the GTK2 headers of FreeBASIC have no GDK_KEY_ names
+		Const GDK_KEY_Alt_L = &hffe9
+		Const GDK_KEY_Alt_R = &hffea
+		Const GDK_KEY_Control_L = &hffe3
+		Const GDK_KEY_Control_R = &hffe4
+		Const GDK_KEY_Shift_L = &hffe1
+		Const GDK_KEY_Shift_R = &hffe2
+		Const GDK_KEY_period = &h02e
+		Const GDK_KEY_KP_0 = &hffb0
+		Const GDK_KEY_KP_1 = &hffb1
+		Const GDK_KEY_KP_2 = &hffb2
+		Const GDK_KEY_KP_3 = &hffb3
+		Const GDK_KEY_KP_4 = &hffb4
+		Const GDK_KEY_KP_5 = &hffb5
+		Const GDK_KEY_KP_6 = &hffb6
+		Const GDK_KEY_KP_7 = &hffb7
+		Const GDK_KEY_KP_8 = &hffb8
+		Const GDK_KEY_KP_9 = &hffb9
+		Const GDK_KEY_KP_Add = &hffab
+		Const GDK_KEY_KP_Subtract = &hffad
+		Const GDK_KEY_KP_Multiply = &hffaa
+		Const GDK_KEY_KP_Divide = &hffaf
+		Const GDK_KEY_KP_Decimal = &hffae
+		Const GDK_KEY_KP_Up = &hff97
+		Const GDK_KEY_KP_Down = &hff99
+		Const GDK_KEY_KP_Left = &hff96
+		Const GDK_KEY_KP_Right = &hff98
+		Const GDK_KEY_KP_Home = &hff95
+		Const GDK_KEY_KP_End = &hff9c
+		Const GDK_KEY_KP_Page_Up = &hff9a
+		Const GDK_KEY_KP_Page_Down = &hff9b
+		Const GDK_KEY_KP_Insert = &hff9e
+		Const GDK_KEY_KP_Delete = &hff9f
 	#endif
 #endif
 

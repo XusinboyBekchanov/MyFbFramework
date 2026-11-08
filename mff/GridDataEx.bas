@@ -7837,6 +7837,8 @@ Namespace My.Sys.Forms
 			If widget = 0 Then Return 0
 			#ifdef __USE_GTK4__
 				Return gtk_widget_get_width(widget)
+			#elseif defined(__USE_GTK2__)
+				Return widget->allocation.width
 			#else
 				Return gtk_widget_get_allocated_width(widget)
 			#endif
@@ -7850,6 +7852,8 @@ Namespace My.Sys.Forms
 			If widget = 0 Then Return 0
 			#ifdef __USE_GTK4__
 				Return gtk_widget_get_height(widget)
+			#elseif defined(__USE_GTK2__)
+				Return widget->allocation.height
 			#else
 				Return gtk_widget_get_allocated_height(widget)
 			#endif
