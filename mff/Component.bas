@@ -840,6 +840,11 @@ Function ThreadCreate_(ByVal ProcPtr_ As Sub ( ByVal userdata As Any Ptr ), ByVa
 		ProcPtr_(param)
 		Return 0
 	#else
+		#ifndef __FB_WIN32__
+			'Linux, macOS: ThreadCreate with 0 gives only PTHREAD_STACK_MIN (16 KB) to the thread (Windows: 1 MB),
+			'too little for the procedures of the threads (the stack overflows): the stack of the threads of Windows
+			If stack_size <= 0 Then stack_size = 1024 * 1024
+		#endif
 		Return ThreadCreate(ProcPtr_, param, stack_size)
 	#endif
 End Function
