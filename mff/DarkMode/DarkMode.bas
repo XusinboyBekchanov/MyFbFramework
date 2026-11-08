@@ -309,6 +309,33 @@
 	End Sub
 #endif
 
+#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK2__)
+	'Is the GTK theme installed (the folder gtk-3.0 or gtk-4.0 of the theme, or a theme in GTK itself)?
+	Private Function GtkThemeInstalled(ByRef sTheme As String) As Boolean
+		Select Case LCase(sTheme)
+		Case "", "adwaita", "highcontrast", "highcontrastinverse", "default": Return True
+		End Select
+		#ifdef __USE_GTK4__
+			Dim As String sSub = "gtk-4.0"
+		#else
+			Dim As String sSub = "gtk-3.0"
+		#endif
+		Dim As String sHome = Environ("HOME"), sDataHome = Environ("XDG_DATA_HOME"), sDataDirs = Environ("XDG_DATA_DIRS")
+		If sDataHome = "" Then sDataHome = sHome & "/.local/share"
+		If sDataDirs = "" Then sDataDirs = "/usr/local/share:/usr/share"
+		Dim As String sDirs = sHome & "/.themes:" & sDataHome & "/themes:" & sDataDirs, sDir
+		Dim As Integer p
+		Do While sDirs <> ""
+			p = InStr(sDirs, ":")
+			If p = 0 Then sDir = sDirs: sDirs = "" Else sDir = Left(sDirs, p - 1): sDirs = Mid(sDirs, p + 1)
+			If sDir = "" Then Continue Do
+			If Right(sDir, 7) <> "/themes" Then sDir &= "/themes"
+			If Dir(sDir & "/" & sTheme & "/" & sSub & "/*", &h27) <> "" Then Return True '&h27: read-only, hidden, system, archive (dir.bi is not included)
+		Loop
+		Return False
+	End Function
+#endif
+
 #ifdef __USE_JNI__
 	'the one of libc: the environment of the process which Os.getenv of Java reads
 	Declare Function setenv cdecl Alias "setenv" (ByVal Name As ZString Ptr, ByVal Value As ZString Ptr, ByVal Overwrite As Long) As Long
@@ -337,6 +364,17 @@ Sub SetDarkMode(useDark As Boolean, fixDarkScrollbar_ As Boolean)
 			#else
 				g_value_init_(@bValue, G_TYPE_BOOLEAN)
 			#endif
+			'The theme of the system is not installed (for example Yaru of /etc/gtk-3.0/settings.ini without its package): GTK takes
+			'the light Adwaita and the dark variant is never used; the dark mode needs then the theme Adwaita (in GTK), named
+			If useDark Then
+				Dim As gchar Ptr pTheme
+				g_object_get(gtk_settings_get_default(), "gtk-theme-name", @pTheme, NULL)
+				If pTheme Then
+					Dim As String sTheme = *Cast(ZString Ptr, pTheme)
+					g_free(pTheme)
+					If Not GtkThemeInstalled(sTheme) Then g_object_set(gtk_settings_get_default(), "gtk-theme-name", "Adwaita", NULL)
+				End If
+			End If
 			g_value_set_boolean(@bValue, useDark)
 			g_object_set_property(G_OBJECT(gtk_settings_get_default()), "gtk-application-prefer-dark-theme", @bValue)
 			g_value_unset(@bValue)
