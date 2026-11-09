@@ -3564,6 +3564,8 @@ Namespace My.Sys.Drawing
 					cairo_select_font_face(.Handle, Sender.Name, CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
 					cairo_set_font_size(.Handle, Sender.Size)
 					
+					'A canvas of a draw callback has no layout before its first text call
+					If .layout = 0 Then .layout = pango_cairo_create_layout(.Handle)
 					Dim As PangoFontDescription Ptr desc
 					desc = pango_font_description_from_string (Sender.Name & " " & Trim(Str(Sender.Size)))
 					pango_layout_set_font_description(.layout, desc)

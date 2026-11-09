@@ -95,9 +95,11 @@
 			SelectObject(hdc, hOld)
 			ReleaseDC(FHandle, hdc)
 		#elseif defined(__USE_GTK__)
-			If This.Font.Handle Then
-				pango_layout_set_font_description(layout, Cast(PangoFontDescription Ptr, This.Font.Handle))
-				pango_layout_set_text(layout, This.Text, -1)
+			'Without a font handle yet the layout measures in the default font of
+			'the widget: a zero width would leave the caption span empty
+			If layout <> 0 Then
+				If This.Font.Handle Then pango_layout_set_font_description(layout, Cast(PangoFontDescription Ptr, This.Font.Handle))
+				pango_layout_set_text(layout, ToUtf8(This.Text), -1)
 				Dim w As Long, h As Long
 				pango_layout_get_pixel_size(layout, @w, @h)
 				nWidth = w
@@ -810,6 +812,9 @@ Private Sub Button.DrawGlyph(ByRef rcCell As My.Sys.Drawing.Rect, ByRef sGlyph A
 			p->Canvas.Handle = cr
 			If p->nScale = 0 Then p->nScale = p->GetWindowsDPI()
 			p->Draw()
+			'The caption is the LAST thing drawn, and pango leaves its glyphs pending
+			'in the surface: without a flush GTK presents the frame without them
+			cairo_surface_flush(cairo_get_target(cr))
 			p->Canvas.Handle = 0
 			p->Canvas.HandleSetted = False
 			Return False

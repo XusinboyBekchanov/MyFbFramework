@@ -65,6 +65,7 @@
 #include once "Application.bi"
 #include once "Bitmap.bi"
 #include once "Brush.bi"
+#include once "Button.bi"
 #include once "Canvas.bi"
 #include once "Chart.bi"
 #include once "CheckBox.bi"
@@ -179,6 +180,7 @@ Using My.Sys.Forms
 		Ctrl = 0
 		Select Case LCase(ClassName)
 		Case "animate": Ctrl = _New( Animate)
+		Case "button": Ctrl = _New( Button)
 		Case "chart": Ctrl = _New( Chart)
 		Case "checkbox": Ctrl = _New( CheckBox)
 		Case "checkedlistbox": Ctrl = _New( CheckedListBox)
@@ -191,6 +193,7 @@ Using My.Sys.Forms
 		Case "grid": Ctrl = _New( Grid)
 		Case "griddata": Ctrl = _New( GridData)
 		Case "griddataex": Ctrl = _New( GridDataEx)
+		Case "flexedittextbox": Ctrl = _New( FlexEditTextBox)
 		Case "groupbox": Ctrl = _New( GroupBox)
 		Case "header": Ctrl = _New( Header)
 		Case "horizontalbox": Ctrl = _New(HorizontalBox)
@@ -346,6 +349,7 @@ Using My.Sys.Forms
 		If Ctrl = 0 Then Return False
 		Select Case LCase(Cast(Component Ptr, Ctrl)->ClassName)
 		Case "animate": _Delete( Cast(Animate Ptr, Ctrl))
+		Case "button": _Delete( Cast(Button Ptr, Ctrl))
 		Case "chart": _Delete( Cast(Chart Ptr, Ctrl))
 		Case "checkbox" :_Delete( Cast(CheckBox Ptr, Ctrl))
 		Case "checkedlistbox": _Delete( Cast(CheckedListBox Ptr, Ctrl))
@@ -361,6 +365,7 @@ Using My.Sys.Forms
 		Case "grid": _Delete( Cast(Grid Ptr, Ctrl))
 		Case "griddata": _Delete( Cast(GridData Ptr, Ctrl))
 		Case "griddataex": _Delete( Cast(GridDataEx Ptr, Ctrl))
+		Case "flexedittextbox": _Delete( Cast(FlexEditTextBox Ptr, Ctrl))
 		Case "groupbox": _Delete( Cast(GroupBox Ptr, Ctrl))
 		Case "header": _Delete( Cast(Header Ptr, Ctrl))
 		Case "horizontalbox": _Delete(Cast(HorizontalBox Ptr, Ctrl))

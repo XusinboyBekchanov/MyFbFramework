@@ -770,11 +770,11 @@ Namespace My.Sys.Forms
 		
 		Private Sub on_menu_position(ByVal menu_ As GtkMenu Ptr, ByVal x As gint Ptr, ByVal y As gint Ptr, ByVal push_in As gboolean Ptr, ByVal user_data As gpointer)
 			#ifndef __USE_GTK4__
-				Dim As GtkWidget Ptr button = GTK_WIDGET(user_data)
-				Dim As GdkWindow Ptr Window1 = gtk_widget_get_window(gtk_widget_get_parent(button))
+				Dim As GtkWidget Ptr btnWidget = GTK_WIDGET(user_data)
+				Dim As GdkWindow Ptr Window1 = gtk_widget_get_window(gtk_widget_get_parent(btnWidget))
 				Dim As GtkAllocation allocation
 				Dim As gint bx, by
-				gtk_widget_get_allocation(button, @allocation)
+				gtk_widget_get_allocation(btnWidget, @allocation)
 				gdk_window_get_origin(Window1, @bx, @by)
 				*x = bx + allocation.x
 				*y = by + allocation.y + allocation.height
@@ -782,11 +782,11 @@ Namespace My.Sys.Forms
 			#endif
 		End Sub
 
-		Private Sub on_popup_menu(button As GtkWidget Ptr, Menu_ As GtkMenu Ptr)
+		Private Sub on_popup_menu(btnWidget As GtkWidget Ptr, Menu_ As GtkMenu Ptr)
 			#ifdef __USE_GTK4__
-				gtk4compat_menu_popup_at Menu_, button, 0, gtk_widget_get_height(button)
+				gtk4compat_menu_popup_at Menu_, btnWidget, 0, gtk_widget_get_height(btnWidget)
 			#else
-				gtk_menu_popup(Menu_, NULL, NULL, Cast(GtkMenuPositionFunc, @on_menu_position), button, 1, gtk_get_current_event_time())
+				gtk_menu_popup(Menu_, NULL, NULL, Cast(GtkMenuPositionFunc, @on_menu_position), btnWidget, 1, gtk_get_current_event_time())
 			#endif
 		End Sub
 	#endif
