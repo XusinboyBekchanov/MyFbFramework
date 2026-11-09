@@ -1990,7 +1990,9 @@ Namespace My.Sys.Forms
 					Case GDK_2BUTTON_PRESS
 					#endif
 					If OnDblClick Then OnDblClick(*Designer, This)
-					Message.Result = True
+					'In the designer the double click goes on to the hook of the designer (connected after this
+					'handler): it opens the code of the default event of the control
+					If Not FDesignMode Then Message.Result = True
 					#ifndef __USE_GTK2__
 					Case GDK_3BUTTON_PRESS, GDK_TRIPLE_BUTTON_PRESS
 					#else
