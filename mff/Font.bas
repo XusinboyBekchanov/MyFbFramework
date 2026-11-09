@@ -92,7 +92,13 @@ Namespace My.Sys.Drawing
 		#else
 			#ifdef __USE_GTK__
 				If Handle Then pango_font_description_free (Handle)
-				Handle = pango_font_description_from_string (*FName & IIf(FBold, " Bold", "") & IIf(FItalic, " Italic", "") & " " & Str(FSize))
+				'Field by field, not from a string: Pango reads the words at the end of the string as styles, the family
+				'"Times New Roman" with " Italic" became the family "Times New" with the style Roman (normal) - not italic
+				Handle = pango_font_description_new()
+				pango_font_description_set_family(Handle, ToUtf8(*FName))
+				pango_font_description_set_weight(Handle, IIf(FBold, PANGO_WEIGHT_BOLD, PANGO_WEIGHT_NORMAL))
+				pango_font_description_set_style(Handle, IIf(FItalic, PANGO_STYLE_ITALIC, PANGO_STYLE_NORMAL))
+				pango_font_description_set_size(Handle, CInt(FSize * PANGO_SCALE))
 			#elseif defined(__USE_WINAPI__)
 				If Handle Then DeleteObject(Handle)
 				Handle = CreateFontW(-MulDiv(FSize, ydpi * 96, 72), 0, FOrientation * 10, FOrientation * 10, FBolds(Min(1, _Abs(FBold))), FItalic, FUnderline, FStrikeOut, FCharSet, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FF_DONTCARE, *FName)
