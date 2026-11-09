@@ -244,6 +244,22 @@
 		Dim bDark As Boolean = False
 		#ifdef __USE_WINAPI__
 			bDark = g_darkModeSupported AndAlso g_darkModeEnabled
+		#else
+			'GTK, Android, Web: the dark mode of the application (SetDarkMode)
+			bDark = g_darkModeEnabled
+		#endif
+		#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK2__)
+			'Over a theme-painted parent the GTK theme decides: a light text of the theme is on a dark surface. In the designer
+			'of the IDE (the library) the dark mode of the application is not set, the text was dark on a dark theme
+			If widget <> 0 AndAlso ThemeBackShows() Then
+				Dim As GdkRGBA FgColor
+				#ifdef __USE_GTK4__
+					gtk4compat_widget_get_color(widget, @FgColor)
+				#else
+					gtk_style_context_get_color(gtk_widget_get_style_context(widget), GTK_STATE_FLAG_NORMAL, @FgColor)
+				#endif
+				bDark = FgColor.red * 0.299 + FgColor.green * 0.587 + FgColor.blue * 0.114 > 0.5
+			End If
 		#endif
 		If bDark Then
 			Select Case mood
@@ -292,6 +308,24 @@
 	'framework paints auto forms (dark = darkBkColor, light = COLOR_BTNFACE).
 	Private Function Button.ParentBack() As ULong
 		Return EffectiveParentBack()
+	End Function
+
+	'On GTK an auto form (BackColor -1) is painted by the GTK theme (light or dark), whose colour the framework does not
+	'know: EffectiveParentBack falls back to a light grey and painted a light square around the button on a dark form.
+	'Then the corner band is not painted (the corners stay transparent) and the resting face is painted with the
+	'background of the theme.
+	Private Function Button.ThemeBackShows() As Boolean
+		#ifdef __USE_GTK__
+			Dim pAnc As Control Ptr = Cast(Control Ptr, This.Parent)
+			While pAnc <> 0
+				Dim clr As ULong = pAnc->BackColor
+				If clr <> Cast(ULong, -1) Then Return False
+				pAnc = Cast(Control Ptr, pAnc->Parent)
+			Wend
+			Return True
+		#else
+			Return False
+		#endif
 	End Function
 	
 	'Turn the mood (plus the default-button flag) into the four colours the
@@ -415,10 +449,13 @@
 		'artifact). The chrome face shows the button's own colours, the band
 		'never does.
 		Dim backClr As ULong = ParentBack()
-		Canvas.PathStart
-		Canvas.PathRoundRect(0, 0, ScaleX(This.ClientWidth), ScaleY(This.ClientHeight), 0)
-		Canvas.FillPath(ARGB(backClr), 100)
-		Canvas.PathDiscard
+		Dim bThemeBack As Boolean = ThemeBackShows()
+		If Not bThemeBack Then
+			Canvas.PathStart
+			Canvas.PathRoundRect(0, 0, ScaleX(This.ClientWidth), ScaleY(This.ClientHeight), 0)
+			Canvas.FillPath(ARGB(backClr), 100)
+			Canvas.PathDiscard
+		End If
 
 		'The caption font, copied FIELD BY FIELD: an object assignment would
 		'share the WString pointers, and the glyph swap below must never write
@@ -450,7 +487,26 @@
 		If btnW > 0 AndAlso btnH > 0 Then
 			Canvas.PathStart
 			Canvas.PathRoundRect(rcButton.Left, rcButton.Top, btnW, btnH, nCurv * nScale)
-			Canvas.FillPath(ARGB(clrBack), 100)
+			'The resting face is the parent's colour. Over a theme-painted parent that colour is not known: the face is
+			'painted with the background of the theme (the window), inside the rounded chrome only - a picture or the
+			'grid of the designer behind the button does not show through it, the corners stay transparent
+			If bThemeBack AndAlso clrBack = backClr Then
+				#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK2__)
+					Dim As GtkWidget Ptr pTop
+					If widget <> 0 Then pTop = gtk_widget_get_toplevel(widget)
+					If pTop <> 0 AndAlso Canvas.Handle <> 0 Then
+						cairo_save(Canvas.Handle)
+						cairo_clip_preserve(Canvas.Handle)
+						gtk_render_background(gtk_widget_get_style_context(pTop), Canvas.Handle, rcButton.Left, rcButton.Top, btnW, btnH)
+						cairo_restore(Canvas.Handle)
+						'gtk_render_background used the path of the cairo context: again for the border
+						Canvas.PathStart
+						Canvas.PathRoundRect(rcButton.Left, rcButton.Top, btnW, btnH, nCurv * nScale)
+					End If
+				#endif
+			Else
+				Canvas.FillPath(ARGB(clrBack), 100)
+			End If
 			If m_BorderThickness > 0 Then
 				Canvas.StrokePath(ARGB(clrBorder), m_BorderThickness, 100)
 			End If
@@ -743,7 +799,7 @@ Private Sub Button.DrawGlyph(ByRef rcCell As My.Sys.Drawing.Rect, ByRef sGlyph A
 				Case GDK_LEAVE_NOTIFY
 					If isPressed = False Then ClearHot
 				Case GDK_KEY_PRESS
-					If This.Enabled AndAlso (nKey = GDK_KEY_Return OrElse nKey = GDK_KEY_KP_Enter OrElse nKey = GDK_KEY_space) Then
+					If This.Enabled AndAlso (CBool(nKey = GDK_KEY_Return) OrElse CBool(nKey = GDK_KEY_KP_Enter) OrElse CBool(nKey = GDK_KEY_SPACE)) Then
 						FireClick
 						Message.Result = True
 					End If
@@ -857,6 +913,14 @@ Private Sub Button.DrawGlyph(ByRef rcCell As My.Sys.Drawing.Rect, ByRef sGlyph A
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_GTK__)
 				widget = gtk_layout_new(NULL, NULL)
+				#ifdef __USE_GTK3__
+					'GtkLayout paints the background of the theme (white): the button draws its own chrome, around it the
+					'parent must show through (a white square stayed around the button on a dark form)
+					Dim As GtkCssProvider Ptr pCss = gtk_css_provider_new()
+					gtk_css_provider_load_from_data(pCss, "* { background-color: transparent; background-image: none; }", -1, NULL)
+					gtk_style_context_add_provider(gtk_widget_get_style_context(widget), GTK_STYLE_PROVIDER(pCss), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION)
+					g_object_unref(pCss)
+				#endif
 				.RegisterClass "Button", @This
 				gtk_widget_set_events(widget, _
 				GDK_EXPOSURE_MASK Or _

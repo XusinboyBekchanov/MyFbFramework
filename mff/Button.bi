@@ -177,6 +177,8 @@ Namespace My.Sys.Forms
 		Declare Function ThemeColors(ByVal mood As ButtonMoods, ByRef clrBack As ULong, ByRef clrFore As ULong, ByRef clrBorder As ULong, ByRef clrIcon As ULong) As Boolean
 		'The parent's effective background (theme-resolved) for the corner band
 		Declare Function ParentBack() As ULong
+		'GTK: no ancestor has an own colour, the theme paints the surface behind the button
+		Declare Function ThemeBackShows() As Boolean
 		Declare Sub ResolvedColors(ByRef clrBack As ULong, ByRef clrFore As ULong, ByRef clrBorder As ULong, ByRef clrIcon As ULong)
 		Declare Sub ApplyAutoSize()
 		'--- Painting helpers ---
