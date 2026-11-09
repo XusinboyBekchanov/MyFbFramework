@@ -313,7 +313,7 @@ Namespace My.Sys.Forms
 
 	'Standalone modal helper: runs the picker in a fixed-dialog Form and returns
 	'TRUE with the chosen colour (and alpha) written back, FALSE if cancelled.
-	Declare Function ShowColorPicker(ByRef InitialColor As ULong, ByRef OutColor As ULong, ByRef OutAlpha As UByte, ByVal ShowAlphaCh As Boolean = True, ByRef Caption As UString = "Select color") As Boolean
+	Declare Function ShowColorPicker(ByRef InitialColor As ULong, ByRef OutColor As ULong, ByRef OutAlpha As UByte, ByVal ShowAlphaCh As Boolean = True, ByRef Caption As WString = "Select color") As Boolean
 End Namespace
 
 #ifndef __USE_MAKE__

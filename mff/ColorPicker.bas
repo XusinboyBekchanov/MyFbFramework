@@ -1626,7 +1626,10 @@
 		Return Cast(My.Sys.Forms.Control Ptr, @This)
 	End Operator
 
-	Private Type ColorPickerDialog Extends Form
+	'The form of ShowColorPicker (like frmDialog of PrintPreviewDialog): not a form itself, so that the toolbox
+	'of the IDE does not show it as a container
+	Private Type ColorPickerDialog Extends My.Sys.Object
+		frmDialog As Form
 		Picker As ColorPicker
 		bAccepted As Boolean = False
 		Declare Static Sub Picker_OK_(ByRef Designer As My.Sys.Object, ByRef Sender As ColorPicker)
@@ -1639,11 +1642,12 @@
 	Private Constructor ColorPickerDialog
 		Dim pw As Long, ph As Long
 		Picker.GetIdealSize(pw, ph)
-		With This
-			.Name = "ColorPickerDialog"
+		With frmDialog
+			.Name = "frmDialog"
 			.Text = "Select color"
 			.BorderStyle = FormBorderStyle.FixedDialog
 			.StartPosition = FormStartPosition.CenterScreen
+			.Designer = @This
 			.SetBounds 0, 0, pw + 16, ph + 42
 		End With
 		With Picker
@@ -1652,7 +1656,7 @@
 			.Designer = @This
 			.OnOK = @Picker_OK_
 			.OnCancel = @Picker_Cancel_
-			.Parent = @This
+			.Parent = @frmDialog
 		End With
 	End Constructor
 
@@ -1662,7 +1666,7 @@
 
 	Private Sub ColorPickerDialog.Picker_OK(ByRef Sender As ColorPicker)
 		bAccepted = True
-		CloseForm
+		frmDialog.CloseForm
 	End Sub
 
 	Private Sub ColorPickerDialog.Picker_Cancel_(ByRef Designer As My.Sys.Object, ByRef Sender As ColorPicker)
@@ -1671,15 +1675,15 @@
 
 	Private Sub ColorPickerDialog.Picker_Cancel(ByRef Sender As ColorPicker)
 		bAccepted = False
-		CloseForm
+		frmDialog.CloseForm
 	End Sub
 
-	Public Function ShowColorPicker(ByRef InitialColor As ULong, ByRef OutColor As ULong, ByRef OutAlpha As UByte, ByVal ShowAlphaCh As Boolean = True, ByRef Caption As UString = "Select color") As Boolean
+	Public Function ShowColorPicker(ByRef InitialColor As ULong, ByRef OutColor As ULong, ByRef OutAlpha As UByte, ByVal ShowAlphaCh As Boolean, ByRef Caption As WString) As Boolean
 		Dim dlg As ColorPickerDialog
-		dlg.Text = Caption
+		dlg.frmDialog.Text = Caption
 		dlg.Picker.SetInitialColor(InitialColor, 255)
 		dlg.Picker.ShowAlpha = ShowAlphaCh
-		dlg.ShowModal
+		dlg.frmDialog.ShowModal
 		If dlg.bAccepted Then
 			OutColor = dlg.Picker.PickedColor
 			OutAlpha = dlg.Picker.PickedAlpha
