@@ -21,6 +21,10 @@
 '#include once "ImageBox.bi"
 #include once "PrintDocument.bi"
 #include once "PrintPreviewDialog.bi"
+#if defined(__USE_WINAPI__) OrElse defined(__USE_GTK__)
+	'The Save dialog of ExportToPDF
+	#include once "Dialogs.bi"
+#endif
 #include once "List.bi"
 
 Namespace My.Sys.Forms
@@ -452,7 +456,7 @@ Namespace My.Sys.Forms
 
 	'`Report` is a component within the MyFbFramework, part of the freeBasic framework.
 	'`Report` - THE single band-based report design surface AND print/paginate/render engine
-	'(Windows, Linux; printing itself is Windows-only in this framework). Drop ONE Report
+	'(Windows, Linux; printing, preview and PDF on Windows, Linux, Android, macOS, iOS, Web). Drop ONE Report
 	'component onto a Form; it owns its bands as plain ReportBand data (see above) - never as
 	'separate controls. A narrow strip down the left edge (BAND_LIST_WIDTH
 	'pixels wide) lists the bands by name - "Report Header", "Page Header", "Body" (the Detail
@@ -536,6 +540,8 @@ Namespace My.Sys.Forms
 		Declare Sub PrintPreview
 		'Shows the built-in Print Preview dialog before printing
 		Declare Sub ExportToPDF(ByRef FileName As WString = "", ByRef PrinterName1 As WString = "Microsoft Print to PDF")
+		'Writes the report to the PDF file FileName (empty: the Save dialog asks for it). Windows: through the printer
+		'PrinterName1; Linux: the PDF export of GTK; Android, macOS, iOS, Web: the print dialog of the system ("Save as PDF")
 		'Every change to Report's size - Report.Height = 100, SetBounds, a designer drag, a
 		'stream load - ends up here, so this is where "the bands always exactly fill the
 		'report" is enforced: the last band absorbs whatever Height gained/lost (never below

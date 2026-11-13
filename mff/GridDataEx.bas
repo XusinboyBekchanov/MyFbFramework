@@ -3675,7 +3675,8 @@ Namespace My.Sys.Forms
 		R->RowCount = CollectVisRows(RowList()) - FFixedRows
 		If R->RowCount < 0 Then R->RowCount = 0
 		If ToPDF Then
-			R->ExportToPDF(IIf(Len(Title) > 0, Title, WStr("GridDataEx " & ML("Report"))))
+			'The Save dialog asks for the file, the title (DocumentName) is its default name
+			R->ExportToPDF()
 		Else
 			R->PrintPreview
 		End If

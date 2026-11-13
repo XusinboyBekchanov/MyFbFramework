@@ -168,15 +168,45 @@ Namespace My.Sys.ComponentModel
 			Return
 		#endif
 		#ifdef __USE_GTK__
+			RunPrintOperation GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG, ""
+		#elseif defined(__USE_WINAPI__)
+			If PrinterSettings.Handle = 0 AndAlso PrinterSettings.Name = "" Then
+				'No printer: the printer of the print dialog (ChoosePrinter makes its device context)
+				If PrinterSettings.ChoosePrinter() = "" Then Return
+			End If
+			PrintTo ""
+		#endif
+	End Sub
+	
+	Private Function PrintDocument.ExportToPDF(ByRef FileName As WString, ByRef PrinterName As WString = "Microsoft Print to PDF") As Boolean
+		If FileName = "" Then Return False
+		#ifdef __USE_GTK__
+			Return RunPrintOperation(GTK_PRINT_OPERATION_ACTION_EXPORT, FileName)
+		#elseif defined(__USE_WINAPI__)
+			'The PDF printer writes the file of DOCINFO.lpszOutput without its Save dialog
+			Dim As String PreviousPrinter = PrinterSettings.Name
+			PrinterSettings.Name = PrinterName
+			Dim As Boolean bResult = PrintTo(FileName)
+			PrinterSettings.Name = PreviousPrinter
+			Return bResult
+		#else
+			Return False
+		#endif
+	End Function
+	
+	#ifdef __USE_GTK__
+		'Prints (the print dialog) or exports to the PDF file ExportFileName (no dialog) the pages
+		Private Function PrintDocument.RunPrintOperation(Action As GtkPrintOperationAction, ByRef ExportFileName As WString) As Boolean
 			If Pages.Count = 0 Then Repaint
-			If Pages.Count = 0 Then Return
-
+			If Pages.Count = 0 Then Return False
+			
 			Dim As GtkPrintOperation Ptr op = gtk_print_operation_new()
 			If Len(DocumentName) Then gtk_print_operation_set_job_name(op, ToUtf8(DocumentName))
 			gtk_print_operation_set_n_pages(op, Pages.Count)
 			' Report margins are already part of the recorded page
 			gtk_print_operation_set_use_full_page(op, 1)
-
+			If Action = GTK_PRINT_OPERATION_ACTION_EXPORT Then gtk_print_operation_set_export_filename(op, ToUtf8(ExportFileName))
+			
 			Dim As GtkPageSetup Ptr PageSetup = gtk_page_setup_new()
 			' Paper selected in PrinterSettings.PageSize, sizes are in tenths of a millimeter
 			Dim As GtkPaperSize Ptr Paper = gtk_paper_size_new_custom("custom", "Custom", PrinterSettings.PageWidth / 10, PrinterSettings.PageLength / 10, GTK_UNIT_MM)
@@ -189,45 +219,58 @@ Namespace My.Sys.ComponentModel
 			End If
 			gtk_print_operation_set_default_page_setup(op, PageSetup)
 			g_object_unref(PageSetup)
-
+			
 			g_signal_connect(op, "draw-page", G_CALLBACK(@PrintOperation_DrawPage), @This)
-
+			
 			Dim As GError Ptr gerr
-			Dim As GtkPrintOperationResult res = gtk_print_operation_run(op, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG, NULL, @gerr)
+			Dim As GtkPrintOperationResult res = gtk_print_operation_run(op, Action, NULL, @gerr)
 			If res = GTK_PRINT_OPERATION_RESULT_ERROR AndAlso gerr <> 0 Then
 				' Print statement is shadowed by the PrintDocument.Print method here
 				g_printerr(!"Print error: %s\n", gerr->message)
 				g_error_free(gerr)
 			End If
 			g_object_unref(op)
-			Return
-		#endif
-		If PrinterSettings.Name = "" Then
-			If PrinterSettings.ChoosePrinter() = "" Then
-				Return
+			Return res = GTK_PRINT_OPERATION_RESULT_APPLY
+		End Function
+	#endif
+	
+	#ifdef __USE_WINAPI__
+		'Prints the pages on PrinterSettings.Name (the device context of ChoosePrinter or a new one of the printer), to the
+		'file OutputFileName when it is not empty
+		Private Function PrintDocument.PrintTo(ByRef OutputFileName As WString) As Boolean
+			If Pages.Count = 0 Then Repaint
+			If Pages.Count = 0 Then Return False
+			Dim As HDC hdcPrinter
+			Dim As Boolean bOwnDC
+			If OutputFileName = "" Then hdcPrinter = PrinterSettings.Handle
+			If hdcPrinter = 0 Then
+				Dim As WString * 260 wPrinterName = PrinterSettings.Name
+				If wPrinterName = "" Then Return False
+				hdcPrinter = CreateDC(NULL, @wPrinterName, NULL, NULL)
+				If hdcPrinter = 0 Then Return False
+				bOwnDC = True
 			End If
-		End If
-		
-		If PrinterSettings.Handle = 0 Then Return
-		
-		#ifdef __USE_WINAPI__
+			
 			Dim As DOCINFO di
 			di.cbSize      = SizeOf(DOCINFO)
 			di.lpszDocName = DocumentName
+			If OutputFileName <> "" Then di.lpszOutput = @OutputFileName
 			
-			StartDoc(PrinterSettings.Handle, @di)
+			Dim As Boolean bResult = StartDoc(hdcPrinter, @di) > 0
+			If bResult Then
+				For i As Integer = 0 To Pages.Count - 1
+					StartPage(hdcPrinter)
+					This.Paint(0, hdcPrinter, i)
+					EndPage(hdcPrinter)
+				Next
+				bResult = EndDoc(hdcPrinter) > 0
+			End If
 			
-			For i As Integer = 0 To Pages.Count - 1
-				StartPage(PrinterSettings.Handle)
-				This.Paint(0, PrinterSettings.Handle, i)
-				EndPage(PrinterSettings.Handle)
-			Next
-			
-			EndDoc(PrinterSettings.Handle)
-			DeleteDC(PrinterSettings.Handle)
-			'PrinterSettings.Handle = 0
-		#endif
-	End Sub
+			'The device context of ChoosePrinter stays for the next printing
+			If bOwnDC Then DeleteDC(hdcPrinter)
+			Return bResult
+		End Function
+	#endif
 	
 	Private Sub PrintDocument.Repaint
 		Dim As Boolean HasMorePages

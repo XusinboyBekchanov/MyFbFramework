@@ -47,8 +47,10 @@ Namespace My.Sys.ComponentModel
 	Private:
 		#ifdef __USE_WINAPI__
 			Declare Sub Paint(hwnd As HWND, hdcDestination As HDC, ByVal PageNumber As Integer)
+			Declare Function PrintTo(ByRef OutputFileName As WString) As Boolean
 		#elseif defined(__USE_GTK__)
 			Declare Static Sub PrintOperation_DrawPage(op As GtkPrintOperation Ptr, context As GtkPrintContext Ptr, page_nr As gint, user_data As gpointer)
+			Declare Function RunPrintOperation(Action As GtkPrintOperationAction, ByRef ExportFileName As WString) As Boolean
 		#endif
 	Public:
 		#ifndef ReadProperty_Off
@@ -61,6 +63,11 @@ Namespace My.Sys.ComponentModel
 		Pages As PrintDocumentPages
 		PrinterSettings As Printer
 		Declare Sub Print
+		'Writes the pages (painted by Repaint before, or now when there are none) to the PDF file FileName without a dialog.
+		'Windows: through the printer PrinterName ("Microsoft Print to PDF"); GTK: by the PDF export of GTK. False when the
+		'file is not written or the platform has no PDF file output (Android, macOS, iOS, Web: Print, the print dialog of
+		'the system saves a PDF).
+		Declare Function ExportToPDF(ByRef FileName As WString, ByRef PrinterName As WString = "Microsoft Print to PDF") As Boolean
 		Declare Sub Repaint
 		OnPrintPage As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As PrintDocument, ByRef Canvas As My.Sys.Drawing.Canvas, ByRef HasMorePages As Boolean)
 		Declare Constructor

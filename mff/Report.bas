@@ -1716,6 +1716,8 @@ Namespace My.Sys.Forms
 		FDocument.Designer = Cast(My.Sys.Object Ptr, @This)
 		FDocument.OnPrintPage = @PrintPageHandler
 		If OnBeginPrint Then OnBeginPrint(*Designer, This)
+		'The pages of the current data (the pages of an earlier printing or preview are old)
+		FDocument.Repaint
 		FDocument.Print()
 	End Sub
 
@@ -1731,19 +1733,36 @@ Namespace My.Sys.Forms
 	End Sub
 
 	Private Sub Report.ExportToPDF(ByRef FileName As WString = "", ByRef PrinterName1 As WString)
-		'"Microsoft Print to PDF" is the virtual printer built into Windows 10/11; selecting
-		'it and printing normally produces a PDF. Windows itself asks for the destination
-		'file name in almost all driver versions - FileName is accepted here for future
-		'drivers/printers that do honour a direct output path, but do not rely on it
-		'suppressing the Save dialog on stock "Microsoft Print to PDF".
-		Dim As String PreviousPrinter = FDocument.PrinterSettings.Name
-		FDocument.PrinterSettings.Name = "Microsoft Print to PDF"
-		If FDocument.PrinterSettings.Name = "" Then
-			'Requested PDF printer isn't installed - let the user pick one instead of failing silently.
-			If FDocument.PrinterSettings.ChoosePrinter() = "" Then Exit Sub
-		End If
-		This.Print()
-		FDocument.PrinterSettings.Name = PreviousPrinter
+		FCurrentRow = 0
+		FPageNo = 1
+		FDocument.Designer = Cast(My.Sys.Object Ptr, @This)
+		FDocument.OnPrintPage = @PrintPageHandler
+		If OnBeginPrint Then OnBeginPrint(*Designer, This)
+		FDocument.Repaint
+		#if defined(__USE_WINAPI__) OrElse defined(__USE_GTK__)
+			Dim As UString sFileName = FileName
+			If sFileName = "" Then
+				Dim As SaveFileDialog SFD
+				SFD.Filter = "PDF (*.pdf)|*.pdf|"
+				SFD.DefaultExt = "pdf"
+				SFD.FileName = IIf(Len(FDocument.DocumentName), FDocument.DocumentName, This.Name) & ".pdf"
+				If Not SFD.Execute Then Exit Sub
+				sFileName = SFD.FileName
+			End If
+			#ifdef __USE_WINAPI__
+				'"Microsoft Print to PDF" is the virtual printer built into Windows 10/11, it writes the file without its
+				'Save dialog. When PrinterName1 isn't installed, the user picks a printer instead of failing silently.
+				If Not FDocument.ExportToPDF(sFileName, PrinterName1) Then
+					If FDocument.PrinterSettings.ChoosePrinter() <> "" Then FDocument.Print
+				End If
+			#else
+				'GTK: the PDF export of GTK (no dialog)
+				FDocument.ExportToPDF sFileName
+			#endif
+		#else
+			'Android, macOS, iOS, Web: the print dialog of the system saves the pages as a PDF ("Save as PDF")
+			FDocument.Print
+		#endif
 	End Sub
 
 	'Splits Text on spaces so it fits within WidthPixels, using Canvas' current Font.
