@@ -43,7 +43,7 @@ Namespace My.Sys.Forms
 			'at once could leave a closed client as the list head, and Quit looped on it forever
 			MutexLock(globmutex)
 			s = client->_socket
-			client->_socket = NULL
+			client->_socket = 0
 			' not already removed?
 			If (s <> NULL) Then
 				' remove from list
