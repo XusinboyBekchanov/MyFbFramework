@@ -2716,8 +2716,22 @@ Private Sub gtk4compat_menu_tool_button_pressed CDecl(ByVal gesture As GtkGestur
 	Dim As GtkWidget Ptr item = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(gesture))
 	Dim As GtkWidget Ptr menu = g_object_get_data(G_OBJECT(item), "mff-tool-menu")
 	If menu = 0 Then Exit Sub
+	g_object_set_data(G_OBJECT(item), "mff-tool-menu-armed", NULL)
 	If x >= gtk_widget_get_width(item) - 20 Then
 		gtk_gesture_set_state(GTK_GESTURE(gesture), GTK_EVENT_SEQUENCE_CLAIMED)
+		' The menu is shown when the mouse button is released: a popover shown while the button is held takes
+		' the release on Wayland, the window never gets it and does not answer to the mouse any more
+		g_object_set_data(G_OBJECT(item), "mff-tool-menu-armed", Cast(gpointer, 1))
+	End If
+End Sub
+
+Private Sub gtk4compat_menu_tool_button_released CDecl(ByVal gesture As GtkGestureClick Ptr, ByVal n_press As gint, ByVal x As gdouble, ByVal y As gdouble, ByVal user_data As gpointer)
+	Dim As GtkWidget Ptr item = gtk_event_controller_get_widget(GTK_EVENT_CONTROLLER(gesture))
+	If g_object_get_data(G_OBJECT(item), "mff-tool-menu-armed") = 0 Then Exit Sub
+	g_object_set_data(G_OBJECT(item), "mff-tool-menu-armed", NULL)
+	Dim As GtkWidget Ptr menu = g_object_get_data(G_OBJECT(item), "mff-tool-menu")
+	If menu = 0 Then Exit Sub
+	If x >= 0 AndAlso y >= 0 AndAlso x < gtk_widget_get_width(item) AndAlso y < gtk_widget_get_height(item) Then
 		gtk4compat_menu_popup_at menu, item, 0, gtk_widget_get_height(item)
 	End If
 End Sub
@@ -2730,6 +2744,7 @@ Private Function gtk_menu_tool_button_new(ByVal icon_widget As GtkWidget Ptr, By
 	Dim As GtkGesture Ptr gesture = gtk_gesture_click_new()
 	gtk_event_controller_set_propagation_phase(GTK_EVENT_CONTROLLER(gesture), GTK_PHASE_CAPTURE)
 	g_signal_connect(gesture, "pressed", G_CALLBACK(@gtk4compat_menu_tool_button_pressed), NULL)
+	g_signal_connect(gesture, "released", G_CALLBACK(@gtk4compat_menu_tool_button_released), NULL)
 	gtk_widget_add_controller(item, GTK_EVENT_CONTROLLER(gesture))
 	Return item
 End Function

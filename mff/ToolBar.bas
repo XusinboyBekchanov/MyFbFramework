@@ -760,6 +760,9 @@ Namespace My.Sys.Forms
 		Private Sub ToolButtons.ToolButtonClicked(gtoolbutton As GtkToolButton Ptr, user_data As Any Ptr)
 			Dim As ToolButton Ptr tbut = user_data
 			If tbut Then
+				' The whole button (tbsWholeDropdown) only shows its menu (on_popup_menu), like on Windows:
+				' its own click is not raised, otherwise the command runs while the menu is open
+				If (tbut->Style And tbsWholeDropdown) = tbsWholeDropdown AndAlso tbut->DropDownMenu.Count > 0 Then Exit Sub
 				If tbut->OnClick Then tbut->OnClick(*tbut->Designer, *tbut)
 				If tbut->Ctrl AndAlso *tbut->Ctrl Is ToolBar Then
 					Dim As ToolBar Ptr tb = Cast(ToolBar Ptr, tbut->Ctrl)
