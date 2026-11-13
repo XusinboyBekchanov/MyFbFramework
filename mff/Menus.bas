@@ -2636,6 +2636,20 @@ Namespace My.Sys.Forms
 					gtk_menu_popup_at_pointer widget, NULL
 				End If
 			#else
+				' GTK takes the transient parent of a menu only from its attach widget and clears it on every popdown.
+				' Without a parent Wayland can not place the popup ("temporary window without parent")
+				Dim As GtkWidget Ptr ParentToplevel
+				If msg <> 0 AndAlso msg->widget <> 0 Then
+					ParentToplevel = gtk_widget_get_toplevel(msg->widget)
+				ElseIf FParentWindow AndAlso FParentWindow->Handle Then
+					ParentToplevel = gtk_widget_get_toplevel(FParentWindow->Handle)
+				End If
+				If ParentToplevel <> 0 AndAlso GTK_IS_WINDOW(ParentToplevel) Then
+					Dim As GtkWidget Ptr MenuToplevel = gtk_widget_get_toplevel(widget)
+					If MenuToplevel <> 0 AndAlso MenuToplevel <> widget AndAlso GTK_IS_WINDOW(MenuToplevel) Then
+						gtk_window_set_transient_for(GTK_WINDOW(MenuToplevel), GTK_WINDOW(ParentToplevel))
+					End If
+				End If
 				If msg <> 0 Then
 					gtk_menu_popup(GTK_MENU(widget), NULL, NULL, NULL, NULL, msg->Event->button.button, msg->Event->button.time)
 				Else
