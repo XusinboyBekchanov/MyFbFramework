@@ -127,7 +127,11 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK4__
 				gtk_check_button_set_use_underline(GTK_CHECK_BUTTON(widget), True): gtk_check_button_set_label(GTK_CHECK_BUTTON(widget), ToUtf8(Replace(Value, "&", "_")))
 			#else
-				gtk_label_set_text_with_mnemonic(GTK_LABEL(gtk_bin_get_child(GTK_BIN(widget))), ToUtf8(Replace(Value, "&", "_")))
+				If Value = "" Then
+					gtk_label_set_text_with_mnemonic(GTK_LABEL(gtk_bin_get_child(GTK_BIN(widget))), !"\0")
+				Else
+					gtk_label_set_text_with_mnemonic(GTK_LABEL(gtk_bin_get_child(GTK_BIN(widget))), ToUtf8(Replace(Value, "&", "_")))
+				End If
 			#endif
 		#elseif defined(__USE_JNI__)
 			If FHandle Then

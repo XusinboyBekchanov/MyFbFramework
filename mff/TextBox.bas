@@ -1370,13 +1370,15 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If GTK_IS_TEXT_VIEW(widget) Then
 				Dim As GtkTextIter _start, _end
-				gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), ToUtf8(Value), -1)
+				' An empty FreeBASIC String passes a NULL pointer, GTK rejects it
+				If Value <> "" Then gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), ToUtf8(Value), -1)
 				gtk_text_buffer_get_selection_bounds(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @_start, @_end)
 				Dim As GtkTextMark Ptr ptextmark = gtk_text_buffer_create_mark(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), NULL, @_end, False)
 				gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(widget), ptextmark, 0., False, 0., 0.)
 			Else
 				Dim As gint Pos1 = gtk_editable_get_position(GTK_EDITABLE(widget))
-				gtk_editable_insert_text(GTK_EDITABLE(widget), ToUtf8(*FSelText), -1, @Pos1)
+				' With length -1 GTK calls strlen on the text, a NULL pointer from an empty String crashes there
+				If *FSelText <> "" Then gtk_editable_insert_text(GTK_EDITABLE(widget), ToUtf8(*FSelText), -1, @Pos1)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			SendMessage(FHandle, EM_REPLACESEL, 0, CInt(FSelText))

@@ -77,7 +77,11 @@ Namespace My.Sys.Forms
 	Private Property CommandButton.Text(ByRef Value As WString)
 		Base.Text = Value
 		#ifdef __USE_GTK__
-			gtk_label_set_text_with_mnemonic(GTK_LABEL(gtk_bin_get_child(GTK_BIN(widget))), ToUtf8(Replace(Value, "&", "_")))
+			If Value = "" Then
+				gtk_label_set_text_with_mnemonic(GTK_LABEL(gtk_bin_get_child(GTK_BIN(widget))), !"\0")
+			Else
+				gtk_label_set_text_with_mnemonic(GTK_LABEL(gtk_bin_get_child(GTK_BIN(widget))), ToUtf8(Replace(Value, "&", "_")))
+			End If
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID(*FClassAncestor, "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(RemoveMnemonic(*FText))))

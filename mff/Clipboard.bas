@@ -44,7 +44,12 @@ Namespace My.Sys
 	
 	Private Sub ClipboardType.SetAsText(ByRef Value As WString)
 		#ifdef __USE_GTK__
-			gtk_clipboard_set_text(FClipboard, ToUtf8(Value), -1)
+			' An empty FreeBASIC String passes a NULL pointer, and GTK requires a non-NULL text
+			If Value = "" Then
+				gtk_clipboard_set_text(FClipboard, !"\0", 0)
+			Else
+				gtk_clipboard_set_text(FClipboard, ToUtf8(Value), -1)
+			End If
 		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			ClipboardSetText(ToUtf8(Value))
 		#else

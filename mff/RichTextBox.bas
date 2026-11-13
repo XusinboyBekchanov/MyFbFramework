@@ -1313,7 +1313,8 @@ Namespace My.Sys.Forms
 		WLet(FSelText, Value)
 		#ifdef __USE_GTK__
 			Dim As GtkTextIter _start, _end
-			gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), ToUtf8(Value), -1)
+			' An empty FreeBASIC String passes a NULL pointer, GTK rejects it
+			If Value <> "" Then gtk_text_buffer_insert_at_cursor(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), ToUtf8(Value), -1)
 		#elseif defined(__USE_WINAPI__)
 			Dim stSetText As SETTEXTEX
 			stSetText.flags = ST_KEEPUNDO
