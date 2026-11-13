@@ -2670,7 +2670,11 @@ Namespace My.Sys.Drawing
 			Dim As PangoRectangle extend2
 			Dim As Double iRed, iGreen, iBlue
 			CanvasEnsureLayout
-			pango_layout_set_text(layout, ToUtf8(s), Len(ToUtf8(s)))
+			If s = "" Then
+				pango_layout_set_text(layout, !"\0", 0)
+			Else
+				pango_layout_set_text(layout, ToUtf8(s), Len(ToUtf8(s)))
+			End If
 			pango_cairo_update_layout(Handle, layout)
 			#ifdef pango_version
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
@@ -3500,7 +3504,11 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend
 			CanvasEnsureLayout
-			pango_layout_set_text(layout, ToUtf8(sText), Len(ToUtf8(sText)))
+			If sText = "" Then
+				pango_layout_set_text(layout, !"\0", 0)
+			Else
+				pango_layout_set_text(layout, ToUtf8(sText), Len(ToUtf8(sText)))
+			End If
 			pango_cairo_update_layout(Handle, layout)
 			#ifdef pango_version
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
@@ -3530,7 +3538,11 @@ Namespace My.Sys.Drawing
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend
 			CanvasEnsureLayout
-			pango_layout_set_text(layout, ToUtf8(sText), Len(ToUtf8(sText)))
+			If sText = "" Then
+				pango_layout_set_text(layout, !"\0", 0)
+			Else
+				pango_layout_set_text(layout, ToUtf8(sText), Len(ToUtf8(sText)))
+			End If
 			pango_cairo_update_layout(Handle, layout)
 			#ifdef pango_version
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)

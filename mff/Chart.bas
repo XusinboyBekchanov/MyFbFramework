@@ -651,7 +651,11 @@ Namespace My.Sys.Forms
 		#endif
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend, extend2
-			pango_layout_set_text(layout, ToUtf8(text_), Len(ToUtf8(text_)))
+			If text_ = "" Then
+				pango_layout_set_text(layout, !"\0", 0)
+			Else
+				pango_layout_set_text(layout, ToUtf8(text_), Len(ToUtf8(text_)))
+			End If
 			pango_cairo_update_layout(cr, layout)
 			pango_layout_get_pixel_extents(layout, @extend, @extend2)
 			'			#ifdef PANGO_VERSION
@@ -660,8 +664,8 @@ Namespace My.Sys.Forms
 			'				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
 			'			#endif
 			'pango_layout_line_get_pixel_extents(pl, NULL, @extend)
-			SZ.Width = extend2.Width
-			SZ.Height = extend2.Height
+			SZ.Width = extend2.width
+			SZ.Height = extend2.height
 			
 			pango_font_description_free (desc)
 			g_object_unref(layout)
@@ -766,10 +770,14 @@ Namespace My.Sys.Forms
 		#endif
 		#ifdef __USE_GTK__
 			Dim As PangoRectangle extend1, extend
-			pango_layout_set_text(layout, ToUtf8(text), Len(ToUtf8(text)))
+			If text = "" Then
+				pango_layout_set_text(layout, !"\0", 0)
+			Else
+				pango_layout_set_text(layout, ToUtf8(text), Len(ToUtf8(text)))
+			End If
 			pango_cairo_update_layout(cr, layout)
 			'pango_layout_get_pixel_extents(layout, @extend1, @extend)
-			#ifdef PANGO_VERSION
+			#ifdef pango_version
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
 			#else
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)

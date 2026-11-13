@@ -99,7 +99,11 @@
 			'the widget: a zero width would leave the caption span empty
 			If layout <> 0 Then
 				If This.Font.Handle Then pango_layout_set_font_description(layout, Cast(PangoFontDescription Ptr, This.Font.Handle))
-				pango_layout_set_text(layout, ToUtf8(This.Text), -1)
+				If This.Text = "" Then
+					pango_layout_set_text(layout, !"\0", 0)
+				Else
+					pango_layout_set_text(layout, ToUtf8(This.Text), -1)
+				End If
 				Dim w As Long, h As Long
 				pango_layout_get_pixel_size(layout, @w, @h)
 				nWidth = w
