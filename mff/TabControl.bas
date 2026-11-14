@@ -805,7 +805,7 @@ Namespace My.Sys.Forms
 			Dim Result As HWND = ChildWindowFromPoint(ParentHwnd, Type<..Point>(X, Y))
 			If Result = 0 OrElse Result = ParentHwnd Then
 				Return 0
-			ElseIf GetClassNameOf(Result) = "TabControl" Then
+			ElseIf GetClassNameOf(Result) = MFFWindowClassName("TabControl") Then
 				Dim As TabControl Ptr pTabControl = GetProp(Result, "MFFControl")
 				If pTabControl->GroupName = GroupName Then Return pTabControl
 			End If

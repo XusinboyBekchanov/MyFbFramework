@@ -1370,6 +1370,13 @@ Namespace My.Sys.Forms
 					'like the owner-drawn Button)
 					Dim As WString Ptr pWinClass = FClassName
 					If WGet(FWindowClassName) > "" Then pWinClass = FWindowClassName
+					#ifdef __MFF_WINDOW_CLASS_PREFIX__
+						'The class registered by Control.RegisterClass has the prefix of the program
+						Dim As WString * 256 WindowClassName = MFFWindowClassName(*pWinClass)
+						Dim As WNDCLASSEX WcPrefixed
+						WcPrefixed.cbSize = SizeOf(WNDCLASSEX)
+						If GetClassInfoEx(Instance, @WindowClassName, @WcPrefixed) <> 0 Then pWinClass = @WindowClassName
+					#endif
 					If InStr(*FClassAncestor, "AtlAxWin") Then pWinClass = FClassAncestor
 					FHandle = CreateWindowExW(dExStyle, _
 					pWinClass, _
@@ -3653,12 +3660,15 @@ Namespace My.Sys.Forms
 				Dim As WNDCLASSEX Wc
 				Dim As Any Ptr ClassProc
 				Dim PROC As Function(FWindow As HWND, MSG As UINT, WPARAM As WPARAM, LPARAM As LPARAM) As LRESULT = WndProcAddr
+				'The name of the window class (with the prefix of the program, see MFFWindowClassName)
+				Dim As WString * 256 WindowClassName = MFFWindowClassName(wClassName)
+				Dim As WString * 256 WindowClassAncestor = MFFWindowClassName(wClassAncestor)
 				ZeroMemory(@Wc, SizeOf(WNDCLASSEX))
 				Wc.cbSize = SizeOf(WNDCLASSEX)
 				If wClassAncestor <> "" Then
 					If GetClassInfoEx(0, wClassAncestor, @Wc) <> 0 Then
 						ClassProc = Wc.lpfnWndProc
-						Wc.lpszClassName = @wClassName
+						Wc.lpszClassName = @WindowClassName
 						If wClassName <> "WebBrowser" Then
 							Wc.lpfnWndProc   = IIf(WndProcAddr = 0, @SuperWndProc, PROC)
 							Wc.cbWndExtra += 4
@@ -3667,23 +3677,24 @@ Namespace My.Sys.Forms
 						'If Cursor AndAlso Cursor->Handle Then Wc.hCursor = Cursor->Handle
 						Result = .RegisterClassEx(@Wc)
 						If Result Then
-							StoreClass wClassName, wClassAncestor, ClassProc
+							StoreClass WindowClassName, wClassAncestor, ClassProc
 						End If
-					ElseIf GetClassInfoEx(Instance, wClassAncestor, @Wc) <> 0 Then
-						ClassProc = GetClassProc(wClassAncestor)
+					ElseIf GetClassInfoEx(Instance, WindowClassAncestor, @Wc) <> 0 OrElse GetClassInfoEx(Instance, wClassAncestor, @Wc) <> 0 Then
+						ClassProc = GetClassProc(WindowClassAncestor)
+						If ClassProc = 0 Then ClassProc = GetClassProc(wClassAncestor)
 						'If Cursor AndAlso Cursor->Handle Then Wc.hCursor = Cursor->Handle
-						Wc.lpszClassName = @wClassName
+						Wc.lpszClassName = @WindowClassName
 						Wc.lpfnWndProc   = IIf(WndProcAddr = 0, @DefWndProc, PROC)
 						Result = .RegisterClassEx(@Wc)
 						If Result Then
-							StoreClass wClassName, wClassAncestor, ClassProc
+							StoreClass WindowClassName, wClassAncestor, ClassProc
 						End If
 					Else
 						MessageBox NULL, "Unable to register class" & " '" & wClassName & "'", "Control", MB_ICONERROR
 					End If
 				Else
-					If GetClassInfoEx(GetModuleHandle(NULL), wClassName, @Wc) = 0 Then
-						Wc.lpszClassName = @wClassName
+					If GetClassInfoEx(GetModuleHandle(NULL), WindowClassName, @Wc) = 0 Then
+						Wc.lpszClassName = @WindowClassName
 						Wc.lpfnWndProc   = IIf(WndProcAddr = 0, @DefWndProc, PROC)
 						Wc.style = CS_DBLCLKS Or CS_HREDRAW Or CS_VREDRAW
 						Wc.hInstance     = Instance

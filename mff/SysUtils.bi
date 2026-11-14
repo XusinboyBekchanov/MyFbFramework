@@ -678,6 +678,16 @@ Const HELP_SETPOPUP_POS = &Hd
 	Declare Function FileViewState(ByVal Id As Any Ptr) As String
 #endif
 
+'The name of the window class registered for a control. A program that also loads the controls
+'from the library (the designer of the IDE loads mff64.dll) defines __MFF_WINDOW_CLASS_PREFIX__,
+'so that the windows of the library do not take its classes (and procedures, built with another
+'version of the framework) with the same name: both register "Form" with GetModuleHandle(NULL)
+#ifdef __MFF_WINDOW_CLASS_PREFIX__
+	#define MFFWindowClassName(ClassName) (__MFF_WINDOW_CLASS_PREFIX__ & ClassName)
+#else
+	#define MFFWindowClassName(ClassName) (ClassName)
+#endif
+
 Namespace ClassContainer
 	Private Type ClassType
 	Protected:
