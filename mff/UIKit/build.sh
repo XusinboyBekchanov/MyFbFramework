@@ -6,8 +6,9 @@
 # Program.c is the C code of the program (on any system):
 #   fbc -target darwin-aarch64 (darwin-x86_64 on a Mac with Intel) -gen gcc -r -d __USE_UIKIT__ -i <MyFbFramework> -m Program Program.bas
 # With -gen gas64 (a fast compilation on a Mac with Intel) Program.asm of fbc -gen gas64 -r is given instead of Program.c.
-# FbcDir is the folder of the sources of fbc with the runtime of FreeBASIC built for the Simulator, ../fbc-ios by default:
-#   sh build-rtlib.sh ../fbc-ios
+# FbcDir is the folder with the runtime of FreeBASIC built for the Simulator (lib/freebasic/darwin-*), ../fbc-ios by
+# default, made from the sources of fbc:
+#   sh build-rtlib.sh ../fbc ../fbc-ios
 # The bundle is Program.app.
 set -e
 SRC="$1"

@@ -2074,19 +2074,6 @@ void mffCanvasImage(const char *path, double x, double y, double w, double h, in
 	[img drawInRect:CGRectMake(x, y, w > 0 ? w : img.size.width, h > 0 ? h : img.size.height) blendMode:kCGBlendModeNormal alpha:alpha / 255.0];
 }
 
-/* The runtime of FreeBASIC for iOS: its console needs the terminal functions, a program of iOS has no terminal.
-   system() is not allowed there (Apple/patch-fbc-rtlib.sh) */
-char PC;
-short ospeed;
-char *BC, *UP;
-int tgetent(char *bp, const char *name) { (void)bp; (void)name; return -1; }
-int tgetflag(const char *id) { (void)id; return 0; }
-int tgetnum(const char *id) { (void)id; return -1; }
-char *tgetstr(const char *id, char **area) { (void)id; (void)area; return NULL; }
-char *tgoto(const char *cap, int col, int row) { (void)cap; (void)col; (void)row; return NULL; }
-int tputs(const char *str, int affcnt, int (*putc_)(int)) { (void)str; (void)affcnt; (void)putc_; return 0; }
-int mff_no_system(const char *command) { (void)command; return -1; }
-
 static id mffFileTable(void *view) { return mffTable(view); }
 
 /* ---- OpenFileControl: the file list in a table ---- */

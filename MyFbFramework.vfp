@@ -312,7 +312,6 @@ File=mff/Cocoa/mffCocoa.m
 File=mff/Android/mffEditText.java
 File=mff/Apple/mffMainThread.h
 File=mff/UIKit/mffUIKit.m
-File=mff/Apple/patch-fbc-rtlib.sh
 File=README.md
 File=README_CN.md
 File=mff/DarkMode/Themes.txt
