@@ -260,6 +260,9 @@ Namespace My.Sys.Forms
 				If FMainForm Then
 					pApp->MainForm = @This
 					App.MainForm = @This
+					#ifdef __USE_COCOA__
+						If Icon.Handle Then mffAppSetIcon(Icon.Handle, 1)
+					#endif
 				Else
 					pApp->MainForm = 0
 					App.MainForm = 0
@@ -2498,6 +2501,9 @@ Namespace My.Sys.Forms
 			#elseif defined(__USE_WASM__)
 				'Before the element of the form: HandleIsAllocated shows it
 				If .FHandle Then SetFormIcon(.FHandle, FindIconFile(ToUtf8(.Icon.ResName)), .FMainForm)
+			#elseif defined(__USE_COCOA__)
+				'macOS: the icon of the main form (of the first form before it, like a splash) is the one of the Dock
+				If .Icon.Handle Then mffAppSetIcon(.Icon.Handle, IIf(.FMainForm, 1, 0))
 			#endif
 		End With
 	End Sub

@@ -474,13 +474,18 @@ static char kMffGapBeforeKey, kMffLeastWidthKey;
 - (void)layoutExpand {
 	if (self.rows || ![self.expandGaps count]) return;
 	CGFloat free = self.bounds.size.width - self.contentWidth, end = 0;
-	CGFloat more = MAX(0, free) / [self.expandGaps count];
+	/* A narrow bar (a code editor beside the panels of an iPhone): the gaps are narrower than their least width, the
+	   buttons after them stay in the bar (they were out of it, Code / Form / CodeAndForm of TabWindow) */
+	CGFloat more = free / [self.expandGaps count];
 	for (id b in self.buttons) {
 		if (![b isKindOfClass:[UIView class]]) continue;
 		UIView *view = b;
 		CGRect f = view.frame;
 		f.origin.x = end + [objc_getAssociatedObject(view, &kMffGapBeforeKey) doubleValue];
-		if ([self.expandGaps containsObject:view]) f.size.width = [objc_getAssociatedObject(view, &kMffLeastWidthKey) doubleValue] + more;
+		if ([self.expandGaps containsObject:view]) {
+			CGFloat least = [objc_getAssociatedObject(view, &kMffLeastWidthKey) doubleValue];
+			f.size.width = MAX(0, least + more);
+		}
 		view.frame = f;
 		end = CGRectGetMaxX(f);
 	}
@@ -503,6 +508,47 @@ static char kMffGapBeforeKey, kMffLeastWidthKey;
 - (void)mffUpdate {
 	NSString *mark = self.mffRadio ? (self.mffChecked ? @"◉" : @"○") : (self.mffChecked == 1 ? @"☑" : (self.mffChecked == 2 ? @"☒" : @"☐"));
 	[self setTitle:[NSString stringWithFormat:@"%@ %@", mark, self.mffTitle ?: @""] forState:UIControlStateNormal];
+}
+@end
+
+/* A LinkLabel: a text with links (the markup of a SysLink, mffLinkSetMarkup). A tap on a link gives its address
+   (mffLinkClicked) with mffOnChange */
+static NSString *mffLastLink = @"";
+
+@interface MffLinkLabel : UILabel
+@end
+
+@implementation MffLinkLabel
+- (instancetype)initWithFrame:(CGRect)r {
+	self = [super initWithFrame:r];
+	if (self) {
+		self.userInteractionEnabled = YES;
+		[self addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(mffTap:)]];
+	}
+	return self;
+}
+- (void)mffTap:(UITapGestureRecognizer *)g {
+	NSAttributedString *text = self.attributedText;
+	void *ctrl = mffGetCtrl(self);
+	if (!ctrl || [text length] == 0) return;
+	NSTextStorage *storage = [[NSTextStorage alloc] initWithAttributedString:text];
+	NSLayoutManager *layout = [[NSLayoutManager alloc] init];
+	NSTextContainer *box = [[NSTextContainer alloc] initWithSize:CGSizeMake(self.bounds.size.width, CGFLOAT_MAX)];
+	box.lineFragmentPadding = 0;
+	box.maximumNumberOfLines = self.numberOfLines;
+	box.lineBreakMode = self.lineBreakMode;
+	[layout addTextContainer:box];
+	[storage addLayoutManager:layout];
+	/* UILabel centers the text vertically */
+	CGRect used = [layout usedRectForTextContainer:box];
+	CGPoint p = [g locationInView:self];
+	p.y -= MAX(0, (self.bounds.size.height - used.size.height) / 2);
+	CGFloat part = 0;
+	NSUInteger i = [layout characterIndexForPoint:p inTextContainer:box fractionOfDistanceBetweenInsertionPoints:&part];
+	id link = i < [text length] ? [text attribute:NSLinkAttributeName atIndex:i effectiveRange:NULL] : nil;
+	if (!link) return;
+	mffLastLink = [link isKindOfClass:[NSURL class]] ? ([[(NSURL *)link relativeString] stringByRemovingPercentEncoding] ?: [(NSURL *)link relativeString]) : [link description];
+	mffOnChange(ctrl, 0);
 }
 @end
 
@@ -892,7 +938,7 @@ void *mffViewCreate(const char *kind, void *ctrl) {
 		[s addTarget:t action:@selector(stepperChanged:) forControlEvents:UIControlEventValueChanged];
 		obj = s;
 	} else if ([k isEqualToString:@"Label"] || [k isEqualToString:@"LinkLabel"] || [k isEqualToString:@"StatusBar"]) {
-		UILabel *l = [[UILabel alloc] initWithFrame:r];
+		UILabel *l = [k isEqualToString:@"LinkLabel"] ? [[MffLinkLabel alloc] initWithFrame:r] : [[UILabel alloc] initWithFrame:r];
 		l.numberOfLines = 0;
 		obj = l;
 	} else if ([k isEqualToString:@"SearchBox"] || [k isEqualToString:@"TextBox"] || [k isEqualToString:@"ComboBox"] || [k isEqualToString:@"DateTimePicker"] || [k isEqualToString:@"IPAddress"] || [k isEqualToString:@"HotKey"]) {
@@ -1128,6 +1174,17 @@ void mffTextSetPassword(void *view, int value) {
 
 void mffSelectItemImage(void *view, int index, const char *path, int indent) {
 	id o = mffObj(view);
+	/* A ComboBoxEx with UseListView (the list of IntelliSense): the picture in the text of its row (mffCellPicture) */
+	UITableView *t = mffTable(view);
+	if (t) {
+		NSMutableArray *rows = mffItems(t);
+		if (index < 0 || index >= (int)[rows count] || ![rows[index] isKindOfClass:[NSString class]]) return;
+		NSString *s = mffCellText(rows[index]);
+		if (path && *path) s = [NSString stringWithFormat:@"\x01%@\x01%@", mffStr(path), s];
+		rows[index] = s;
+		[t reloadData];
+		return;
+	}
 	if (![o isKindOfClass:[MffComboButton class]]) return;
 	MffComboButton *b = o;
 	if (index < 0 || index >= (int)[b.pictures count]) return;
@@ -1160,12 +1217,27 @@ void mffTextSetRTF(void *view, const char *rtf) {
 	[tv setAttributedText:a];
 }
 
+/* The text of a LinkLabel: the markup of a SysLink (<a href="...">...</a>, <br>) is HTML, the links are shown, not
+   their addresses */
 void mffLinkSetMarkup(void *view, const char *markup) {
-	mffViewSetText(view, markup);
+	id o = mffObj(view);
+	if (![o isKindOfClass:[MffLinkLabel class]]) { mffViewSetText(view, markup); return; }
+	MffLinkLabel *l = o;
+	UIFont *font = l.font ?: [UIFont systemFontOfSize:[UIFont labelFontSize]];
+	NSString *html = [NSString stringWithFormat:@"<meta charset=\"utf-8\"><span style=\"font-family:-apple-system;font-size:%dpx\">%@</span>", (int)lround(font.pointSize), mffStr(markup)];
+	NSMutableAttributedString *a = [[NSMutableAttributedString alloc] initWithData:[html dataUsingEncoding:NSUTF8StringEncoding] options:@{NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType, NSCharacterEncodingDocumentAttribute: @(NSUTF8StringEncoding)} documentAttributes:nil error:NULL];
+	if (!a) { [l setText:mffStr(markup)]; return; }
+	NSRange all = NSMakeRange(0, [a length]);
+	[a addAttribute:NSForegroundColorAttributeName value:l.textColor ?: [UIColor labelColor] range:all];
+	/* UILabel does not color NSLinkAttributeName itself */
+	[a enumerateAttribute:NSLinkAttributeName inRange:all options:0 usingBlock:^(id link, NSRange r, BOOL *stop) {
+		if (link) [a addAttribute:NSForegroundColorAttributeName value:[UIColor linkColor] range:r];
+	}];
+	[l setAttributedText:a];
 }
 
 const char *mffLinkClicked(void) {
-	return "";
+	return [mffLastLink UTF8String];
 }
 
 void mffListInsert(void *view, int index, const char *text) {
@@ -1336,6 +1408,13 @@ void mffFormHide(void *view) {
 void mffFormSetState(void *view, int state) { (void)view; (void)state; }
 void mffFormSetBorder(void *view, int style) { (void)view; (void)style; }
 void mffFormSetMainMenu(void *view, const char *items) { (void)view; (void)items; }
+
+/* The editing of the text of a row of a table (TreeView.EditLabels): not on iOS yet */
+void mffTableSetEditable(void *Id, int Value) { (void)Id; (void)Value; }
+int mffTableEditState(void) { return 0; }
+void mffTableEditSetText(const char *Text) { (void)Text; }
+void mffTableEditCancel(void) { }
+char *mffTableEditText(void) { return strdup(""); }
 /* The bar of the menu: a row of buttons above the forms, each opens the menu of its items (mffMenuBarOpen). The lines are the
    ones of mffPopupMenu: "Level Tab Enabled Tab Checked Tab Caption" (Chr(1) picture Chr(1) before the caption, Tab
    shortcut after it), the index of a line is the one of mffOnMenu */

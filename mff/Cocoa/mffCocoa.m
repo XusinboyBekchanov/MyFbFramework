@@ -29,6 +29,14 @@ static BOOL mffSettingFrame, mffInWindowEvent;
 static BOOL mffSilent;
 static int mffDblClick, mffPopupResult = -1;
 static char kMffTableKey, kMffChecksKey, kMffFileViewKey, kMffGridTableKey, kMffGapKey, kMffLeastKey;
+/* The editing of the text of a row of a table with mffTableSetEditable (TreeView.EditLabels): mffOnChange with
+   mffTableEditState 1 before it (the program gives the text to edit or cancels), 2 after it (the new text) */
+static char kMffEditableKey;
+static int mffEditState, mffEditCancel;
+static BOOL mffEditStarting;
+static NSInteger mffEditRow = -1;
+static __weak NSTableView *mffEditTable;
+static NSString *mffEditText;
 static void mffStartSnapshotTest(void);
 static void mffFileViewChoose(id table, id owner, NSInteger row, BOOL activate);
 
@@ -155,6 +163,7 @@ static void mffEnsureApp(void) {
 @property (nonatomic, strong) NSColor *mffBackColor;
 @property (nonatomic, strong) NSImage *mffImage;
 @property (nonatomic) BOOL mffImageCenter;
+@property (nonatomic) NSPoint mffHoverPoint;
 @end
 
 @implementation MffView
@@ -192,7 +201,18 @@ static void mffEnsureApp(void) {
 	void *ctrl = mffGetCtrl(self);
 	if (!ctrl) return;
 	NSPoint p = [self convertPoint:[e locationInWindow] fromView:nil];
+	/* The hover like WM_MOUSEHOVER of Windows (TrackMouseEvent): the mouse stays without a button for a moment (OnMouseHover,
+	   the tooltips of EditControl). Another event of the mouse cancels it */
+	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(mffHover) object:nil];
 	mffOnMouse(ctrl, action, button, (int)p.x, (int)p.y, mffShift([e modifierFlags]));
+	if (action == 2 && button == -1) {
+		self.mffHoverPoint = p;
+		[self performSelector:@selector(mffHover) withObject:nil afterDelay:0.4];
+	}
+}
+- (void)mffHover {
+	void *ctrl = mffGetCtrl(self);
+	if (ctrl) mffOnMouse(ctrl, 6, -1, (int)self.mffHoverPoint.x, (int)self.mffHoverPoint.y, 0);
 }
 - (void)mouseDown:(NSEvent *)e {
 	if ([self acceptsFirstResponder]) [[self window] makeFirstResponder:self];
@@ -366,6 +386,20 @@ static NSScrollView *mffTableScroll(NSTableView *t) {
 - (void)reloadData { [super reloadData]; [self.grid refresh]; }
 - (void)selectRowIndexes:(NSIndexSet *)i byExtendingSelection:(BOOL)e { [super selectRowIndexes:i byExtendingSelection:e]; [self.grid setNeedsDisplay:YES]; }
 - (void)deselectAll:(id)sender { [super deselectAll:sender]; [self.grid setNeedsDisplay:YES]; }
+/* The right button: NSTableView keeps it for its own menu (none), the control gets it like the other views (mffOnMouse:
+   OnMouseDown, OnMouseUp, its ContextMenu). The row under the mouse is selected first, as the commands of the menu use it */
+- (void)rightMouseDown:(NSEvent *)e {
+	NSScrollView *s = mffTableScroll(self);
+	void *ctrl = s ? mffGetCtrl(s) : NULL;
+	if (!ctrl) { [super rightMouseDown:e]; return; }
+	NSInteger row = [self rowAtPoint:[self convertPoint:[e locationInWindow] fromView:nil]];
+	if (row >= 0 && ![self isRowSelected:row]) [self selectRowIndexes:[NSIndexSet indexSetWithIndex:row] byExtendingSelection:NO];
+	NSPoint p = [s convertPoint:[e locationInWindow] fromView:nil];
+	int y = [s isFlipped] ? (int)p.y : (int)(NSHeight([s bounds]) - p.y);
+	mffOnMouse(ctrl, 0, 1, (int)p.x, y, mffShift([e modifierFlags]));
+	/* the menu tracking of the right button takes its release: up at once */
+	mffOnMouse(ctrl, 1, 1, (int)p.x, y, mffShift([e modifierFlags]));
+}
 @end
 
 static NSInteger mffClickedRow(NSTableView *t) {
@@ -492,6 +526,8 @@ static NSInteger mffClickedRow(NSTableView *t) {
 }
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)t { return [mffItems(t) count]; }
 - (id)tableView:(NSTableView *)t objectValueForTableColumn:(NSTableColumn *)c row:(NSInteger)row {
+	/* The row being edited: its text without the indent, the sign and the picture */
+	if (mffEditText && t == mffEditTable && row == mffEditRow && (mffEditStarting || [t editedRow] == row)) return mffEditText;
 	NSArray *a = mffItems(t);
 	if (row >= (NSInteger)[a count]) return @"";
 	id item = a[row];
@@ -501,6 +537,43 @@ static NSInteger mffClickedRow(NSTableView *t) {
 	}
 	if (objc_getAssociatedObject(t, &kMffChecksKey)) return [([mffChecks(t) containsIndex:row] ? @"\u2611 " : @"\u2610 ") stringByAppendingString:item];
 	return mffCellValue(item);
+}
+/* A click on the selected row of an editable column: the program is asked (the tables without mffTableSetEditable
+   keep the editing of NSTableView) */
+- (BOOL)tableView:(NSTableView *)t shouldEditTableColumn:(NSTableColumn *)c row:(NSInteger)row {
+	if (!objc_getAssociatedObject(t, &kMffEditableKey)) return YES;
+	NSView *v = mffTableScroll(t);
+	void *ctrl = v ? mffGetCtrl(v) : NULL;
+	if (!ctrl || row < 0) return NO;
+	mffEditText = nil;
+	mffEditCancel = 0;
+	mffEditState = 1;
+	mffOnChange(ctrl, (int)row);
+	mffEditState = 0;
+	if (mffEditCancel) { mffEditText = nil; return NO; }
+	mffEditTable = t;
+	mffEditRow = row;
+	/* The editor takes the text of the row right after this: then [t editedRow] is the row */
+	mffEditStarting = YES;
+	dispatch_async(dispatch_get_main_queue(), ^{ mffEditStarting = NO; });
+	return YES;
+}
+/* The end of the editing (not after Esc): the program changes the text of the row after it */
+- (void)tableView:(NSTableView *)t setObjectValue:(id)o forTableColumn:(NSTableColumn *)c row:(NSInteger)row {
+	if (!objc_getAssociatedObject(t, &kMffEditableKey)) return;
+	NSView *v = mffTableScroll(t);
+	void *ctrl = v ? mffGetCtrl(v) : NULL;
+	NSString *s = [o isKindOfClass:[NSString class]] ? o : ([o isKindOfClass:[NSAttributedString class]] ? [o string] : [o description]);
+	mffEditText = nil;
+	mffEditRow = -1;
+	if (!ctrl || row < 0) return;
+	dispatch_async(dispatch_get_main_queue(), ^{
+		mffEditText = s;
+		mffEditState = 2;
+		mffOnChange(ctrl, (int)row);
+		mffEditState = 0;
+		mffEditText = nil;
+	});
 }
 - (void)tableViewSelectionDidChange:(NSNotification *)n {
 	if (mffSilent) return;
@@ -942,6 +1015,8 @@ void *mffViewCreate(const char *kind, void *ctrl) {
 		NSTableView *tv = [[MffTableView alloc] initWithFrame:[[s contentView] bounds]];
 		NSTableColumn *col = [[NSTableColumn alloc] initWithIdentifier:@"mff"];
 		[col setResizingMask:NSTableColumnAutoresizingMask];
+		/* NSTableColumn is editable by default: a click on the selected row would start editing its text */
+		[col setEditable:NO];
 		[tv addTableColumn:col];
 		[tv setHeaderView:nil];
 		[tv setColumnAutoresizingStyle:NSTableViewUniformColumnAutoresizingStyle];
@@ -1461,6 +1536,33 @@ void mffFormSetMainMenu(void *view, const char *items) {
 	(void)view; (void)items;
 }
 
+/* Icon.Handle: the picture of a file (.icns, .png, .ico) as a retained NSImage, NULL if the file is not a picture */
+void *mffIconLoad(const char *path) {
+	if (!path || !*path) return NULL;
+	NSImage *img = [[NSImage alloc] initWithContentsOfFile:[NSString stringWithUTF8String:path]];
+	if (!img || ![img isValid]) return NULL;
+	return (void *)CFBridgingRetain(img);
+}
+
+void *mffIconRetain(void *icon) {
+	if (icon) CFRetain(icon);
+	return icon;
+}
+
+void mffIconFree(void *icon) {
+	if (icon) CFRelease(icon);
+}
+
+/* The windows of macOS have no icons: the icon of the main form is the one of the program in the Dock (a program without
+   a bundle with an icon has the one of a terminal program there). force 0: only when the program has none of a form yet */
+static BOOL mffAppIconSet;
+void mffAppSetIcon(void *icon, int force) {
+	if (!icon || (!force && mffAppIconSet)) return;
+	mffEnsureApp();
+	[NSApp setApplicationIconImage:(__bridge NSImage *)icon];
+	mffAppIconSet = YES;
+}
+
 int mffScreenSize(int vertical) {
 	mffEnsureApp();
 	NSRect s = [[[NSScreen screens] firstObject] frame];
@@ -1846,6 +1948,34 @@ void mffTableCellRect(void *view, int row, int col, void *pRect) {
 
 int mffTableDblClick(void) {
 	return mffDblClick;
+}
+
+/* The text of the rows of the table is edited by the user (a click on the selected row) */
+void mffTableSetEditable(void *view, int value) {
+	NSTableView *t = mffTable(view);
+	if (!t) return;
+	objc_setAssociatedObject(t, &kMffEditableKey, value ? @YES : nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+	for (NSTableColumn *c in [t tableColumns]) [c setEditable:value != 0];
+}
+
+/* In mffOnChange: 0 - a click, 1 - the editing begins, 2 - the editing ended (mffTableEditText is the new text) */
+int mffTableEditState(void) {
+	return mffEditState;
+}
+
+/* State 1: the text to edit (without the indent and the sign of the row) */
+void mffTableEditSetText(const char *text) {
+	if (mffEditState == 1) mffEditText = mffStr(text);
+}
+
+/* State 1: no editing */
+void mffTableEditCancel(void) {
+	if (mffEditState == 1) mffEditCancel = 1;
+}
+
+/* State 2: the new text (free it) */
+char *mffTableEditText(void) {
+	return mffDup(mffEditText);
 }
 
 /* ---- TabControl: the strip of the tabs in the view ---- */

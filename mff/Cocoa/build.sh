@@ -25,7 +25,9 @@ fi
 sh "$DIR/../Apple/fix-c-code.sh" "$SRC"
 # The flags of fbc for the C code of -gen gcc
 OPT="-O1"
-[ -n "$MFF_DEBUG" ] && OPT="-g -O0"
+# (the frame record {x29, x30} also in the functions without calls of arm64: the Integrated IDE Debugger of
+# VisualFBEditor walks the stack with x29)
+[ -n "$MFF_DEBUG" ] && OPT="-g -O0 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer"
 clang -c $OPT -w -fno-strict-aliasing -fwrapv -fno-math-errno -fno-exceptions -fno-asynchronous-unwind-tables -funwind-tables "$SRC" -o "$OUT.o"
 clang -c -O1 -fobjc-arc -Wall "$DIR/mffCocoa.m" -o "$OUT.mff.o"
 RT0=""
@@ -34,6 +36,16 @@ clang -o "$OUT" $RT0 "$OUT.o" "$OUT.mff.o" -L"$LIB" -lfbmt -lpthread -lm -lncurs
 rm -rf "$OUT.dSYM"
 [ -n "$MFF_DEBUG" ] && dsymutil "$OUT" -o "$OUT.dSYM"
 rm -f "$OUT.o" "$OUT.mff.o"
+
+# The signature (ad hoc) with the entitlements of the program: MFF_ENTITLEMENTS or Program.entitlements next to
+# Program.c (VisualFBEditor: src/VisualFBEditor.entitlements, com.apple.security.cs.debugger for task_for_pid of the
+# Integrated IDE Debugger; without it task_for_pid returns 5 even with the Developer Mode)
+ENT="${MFF_ENTITLEMENTS:-${SRC%.*}.entitlements}"
+if [ -f "$ENT" ]; then
+	codesign -s - -f --entitlements "$ENT" "$OUT"
+else
+	codesign -s - -f "$OUT"
+fi
 
 # The bundle: a program of the Dock with its menu and its windows in front
 NAME="$(basename "$OUT")"
@@ -55,4 +67,9 @@ cat > "$APP/Contents/Info.plist" <<EOF
 </dict>
 </plist>
 EOF
+if [ -f "$ENT" ]; then
+	codesign -s - -f --entitlements "$ENT" "$APP"
+else
+	codesign -s - -f "$APP"
+fi
 echo "Built: $OUT, $APP"

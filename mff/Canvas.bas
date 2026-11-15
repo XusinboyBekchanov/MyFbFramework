@@ -2658,6 +2658,9 @@ Namespace My.Sys.Drawing
 			Dim pClone As GpPath Ptr = 0
 			If hGdipPath <> 0 Then GdipClonePath(hGdipPath, @pClone)
 			Return pClone
+		#else
+			'macOS, iOS: the Canvas has no path to copy
+			Return 0
 		#endif
 	End Function
 

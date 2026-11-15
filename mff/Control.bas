@@ -4776,7 +4776,8 @@ End Namespace
 	End Sub
 	
 	'Action: 0 - a button went down, 1 - up, 2 - the mouse moved (Button -1: no button is pressed), 3 - it left the view,
-	'4 - the wheel turned (Button: 1 - up, -1 - down), 5 - the horizontal wheel. Button: 0 - left, 1 - right, 2 - middle
+	'4 - the wheel turned (Button: 1 - up, -1 - down), 5 - the horizontal wheel, 6 - the mouse stays (OnMouseHover, macOS).
+	'Button: 0 - left, 1 - right, 2 - middle
 	Sub mffOnMouse Cdecl Alias "mffOnMouse"(ByVal Ctrl As My.Sys.Forms.Control Ptr, ByVal Action As Long, ByVal Button As Long, ByVal x As Long, ByVal y As Long, ByVal Shift As Long) Export
 		If Ctrl = 0 Then Exit Sub
 		Dim As Message msg
@@ -4806,6 +4807,8 @@ End Namespace
 			SendControlInputMessage(Ctrl, CM_MOUSEWHEEL, Button, msg.lParam, x, y, Shift)
 		Case 5
 			SendControlInputMessage(Ctrl, CM_MOUSEHWHEEL, Button, msg.lParam, x, y, Shift)
+		Case 6
+			If Ctrl->OnMouseHover Then Ctrl->OnMouseHover(*Ctrl->Designer, *Ctrl, Button, x, y, Shift)
 		End Select
 	End Sub
 	

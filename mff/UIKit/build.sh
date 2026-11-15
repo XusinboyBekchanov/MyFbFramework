@@ -46,6 +46,33 @@ mkdir -p "$APP"
 rm -rf "$APP/Contents"
 $CC -o "$APP/$NAME" $RT0 "$OUT.o" "$OUT.mff.o" -L"$LIB" -lfbmt -lpthread -lm -framework UIKit -framework WebKit -framework CoreGraphics -framework Foundation
 rm -f "$OUT.o" "$OUT.mff.o"
+# The icon of the Home Screen: iOS takes it only from the files of the bundle (Icon of a form does not change it).
+# MFF_ICON=File, or AppIcon.png (a square picture without transparency: iOS rounds its corners itself), Program.png
+# (.icns, .ico) or Icon.png in Resources next to Program.c (or one folder up), as the pictures of the sizes of the iPhone
+# and the iPad (loose files, without an asset catalog of Xcode)
+SRCDIR="$(cd "$(dirname "$SRC")" && pwd)"
+ICON="$MFF_ICON"
+if [ -z "$ICON" ]; then
+	for R in "$SRCDIR/Resources" "$SRCDIR/../Resources"; do
+		for F in AppIcon.png "$NAME.png" "$NAME.icns" "$NAME.ico" Icon.png; do
+			if [ -f "$R/$F" ]; then ICON="$R/$F"; break 2; fi
+		done
+	done
+fi
+rm -f "$APP"/AppIcon*.png
+ICONS=""
+if [ -n "$ICON" ]; then
+	if [ ! -f "$ICON" ]; then
+		echo "The icon $ICON is not there"
+	else
+		for S in "60x60@2x 120" "60x60@3x 180" "76x76@2x~ipad 152" "83.5x83.5@2x~ipad 167"; do
+			set -- $S
+			sips -s format png -z "$2" "$2" "$ICON" --out "$APP/AppIcon$1.png" >/dev/null
+		done
+		ICONS="	<key>CFBundleIcons</key><dict><key>CFBundlePrimaryIcon</key><dict><key>CFBundleIconFiles</key><array><string>AppIcon60x60</string></array></dict></dict>
+	<key>CFBundleIcons~ipad</key><dict><key>CFBundlePrimaryIcon</key><dict><key>CFBundleIconFiles</key><array><string>AppIcon60x60</string><string>AppIcon76x76</string><string>AppIcon83.5x83.5</string></array></dict></dict>"
+	fi
+fi
 cat > "$APP/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -61,13 +88,13 @@ cat > "$APP/Info.plist" <<EOF
 	<key>UIDeviceFamily</key><array><integer>1</integer><integer>2</integer></array>
 	<key>UILaunchScreen</key><dict/>
 	<key>UISupportedInterfaceOrientations</key><array><string>UIInterfaceOrientationPortrait</string><string>UIInterfaceOrientationLandscapeLeft</string><string>UIInterfaceOrientationLandscapeRight</string></array>
+$ICONS
 </dict>
 </plist>
 EOF
 # The files of the program in the bundle: Resources next to Program.c (or one folder up, like a program made with
 # -x ../) as AppResources (iOS does not install a bundle with Resources at its top), and the lines "From [To]" of
 # ios-bundle.txt next to Program.c (From from its folder, To the path in the bundle, From by default)
-SRCDIR="$(cd "$(dirname "$SRC")" && pwd)"
 for R in "$SRCDIR/Resources" "$SRCDIR/../Resources"; do
 	if [ -d "$R" ]; then
 		rm -rf "$APP/AppResources"

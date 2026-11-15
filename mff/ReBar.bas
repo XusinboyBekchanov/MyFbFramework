@@ -713,8 +713,8 @@ Namespace My.Sys.Forms
 			'There is no native ReBar: the bands are put in rows, a band which does not fit begins a new row
 			If Message.Msg = CM_SIZE Then
 				Dim As Integer iLeft, iTop, RowHeight, BandWidth, BandHeight, iWidth = Message.wParam
-				#ifdef __USE_JNI__
-					'Android: the left, the top and the height of the rows (a band which does not fit in the last row goes
+				#if defined(__USE_JNI__) OrElse defined(__USE_UIKIT__)
+					'Android, iOS: the left, the top and the height of the rows (a band which does not fit in the last row goes
 					'into the first row above with the free width for it: the wider buttons of Android made more rows)
 					Dim As Integer iRows, RowLefts(Bands.Count), RowTops(Bands.Count), RowHeights(Bands.Count), iRow, BandRows(Bands.Count)
 				#endif
@@ -752,7 +752,7 @@ Namespace My.Sys.Forms
 						If BandWidth <= 0 Then BandWidth = 100
 						'The buttons of a ToolBar are views of the Web/Android side: their height is not known here
 						BandHeight = Max(.MinHeight, Max(.Child->Height, 36))
-						#ifdef __USE_JNI__
+						#if defined(__USE_JNI__) OrElse defined(__USE_UIKIT__)
 							iRow = -1
 							If iRows > 0 AndAlso Not .Break Then
 								If RowLefts(iRows - 1) + BandWidth <= iWidth Then
@@ -790,7 +790,7 @@ Namespace My.Sys.Forms
 						#endif
 					End With
 				Next
-				#ifdef __USE_JNI__
+				#if defined(__USE_JNI__) OrElse defined(__USE_UIKIT__)
 					'The bands of a row have its height: the buttons of the toolbars in it are on one line (a lower band
 					'had them higher)
 					For i As Integer = 0 To Bands.Count - 1

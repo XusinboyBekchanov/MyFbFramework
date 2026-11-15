@@ -752,6 +752,8 @@ Namespace My.Sys.Forms
 			g_value_unset(@bValue)
 		#elseif defined(__USE_WINAPI__)
 			ChangeStyle TVS_EDITLABELS, Value
+		#elseif defined(__USE_APPLE__)
+			If FHandle Then mffTableSetEditable(FHandle, Value)
 		#endif
 	End Property
 	
@@ -905,6 +907,9 @@ Namespace My.Sys.Forms
 			If Sender.Child Then
 				With QTreeView(Sender.Child)
 					TableInit(.FHandle)
+					#ifdef __USE_APPLE__
+						If .FEditLabels Then mffTableSetEditable(.FHandle, 1)
+					#endif
 					.UpdateRows
 				End With
 			End If
@@ -920,6 +925,33 @@ Namespace My.Sys.Forms
 				#else
 					RowIndex = TableGetIndex(FHandle)
 				#endif
+				#ifdef __USE_APPLE__
+					'The editing of the text of a node (EditLabels): OnBeforeLabelEdit when it begins, OnAfterLabelEdit
+					'when it ended (Cancel keeps the text)
+					Dim As Long EditState = mffTableEditState()
+					If EditState <> 0 Then
+						If RowIndex < 0 OrElse RowIndex > UBound(FRowNodes) OrElse FRowNodes(RowIndex) = 0 Then
+							If EditState = 1 Then mffTableEditCancel()
+						Else
+							Dim As TreeNode Ptr ENode = FRowNodes(RowIndex)
+							Dim As Boolean bCancel
+							If EditState = 1 Then
+								If OnBeforeLabelEdit Then OnBeforeLabelEdit(*Designer, This, *ENode, ENode->Text, bCancel)
+								If bCancel Then mffTableEditCancel() Else mffTableEditSetText(ToUtf8(ENode->Text))
+							Else
+								Dim As ZString Ptr pUtf8 = mffTableEditText()
+								Dim As WString Ptr pText = IIf(pUtf8, FromUtf8(pUtf8), 0)
+								If pUtf8 Then Deallocate(pUtf8)
+								Dim As UString sText = IIf(pText, *pText, "")
+								If pText Then WDeAllocate(pText)
+								If OnAfterLabelEdit Then OnAfterLabelEdit(*Designer, This, *ENode, sText, bCancel)
+								'(the node can be removed by OnAfterLabelEdit)
+								If Not bCancel AndAlso RowIndex <= UBound(FRowNodes) AndAlso FRowNodes(RowIndex) = ENode Then ENode->Text = sText
+							End If
+						End If
+						RowIndex = -1 'not a click
+					End If
+				#endif
 				If RowIndex >= 0 AndAlso RowIndex <= UBound(FRowNodes) Then
 					Dim As TreeNode Ptr PNode = FRowNodes(RowIndex)
 					Dim As Boolean bChanged = (PNode <> FSelectedNode)
@@ -934,7 +966,15 @@ Namespace My.Sys.Forms
 						If TableDblClick(FHandle) OrElse bToggle Then
 					#endif
 						If PNode->Nodes.Count > 0 Then
-							If PNode->IsExpanded Then PNode->Collapse Else PNode->Expand
+							If PNode->IsExpanded Then
+								PNode->Collapse
+							Else
+								'OnNodeExpanding like the expanding by the user on Windows and GTK: the program fills the node
+								'before it is opened (the children made when it is expanded), Cancel keeps it closed
+								Dim As Boolean bCancel
+								If OnNodeExpanding Then OnNodeExpanding(*Designer, This, *PNode, bCancel)
+								If Not bCancel Then PNode->Expand
+							End If
 						#ifdef __USE_WASM__
 						ElseIf bToggle Then
 						#endif

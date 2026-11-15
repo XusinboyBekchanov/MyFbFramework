@@ -89,6 +89,14 @@ Extern "C"
 	Declare Sub mffFormSetBorder(ByVal Id As Any Ptr, ByVal Style As Long)
 	Declare Sub mffFormSetMainMenu(ByVal Id As Any Ptr, ByVal Items As Const ZString Ptr)
 	Declare Function mffScreenSize(ByVal Vertical As Long) As Long
+	#ifdef __USE_COCOA__
+		'Icon.Handle: a retained NSImage of the file (.icns, .png, .ico), 0 - not a picture
+		Declare Function mffIconLoad(ByVal Path As Const ZString Ptr) As Any Ptr
+		Declare Function mffIconRetain(ByVal Icon As Any Ptr) As Any Ptr
+		Declare Sub mffIconFree(ByVal Icon As Any Ptr)
+		'The icon of the program in the Dock (the windows of macOS have no icons), Force 0 - only when it has none of a form yet
+		Declare Sub mffAppSetIcon(ByVal Icon As Any Ptr, ByVal Force As Long)
+	#endif
 
 	Declare Sub mffAppRun()
 	Declare Sub mffAppTerminate()
@@ -163,6 +171,14 @@ Extern "C"
 	Declare Sub mffTableSetRow(ByVal Id As Any Ptr, ByVal Index As Long, ByVal Cells As Const ZString Ptr)
 	Declare Sub mffTableCellRect(ByVal Id As Any Ptr, ByVal Row As Long, ByVal Col As Long, ByVal pRect As Any Ptr)
 	Declare Function mffTableDblClick() As Long
+	'The editing of the text of a row (TreeView.EditLabels): mffOnChange with the row and mffTableEditState 1 before it
+	'(mffTableEditSetText gives the text to edit, mffTableEditCancel cancels it), 2 after it (mffTableEditText: the new
+	'text, to free)
+	Declare Sub mffTableSetEditable(ByVal Id As Any Ptr, ByVal Value As Long)
+	Declare Function mffTableEditState() As Long
+	Declare Sub mffTableEditSetText(ByVal Text As Const ZString Ptr)
+	Declare Sub mffTableEditCancel()
+	Declare Function mffTableEditText() As ZString Ptr
 	'The Canvas draws on the view in its mffOnPaint (or on the view of mffCanvasBegin out of it)
 	Declare Sub mffCanvasBegin(ByVal Id As Any Ptr)
 	Declare Sub mffCanvasEnd(ByVal Id As Any Ptr)

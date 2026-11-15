@@ -151,6 +151,13 @@ Namespace My.Sys.Drawing
 		#elseif defined(__USE_WASM__)
 			'Web: the browser loads the file (Form.IconChanged, FindIconFile)
 			This.ResName = File
+		#elseif defined(__USE_COCOA__)
+			'macOS: an NSImage of the file (.icns, .png, .ico)
+			If File = "" Then Return False
+			Dim As Any Ptr NewHandle = mffIconLoad(ToUtf8(File))
+			If NewHandle = 0 Then Return False
+			If Handle Then mffIconFree(Handle)
+			Handle = NewHandle
 		#endif
 		If Changed Then Changed(*Designer, This)
 		Return True
@@ -191,6 +198,18 @@ Namespace My.Sys.Drawing
 			#elseif defined(__USE_WASM__)
 				'Web: the resource of the .rc file of the program (Form.IconChanged, FindIconFile)
 				This.ResName = ResourceName
+			#elseif defined(__USE_COCOA__)
+				'macOS: the file ResourceName.icns, .png or .ico in the Resources of the program (of its bundle too)
+				If ResourceName = "" Then Return False
+				Dim As String Folders(3) = {"/Resources/", "/../Resources/", "/AppResources/", "/resources/"}
+				Dim As String Exts(2) = {".icns", ".png", ".ico"}
+				For i As Integer = 0 To 3
+					For j As Integer = 0 To 2
+						Dim As String FileName = ExePath & Folders(i) & ResourceName & Exts(j)
+						If FileExists(FileName) Then Return LoadFromFile(FileName, cx, cy)
+					Next
+				Next
+				Return False
 			#endif
 			If Changed Then Changed(*Designer, This)
 			Return True
@@ -215,6 +234,9 @@ Namespace My.Sys.Drawing
 				DeleteObject(ICIF.hbmMask)
 			#elseif defined(__USE_WASM__)
 				This.ResName = WStr(ResID)
+			#elseif defined(__USE_COCOA__)
+				'macOS: no resources with numbers (Icon.Let tries the file then)
+				Return False
 			#endif
 			If Changed Then Changed(*Designer, This)
 			Return True
@@ -248,6 +270,12 @@ Namespace My.Sys.Drawing
 	Private Operator Icon.Let(Value As Icon)
 		#ifdef __USE_WINAPI__
 			If Handle Then DestroyIcon(Handle)
+		#elseif defined(__USE_COCOA__)
+			If Value.Handle = Handle Then Exit Operator
+			If Handle Then mffIconFree(Handle)
+			Handle = mffIconRetain(Value.Handle)
+			If Changed Then Changed(*Designer, This)
+			Exit Operator
 		#endif
 		Handle = Value.Handle
 		If Changed Then Changed(*Designer, This)
@@ -278,6 +306,8 @@ Namespace My.Sys.Drawing
 			If Handle Then g_object_unref(Handle)
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then DestroyIcon Handle
+		#elseif defined(__USE_COCOA__)
+			If Handle Then mffIconFree(Handle)
 		#endif
 	End Destructor
 End Namespace

@@ -76,6 +76,12 @@ void mffFormSetState(void *view, int state);
 void mffFormSetBorder(void *view, int style);
 void mffFormSetMainMenu(void *view, const char *items);
 int mffScreenSize(int vertical);
+/* macOS only: Icon.Handle is a retained NSImage of the file (NULL - not a picture); mffAppSetIcon puts it in the Dock,
+   force 0 - only when the program has no icon of a form yet */
+void *mffIconLoad(const char *path);
+void *mffIconRetain(void *icon);
+void mffIconFree(void *icon);
+void mffAppSetIcon(void *icon, int force);
 
 void mffAppRun(void);
 void mffAppTerminate(void);
@@ -129,6 +135,11 @@ void mffTableInsertRow(void *Id, int Index, const char *Cells);
 void mffTableSetRow(void *Id, int Index, const char *Cells);
 void mffTableCellRect(void *Id, int Row, int Col, void *pRect);
 int mffTableDblClick(void);
+void mffTableSetEditable(void *Id, int Value);
+int mffTableEditState(void);
+void mffTableEditSetText(const char *Text);
+void mffTableEditCancel(void);
+char *mffTableEditText(void);
 void mffCanvasBegin(void *Id);
 void mffCanvasEnd(void *Id);
 void mffCanvasNewPath(void);
