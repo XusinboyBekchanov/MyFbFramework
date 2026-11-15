@@ -8117,7 +8117,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WASM__
 			'The browser focuses the grid after the press which opened the editor (a double
 			'click): the editor gets the focus again when the button is released
-			If FInEdit AndAlso EditText_ <> 0 AndAlso EditText_->Visible Then EditText_->SetFocus
+			If FInEdit AndAlso CBool(EditText_ <> 0) AndAlso EditText_->Visible Then EditText_->SetFocus
 		#endif
 	End Sub
 	#endif

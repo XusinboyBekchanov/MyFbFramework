@@ -839,7 +839,7 @@ Private Sub Button.DrawGlyph(ByRef rcCell As My.Sys.Drawing.Rect, ByRef sGlyph A
 				ClearHot
 			Case CM_KEYDOWN
 				'13 = Enter, 32 = Space, the same keys the Windows branch takes
-				If This.Enabled AndAlso (Message.wParam = 13 OrElse Message.wParam = 32) Then FireClick
+				If This.Enabled AndAlso (CBool(Message.wParam = 13) OrElse CBool(Message.wParam = 32)) Then FireClick
 			End Select
 		#endif
 		Base.ProcessMessage(Message)
