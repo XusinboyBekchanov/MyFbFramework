@@ -6,26 +6,28 @@
 # Program.c is the C code of the program (on any system):
 #   fbc -target darwin-aarch64 (darwin-x86_64 on a Mac with Intel) -gen gcc -r -d __USE_UIKIT__ -i <MyFbFramework> -m Program Program.bas
 # With -gen gas64 (a fast compilation on a Mac with Intel) Program.asm of fbc -gen gas64 -r is given instead of Program.c.
-# FbcDir is the folder with the runtime of FreeBASIC built for the Simulator (lib/freebasic/darwin-*), ../fbc-ios by
-# default, made from the sources of fbc:
-#   sh build-rtlib.sh ../fbc ../fbc-ios
+# FbcDir is the folder of fbc with the runtime of FreeBASIC built for the Simulator (lib/freebasic/iossim-<cpu>), ../fbc by
+# default:
+#   sh build-rtlib.sh ../fbc
 # The bundle is Program.app.
 set -e
 SRC="$1"
 OUT="$2"
-FBC="${3:-../fbc-ios}"
+FBC="${3:-../fbc}"
 DIR="$(cd "$(dirname "$0")" && pwd)"
 if [ -z "$SRC" ] || [ -z "$OUT" ]; then
 	echo "Usage: build.sh Program.c Program [FbcDir]"
 	exit 1
 fi
-LIB="$(ls -d "$FBC"/lib/freebasic/darwin-* 2>/dev/null | head -n 1)"
-if [ ! -f "$LIB/libfbmt.a" ]; then
-	echo "The runtime of FreeBASIC (libfbmt.a) is not in $FBC/lib/freebasic/darwin-*"
-	exit 1
-fi
 # The Simulator runs the code of the processor of the Mac
 ARCH="$(uname -m)"
+CPU="$ARCH"
+[ "$CPU" = "arm64" ] && CPU=aarch64
+LIB="$FBC/lib/freebasic/iossim-$CPU"
+if [ ! -f "$LIB/libfbmt.a" ]; then
+	echo "The runtime of FreeBASIC for the Simulator (libfbmt.a) is not in $FBC/lib/freebasic/iossim-$CPU: sh build-rtlib.sh $FBC"
+	exit 1
+fi
 CC="xcrun --sdk iphonesimulator clang -target $ARCH-apple-ios14.0-simulator"
 case "$SRC" in
 *.asm)
