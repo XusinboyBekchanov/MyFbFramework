@@ -17,6 +17,7 @@
 #include once "OpenFileControl.bi"
 #ifdef __USE_WINAPI__
 	#include once "win/objbase.bi"
+	#include once "fbthread.bi" 'ThreadDetach
 #elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	#include once "dir.bi"
 #endif

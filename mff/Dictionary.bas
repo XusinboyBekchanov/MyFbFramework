@@ -242,6 +242,8 @@ Private Sub Dictionary.LoadFromFile(ByRef Filename As WString)
 	If Open(Filename For Input Encoding "utf-8" As #Fn) <> 0 Then Exit Sub
 	Dim FileSize As Integer = LOF(Fn)
 	If FileSize = 0 Then Close #Fn : Exit Sub
+	'The items of the file replace the items (FCount is used by Item: it is set after the items are added)
+	This.Clear
 	Dim pBuff As WString Ptr
 	WLet(pBuff, WInput(FileSize, #Fn))
 	Close #Fn
@@ -268,6 +270,7 @@ Private Sub Dictionary.LoadFromFile(ByRef Filename As WString)
 		Erase lines
 	End If
 	WDeAllocate(pBuff)
+	FCount = FItems.Count
 	If OnChange Then OnChange(This)
 End Sub
 

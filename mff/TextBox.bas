@@ -1527,6 +1527,12 @@ Namespace My.Sys.Forms
 					If cp <> 0 Then
 						message.Result = CallWindowProc(cp, message.hWnd, message.Msg, message.wParam, message.lParam)
 					End If
+					'The dark line is over the light inner line of the border: without the border it would be in the text
+					'(over the caret, which leaves a point of the caret in its place)
+					If (GetWindowLong(message.hWnd, GWL_EXSTYLE) And WS_EX_CLIENTEDGE) = 0 Then
+						message.Result = 0
+						Return
+					End If
 					Dim As HDC Dc
 					Dc = GetWindowDC(Handle)
 					Dim As Rect r = Type( 0 )

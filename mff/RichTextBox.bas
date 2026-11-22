@@ -1345,11 +1345,14 @@ Namespace My.Sys.Forms
 		End Function
 		
 		Private Function RichTextBox.GetTextCallback(dwCookie As DWORD_PTR, pbBuff As Byte Ptr, cb As Long, pcb As Long Ptr) As DWORD
-			Dim ptxt As UString Ptr = Cast(UString Ptr, dwCookie)
-			If ptxt Then
-				ptxt->AppendBuffer(pbBuff, cb)
-				*pcb = cb
+			'The bytes of the RTF (EM_STREAMOUT, SF_RTF: 7-bit text, the other characters are \'xx and \uN) go to a String
+			Dim As String Ptr pText = Cast(String Ptr, dwCookie)
+			If pText <> 0 AndAlso cb > 0 Then
+				Dim As Integer OldLen = Len(*pText)
+				*pText &= Space(cb)
+				memcpy(StrPtr(*pText) + OldLen, pbBuff, cb)
 			End If
+			*pcb = cb
 			Return 0
 		End Function
 	#endif
@@ -1357,11 +1360,12 @@ Namespace My.Sys.Forms
 	Private Property RichTextBox.TextRTF ByRef As WString
 		#ifdef __USE_WINAPI__
 			If FHandle Then
-				WLet(FTextRTF, "")
+				Dim As String RTFBytes
 				Dim editstream As EDITSTREAM
-				editstream.dwCookie = Cast(DWORD_PTR, @FTextRTF)
+				editstream.dwCookie = Cast(DWORD_PTR, @RTFBytes)
 				editstream.pfnCallback = Cast(EDITSTREAMCALLBACK, @GetTextCallback)
 				SendMessage(FHandle, EM_STREAMOUT, SF_RTF, Cast(LPARAM, @editstream))
+				WLet(FTextRTF, RTFBytes)
 			End If
 		#elseif defined(__USE_WASM__)
 			If FHandle Then
@@ -1391,7 +1395,11 @@ Namespace My.Sys.Forms
 				bb.flags = ST_DEFAULT
 				bb.codepage = CP_ACP
 				Perform(EM_GETZOOM, CInt(@FZoomWP), CInt(@FZoomLP))
+				'A read-only RichEdit drops the pictures (\pict) of the RTF: it is not read-only while the RTF is set
+				Dim As Boolean WasReadOnly = (GetWindowLong(FHandle, GWL_STYLE) And ES_READONLY) <> 0
+				If WasReadOnly Then Perform(EM_SETREADONLY, False, 0)
 				Perform(EM_SETTEXTEX, Cast(WPARAM, @bb), Cast(LPARAM, StrPtr(Buffer)))
+				If WasReadOnly Then Perform(EM_SETREADONLY, True, 0)
 				Perform(EM_SETZOOM, FZoomWP, FZoomLP)
 			End If
 		#elseif defined(__USE_GTK__)

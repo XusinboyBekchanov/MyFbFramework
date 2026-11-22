@@ -2252,13 +2252,30 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Sub Menu.Clear
+		' The items are removed from the menu of the system too, FItems is of _Reallocate (Add) and FCount is 0 after:
+		' a menu filled again after Clear (the list of a dropdown button) works
+		#ifdef __USE_WINAPI__
+			If FHandle Then
+				While GetMenuItemCount(FHandle) > 0
+					If RemoveMenu(FHandle, 0, MF_BYPOSITION) = 0 Then Exit While
+				Wend
+			End If
+		#endif
 		If FItems Then
 			For i As Integer = FCount - 1 To 0 Step -1
-				If Item(i)->FDynamic Then _Delete(Item(i))
+				#if defined(__USE_GTK__) AndAlso Not defined(__MFF_MENU_MODEL__)
+					If widget AndAlso FItems[i]->Widget AndAlso GTK_IS_CONTAINER(widget) Then gtk_container_remove(GTK_CONTAINER(widget), FItems[i]->Widget)
+					FItems[i]->Widget = 0
+				#endif
+				If FItems[i]->FDynamic Then _Delete(FItems[i])
 			Next i
-			If FItems <> 0 Then _DeleteSquareBrackets( FItems)
-			FItems = 0 'callocate_(0)
+			_Deallocate(FItems)
+			FItems = 0
 		End If
+		FCount = 0
+		#ifdef __MFF_MENU_MODEL__
+			ModelRequestRebuild
+		#endif
 	End Sub
 	
 	Private Sub Menu.ProcessMessage(ByRef message As Message)

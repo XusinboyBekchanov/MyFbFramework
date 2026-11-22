@@ -49,10 +49,13 @@ Public:
 	Dim As String RTFHeader, RTFFooter, RTFFontName
 	Dim As WString Ptr RTFBodyPtr
 	Dim As Integer ColorIndexBK, ColorIndexCodeBK, ColorIndexFore, RTFFontSizefs, ColorTableBorder
+	'The width (twips) of the tables at most (the width of the RichTextBox), 0: the widths of their texts
+	Dim As Integer RTFMaxWidth
 	Declare Constructor(ByRef iFontName As String = "Arial", ByVal iFontSize As Integer = 12, ByVal iForeColor As Integer = -1, ByRef colorTblStr As String = "")
 	Declare Destructor()
 	Declare Sub FeedChunk(ByRef chunk As WString)
 	Declare Sub Flush()
+	Declare Sub FinishTable()
 	Declare Sub Initial(ByRef iFontName As String = "Arial", ByVal iFontSize As Integer = 12, ByVal iForeColor As Integer = -1, ByRef colorTblStr As String = "")
 	Declare Sub ProcessLine(ByVal iLine As WString Ptr)
 	Declare Function EscapeRTF(ByVal iTextPtr As WString Ptr) As WString Ptr
@@ -162,6 +165,8 @@ Sub MarkdownStreamConverter.FeedChunk(ByRef chunk As WString)
 			*CurrentLinePtr = Trim(*CurrentLinePtr, !"\r ") ' 仅去除尾部的回车符
 		End If
 		If Len(*CurrentLinePtr) = 0 Then
+			'An empty line also ends a table (the last table of an answer)
+			FinishTable
 			WAdd(RTFBodyPtr, m_DefaultStyle & "\li0\par" & Chr(10), , m_Capacity)
 			m_inListItem = False ' 空行重置列表状态
 			_Deallocate(CurrentLinePtr)
@@ -178,6 +183,36 @@ Sub MarkdownStreamConverter.FeedChunk(ByRef chunk As WString)
 	m_BufferPtr = Lines(UboundCount)
 	Erase Lines
 	UpdateRTB()
+End Sub
+
+'The end of a table: the widths of its columns, at most RTFMaxWidth (the long texts wrap in their cells)
+Sub MarkdownStreamConverter.FinishTable()
+	If m_State <> State_InTable Then Exit Sub
+	Dim As Integer colWidth = 0, Total = 0, Widths(Any)
+	If m_TableColCount > 0 Then ReDim Widths(m_TableColCount - 1)
+	For j As Integer = 0 To m_TableColCount - 1
+		Widths(j) = m_TableColWIdth(j) + 200
+		Total += Widths(j)
+	Next
+	If RTFMaxWidth > 0 AndAlso Total > RTFMaxWidth Then
+		'The narrow columns keep their widths, the wide ones share the rest
+		Dim As Integer Fair = RTFMaxWidth \ m_TableColCount, Narrow, WideTotal
+		For j As Integer = 0 To m_TableColCount - 1
+			If Widths(j) <= Fair Then Narrow += Widths(j) Else WideTotal += Widths(j)
+		Next
+		For j As Integer = 0 To m_TableColCount - 1
+			If Widths(j) > Fair AndAlso WideTotal > 0 Then Widths(j) = Max(600, CLng(CDbl(Widths(j)) * (RTFMaxWidth - Narrow) / WideTotal))
+		Next
+	End If
+	For j As Integer = 0 To m_TableColCount - 1
+		colWidth += Widths(j)
+		WLetEx(m_TableBufferPtr, Replace(*m_TableBufferPtr, "\cellxTmp" & (j + 1) & " " , "\cellx" & colWidth & " " ))
+	Next
+	If m_TableBufferPtr <> 0 Then
+		WAdd(RTFBodyPtr, Chr(10) & *m_TableBufferPtr & Chr(10) & "\pard\plain ", , m_Capacity)
+		_Deallocate(m_TableBufferPtr) : m_TableBufferPtr = 0 : m_CapacityTable = 0
+	End If
+	m_State = State_Normal
 End Sub
 
 Sub MarkdownStreamConverter.Flush()
@@ -533,32 +568,64 @@ Function MarkdownStreamConverter.freeBasicToRTF(ByRef LineText As WString) As WS
 	Return rtfiText
 End Function
 
-' Helper function: Process images (simplified placeholder implementation)
+' Helper function: Process images: the picture of a PNG or JPEG file in its size (96 DPI), not wider than RTFMaxWidth
+'(else the text [Image: ...] when the file is not found)
+Private Function MDHexByte(ByRef HexData As String, Index As Integer) As Integer
+	If Index * 2 + 2 > Len(HexData) Then Return -1
+	Return ValInt("&H" & Mid(HexData, Index * 2 + 1, 2))
+End Function
+
 Function MarkdownStreamConverter.ProcessImage(ByRef imgLine As WString) As String
 	Dim As Integer altStart = InStr(imgLine, "[" )
 	Dim As Integer altEnd   = InStr(altStart + 1, imgLine, "]" )
 	Dim As Integer imgStart = InStr(altEnd, imgLine, "(" )
-	Dim As Integer imgEnd   = InStr(imgStart + 1, imgLine, ")" )
-	If altStart = 0 OrElse altEnd = 0 OrElse imgStart = 0 OrElse imgEnd = 0 Then
+	Dim As Integer imgEnd   = InStrRev(imgLine, ")" )
+	If altStart = 0 OrElse altEnd = 0 OrElse imgStart = 0 OrElse imgEnd <= imgStart Then
 		Return imgLine & "\par"
 	End If
 	
 	Dim altText As String = Mid(imgLine, altStart + 1, altEnd - altStart - 1)
-	Dim imgPath As String = Mid(imgLine, imgStart + 1, imgEnd - imgStart - 1)
+	Dim imgPath As WString * 2048 = Trim(Mid(imgLine, imgStart + 1, imgEnd - imgStart - 1))
+	If Left(imgPath, 1) = "<" AndAlso Right(imgPath, 1) = ">" Then imgPath = Mid(imgPath, 2, Len(imgPath) - 2)
+	If LCase(Left(imgPath, 8)) = "file:///" Then imgPath = Mid(imgPath, 9)
+	'The line is escaped for RTF (EscapeRTF): \ \{ \} \~ \^ are the characters of the path
+	imgPath = Replace(Replace(Replace(Replace(Replace(imgPath, "\\", Chr(1)), "\{", "{"), "\}", "}"), "\~", "~"), "\^", "^")
+	imgPath = Replace(imgPath, Chr(1), "\")
+	'A big picture is not embedded: all the text of the chat is set again after every line
+	If FileLen(imgPath) > 3 * 1024 * 1024 Then Return "{\cf7 [Image: " & altText & "]}\par"
 	
 	Dim rtfImageBlock As String
 	Dim imgHexData As String = LoadFromFileHex(imgPath)
-	If Len(imgHexData) > 0 Then
-		Dim As String imgExt = LCase(Mid(imgPath, InStrRev(imgPath, "." ) + 1))
-		Dim As String rtfBlip = "\pngblip" ' 默认当作 PNG 处理
-		If imgExt = "jpg" OrElse imgExt = "jpeg" Then
-			rtfBlip = "\jpegblip"
-		End If
-		' 注意：\picw1\pich1 会让图片极小（1缇），实际应用中应根据图片像素尺寸换算为缇
-		' 1英寸 = 1440缇，若图片宽100像素(96dpi)，则 \picw 约为1500 24像素为360缇
-		rtfImageBlock = "{\pict" & rtfBlip & "\picw480\pich480 " & imgHexData & "}\par"
+	Dim As String rtfBlip
+	Dim As Integer W, H
+	If MDHexByte(imgHexData, 0) = &H89 AndAlso MDHexByte(imgHexData, 1) = &H50 Then
+		rtfBlip = "\pngblip"
+		W = (MDHexByte(imgHexData, 16) Shl 24) Or (MDHexByte(imgHexData, 17) Shl 16) Or (MDHexByte(imgHexData, 18) Shl 8) Or MDHexByte(imgHexData, 19)
+		H = (MDHexByte(imgHexData, 20) Shl 24) Or (MDHexByte(imgHexData, 21) Shl 16) Or (MDHexByte(imgHexData, 22) Shl 8) Or MDHexByte(imgHexData, 23)
+	ElseIf MDHexByte(imgHexData, 0) = &HFF AndAlso MDHexByte(imgHexData, 1) = &HD8 Then
+		rtfBlip = "\jpegblip"
+		'The size is in the frame (SOF0..SOF15 without DHT, JPG, DAC)
+		Dim As Integer Posi = 2, Count = Len(imgHexData) \ 2
+		Do While Posi + 8 < Count
+			If MDHexByte(imgHexData, Posi) <> &HFF Then Exit Do
+			Dim As Integer Marker = MDHexByte(imgHexData, Posi + 1)
+			If Marker >= &HC0 AndAlso Marker <= &HCF AndAlso Marker <> &HC4 AndAlso Marker <> &HC8 AndAlso Marker <> &HCC Then
+				H = (MDHexByte(imgHexData, Posi + 5) Shl 8) Or MDHexByte(imgHexData, Posi + 6)
+				W = (MDHexByte(imgHexData, Posi + 7) Shl 8) Or MDHexByte(imgHexData, Posi + 8)
+				Exit Do
+			End If
+			Posi += 2 + ((MDHexByte(imgHexData, Posi + 2) Shl 8) Or MDHexByte(imgHexData, Posi + 3))
+		Loop
+	End If
+	If rtfBlip <> "" AndAlso W > 0 AndAlso H > 0 Then
+		'15 twips are a pixel of 96 DPI; not wider than the text and not higher than 4 inches
+		Dim As Double GoalW = W * 15, GoalH = H * 15
+		Dim As Integer MaxW = IIf(RTFMaxWidth > 0, RTFMaxWidth, 7000), MaxH = 5760
+		If GoalW > MaxW Then GoalH = GoalH * MaxW / GoalW: GoalW = MaxW
+		If GoalH > MaxH Then GoalW = GoalW * MaxH / GoalH: GoalH = MaxH
+		rtfImageBlock = "{\pict" & rtfBlip & "\picw" & W & "\pich" & H & "\picwgoal" & CInt(GoalW) & "\pichgoal" & CInt(GoalH) & " " & imgHexData & "}\par"
 	Else
-		rtfImageBlock = "{\cf7 [Image: " & altText & " (" & imgPath & ")]}\par"
+		rtfImageBlock = "{\cf7 [Image: " & altText & "]}\par"
 	End If
 	Return rtfImageBlock
 End Function
@@ -590,10 +657,15 @@ Sub MarkdownStreamConverter.ProcessLine(ByVal iLinePtr As WString Ptr)
 			If ResultPtr Then _Deallocate(ResultPtr)
 		Case 96 '"`"  ' 1. Code block processing (enhanced robustness)
 			'If (Trim(*iLinePtr) = "```") Then 'NOT always in the begging in GLM
-			If iLineLen > 3 Then '`
+			If iLineLen >= 3 AndAlso Left(*iLinePtr, 3) = "```" Then '`
 				'If InStr(LCase(*iLinePtr), "```freebasic") OrElse InStr(LCase(*iLinePtr), "```fb") OrElse InStr(LCase(*iLinePtr), "```vb") Then
 				m_State = State_InCodeBlock
 				WAdd(RTFBodyPtr, "\f1\fs" & (RTFFontSizefs) & "\cf2\highlight" & "7" & " " & Left(*iLinePtr & Space(300), 300) & "\cf" & ColorIndexFore & "\highlight" & ColorIndexCodeBK & "\par", , m_Capacity)
+			Else
+				'Only ``` opens a code block: a line that begins with `inline code` is a paragraph (the rest of the
+				'answer was a code block, the line was cut at 300 characters)
+				Dim As WString Ptr ResultPtr = ProcessInlineStyles(iLinePtr)
+				If ResultPtr Then WAdd(RTFBodyPtr, m_DefaultStyle & *ResultPtr & "\par", , m_Capacity): _Deallocate(ResultPtr)
 			End If
 		Case 49 To 57 '"1" To "9" ' 2. 解析 "1. **title 1**" 等数字标题列表
 			Dim As Integer dotPos = InStr(*iLinePtr, ". **")
@@ -623,6 +695,7 @@ Sub MarkdownStreamConverter.ProcessLine(ByVal iLinePtr As WString Ptr)
 			If iLineLen > 2 AndAlso (*iLinePtr)[iLineLen - 1] = 124 Then
 				m_State = State_PotentialTable
 				WLet(m_TableBufferPtr, *iLinePtr)
+				m_CapacityTable = 0
 			End If
 		Case 32 '" " ' 3. 处理列表项下方的缩进内容 (如 "   abcd")
 			'If m_inListItem Then
@@ -695,21 +768,12 @@ Sub MarkdownStreamConverter.ProcessLine(ByVal iLinePtr As WString Ptr)
 			OutputTableRow(iLinePtr, , ColorTableBorder)
 		Else
 			' 表格结束 \pard 来终止表格上下文。
-			Dim As Integer colWidth = 0
-			For j As Integer = 0 To m_TableColCount - 1
-				colWidth += m_TableColWIdth(j) + 200
-				WLetEx(m_TableBufferPtr, Replace(*m_TableBufferPtr, "\cellxTmp" & (j + 1) & " " , "\cellx" & colWidth & " " ))
-			Next
-			If m_TableBufferPtr <> 0 Then
-				WAdd(RTFBodyPtr, Chr(10) & *m_TableBufferPtr & Chr(10) & "\pard\plain ", , m_Capacity)
-				_Deallocate(m_TableBufferPtr) : m_TableBufferPtr = 0 : m_CapacityTable = 0
-			End If
-			m_State = State_Normal
+			FinishTable
 			ProcessLine(iLinePtr)
 		End If
 	Case State_InCodeBlock
 		' 代码结束
-		If iLineLen > 0 AndAlso (*iLinePtr)[0] = 96 Then '`
+		If iLineLen >= 3 AndAlso Left(LTrim(*iLinePtr), 3) = "```" Then '` (a line of code can begin with `)
 			m_State = State_Normal
 			WAdd(RTFBodyPtr,  "```\par" & Chr(10) & m_DefaultStyle & "\pard\plain ", , m_Capacity)
 			If (*iLinePtr)[iLineLen - 1] <> 96 Then
@@ -901,6 +965,8 @@ End Sub
 
 Sub MarkdownStreamConverter.OutputTableRow(ByVal iLinePtr As WString Ptr, ByVal isHead As Boolean = False, ByVal textColorIndex As Integer = 4)
 	If iLinePtr = 0 OrElse Trim(*iLinePtr) = "" Then Return
+	'The row is copied: the head row is m_TableBufferPtr, which is written again below (the pointer is freed)
+	Dim As UString RowText = *iLinePtr
 	Dim As String BorderDef
 	BorderDef = "\trbrdrt\brdrs\brdrw10\brdrcf" & textColorIndex & " " & _
 	"\trbrdrb\brdrs\brdrw10\brdrcf" & textColorIndex & " " & _
@@ -921,11 +987,15 @@ Sub MarkdownStreamConverter.OutputTableRow(ByVal iLinePtr As WString Ptr, ByVal 
 	WAdd(m_TableBufferPtr, "\pard\intbl ", , m_CapacityTable)
 	Dim As WString Ptr CellsColPtr()
 	Dim As Integer cellWidth
-	Dim As Integer count = Split(Mid(*iLinePtr, 2, Len(*iLinePtr) - 2), "|" , CellsColPtr())
+	Dim As Integer count = Split(Mid(RowText, 2, Len(RowText) - 2), "|" , CellsColPtr())
 	For i As Integer = 0 To m_TableColCount - 1
 		If i < count Then
 			ProcessInlineStylesPtr = ProcessInlineStyles(CellsColPtr(i))
-			If ProcessInlineStylesPtr = 0 Then Continue For
+			If ProcessInlineStylesPtr = 0 Then
+				WAdd(m_TableBufferPtr, "\cell", , m_CapacityTable)
+				_Deallocate(CellsColPtr(i))
+				Continue For
+			End If
 			If isHead Then
 				WAdd(m_TableBufferPtr,  "{\b\f0 " + *ProcessInlineStylesPtr + "\b0}\cell", , m_CapacityTable)
 			Else
@@ -944,7 +1014,11 @@ Sub MarkdownStreamConverter.OutputTableRow(ByVal iLinePtr As WString Ptr, ByVal 
 		Else
 			WAdd(m_TableBufferPtr, "\cell", , m_CapacityTable)
 		End If
-		_Deallocate(ProcessInlineStylesPtr)
+		_Deallocate(ProcessInlineStylesPtr): ProcessInlineStylesPtr = 0
+		'A row with fewer cells than the columns: CellsColPtr has count items only
+		If i < count Then _Deallocate(CellsColPtr(i))
+	Next
+	For i As Integer = m_TableColCount To count - 1
 		_Deallocate(CellsColPtr(i))
 	Next
 	Erase CellsColPtr
