@@ -159,12 +159,38 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
+	#ifdef __USE_GTK__
+		'The scroll to the end once more when GTK has measured the lines and given its size to the text view (a text
+		'view which was just shown has no size yet)
+		Private Function TextBoxScrollEndIdle(ByVal user_data As gpointer) As gboolean
+			Dim As GtkWidget Ptr TV = user_data
+			If GTK_IS_TEXT_VIEW(TV) Then
+				Dim As GtkTextMark Ptr EndMark = gtk_text_buffer_get_mark(gtk_text_view_get_buffer(GTK_TEXT_VIEW(TV)), "mff-scroll-end")
+				If EndMark Then gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(TV), EndMark, 0.0, False, 0.0, 0.0)
+			End If
+			g_object_unref(TV)
+			Return False
+		End Function
+	#endif
+	
 	Private Sub TextBox.ScrollToEnd()
 		#ifdef __USE_GTK__
 			If GTK_IS_TEXT_VIEW(widget) Then
+				'A mark at the end: gtk_text_view_scroll_to_iter uses the estimated heights of the lines which are not
+				'measured yet (after a new text it scrolled too far, the start of the text was hidden above an empty
+				'place), the scroll to a mark is done after the lines are measured
+				Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))
 				Dim As GtkTextIter iter
-				gtk_text_buffer_get_end_iter(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)), @iter)
-				gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(widget), @iter, 0.0, False, 0.0, 0.0)
+				gtk_text_buffer_get_end_iter(buffer, @iter)
+				Dim As GtkTextMark Ptr EndMark = gtk_text_buffer_get_mark(buffer, "mff-scroll-end")
+				If EndMark = 0 Then
+					EndMark = gtk_text_buffer_create_mark(buffer, "mff-scroll-end", @iter, False)
+				Else
+					gtk_text_buffer_move_mark(buffer, EndMark, @iter)
+				End If
+				gtk_text_view_scroll_to_mark(GTK_TEXT_VIEW(widget), EndMark, 0.0, False, 0.0, 0.0)
+				g_object_ref(widget)
+				g_idle_add(Cast(GSourceFunc, @TextBoxScrollEndIdle), widget)
 			End If
 		#elseif defined(__USE_WINAPI__)
 			Dim totalLines As Integer
@@ -574,13 +600,15 @@ Namespace My.Sys.Forms
 	Private Property TextBox.BorderStyle(Value As BorderStyles)
 		FBorderStyle = Value
 		#ifdef __USE_GTK__
-			If GTK_IS_TEXT_VIEW(widget) Then
+			'Both widgets of the text box (Multiline can be set after the border: the text view takes it then too)
+			If WidgetScrolledWindow Then
 				If FBorderStyle Then
-					gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_SHADOW_OUT)
+					gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(WidgetScrolledWindow), GTK_SHADOW_OUT)
 				Else
-					gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolledwidget), GTK_SHADOW_NONE)
+					gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(WidgetScrolledWindow), GTK_SHADOW_NONE)
 				End If
 			End If
+			If WidgetEntry Then gtk_entry_set_has_frame(GTK_ENTRY(WidgetEntry), FBorderStyle <> 0)
 		#elseif defined(__USE_WINAPI__)
 			If FBorderStyle Then
 				'Base.Style = Base.Style Or WS_BORDER
@@ -1058,11 +1086,9 @@ Namespace My.Sys.Forms
 		Private Function TextBox.LinesCount As Integer
 			#ifdef __USE_GTK__
 				If GTK_IS_TEXT_VIEW(widget) Then
-					If Text <> "" Then
-						Return 1
-					End If
-				Else
 					Return gtk_text_buffer_get_line_count(gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget)))
+				ElseIf Text <> "" Then
+					Return 1
 				End If
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then
@@ -1503,10 +1529,12 @@ Namespace My.Sys.Forms
 				Select Case message.Event->type
 			#endif
 			Case GDK_KEY_PRESS
+				' Without WantReturn Enter is OnActivate, not a new line; Shift+Enter and Ctrl+Enter stay a new line
+				' (as Windows: the text boxes of the questions send with Enter, Shift+Enter breaks the line)
 				#ifdef __USE_GTK4__
-					If FWantReturn = False AndAlso Asc(gtk4compat_event_string(e)) = 13 Then
+					If FWantReturn = False AndAlso Asc(gtk4compat_event_string(e)) = 13 AndAlso (gdk_event_get_modifier_state(e) And (GDK_SHIFT_MASK Or GDK_CONTROL_MASK)) = 0 Then
 				#else
-					If FWantReturn = False AndAlso Asc(*e->key.string) = 13 Then
+					If FWantReturn = False AndAlso Asc(*e->key.string) = 13 AndAlso (e->key.state And (GDK_SHIFT_MASK Or GDK_CONTROL_MASK)) = 0 Then
 				#endif
 					If OnActivate Then OnActivate(*Designer, This)
 					message.Result = True

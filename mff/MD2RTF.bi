@@ -142,7 +142,8 @@ Sub MarkdownStreamConverter.Initial(ByRef iFontName As String = "Arial", ByVal i
 	"\viewkind4\uc1\pard\lang2052\f0\fs" & RTFFontSizefs   ' 默认字体、字号
 	RTFFooter = "}"
 	'而 RTF 原生的透明背景/控件底色是通过 \ highlight0 实现的.RTF 的状态是持续性的，开启 \b 后必须手动用 \b0 关
-	m_DefaultStyle = "\f0\fs" & RTFFontSizefs & "\cf" & ColorIndexFore & "\b0\highlight0"
+	'It ends with a space: a text which begins with a digit (1. of a list) is not the number of \highlight0
+	m_DefaultStyle = "\f0\fs" & RTFFontSizefs & "\cf" & ColorIndexFore & "\b0\highlight0 "
 End Sub
 
 Sub MarkdownStreamConverter.FeedChunk(ByRef chunk As WString)
@@ -183,6 +184,8 @@ Sub MarkdownStreamConverter.FeedChunk(ByRef chunk As WString)
 	m_BufferPtr = Lines(UboundCount)
 	Erase Lines
 	UpdateRTB()
+	'The last line without its new line yet (the end of the text): it is shown as it is until its new line comes
+	If m_BufferPtr <> 0 AndAlso Len(*m_BufferPtr) > 0 Then UpdateRTB(*m_BufferPtr)
 End Sub
 
 'The end of a table: the widths of its columns, at most RTFMaxWidth (the long texts wrap in their cells)

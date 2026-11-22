@@ -1880,6 +1880,9 @@ Namespace My.Sys.Forms
 						Dim As guint Button = gdk_button_event_get_button(e)
 						DownButton = Button - 1
 						If OnMouseDown Then OnMouseDown(*Designer, This, Button - 1, ex, ey, State)
+						'The menu of the control is opened when the button is released: not the own menu of the widget
+						'(the menu of GtkTextView)
+						If Button = 3 AndAlso ContextMenu <> 0 AndAlso Not FDesignMode Then Message.Result = True
 					End If
 				Case GDK_2BUTTON_PRESS
 					If OnDblClick Then OnDblClick(*Designer, This)
@@ -1961,6 +1964,9 @@ Namespace My.Sys.Forms
 				Case GDK_BUTTON_PRESS
 					'Message.Result = True
 					DownButton = e->button.button - 1
+					'The menu of the control is opened when the button is released: not the own menu of the widget (the
+					'menu of GtkTextView, it is opened by the press)
+					If e->button.button = 3 AndAlso ContextMenu <> 0 AndAlso Not FDesignMode Then Message.Result = True
 					#ifdef __USE_GTK4__
 						If gtk_widget_get_window(widget) = e->motion.window Then
 							If OnMouseDown Then OnMouseDown(*Designer, This, e->button.button - 1, e->button.x, e->button.y, e->button.state)
@@ -2007,6 +2013,11 @@ Namespace My.Sys.Forms
 					#endif
 				Case GDK_MOTION_NOTIFY
 					'Message.Result = True
+					#ifndef __USE_GTK4__
+						'With GDK_POINTER_MOTION_HINT_MASK the next motions come only when they are asked (else the mouse moves
+						'in jumps: the selection by the mouse is not smooth)
+						If e->motion.is_hint Then gdk_event_request_motions(@e->motion)
+					#endif
 					#ifdef __USE_GTK4__
 						If gtk_widget_get_window(widget) = e->motion.window Then
 					#else
@@ -2149,7 +2160,14 @@ Namespace My.Sys.Forms
 					'RequestAlign
 				Case GDK_SCROLL
 					#ifndef __USE_GTK2__
-						If OnMouseWheel Then OnMouseWheel(*Designer, This, e->scroll.delta_x, e->scroll.x, e->scroll.y, e->scroll.state)
+						'The direction like in GTK4: -1 up, 1 down (delta_x was 0 for the wheel)
+						Dim As Integer WheelDelta
+						Select Case e->scroll.direction
+						Case GDK_SCROLL_UP: WheelDelta = -1
+						Case GDK_SCROLL_DOWN: WheelDelta = 1
+						Case GDK_SCROLL_SMOOTH: WheelDelta = Sgn(e->scroll.delta_y)
+						End Select
+						If WheelDelta <> 0 AndAlso OnMouseWheel <> 0 Then OnMouseWheel(*Designer, This, WheelDelta, e->scroll.x, e->scroll.y, e->scroll.state)
 					#else
 						If e->scroll.direction = GDK_SCROLL_UP Then
 							If OnMouseWheel Then OnMouseWheel(*Designer, This, -1, e->scroll.x, e->scroll.y, e->scroll.state)

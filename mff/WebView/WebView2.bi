@@ -12,7 +12,10 @@
 #include once "win/oaidl.bi"
 #include once "crt/long.bi" 
 '#include once "EventToken.bi"
-#inclib "WebView2Loader.dll"
+'WEBVIEW2_DYNAMIC: WebView2Loader.dll is loaded with LoadLibrary (the program starts without it)
+#ifndef WEBVIEW2_DYNAMIC
+	#inclib "WebView2Loader.dll"
+#endif
 
 Extern "C"
 
@@ -1025,8 +1028,10 @@ End Type
 Type STDAPI As HRESULT
 Type ICoreWebView2EnvironmentOptions As ICoreWebView2EnvironmentOptions_
 Type ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler_
+#ifndef WEBVIEW2_DYNAMIC
 Declare Function CreateCoreWebView2EnvironmentWithOptions stdcall(ByVal browserExecutableFolder As PCWSTR, ByVal userDataFolder As PCWSTR, ByVal environmentOptions As ICoreWebView2EnvironmentOptions Ptr, ByVal environment_created_handler As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr) As STDAPI
 Declare Function CreateCoreWebView2Environment stdcall(ByVal environment_created_handler As ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler Ptr) As STDAPI
+#endif
 Declare Function GetAvailableCoreWebView2BrowserVersionString stdcall(ByVal browserExecutableFolder As PCWSTR, ByVal versionInfo As LPWSTR Ptr) As STDAPI
 Declare Function CompareBrowserVersions stdcall(ByVal version1 As PCWSTR, ByVal version2 As PCWSTR, ByVal result As Long Ptr) As STDAPI
 '' TODO: EXTERN_C const IID LIBID_WebView2;

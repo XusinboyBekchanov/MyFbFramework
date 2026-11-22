@@ -1271,21 +1271,25 @@ Namespace My.Sys.Drawing
 		Dim As Any Ptr Handle_
 		If Not HandleSetted Then Handle_ = GetDevice
 		#ifdef __USE_CAIRO__
-			Var radius = x1 - x
-			cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
-			cairo_move_to Handle, ScaleX(x) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nWidth / 2) * imgScaleY + imgOffsetY - 0.5
-			cairo_arc (Handle, ScaleX(x + radius) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nWidth / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX(nWidth / 2) * imgScaleX, G_PI, -G_PI / 2)
-			cairo_line_to (Handle, ScaleX(x + nWidth - nWidth / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y) * imgScaleY + imgOffsetY - 0.5)
-			cairo_arc (Handle, ScaleX(x + nWidth - nWidth / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nWidth / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX(nWidth / 2) * imgScaleX, -G_PI / 2, 0)
-			cairo_line_to (Handle, ScaleX(x + nWidth) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nHeight - nWidth / 2) * imgScaleY + imgOffsetY - 0.5)
-			cairo_arc (Handle, ScaleX(x + (nWidth - nWidth / 2)) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nHeight - nWidth / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX(nWidth / 2) * imgScaleX, 0, G_PI / 2)
-			cairo_line_to (Handle, ScaleX(x + nWidth / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nHeight) * imgScaleY + imgOffsetY - 0.5)
-			cairo_arc (Handle, ScaleX(x + nWidth / 2) * imgScaleX + imgOffsetX - 0.5, ScaleY(y + nHeight - nWidth / 2) * imgScaleY + imgOffsetY - 0.5, ScaleX(nWidth / 2) * imgScaleX, G_PI / 2, G_PI)
-			cairo_close_path Handle
-			cairo_fill_preserve(Handle)
-			cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
-			cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
-			cairo_stroke(Handle)   '添加描边
+			' The rectangle from x, y to x1, y1 with the round corners (nWidth, nHeight: the width and the height of the
+			' ellipse of a corner, as RoundRect of Windows). The line is inside the rectangle on the middle of the pixels.
+			Dim As Double rLeft = ScaleX(x) * imgScaleX + imgOffsetX + 0.5, rTop = ScaleY(y) * imgScaleY + imgOffsetY + 0.5
+			Dim As Double rRight = ScaleX(x1) * imgScaleX + imgOffsetX - 0.5, rBottom = ScaleY(y1) * imgScaleY + imgOffsetY - 0.5
+			If rRight > rLeft AndAlso rBottom > rTop Then
+				Dim As Double r = Min(ScaleX(nWidth) * imgScaleX, ScaleY(nHeight) * imgScaleY) / 2
+				r = Max(0.0, Min(r, Min(rRight - rLeft, rBottom - rTop) / 2))
+				cairo_new_sub_path(Handle)
+				cairo_arc(Handle, rRight - r, rTop + r, r, -G_PI / 2, 0)
+				cairo_arc(Handle, rRight - r, rBottom - r, r, 0, G_PI / 2)
+				cairo_arc(Handle, rLeft + r, rBottom - r, r, G_PI / 2, G_PI)
+				cairo_arc(Handle, rLeft + r, rTop + r, r, G_PI, 3 * G_PI / 2)
+				cairo_close_path Handle
+				cairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))
+				cairo_fill_preserve(Handle)
+				cairo_set_source_rgb(Handle, GetRedD(Pen.Color), GetGreenD(Pen.Color), GetBlueD(Pen.Color))
+				cairo_set_line_width(Handle, IIf(FDrawWidth > 0, FDrawWidth, 1)) ' a new context of a draw callback has the width 2
+				cairo_stroke(Handle)
+			End If
 		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Var radius = x1 - x
 			mcairo_set_source_rgb(Handle, GetRedD(Brush.Color), GetGreenD(Brush.Color), GetBlueD(Brush.Color))

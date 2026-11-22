@@ -1217,7 +1217,9 @@ Namespace My.Sys.Forms
 				' The mark of a checkable item is the state of its action
 				If FAction AndAlso g_action_get_state_type(G_ACTION(FAction)) <> 0 Then g_simple_action_set_state(FAction, g_variant_new_boolean(value))
 			#else
-				If GTK_IS_CHECK_MENU_ITEM(Widget) Then
+				'gtk_check_menu_item_set_active activates the item only when its state changes: the flag which skips this
+				'activation (it is not a click) is set only then, else it would skip the next click of the user
+				If GTK_IS_CHECK_MENU_ITEM(Widget) AndAlso CBool(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(Widget)) <> 0) <> value Then
 					FMenuItemChecked = True
 					gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(Widget), value)
 				End If

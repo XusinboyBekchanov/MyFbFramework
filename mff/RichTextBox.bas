@@ -1357,6 +1357,343 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
+	#ifdef __USE_GTK__
+		'GTK: the RTF in the buffer of the text view. The groups keep their formatting (a stack of the states); the tables of
+		'the fonts and of the colors are read, the other destinations ({\* ...}, info, stylesheet) are left out. The text
+		'gets the tags of its formatting: bold, italic, underline, strikeout, the font (\f), the size (\fs), the color (\cf),
+		'the background (\highlight, \cb) and the left indent (\li); the cells of a table are divided by a line, the PNG and
+		'JPEG pictures (\pict) are put into the text
+		Type MffRtfState
+			Bold As Boolean
+			Italic As Boolean
+			Underline As Boolean
+			Strike As Boolean
+			FontIndex As Integer
+			HalfPoints As Integer
+			Fore As Integer
+			Back As Integer
+			LeftTwips As Integer
+			FirstTwips As Integer
+			'0 - text, 1 - the table of the fonts, 2 - the table of the colors, 3 - a picture, 4 - left out
+			Dest As Integer
+		End Type
+
+		Private Function MffRtfLum(C As Long) As Double
+			Return (((C Shr 16) And &HFF) * 0.299 + ((C Shr 8) And &HFF) * 0.587 + (C And &HFF) * 0.114) / 255
+		End Function
+
+		Private Function MffRtfHex(C As Long) As String
+			Return "#" & Hex(C And &HFFFFFF, 6)
+		End Function
+
+		'The tag of the formatting (made once in the table of the tags of the buffer)
+		Private Function MffRtfTag(buffer As GtkTextBuffer Ptr, ByRef S As MffRtfState, Fonts() As String, RtfColors() As Long, ThemeLum As Double, ByRef RowTabs As String) As GtkTextTag Ptr
+			Dim As String Family, Fore, Back
+			If S.FontIndex >= 0 AndAlso S.FontIndex <= UBound(Fonts) Then Family = Fonts(S.FontIndex)
+			Dim As Long ForeColor = -1, BackColor = -1
+			If S.Fore > 0 AndAlso S.Fore <= UBound(RtfColors) Then ForeColor = RtfColors(S.Fore)
+			If S.Back > 0 AndAlso S.Back <= UBound(RtfColors) Then BackColor = RtfColors(S.Back)
+			If ForeColor >= 0 AndAlso BackColor >= 0 AndAlso Abs(MffRtfLum(ForeColor) - MffRtfLum(BackColor)) > 0.2 Then
+				'The text on its own background (the band of the title of a message)
+				Fore = MffRtfHex(ForeColor): Back = MffRtfHex(BackColor)
+			Else
+				'A color which is not seen on the background of the theme (the black of a light theme on a dark theme) is
+				'not used
+				If ForeColor >= 0 AndAlso Abs(MffRtfLum(ForeColor) - (1 - ThemeLum)) > 0.3 Then Fore = MffRtfHex(ForeColor)
+				If BackColor >= 0 AndAlso Abs(MffRtfLum(BackColor) - IIf(Fore <> "", MffRtfLum(ForeColor), ThemeLum)) > 0.35 Then Back = MffRtfHex(BackColor)
+			End If
+			If (Not S.Bold) AndAlso (Not S.Italic) AndAlso (Not S.Underline) AndAlso (Not S.Strike) AndAlso Family = "" AndAlso S.HalfPoints <= 0 AndAlso Fore = "" AndAlso Back = "" AndAlso S.LeftTwips <= 0 AndAlso S.FirstTwips = 0 AndAlso RowTabs = "" Then Return 0
+			Dim As String Key = "mffrtf|" & IIf(S.Bold, "b", "") & IIf(S.Italic, "i", "") & IIf(S.Underline, "u", "") & IIf(S.Strike, "s", "") & "|" & Family & "|" & S.HalfPoints & "|" & Fore & "|" & Back & "|" & S.LeftTwips & "|" & S.FirstTwips & "|" & RowTabs
+			Dim As GtkTextTagTable Ptr Table = gtk_text_buffer_get_tag_table(buffer)
+			Dim As GtkTextTag Ptr Tag = gtk_text_tag_table_lookup(Table, Key)
+			If Tag Then Return Tag
+			Tag = gtk_text_tag_new(Key)
+			If S.Bold Then g_object_set(Tag, "weight", PANGO_WEIGHT_BOLD, NULL)
+			If S.Italic Then g_object_set(Tag, "style", PANGO_STYLE_ITALIC, NULL)
+			If S.Underline Then g_object_set(Tag, "underline", PANGO_UNDERLINE_SINGLE, NULL)
+			If S.Strike Then g_object_set(Tag, "strikethrough", True, NULL)
+			If Family <> "" Then g_object_set(Tag, "family", StrPtr(Family), NULL)
+			If S.HalfPoints > 0 Then g_object_set(Tag, "size-points", CDbl(S.HalfPoints / 2), NULL)
+			If Fore <> "" Then g_object_set(Tag, "foreground", StrPtr(Fore), NULL)
+			If Back <> "" Then g_object_set(Tag, "background", StrPtr(Back), NULL)
+			If S.LeftTwips > 0 Then g_object_set(Tag, "left-margin", CInt(S.LeftTwips / 15), NULL)
+			If S.FirstTwips <> 0 Then g_object_set(Tag, "indent", CInt(S.FirstTwips / 15), NULL)
+			'A row of a table: the cells (after the tabs) begin at the right borders of the cells before them
+			If RowTabs <> "" Then
+				Dim As String Stops()
+				Split(RowTabs, ",", Stops())
+				Dim As PangoTabArray Ptr Tabs = pango_tab_array_new(UBound(Stops) + 1, True)
+				For k As Integer = 0 To UBound(Stops)
+					pango_tab_array_set_tab(Tabs, k, PANGO_TAB_LEFT, Val(Stops(k)))
+				Next
+				g_object_set(Tag, "tabs", Tabs, NULL)
+				pango_tab_array_free(Tabs)
+			End If
+			gtk_text_tag_table_add(Table, Tag)
+			g_object_unref(Tag)
+			Return Tag
+		End Function
+
+		'A picture of the RTF (its bytes in hex) in its size (\picwgoal, \pichgoal in twips)
+		Private Sub MffRtfInsertPicture(buffer As GtkTextBuffer Ptr, iter As GtkTextIter Ptr, ByRef HexData As String, GoalW As Integer, GoalH As Integer)
+			Dim As Integer n = Len(HexData) \ 2
+			If n < 8 Then Exit Sub
+			Dim As UByte Ptr Bytes = Allocate(n)
+			If Bytes = 0 Then Exit Sub
+			For k As Integer = 0 To n - 1
+				Bytes[k] = ValInt("&H" & Mid(HexData, k * 2 + 1, 2))
+			Next
+			Dim As GdkPixbufLoader Ptr Loader = gdk_pixbuf_loader_new()
+			Dim As GdkPixbuf Ptr Pix
+			If gdk_pixbuf_loader_write(Loader, Bytes, n, NULL) AndAlso gdk_pixbuf_loader_close(Loader, NULL) Then
+				Pix = gdk_pixbuf_loader_get_pixbuf(Loader)
+				If Pix Then g_object_ref(Pix)
+			Else
+				gdk_pixbuf_loader_close(Loader, NULL)
+			End If
+			g_object_unref(Loader)
+			Deallocate(Bytes)
+			If Pix = 0 Then Exit Sub
+			Dim As Integer W = gdk_pixbuf_get_width(Pix), H = gdk_pixbuf_get_height(Pix)
+			If GoalW > 0 AndAlso GoalH > 0 AndAlso (GoalW \ 15 <> W OrElse GoalH \ 15 <> H) Then
+				Dim As GdkPixbuf Ptr Scaled = gdk_pixbuf_scale_simple(Pix, Max(1, GoalW \ 15), Max(1, GoalH \ 15), GDK_INTERP_BILINEAR)
+				If Scaled Then g_object_unref(Pix): Pix = Scaled
+			End If
+			#ifdef __USE_GTK4__
+				Dim As GdkTexture Ptr Texture = gdk_texture_new_for_pixbuf(Pix)
+				If Texture Then gtk_text_buffer_insert_paintable(buffer, iter, GDK_PAINTABLE(Texture)): g_object_unref(Texture)
+			#else
+				gtk_text_buffer_insert_pixbuf(buffer, iter, Pix)
+			#endif
+			g_object_unref(Pix)
+		End Sub
+
+		'The text of the same formatting is put at once
+		Private Sub MffRtfPut(buffer As GtkTextBuffer Ptr, iter As GtkTextIter Ptr, ByRef RunText As UString, Tag As GtkTextTag Ptr)
+			If Len(RunText) = 0 Then Exit Sub
+			Dim As String U = ToUtf8(RunText)
+			If Tag Then
+				gtk_text_buffer_insert_with_tags(buffer, iter, StrPtr(U), Len(U), Tag, NULL)
+			Else
+				gtk_text_buffer_insert(buffer, iter, StrPtr(U), Len(U))
+			End If
+			RunText = ""
+		End Sub
+		
+		Private Sub MffRtfToBuffer(widget As GtkWidget Ptr, ByRef Value As WString)
+			Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))
+			Dim As GtkTextIter iter
+			gtk_text_buffer_set_text(buffer, "", 0)
+			gtk_text_buffer_get_end_iter(buffer, @iter)
+			'The brightness of the text of the theme (a dark theme has a light text)
+			Dim As Double ThemeLum
+			#ifdef __USE_GTK2__
+				Dim As GtkStyle Ptr Style = gtk_widget_get_style(widget)
+				If Style Then ThemeLum = (Style->text(GTK_STATE_NORMAL).red * 0.299 + Style->text(GTK_STATE_NORMAL).green * 0.587 + Style->text(GTK_STATE_NORMAL).blue * 0.114) / 65535
+			#else
+				Dim As GdkRGBA FgColor
+				#ifdef __USE_GTK4__
+					gtk4compat_widget_get_color(widget, @FgColor)
+				#else
+					gtk_style_context_get_color(gtk_widget_get_style_context(widget), GTK_STATE_FLAG_NORMAL, @FgColor)
+				#endif
+				ThemeLum = FgColor.red * 0.299 + FgColor.green * 0.587 + FgColor.blue * 0.114
+			#endif
+			Dim As MffRtfState States(Any), Cur
+			Dim As Integer Depth, i, c, LenValue = Len(Value), UcSkip = 1, PendingSkip
+			Dim As String Fonts(Any), FontName, PicHex
+			Dim As Long RtfColors(Any)
+			Dim As Integer CR = -1, CG = -1, CB = -1, FontNo = -1, PicW, PicH, PicKind
+			'The borders of the cells of the row (pixels) and the tabs of its cells
+			Dim As String RowCells, RowTabs
+			Dim As Boolean RowEnd
+			Dim As UString RunText
+			Dim As GtkTextTag Ptr RunTag
+			Dim As Long HighSurrogate
+			ReDim States(0)
+			Do While i < LenValue
+				c = Value[i]
+				If c = 123 Then '{
+					ReDim Preserve States(Depth + 1)
+					States(Depth) = Cur
+					Depth += 1
+					i += 1
+					Continue Do
+				ElseIf c = 125 Then '}
+					If Cur.Dest = 3 Then
+						MffRtfPut(buffer, @iter, RunText, RunTag)
+						If PicKind > 0 Then MffRtfInsertPicture(buffer, @iter, PicHex, PicW, PicH)
+						PicHex = "": PicKind = 0: PicW = 0: PicH = 0
+					ElseIf Cur.Dest = 1 AndAlso FontNo >= 0 Then
+						If FontNo > UBound(Fonts) Then ReDim Preserve Fonts(FontNo)
+						FontName = Trim(FontName, Any "; ")
+						'The fonts of Windows for the code: the monospace font of the system after them
+						Dim As String LF = LCase(FontName)
+						If InStr(LF, "consolas") OrElse InStr(LF, "courier") OrElse InStr(LF, "mono") OrElse InStr(LF, "lucida console") Then FontName &= ",Monospace"
+						Fonts(FontNo) = FontName
+						FontNo = -1: FontName = ""
+					End If
+					If Depth > 0 Then
+						Depth -= 1
+						Dim As Integer OldDest = Cur.Dest
+						Cur = States(Depth)
+						'The font of the table of the fonts ends with its group
+						If OldDest = 1 AndAlso Cur.Dest = 1 Then FontNo = -1
+					End If
+					i += 1
+					Continue Do
+				End If
+				Dim As UString Chars
+				If c = 92 Then '\
+					i += 1
+					If i >= LenValue Then Exit Do
+					c = Value[i]
+					If c = 92 OrElse c = 123 OrElse c = 125 Then
+						Chars = WChr(c)
+						i += 1
+					ElseIf c = 39 Then '\'hh
+						Chars = WChr(Val("&H" & Mid(Value, i + 2, 2)))
+						i += 3
+					ElseIf c = 126 Then '\~
+						Chars = WChr(160)
+						i += 1
+					ElseIf c = 95 Then '\_
+						Chars = "-"
+						i += 1
+					ElseIf c = 42 Then '\*: a destination which is not known
+						Cur.Dest = 4
+						i += 1
+					ElseIf c = 10 OrElse c = 13 Then '\ and the new line: a new paragraph
+						Chars = WChr(10)
+						i += 1
+					ElseIf (c >= 97 AndAlso c <= 122) OrElse (c >= 65 AndAlso c <= 90) Then
+						Dim As String sWord, sNumber
+						Do While i < LenValue AndAlso ((Value[i] >= 97 AndAlso Value[i] <= 122) OrElse (Value[i] >= 65 AndAlso Value[i] <= 90))
+							sWord &= Chr(Value[i])
+							i += 1
+						Loop
+						Do While i < LenValue AndAlso (Value[i] = 45 OrElse (Value[i] >= 48 AndAlso Value[i] <= 57))
+							sNumber &= Chr(Value[i])
+							i += 1
+						Loop
+						'The space after a control word is a part of it
+						If i < LenValue AndAlso Value[i] = 32 Then i += 1
+						Dim As Integer N = ValInt(sNumber)
+						Dim As Boolean bOn = sNumber <> "0"
+						Select Case sWord
+						Case "fonttbl": Cur.Dest = 1
+						Case "colortbl": Cur.Dest = 2: Erase RtfColors
+						Case "stylesheet", "info", "header", "footer", "nonshppict", "object", "themedata", "listtable", "listoverridetable"
+							Cur.Dest = 4
+						Case "pict"
+							Cur.Dest = 3: PicHex = "": PicKind = 0: PicW = 0: PicH = 0
+						Case "pngblip", "jpegblip": If Cur.Dest = 3 Then PicKind = 1
+						Case "picwgoal": PicW = N
+						Case "pichgoal": PicH = N
+						Case "f"
+							If Cur.Dest = 1 Then
+								FontNo = N: FontName = ""
+							Else
+								Cur.FontIndex = N
+							End If
+						Case "red": CR = N
+						Case "green": CG = N
+						Case "blue": CB = N
+						Case "par", "line"
+							Chars = WChr(10)
+						Case "tab": Chars = WChr(9)
+						Case "trowd": RowCells = "": RowTabs = ""
+						Case "cellx"
+							RowTabs = RowCells
+							RowCells &= IIf(RowCells <> "", ",", "") & Str(N \ 15)
+						Case "cell": Chars = WChr(9)
+						Case "row": Chars = WChr(10): RowEnd = True
+						Case "uc": UcSkip = N
+						Case "u"
+							Dim As Long Code = N
+							If Code < 0 Then Code += 65536
+							If Code >= &HD800 AndAlso Code <= &HDBFF Then
+								HighSurrogate = Code
+							ElseIf Code >= &HDC00 AndAlso Code <= &HDFFF AndAlso HighSurrogate <> 0 Then
+								#ifdef __FB_WIN32__
+									Chars = WChr(HighSurrogate, Code)
+								#else
+									Chars = WChr(((HighSurrogate - &HD800) Shl 10) + (Code - &HDC00) + &H10000)
+								#endif
+								HighSurrogate = 0
+							Else
+								Chars = WChr(Code)
+							End If
+							PendingSkip = UcSkip
+						Case "b": Cur.Bold = bOn
+						Case "i": Cur.Italic = bOn
+						Case "ul": Cur.Underline = bOn
+						Case "ulnone": Cur.Underline = False
+						Case "strike": Cur.Strike = bOn
+						Case "fs": Cur.HalfPoints = N
+						Case "cf": Cur.Fore = N
+						Case "highlight", "cb": Cur.Back = N
+						Case "li": Cur.LeftTwips = N
+						Case "fi": Cur.FirstTwips = N
+						Case "bullet": Chars = WChr(&H2022)
+						Case "emdash": Chars = WChr(&H2014)
+						Case "endash": Chars = WChr(&H2013)
+						Case "lquote": Chars = WChr(&H2018)
+						Case "rquote": Chars = WChr(&H2019)
+						Case "ldblquote": Chars = WChr(&H201C)
+						Case "rdblquote": Chars = WChr(&H201D)
+						Case "plain"
+							Cur.Bold = False: Cur.Italic = False: Cur.Underline = False: Cur.Strike = False
+							Cur.HalfPoints = 0: Cur.Fore = 0: Cur.Back = 0
+						Case "pard": Cur.LeftTwips = 0: Cur.FirstTwips = 0
+						End Select
+					Else
+						i += 1
+					End If
+				Else
+					i += 1
+					If c = 13 OrElse c = 10 Then Continue Do
+					'The characters for the readers without Unicode after \uN
+					If PendingSkip > 0 Then PendingSkip -= 1: Continue Do
+					Select Case Cur.Dest
+					Case 1
+						FontName &= WChr(c)
+					Case 2
+						If c = 59 Then ';
+							Dim As Integer nc = UBound(RtfColors) + 1
+							ReDim Preserve RtfColors(nc)
+							RtfColors(nc) = IIf(CR >= 0, (CR Shl 16) Or (Max(CG, 0) Shl 8) Or Max(CB, 0), -1)
+							CR = -1: CG = -1: CB = -1
+						End If
+					Case 3
+						If (c >= 48 AndAlso c <= 57) OrElse (c >= 97 AndAlso c <= 102) OrElse (c >= 65 AndAlso c <= 70) Then PicHex &= Chr(c)
+					Case 0
+						If c = 32 Then
+							'Many spaces (the band of a title in RichEdit) would be wrapped on the new lines: they are left
+							'out
+							Dim As Integer SpaceEnd = i
+							Do While SpaceEnd < LenValue AndAlso Value[SpaceEnd] = 32
+								SpaceEnd += 1
+							Loop
+							If SpaceEnd - i >= 19 Then i = SpaceEnd: Continue Do
+						End If
+						Chars = WChr(c)
+					End Select
+				End If
+				If Len(Chars) = 0 OrElse Cur.Dest <> 0 Then Continue Do
+				Dim As GtkTextTag Ptr Tag = MffRtfTag(buffer, Cur, Fonts(), RtfColors(), ThemeLum, RowTabs)
+				If Tag <> RunTag Then
+					MffRtfPut(buffer, @iter, RunText, RunTag)
+					RunTag = Tag
+				End If
+				RunText &= Chars
+				'The text after the row is not in the table
+				If RowEnd Then RowEnd = False: RowCells = "": RowTabs = ""
+			Loop
+			MffRtfPut(buffer, @iter, RunText, RunTag)
+		End Sub
+	#endif
+
 	Private Property RichTextBox.TextRTF ByRef As WString
 		#ifdef __USE_WINAPI__
 			If FHandle Then
@@ -1404,58 +1741,7 @@ Namespace My.Sys.Forms
 			End If
 		#elseif defined(__USE_GTK__)
 			If StartsWith(Value, "{\rtf") OrElse StartsWith(Value, "{\urtf") Then
-				Dim As GtkTextBuffer Ptr buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(widget))
-				Dim iter As GtkTextIter
-				gtk_text_buffer_set_text(buffer, !"\0", -1)
-				gtk_text_buffer_get_end_iter(buffer, @iter)
-				Dim in_tag As Boolean = False
-				Dim As Integer count = 0, LenValue = Len(Value), Capacity
-				Dim start_bold As Integer = -1
-				Dim start_italic As Integer = -1
-				Dim rtf_tag As String
-				Dim c As Integer
-				Dim As WString Ptr BuffPtr
-				If LenValue < 1 Then Return
-				For i As Integer = 0 To LenValue - 1
-					c = Value[i]
-					If CBool(c = 92) OrElse (CBool(c = 32) AndAlso in_tag) OrElse CBool(c = 125) Then  '"\" " "  "}"
-						If BuffPtr <> 0 AndAlso *BuffPtr <> "" Then
-							gtk_text_buffer_insert(buffer, @iter, ToUtf8(*BuffPtr), -1)
-							WLet(BuffPtr, "")
-							Capacity = 0
-						End If
-						If in_tag Then
-							If rtf_tag = "b" Then
-								start_bold = count
-							ElseIf rtf_tag = "i" Then
-								start_italic = count
-							ElseIf rtf_tag = "par" Then
-								gtk_text_buffer_insert(buffer, @iter, Chr(13, 10), 2)
-								count += 1
-							End If
-						End If
-						If start_bold > -1 AndAlso ((in_tag AndAlso CBool(rtf_tag = "b0")) OrElse CBool(c = 125)) Then
-							SetBoolProperty "weight", True, PANGO_WEIGHT_BOLD, PANGO_WEIGHT_NORMAL, start_bold, count
-							start_bold = -1
-						End If
-						If start_italic > -1 AndAlso ((in_tag AndAlso CBool(rtf_tag = "i0")) OrElse CBool(c = 125)) Then
-							SetBoolProperty "style", True, PANGO_STYLE_ITALIC, PANGO_STYLE_NORMAL, start_italic, count
-							start_italic = -1
-						End If
-						rtf_tag = ""
-						in_tag = c = 92 '"\"
-					ElseIf c = 123 Or c = 125 Then '"{"  "}"
-						Continue For
-					ElseIf in_tag Then
-						If c = 10 Then
-							Continue For
-						End If
-						rtf_tag += Chr(c)
-					Else
-						WAdd(BuffPtr, WChr(c), , Capacity)
-						count += 1
-					End If
-				Next
+				MffRtfToBuffer(widget, Value)
 			Else
 				Base.Text = Value
 			End If
