@@ -30,7 +30,7 @@ Namespace My.Sys
 		End If
 	End Sub
 #endif
-	'Supports all classes in the MyFbFramework class hierarchy and provides low-level services to derived classes (Windows, Linux, Android, Web).
+	'Supports all classes in the MyFbFramework class hierarchy and provides low-level services to derived classes (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type Object Extends Object
 	Protected:
 		#ifdef __USE_GTK__
@@ -59,11 +59,11 @@ Namespace My.Sys
 	Public:
 		xdpi As Single
 		ydpi As Single
-		'Returns a string that represents the current object (Windows, Linux, Android, Web).
+		'Returns a string that represents the current object (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Virtual Function ToString ByRef As WString
-		'Used to get correct class name of the object (Windows, Linux, Android, Web).
+		'Used to get correct class name of the object (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Function ClassName ByRef As WString
-		'Returns/sets the object that enables you to access the design characteristics of a object (Windows, Linux, Android, Web).
+		'Returns/sets the object that enables you to access the design characteristics of a object (Windows, Linux, Android, Web, macOS, iOS).
 		Designer As Object Ptr
 		' Function to get any typename in the inheritance up hierarchy
 		' of the type of an instance (address: 'po') compatible with the built-in 'Object'
@@ -72,16 +72,16 @@ Namespace My.Sys
 		' ('baseIndex = -1' to get the base.typename of the instance, or "" if not existing)
 		' ('baseIndex = -2' to get the base.base.typename of the instance, or "" if not existing)
 		Declare Function FullTypeName(ByVal baseIndex As Integer = 0) As UString
-		'Returns a Boolean value indicating whether a object has been initialized (Windows, Linux, Android, Web).
+		'Returns a Boolean value indicating whether a object has been initialized (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Function IsEmpty() As Boolean
 		Declare Operator Cast As Any Ptr
 		Declare Operator Cast ByRef As WString
 		#ifndef ReadProperty_Off
-			'Reads value from the name of property (Windows, Linux, Android, Web).
+			'Reads value from the name of property (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
-			'Writes value to the name of property (Windows, Linux, Android, Web).
+			'Writes value to the name of property (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		#ifdef __USE_JNI__

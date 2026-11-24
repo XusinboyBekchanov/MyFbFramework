@@ -120,7 +120,7 @@ Namespace My.Sys.Drawing
 		End Enum
 	#endif
 	
-	'Canvas is a class that allows you to create and draw graphics (Windows, Linux).
+	'Canvas is a class that allows you to create and draw graphics (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type Canvas Extends My.Sys.Object
 		Private:
 		ParentControl As My.Sys.ComponentModel.Component Ptr

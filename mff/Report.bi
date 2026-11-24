@@ -115,7 +115,7 @@ Namespace My.Sys.Forms
 		'The Report control this band belongs to (Cast to My.Sys.Forms.Report Ptr internally).
 		Declare Property Parent As PReport
 		Declare Property Parent(Value As PReport)
-		'Returns a string that represents the current object (Windows, Linux, Android, Web).
+		'Returns a string that represents the current object (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Virtual Function ToString ByRef As WString
 		Declare Constructor
 		Declare Destructor

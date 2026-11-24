@@ -671,6 +671,19 @@ var MffLibrary = {
 				if (!design) e.style.top = ((parseFloat(e.style.top) || 0) + ch) + "px";
 			}
 			if (header && typeof dragElement === "function" && !design) dragElement(header, e);
+			// a form in the client area of an MDI form (Form.MDIShow): a press on it puts it over the others and activates it
+			// (ONCAPTIONBUTTON 0, Form.MDIActivate)
+			if (!design && e.parentElement && e.parentElement !== document.body) {
+				e.addEventListener("pointerdown", function() { mff.call("ONCAPTIONBUTTON", [Id, 0]); }, true);
+				// the place after the title bar moved it (dragElement): data-left, data-top of the window with the title
+				// bar (ONCAPTIONBUTTON 3, Form.MDIDragEnd)
+				if (header) header.addEventListener("mouseup", function(ev) {
+					if (ev.target.closest(".mffclose, .mffcaptionbutton")) return;
+					e.setAttribute("data-left", e.offsetLeft);
+					e.setAttribute("data-top", e.offsetTop - header.offsetHeight);
+					mff.call("ONCAPTIONBUTTON", [Id, 3]);
+				});
+			}
 			// the panel of the designer shows the part of the designed form in it (scroll bars like on Windows)
 			if (design && e.parentElement && e.parentElement !== document.body) e.parentElement.style.overflow = "auto";
 			var close = mff.el(String(Id) + "CloseButton");
@@ -830,7 +843,30 @@ var MffLibrary = {
 	ELEMENTSETENABLED__deps: ['$mff'],
 	ELEMENTSETENABLED: function(Id, value) {
 		var e = mff.el(Id);
-		if (e) e.disabled = !value;
+		if (!e) return;
+		// button, input, select, textarea, fieldset: their own disabled
+		if ("disabled" in e) { e.disabled = !value; return; }
+		// a div (Panel, Form, a drawn control) like a disabled window of Windows: no mouse (pointer-events), no focus
+		// and no keys for it and the elements in it (inert), dimmed; the old values come back when it is enabled
+		if (!value) {
+			if (e.mffDisabled) return;
+			e.mffDisabled = {pointerEvents: e.style.pointerEvents, opacity: e.style.opacity};
+			e.style.pointerEvents = "none";
+			e.style.opacity = "0.6";
+			e.inert = true;
+			if (e.contains(document.activeElement)) document.activeElement.blur();
+		} else if (e.mffDisabled) {
+			e.style.pointerEvents = e.mffDisabled.pointerEvents;
+			e.style.opacity = e.mffDisabled.opacity;
+			e.inert = false;
+			e.mffDisabled = null;
+		}
+	},
+
+	ELEMENTHASFOCUS__deps: ['$mff'],
+	ELEMENTHASFOCUS: function(Id) {
+		var e = mff.el(Id), a = document.activeElement;
+		return e && a && (a === e || e.contains(a)) ? 1 : 0;
 	},
 
 	ELEMENTSETFOCUS__deps: ['$mff'],

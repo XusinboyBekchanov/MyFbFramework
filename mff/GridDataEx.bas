@@ -8082,7 +8082,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_JNI__
 			If FTouchDown AndAlso FDragMode = 0 Then
 				Dim As Long Slop = LogicalToPxX(8)
-				If FTouchPanning = False AndAlso (Abs(X - FTouchX) > Slop OrElse Abs(Y - FTouchY) > Slop) Then FTouchPanning = True
+				If (Not FTouchPanning) AndAlso CBool(Abs(X - FTouchX) > Slop OrElse Abs(Y - FTouchY) > Slop) Then FTouchPanning = True
 				If FTouchPanning Then
 					'Whole rows and columns: the rest of the move waits for the next one
 					Dim As Long RowH = Max(1, GetDefaultRowHeightPx()), ColW = Max(1, GetDefaultColWidthPx())

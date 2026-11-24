@@ -46,7 +46,7 @@ Namespace My.Sys.Forms
 		tstWrap             = 32
 	End Enum
 	
-	'`ToolButton` - Represents a button item in a toolbar, supporting icons, text, dropdown menus, and state management (Windows, Linux).
+	'`ToolButton` - Represents a button item in a toolbar, supporting icons, text, dropdown menus, and state management (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type ToolButton Extends My.Sys.Object
 	Private:
 		FCaption      As WString Ptr
@@ -189,7 +189,7 @@ Namespace My.Sys.Forms
 	End Type
 	
 	'`ToolBar` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`ToolBar` - A toolbar is a control that contains one or more buttons (Windows, Linux).
+	'`ToolBar` - A toolbar is a control that contains one or more buttons (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type ToolBar Extends Control
 	Private:
 		FButtonWidth    As Integer
@@ -282,7 +282,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 		'Raised when any toolbar button is clicked
 		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-			'Shows the buttons again (Web, Android)
+			'Shows the buttons again (Android, Web, macOS, iOS)
 			Declare Sub UpdateButtons()
 		#endif
 		OnButtonClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ToolBar, ByRef Button As ToolButton)

@@ -1484,9 +1484,20 @@ public class mffActivity extends AppCompatActivity implements View.OnClickListen
         // The view takes the text of the soft keyboard (setKeyEvent): the characters go to onViewKey
         boolean textInput;
 
+        // setActivateEvent: a press anywhere in the layout (also on its child views) goes to the native side first
+        // (onViewTouch 14: CM_MOUSEACTIVATE, an MDI child is activated), the press goes on unchanged
+        boolean activateEvent;
+
         public MffLayout(Context context) {
             super(context);
             setWillNotDraw(false);
+        }
+
+        @Override
+        public boolean dispatchTouchEvent(android.view.MotionEvent e) {
+            if (activateEvent && e.getActionMasked() == android.view.MotionEvent.ACTION_DOWN && getContext() instanceof mffActivity)
+                ((mffActivity) getContext()).onViewTouch(this, 14, (int) e.getX(), (int) e.getY());
+            return super.dispatchTouchEvent(e);
         }
 
         @Override
@@ -2878,6 +2889,11 @@ public class mffActivity extends AppCompatActivity implements View.OnClickListen
     // The right button of Windows (the context menu of the designer, MouseButton 1): the right button of a mouse, or a
     // long press without moving (the press so far is released first, the rest of the touch is not sent). Actions of
     // onViewTouch: 6 - the right button is pressed, 7 - it is released
+    // CM_MOUSEACTIVATE of a press anywhere in the layout (MffLayout.activateEvent)
+    public void setActivateEvent(View v) {
+        if (v instanceof MffLayout) ((MffLayout) v).activateEvent = true;
+    }
+
     public void setTouchEvent(View v) {
         final int slop = android.view.ViewConfiguration.get(this).getScaledTouchSlop();
         final float[] down = new float[2];

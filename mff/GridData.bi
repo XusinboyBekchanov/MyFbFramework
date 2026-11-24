@@ -96,7 +96,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 
-	'`GridDataItem` - Represents a single item in a hierarchical grid control with tree-like structure and image support (Windows, Linux).
+	'`GridDataItem` - Represents a single item in a hierarchical grid control with tree-like structure and image support (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type GridDataItem Extends My.Sys.Object
 	Private:
 		FText               As WString Ptr
@@ -417,7 +417,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 			Declare Static Sub HandleIsDestroyed(ByRef Sender As Control)
 		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-			'The items are shown as a table view with a row per visible item (Web, Android)
+			'The items are shown as a table view with a row per visible item (Android, Web, macOS, iOS)
 			FSelItem As GridDataItem Ptr
 			FRowItems(Any) As GridDataItem Ptr
 			Declare Sub AddRows(PItems As GridDataItems Ptr)
@@ -459,7 +459,7 @@ Namespace My.Sys.Forms
 
 		'Initializes grid structure.
 		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-			'Shows the visible items and the columns again (Web, Android)
+			'Shows the visible items and the columns again (Android, Web, macOS, iOS)
 			Declare Sub UpdateRows()
 			Declare Sub UpdateColumns()
 			Declare Function RowCells(Item As GridDataItem Ptr) As String

@@ -25,7 +25,7 @@ Namespace My.Sys.Forms
 	End Enum
 	
 	'`ComboBoxEdit` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`ComboBoxEdit` - Combines the features of a [[TextBox]] and a [[ListControl]] (Windows, Linux, Web).
+	'`ComboBoxEdit` - Combines the features of a [[TextBox]] and a [[ListControl]] (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type ComboBoxEdit Extends Control
 	Private:
 		FSort             As Boolean

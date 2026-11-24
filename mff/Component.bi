@@ -18,7 +18,7 @@ Namespace My.Sys.ComponentModel
 		Bottom       As Integer
 	End Type
 	
-	'Provides the base class for the components (Windows, Linux, Android, Web).
+	'Provides the base class for the components (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type Component Extends My.Sys.Object
 	Protected:
 		FClassAncestor      As WString Ptr
@@ -68,74 +68,74 @@ Namespace My.Sys.ComponentModel
 			'window of Windows: the view is lower by its height (FormDesignFrame draws it)
 			Declare Function DesignCaptionHeight() As Integer
 		#endif
-		'Stores any extra data needed for your program (Windows, Linux, Android, Web).
+		'Stores any extra data needed for your program (Windows, Linux, Android, Web, macOS, iOS).
 		Tag As Any Ptr
-		'Returns/sets the space between controls (Windows, Linux, Android, Web).
+		'Returns/sets the space between controls (Windows, Linux, Android, Web, macOS, iOS).
 		Margins             As MarginsType
-		'Returns/sets the extra space between controls (Windows, Linux, Android, Web).
+		'Returns/sets the extra space between controls (Windows, Linux, Android, Web, macOS, iOS).
 		ExtraMargins        As MarginsType
 		#ifdef __USE_GTK__
-			'Gets the window handle that the control is bound to (Windows, Linux, Android, Web).
+			'Gets the window handle that the control is bound to (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Property Handle As GtkWidget Ptr
 			Declare Property Handle(Value As GtkWidget Ptr)
 			Declare Property LayoutHandle As GtkWidget Ptr
 			Declare Property LayoutHandle(Value As GtkWidget Ptr)
 		#elseif defined(__USE_JNI__)
-			'Gets the window handle that the control is bound to (Windows, Linux, Android, Web).
+			'Gets the window handle that the control is bound to (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Property Handle As jobject
 			Declare Property Handle(Value As jobject)
 			Declare Property LayoutHandle As jobject
 			Declare Property LayoutHandle(Value As jobject)
 		#elseif defined(__USE_WINAPI__)
-			'Gets the window handle that the control is bound to (Windows, Linux, Android, Web).
+			'Gets the window handle that the control is bound to (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Property Handle As HWND
 			Declare Property Handle(Value As HWND)
 			Declare Property LayoutHandle As HWND
 			Declare Property LayoutHandle(Value As HWND)
 		#elseif defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
-			'Gets the window handle that the control is bound to (Windows, Linux, Android, Web).
+			'Gets the window handle that the control is bound to (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Property Handle As Any Ptr
 			Declare Property Handle(Value As Any Ptr)
 			Declare Property LayoutHandle As Any Ptr
 			Declare Property LayoutHandle(Value As Any Ptr)
 		#endif
 		#ifndef ReadProperty_Off
-			'Reads value from the name of property (Windows, Linux, Android, Web).
+			'Reads value from the name of property (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
-			'Writes value to the name of property (Windows, Linux, Android, Web).
+			'Writes value to the name of property (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
-		'Returns a string that represents the current object (Windows, Linux, Android, Web).
+		'Returns a string that represents the current object (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Virtual Function ToString ByRef As WString
-		'Returns ancestor class of control (Windows, Linux, Android, Web).
+		'Returns ancestor class of control (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Function ClassAncestor ByRef As WString
-		'Determines if the control is a top-level control (Windows, Linux, Android, Web).
+		'Determines if the control is a top-level control (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Function GetTopLevel As Component Ptr
-		'Returns/sets the distance between the internal left edge of an object and the left edge of its container (Windows, Linux, Android, Web).
+		'Returns/sets the distance between the internal left edge of an object and the left edge of its container (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Property Left As Integer
 		Declare Property Left(Value As Integer)
-		'Returns/sets the distance between the internal top edge of an object and the top edge of its container (Windows, Linux, Android, Web).
+		'Returns/sets the distance between the internal top edge of an object and the top edge of its container (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Property Top As Integer
 		Declare Property Top(Value As Integer)
-		'Returns/sets the width of an object (Windows, Linux, Android, Web).
+		'Returns/sets the width of an object (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Property Width As Integer
 		Declare Property Width(Value As Integer)
-		'Returns/sets the height of an object (Windows, Linux, Android, Web).
+		'Returns/sets the height of an object (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Property Height As Integer
 		Declare Property Height(Value As Integer)
-		'Gets the bounds of the control to the specified location and size (Windows, Linux, Android, Web).
+		'Gets the bounds of the control to the specified location and size (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Sub GetBounds(ByRef ALeft As Integer, ByRef ATop As Integer, ByRef AWidth As Integer, ByRef AHeight As Integer)
-		'Sets the bounds of the control to the specified location and size (Windows, Linux, Android, Web).
+		'Sets the bounds of the control to the specified location and size (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Sub SetBounds(ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
-		'Gets a value that indicates whether the Component is currently in design mode (Windows, Linux, Android, Web).
+		'Gets a value that indicates whether the Component is currently in design mode (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Virtual Property DesignMode As Boolean
 		Declare Virtual Property DesignMode(Value As Boolean)
-		'Returns the name used in code to identify an object (Windows, Linux, Android, Web).
+		'Returns the name used in code to identify an object (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Property Name ByRef As WString
 		Declare Property Name(ByRef Value As WString)
-		'Gets or sets the parent container of the control (Windows, Linux, Android, Web).
+		'Gets or sets the parent container of the control (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Property Parent As Component Ptr 'ContainerControl
 		Declare Property Parent(Value As Component Ptr)
 		'Declare Constructor

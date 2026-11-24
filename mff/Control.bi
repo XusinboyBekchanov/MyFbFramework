@@ -448,7 +448,7 @@ Namespace My.Sys.Forms
 			Declare Sub UnwatchWeakPointer(pField As Any Ptr Ptr)
 		#endif
 
-		'Defines the base class for controls, which are components with visual representation (Windows, Linux, Android, Web)
+		'Defines the base class for controls, which are components with visual representation (Windows, Linux, Android, Web, macOS, iOS)
 		Private Type Control Extends Component
 		Private:
 			Tracked As Boolean
@@ -651,33 +651,33 @@ Namespace My.Sys.Forms
 			Declare Virtual Sub ProcessMessageAfter(ByRef message As Message)
 		Public:
 			Declare Virtual Sub ProcessMessage(ByRef message As Message)
-			'Canvas is all about drawing in a container (Windows, Linux).
+			'Canvas is all about drawing in a container (Windows, Linux, Android, Web, macOS, iOS).
 			Canvas        As My.Sys.Drawing.Canvas
 			'Activates the next control (Windows only).
 			Declare Function SelectNextControl(Prev As Boolean = False) As Control Ptr
 			#ifndef ReadProperty_Off
-				'Reads value from the name of property (Windows, Linux, Android, Web).
+				'Reads value from the name of property (Windows, Linux, Android, Web, macOS, iOS).
 				Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 			#endif
 			#ifndef WriteProperty_Off
-				'Writes value to the name of property (Windows, Linux, Android, Web).
+				'Writes value to the name of property (Windows, Linux, Android, Web, macOS, iOS).
 				Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 			#endif
 			'Returs/sets a value indicating type is subclass or not (Windows only).
 			SubClass            As Boolean
-			'Returns a Font object (Windows, Linux, Web).
+			'Returns a Font object (Windows, Linux, Android, Web, macOS, iOS).
 			Font               As My.Sys.Drawing.Font
-			'Returns/sets the type of mouse pointer displayed when over part of an object (Windows, Linux).
+			'Returns/sets the type of mouse pointer displayed when over part of an object (Windows, Linux, Web, macOS).
 			Cursor             As My.Sys.Drawing.Cursor
 			'Specifies the default Help file context ID for an object (Windows only).
 			HelpContext        As Integer
-			'Specifies the size constraints for the control (Windows, Linux, Android, Web).
+			'Specifies the size constraints for the control (Windows, Linux, Android, Web, macOS, iOS).
 			Constraints        As SizeConstraints
 			'Gets or sets a value indicating whether this control should redraw its surface using a secondary buffer to reduce or prevent flicker (Windows only)
 			DoubleBuffered     As Boolean
-			'Gets the collection of controls contained within the control (Windows, Linux, Android, Web).
+			'Gets the collection of controls contained within the control (Windows, Linux, Android, Web, macOS, iOS).
 			Controls           As Control Ptr Ptr
-			'Returns/sets the edges of the container to which a control is bound and determines how a control is resized with its parent (Windows, Linux, Android, Web).
+			'Returns/sets the edges of the container to which a control is bound and determines how a control is resized with its parent (Windows, Linux, Android, Web, macOS, iOS).
 			Anchor             As AnchorType
 			'Gets or sets a value indicating whether the control can accept data that the user drags onto it (Windows, Linux).
 			Declare Property AllowDrop As Boolean
@@ -691,61 +691,61 @@ Namespace My.Sys.Forms
 			'Returns/sets the border style for an object (Windows, Linux).
 			Declare Property BorderStyle As BorderStyles
 			Declare Property BorderStyle(Value As BorderStyles)
-			'Returns/sets the PopupMenu associated with this control (Windows, Linux).
+			'Returns/sets the PopupMenu associated with this control (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Property ContextMenu As PopupMenu Ptr
 			Declare Property ContextMenu(Value As PopupMenu Ptr)
-			'Returns/sets the object's index within the parent object's children collection (Windows, Linux, Android, Web).
+			'Returns/sets the object's index within the parent object's children collection (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Property ControlIndex As Integer
 			Declare Property ControlIndex(Value As Integer)
-			'Returns/sets the text contained in the control (Windows, Linux, Android, Web).
+			'Returns/sets the text contained in the control (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Virtual Property Text ByRef As WString
 			Declare Virtual Property Text(ByRef Value As WString)
-			'Returns/sets the text displayed when the mouse is paused over the control (Windows, Linux).
+			'Returns/sets the text displayed when the mouse is paused over the control (Windows, Linux, macOS).
 			Declare Property Hint ByRef As WString
 			Declare Property Hint(ByRef Value As WString)
 			'Returns/sets the value indicating show Caption. (Windows only).
 			Declare Property ShowCaption As Boolean
 			Declare Property ShowCaption(Value As Boolean)
-			'Returns/sets the value indicating show hint (Windows, Linux).
+			'Returns/sets the value indicating show hint (Windows, Linux, macOS).
 			Declare Property ShowHint As Boolean
 			Declare Property ShowHint(Value As Boolean)
 			'Returns/sets the coordinates of the upper-left corner of the text layout relative to the upper-left corner of its container (Windows only).
 			Declare Property Current As My.Sys.Drawing.Point
 			Declare Property Current(Value As My.Sys.Drawing.Point)
-			'Returns/sets the coordinates of the upper-left corner of the control relative to the upper-left corner of its container (Windows, Linux, Android, Web).
+			'Returns/sets the coordinates of the upper-left corner of the control relative to the upper-left corner of its container (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Property Location As My.Sys.Drawing.Point
 			Declare Property Location(Value As My.Sys.Drawing.Point)
-			'Returns/sets the height and width of the control (Windows, Linux, Android, Web).
+			'Returns/sets the height and width of the control (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Property Size As My.Sys.Drawing.Size
 			Declare Property Size(Value As My.Sys.Drawing.Size)
-			'Returns/sets the background color used to display text and graphics in an object (Windows, Linux, Web).
+			'Returns/sets the background color used to display text and graphics in an object (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Property BackColor As Integer
 			Declare Property BackColor(Value As Integer)
-			'Returns/sets the foreground color used to display text and graphics in an object (Windows, Web).
+			'Returns/sets the foreground color used to display text and graphics in an object (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Property ForeColor As Integer
 			Declare Property ForeColor(Value As Integer)
 			'Determines the time interval, after which the element, over which the mouse cursor hovers, is highlighted (Windows, Linux).
 			Declare Property HoverTime As Integer
 			Declare Property HoverTime(Value As Integer)
-			'Returns/sets the parent container of the control (Windows, Linux, Android, Web).
+			'Returns/sets the parent container of the control (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Property Parent As Control Ptr
 			Declare Property Parent(Value As Control Ptr)
 			'The colour the parent shows behind us: the parent's BackColor when
 			'it set one, otherwise the theme's form background. The corner band
 			'of every rounded owner-drawn chrome fills with this so the rounding
-			'reads against the container (Windows, Linux, Android, Web).
+			'reads against the container (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Function EffectiveParentBack() As ULong
 			'Resolve this control's corner radius (a LOGICAL-pixel RADIUS): an
 			'explicit own value (>= 0) wins, then the framework default
 			'(g_DefaultCornerRadius), then the control's built-in default.
-			'nOwn = -1 means "follow the framework default" (Windows, Linux, Android, Web).
+			'nOwn = -1 means "follow the framework default" (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Function ResolveCornerRadius(ByVal nOwn As Long, ByVal nBuiltIn As Long) As Long
-			'Returns/sets which control borders are docked to its parent control and determines how a control is resized with its parent (Windows, Linux, Android, Web).
+			'Returns/sets which control borders are docked to its parent control and determines how a control is resized with its parent (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Property Align As DockStyle
 			Declare Property Align(Value As DockStyle)
-			'Returns/sets the width of the client area of the control (Windows, Linux, Android, Web).
+			'Returns/sets the width of the client area of the control (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Function ClientWidth As Integer
-			'Returns/sets the height of the client area of the control (Windows, Linux, Android, Web).
+			'Returns/sets the height of the client area of the control (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Function ClientHeight As Integer
 			'Returns/sets the value indicating the first control of a group of controls (Windows only).
 			Declare Property Grouped As Boolean
@@ -753,17 +753,17 @@ Namespace My.Sys.Forms
 			'Determines whether a window is a child window or descendant window of a specified parent window (Windows, Linux).
 			Declare Property IsChild As Boolean
 			Declare Property IsChild(Value As Boolean)
-			'Returns/sets a value that determines whether an object can respond to user-generated events (Windows, Linux).
+			'Returns/sets a value that determines whether an object can respond to user-generated events (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Virtual Property Enabled As Boolean
 			Declare Virtual Property Enabled(Value As Boolean)
-			'Returns/sets a value that determines whether an object is visible or hidden (Windows, Linux, Web).
+			'Returns/sets a value that determines whether an object is visible or hidden (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Virtual Property Visible As Boolean
 			Declare Virtual Property Visible(Value As Boolean)
-			'Gets the number of controls in the Control collection (Windows, Linux, Android, Web).
+			'Gets the number of controls in the Control collection (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Function ControlCount() As Integer
-			'Determines the length, in characters, of the text associated with a window (Windows, Linux, Android, Web).
+			'Determines the length, in characters, of the text associated with a window (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Function GetTextLength() As Integer
-			'Retrieves the form that the control is on (Windows, Linux, Android, Web).
+			'Retrieves the form that the control is on (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Function GetForm() As Control Ptr
 			#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				'The control which got the focus is the active control of its form (Android, macOS, iOS).
@@ -771,24 +771,24 @@ Namespace My.Sys.Forms
 			#endif
 			'Begins a drag operation (Windows only)
 			Declare Function DoDragDrop(ByRef DataObject As DataObject, AllowedEffects As DragDropEffects) As DragDropEffects
-			'Returns the parent control that is not parented by another Forms control. Typically, this is the outermost Form that the control is contained in (Windows, Linux, Android, Web).
+			'Returns the parent control that is not parented by another Forms control. Typically, this is the outermost Form that the control is contained in (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Function TopLevelControl() As Control Ptr
-			'Returns a value indicating whether the control has input focus (Windows, Linux).
+			'Returns a value indicating whether the control has input focus (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Function Focused As Boolean
-			'Retrieves the index of a specified Control object in the collection (Windows, Linux, Android, Web).
+			'Retrieves the index of a specified Control object in the collection (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Function IndexOf(Ctrl As Control Ptr) As Integer
 			Declare Function IndexOf(CtrlName As String) As Integer
-			'Retrieves the Control object from Control name in the collection (Windows, Linux, Android, Web).
+			'Retrieves the Control object from Control name in the collection (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Function ControlByName(CtrlName As String) As Control Ptr
 			#ifdef __USE_JNI__
 				'Gives the back color to the view (Android)
 				Declare Sub ApplyBackColor
 			#endif
-			'Creates the window (Windows, Android, Web)
+			'Creates the window (Windows, Android, Web, macOS, iOS)
 			Declare Virtual Sub CreateWnd
 			'Recreates the window (Windows only)
 			Declare Sub RecreateWnd
-			'Destroys the specified window handle (Windows, Linux).
+			'Destroys the specified window handle (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Sub FreeWnd
 			'Converts the client-area coordinates of a specified point to screen coordinates (Windows only).
 			Declare Sub ClientToScreen(ByRef P As My.Sys.Drawing.Point)
@@ -796,11 +796,11 @@ Namespace My.Sys.Forms
 			Declare Sub ScreenToClient(ByRef P As My.Sys.Drawing.Point)
 			'Invalidates the rect surface of the control and causes the control to be redrawn (Windows only).
 			Declare Sub Invalidate(ByVal iRect As Any Ptr = 0, ByVal bErase As Boolean = True)
-			'Forces the control to invalidate its client area and immediately redraw itself and any child controls (Windows, Linux).
+			'Forces the control to invalidate its client area and immediately redraw itself and any child controls (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Sub Repaint
 			'The control AND every descendant repaints: the one call a host needs
 			'after a global theme flip (App.DarkMode) so no child is left in the
-			'old look (Windows, Linux).
+			'old look (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Sub RefreshAll
 			#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 				'Paints the canvas of the control now (Web, Android, macOS, iOS): sends CM_PAINT and raises OnPaint
@@ -812,13 +812,13 @@ Namespace My.Sys.Forms
 			Declare Sub UpdateLock
 			'Enables drawing in the specified window (Windows only).
 			Declare Sub UpdateUnLock
-			'Moves the focus to the specified form or the specified control on the active form (Windows, Linux).
+			'Moves the focus to the specified form or the specified control on the active form (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Sub SetFocus
-			'Brings the control to the front of the z-order (Windows, Linux).
+			'Brings the control to the front of the z-order (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Sub BringToFront
-			'Sends the control to the back of the z-order (Windows, Linux).
+			'Sends the control to the back of the z-order (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Sub SendToBack
-			'Instructs the parent of a control to reposition the control, enforcing its Align property (Windows, Linux, Android, Web).
+			'Instructs the parent of a control to reposition the control, enforcing its Align property (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Sub RequestAlign(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False, bWithoutControl As Control Ptr = 0)
 			'The layout pass itself, without the paint batching of RequestAlign
 			Declare Sub RequestAlignCore(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False, bWithoutControl As Control Ptr = 0)
@@ -827,29 +827,29 @@ Namespace My.Sys.Forms
 				'design bounds (a window shown again can be on another monitor than its scale)
 				Declare Sub SyncWindowDpi
 			#endif
-			'Displays the control to the user (Windows, Linux, Android, Web).
+			'Displays the control to the user (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Virtual Sub Show
-			'Conceals the control from the user (Windows, Linux, Android, Web).
+			'Conceals the control from the user (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Virtual Sub Hide
-			'Sets the left, top, right, bottom margins for a container control (Windows, Linux, Android, Web).
+			'Sets the left, top, right, bottom margins for a container control (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Sub SetMargins(mLeft As Integer, mTop As Integer, mRight As Integer, mBottom As Integer)
-			'Adds the specified control to the control collection (Windows, Linux, Android, Web).
+			'Adds the specified control to the control collection (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Virtual Sub Add(Ctrl As Control Ptr, Index As Integer = -1)
-			'Adds the specified controls range to the control collection (Windows, Linux, Android, Web).
+			'Adds the specified controls range to the control collection (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Sub AddRange cdecl(CountArgs As Integer, ...)
-			'Removes the specified control from the control collection (Windows, Linux, Android, Web).
+			'Removes the specified control from the control collection (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Sub Remove(Ctrl As Control Ptr)
 			Declare Operator Cast As Any Ptr
 			Declare Operator Let(ByRef Value As Control Ptr)
 			Declare Constructor
 			Declare Destructor
-			'Occurs when the control is clicked (Windows, Linux, Android, Web).
+			'Occurs when the control is clicked (Windows, Linux, Android, Web, macOS, iOS).
 			OnClick      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-			'Occurs when the control is created (Windows, Linux, Android, Web).
+			'Occurs when the control is created (Windows, Linux, Android, Web, macOS, iOS).
 			OnCreate     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-			'Occurs when the control is double-clicked (Windows, Linux, Web).
+			'Occurs when the control is double-clicked (Windows, Linux, Web, macOS, iOS).
 			OnDblClick   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-			'Occurs when the control's handle is in the process of being destroyed (Windows, Linux, Android, Web).
+			'Occurs when the control's handle is in the process of being destroyed (Windows, Linux, Web).
 			OnDestroy    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when a drag-and-drop operation is completed (Windows only).
 			OnDragDrop   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef DataObject As DataObject, AllowedEffect As DragDropEffects, Effect As DragDropEffects, KeyState As ULong, X As Integer, Y As Integer)
@@ -865,37 +865,37 @@ Namespace My.Sys.Forms
 			OnGesture    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef e As GestureEventArgs)
 			'Occurs during a drag operation (Windows only).
 			OnGiveFeedback As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Effect As DragDropEffects, UseDefaultCursors As Boolean)
-			'Occurs when the control receives focus (Windows, Linux, Web).
+			'Occurs when the control receives focus (Windows, Linux, Android, Web, macOS, iOS).
 			OnGotFocus   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when the Visible property value changes to false (Windows, Linux).
 			OnHide       As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-			'Occurs when a character. space or backspace key is pressed while the control has focus (Windows, Linux, Web).
+			'Occurs when a character. space or backspace key is pressed while the control has focus (Windows, Linux, Android, Web, macOS, iOS).
 			OnKeyPress   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
-			'Occurs when a key is pressed while the control has focus (Windows, Linux, Web).
+			'Occurs when a key is pressed while the control has focus (Windows, Linux, Android, Web, macOS, iOS).
 			OnKeyDown    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
-			'Occurs when a key is released while the control has focus (Windows, Linux, Web).
+			'Occurs when a key is released while the control has focus (Windows, Linux, Android, Web, macOS, iOS).
 			OnKeyUp      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
-			'Occurs when the control loses focus (Windows, Linux, Web).
+			'Occurs when the control loses focus (Windows, Linux, Android, Web, macOS, iOS).
 			OnLostFocus  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-			'Occurs when the window receives a message (Windows, Linux).
+			'Occurs when the window receives a message (Windows, Linux, Android, Web, macOS, iOS).
 			OnMessage    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Msg As Message)
-			'Occurs when the mouse pointer is moved over the control (Windows, Linux, Web).
+			'Occurs when the mouse pointer is moved over the control (Windows, Linux, Android, Web, macOS, iOS).
 			OnMouseMove  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-			'Occurs when the mouse pointer is over the control and a mouse button is pressed (Windows, Linux, Web).
+			'Occurs when the mouse pointer is over the control and a mouse button is pressed (Windows, Linux, Android, Web, macOS, iOS).
 			OnMouseDown  As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-			'Occurs when the mouse pointer is over the control and a mouse button is released (Windows, Linux, Web).
+			'Occurs when the mouse pointer is over the control and a mouse button is released (Windows, Linux, Android, Web, macOS, iOS).
 			OnMouseUp    As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-			'Occurs when the mouse wheel moves while the control has focus (Windows, Linux, Web).
+			'Occurs when the mouse wheel moves while the control has focus (Windows, Linux, Android, Web, macOS, iOS).
 			OnMouseWheel As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
 			'Occurs when the mouse pointer rests on the control (Windows only).
 			OnMouseHover As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 			'Occurs when the mouse pointer enters the control (Windows, Linux, Web).
 			OnMouseEnter As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-			'Occurs when the mouse pointer leaves the control (Windows, Linux, Web).
+			'Occurs when the mouse pointer leaves the control (Windows, Linux, Android, Web, macOS, iOS).
 			OnMouseLeave As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			'Occurs when the control is moved (Windows, Linux).
 			OnMove       As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-			'Occurs when the control is redrawn (Windows, Linux).
+			'Occurs when the control is redrawn (Windows, Linux, Android, Web, macOS, iOS).
 			OnPaint      As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 			' Occurs when a pointer (mouse, touch, or pen) is pressed down on the control.
 			OnPointerDown As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef e As PointerEventArgs)
@@ -905,7 +905,7 @@ Namespace My.Sys.Forms
 			OnPointerUp As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef e As PointerEventArgs)
 			'Occurs during a drag-and-drop operation and enables the drag source to determine whether the drag-and-drop operation should be canceled (Windows only).
 			OnQueryContinueDrag As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Action As DragAction, EscapePressed As Boolean, KeyState As ULong)
-			'Occurs when the control is resized (Windows, Linux, Android).
+			'Occurs when the control is resized (Windows, Linux, Android, Web, macOS, iOS).
 			OnResize     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 			'Occurs when the scroll box has been moved by either a mouse or keyboard action (Windows, Linux).
 			OnScroll     As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control)

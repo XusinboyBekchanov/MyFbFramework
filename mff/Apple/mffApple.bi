@@ -36,6 +36,8 @@ Extern "C"
 	Declare Sub mffViewSetText(ByVal Id As Any Ptr, ByVal Text As Const ZString Ptr)
 	Declare Function mffViewGetText(ByVal Id As Any Ptr) As ZString Ptr
 	Declare Sub mffViewSetHint(ByVal Id As Any Ptr, ByVal Text As Const ZString Ptr)
+	'The mouse cursor over the view: a CSS name of Cursor.bi (crHandPoint - "pointer", ...), "" - the default one (macOS)
+	Declare Sub mffViewSetCursor(ByVal Id As Any Ptr, ByVal Name_ As Const ZString Ptr)
 	Declare Sub mffViewSetVisible(ByVal Id As Any Ptr, ByVal Value As Long)
 	Declare Sub mffViewSetEnabled(ByVal Id As Any Ptr, ByVal Value As Long)
 	Declare Sub mffViewSetFocus(ByVal Id As Any Ptr)
@@ -87,6 +89,10 @@ Extern "C"
 	'FormBorderStyle of Form.bi: 0 - None, 1 - SizableToolWindow, 2 - FixedToolWindow, 3 - Sizable, 4 - Fixed3D,
 	'5 - FixedSingle, 6 - FixedDialog
 	Declare Sub mffFormSetBorder(ByVal Id As Any Ptr, ByVal Style As Long)
+	'FormStyle fsStayOnTop: the window is over the other windows (macOS)
+	Declare Sub mffFormSetOnTop(ByVal Id As Any Ptr, ByVal OnTop As Long)
+	'A press anywhere in the view, also on its child views (they get it too): CM_MOUSEACTIVATE (an MDI child is activated)
+	Declare Sub mffViewSetActivateEvent(ByVal Id As Any Ptr)
 	Declare Sub mffFormSetMainMenu(ByVal Id As Any Ptr, ByVal Items As Const ZString Ptr)
 	Declare Function mffScreenSize(ByVal Vertical As Long) As Long
 	#ifdef __USE_COCOA__

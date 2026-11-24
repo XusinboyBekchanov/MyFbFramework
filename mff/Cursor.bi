@@ -108,7 +108,7 @@ End Namespace
 Namespace My.Sys.Drawing
 	#define QCursor(__Ptr__) (*Cast(Cursor Ptr,__Ptr__))
 	
-	'Represents the image used to paint the mouse pointer (Windows, Linux).
+	'Represents the image used to paint the mouse pointer (Windows, Linux, Web, macOS).
 	Private Type Cursor Extends My.Sys.Object
 	Private:
 		FWidth     As Integer

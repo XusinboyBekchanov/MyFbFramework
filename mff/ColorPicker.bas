@@ -284,7 +284,7 @@
 	Private Function ColorPicker.GetWindowsDPI() As Double
 		#ifdef __USE_GTK__
 			Return 1#
-		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			Return IIf(ydpi > 0, ydpi, 1#)
 		#elseif defined(__USE_WINAPI__)
 			Dim hDC As HDC, LPX As Double

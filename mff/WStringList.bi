@@ -30,7 +30,7 @@ Public:
 	Declare Destructor
 End Type
 
-'Represents a list of wstrings that can be accessed by index. Provides methods to search, sort, and manipulate lists (Windows, Linux, Android, Web).
+'Represents a list of wstrings that can be accessed by index. Provides methods to search, sort, and manipulate lists (Windows, Linux, Android, Web, macOS, iOS).
 Private Type WStringList
 Private:
 	FText               As WString Ptr

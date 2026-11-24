@@ -21,7 +21,7 @@ Namespace My.Sys.Forms
 		ssText, ssBitmap, ssIcon, ssCursor, ssEmf, ssOwnerDraw
 	End Enum
 
-	'Displays a graphic from a bitmap, icon or metafile (Windows, Linux).
+	'Displays a graphic from a bitmap, icon or metafile (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type Picture Extends ContainerControl
 	Private:
 		AStyle(24)             As Integer

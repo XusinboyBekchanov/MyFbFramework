@@ -20,7 +20,7 @@
 #include once "FBMemCheck.bi"
 Private Type UStr As UString
 
-'Represents unicode text (Windows, Linux, Android, Web).
+'Represents unicode text (Windows, Linux, Android, Web, macOS, iOS).
 Private Type UString Extends WString
 Private:
 	m_Capacity As Integer

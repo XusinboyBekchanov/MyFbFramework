@@ -69,7 +69,7 @@ Namespace My.Sys.Forms
 	End Enum
 	
 	'`Header` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`Header` - A header control is a window that is usually positioned above columns of text or numbers (Windows, Linux).
+	'`Header` - A header control is a window that is usually positioned above columns of text or numbers (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type Header Extends Control
 	Private:
 		FStyle            As HeaderStyle

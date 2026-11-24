@@ -487,6 +487,12 @@ End Namespace
 		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("setTouchEvent", "(Landroid/view/View;)V"), Id)
 	End Sub
 
+	'CM_MOUSEACTIVATE of a press anywhere in the layout (also on its child views, they get the press too)
+	Sub SetActivateEvent(Id As Any Ptr)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("setActivateEvent", "(Landroid/view/View;)V"), Id)
+	End Sub
+
 	Sub SetKeyEvent(Id As Any Ptr, TextInput As Boolean)
 		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
 		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("setKeyEvent", "(Landroid/view/View;Z)V"), Id, CUByte(IIf(TextInput, 1, 0)))

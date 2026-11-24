@@ -13,7 +13,7 @@ Namespace My.Sys.Forms
 	
 	Private Type PTreeListViewItem As TreeListViewItem Ptr
 	
-	'`TreeListViewItems` - Manages a collection of hierarchical items in a TreeListView control with native OS integration (Windows, Linux).
+	'`TreeListViewItems` - Manages a collection of hierarchical items in a TreeListView control with native OS integration (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type TreeListViewItems Extends My.Sys.Object
 	Private:
 		FItems As List
@@ -68,7 +68,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	'`TreeListViewItem` - Represents a hierarchical item in a TreeListView control with multi-state icons and native tree model integration (Windows, Linux).
+	'`TreeListViewItem` - Represents a hierarchical item in a TreeListView control with multi-state icons and native tree model integration (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type TreeListViewItem Extends My.Sys.Object
 	Private:
 		FText               As WString Ptr
@@ -167,7 +167,7 @@ Namespace My.Sys.Forms
 		OnDblClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	End Type
 	
-	'`TreeListViewColumn` - Defines display and interaction rules for a column in a hierarchical TreeListView control (Windows, Linux).
+	'`TreeListViewColumn` - Defines display and interaction rules for a column in a hierarchical TreeListView control (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type TreeListViewColumn Extends My.Sys.Object
 	Private:
 		FText            As WString Ptr
@@ -251,7 +251,7 @@ Namespace My.Sys.Forms
 	End Type
 	
 	'`TreeListView` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`TreeListView` - Combines the features of a `TreeView` and a `ListView` (Windows, Linux).
+	'`TreeListView` - Combines the features of a `TreeView` and a `ListView` (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type TreeListView Extends Control
 	Private:
 		FColumnHeaderHidden As Boolean

@@ -293,6 +293,12 @@ Namespace My.Sys.Forms
 					Return GetFocus = FHandle
 				#elseif defined(__USE_APPLE__)
 					Return FHandle <> 0 AndAlso mffViewHasFocus(FHandle) <> 0
+				#elseif defined(__USE_WASM__)
+					Return FHandle <> 0 AndAlso ElementHasFocus(FHandle) <> 0
+				#elseif defined(__USE_JNI__)
+					'The view which SetFocus gives the focus to (requestFocus)
+					If env = 0 OrElse FHandle = 0 Then Return False
+					Return (*env)->CallBooleanMethod(env, IIf(layoutview, layoutview, FHandle), GetMethodID("android/view/View", "isFocused", "()Z")) <> 0
 				#else
 					Return False
 				#endif
@@ -1043,6 +1049,15 @@ Namespace My.Sys.Forms
 				If FHandle Then EnableWindow FHandle, FEnabled
 			#elseif defined(__USE_APPLE__)
 				If FHandle Then mffViewSetEnabled(FHandle, FEnabled)
+			#elseif defined(__USE_WASM__)
+				If FHandle Then ElementSetEnabled(FHandle, FEnabled)
+			#elseif defined(__USE_JNI__)
+				'The view and its layout (a Form, a Panel): View.setEnabled, the view takes no touches and no keys
+				If env <> 0 AndAlso FHandle <> 0 Then
+					Dim As jmethodID setEnabled = GetMethodID("android/view/View", "setEnabled", "(Z)V")
+					(*env)->CallVoidMethod(env, FHandle, setEnabled, CUByte(IIf(FEnabled, 1, 0)))
+					If layoutview <> 0 AndAlso layoutview <> FHandle Then (*env)->CallVoidMethod(env, layoutview, setEnabled, CUByte(IIf(FEnabled, 1, 0)))
+				End If
 			#endif
 		End Property
 		
@@ -1566,6 +1581,8 @@ Namespace My.Sys.Forms
 				If Mid(sKind, 1, 4) = "mff:" Then sKind = Mid(sKind, 5) Else sKind = *FClassName
 				'A designed form is a plain view in the panel of the designer of the IDE, not a window
 				If FDesignMode AndAlso sKind = "Form" Then sKind = "DesignedForm"
+				'An MDI child is a plain view in its frame in the client area of its MDI form (Form.MDIShow)
+				If sKind = "Form" AndAlso FParent <> 0 AndAlso FParent->ClassName <> "Form" Then sKind = "DesignedForm"
 				FHandle = mffViewCreate(sKind, @This)
 				If FHandle = 0 Then Exit Sub
 				layoutview = mffViewLayout(FHandle)
@@ -1584,6 +1601,7 @@ Namespace My.Sys.Forms
 				mffViewSetBounds(FHandle, FLeft, FTop + DesignCaptionHeight, FWidth, FHeight)
 				If FText AndAlso *FText <> "" Then mffViewSetText(FHandle, ToUtf8(*FText))
 				If FHint <> 0 AndAlso FShowHint Then mffViewSetHint(FHandle, ToUtf8(*FHint))
+				If Cursor.ToString <> "" Then mffViewSetCursor(FHandle, ToUtf8(Cursor.ToString))
 			#endif
 			#if defined(__USE_WINAPI__) OrElse defined(__USE_JNI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 				If FHandle Then
@@ -1611,8 +1629,8 @@ Namespace My.Sys.Forms
 							If layoutview Then
 								layoutview = (*env)->NewGlobalRef(env, layoutview)
 								'A Form is an Activity: its touches are the ones of its layout
-								If CInt(FMouseEvents) OrElse CInt(FDesignMode) OrElse OnMouseDown OrElse OnMouseMove OrElse OnMouseUp OrElse OnMouseLeave Then SetTouchEvent(layoutview)
-							ElseIf CInt(FMouseEvents) OrElse CInt(FDesignMode) OrElse OnMouseDown OrElse OnMouseMove OrElse OnMouseUp OrElse OnMouseLeave Then
+								If CInt(FMouseEvents) OrElse CInt(FDesignMode) OrElse CInt(FContextMenu <> 0) OrElse OnMouseDown OrElse OnMouseMove OrElse OnMouseUp OrElse OnMouseLeave Then SetTouchEvent(layoutview)
+							ElseIf CInt(FMouseEvents) OrElse CInt(FDesignMode) OrElse CInt(FContextMenu <> 0) OrElse OnMouseDown OrElse OnMouseMove OrElse OnMouseUp OrElse OnMouseLeave Then
 								SetTouchEvent(FHandle)
 							End If
 							If CInt(FKeyEvents) OrElse CInt(FDesignMode) OrElse OnKeyDown OrElse OnKeyPress OrElse OnKeyUp OrElse OnGotFocus OrElse OnLostFocus Then
@@ -1697,6 +1715,9 @@ Namespace My.Sys.Forms
 						'The colors set before the view was made (the default ones keep the look of the system)
 						If FBackColor <> FDefaultBackColor Then mffViewSetBackColor(FHandle, FBackColor)
 						If This.Font.Color <> 0 Then mffViewSetForeColor(FHandle, This.Font.Color)
+					#elseif defined(__USE_JNI__)
+						'Font.Color (ForeColor) set before the view was made: the text color of the TextView (Font.Color)
+						If This.Font.Color <> 0 Then This.Font.Color = This.Font.Color
 					#endif
 					If FParent Then
 						FAnchoredParentWidth = Cast(Control Ptr, FParent)->Width
@@ -1849,6 +1870,10 @@ Namespace My.Sys.Forms
 		Private Property Control.ContextMenu(Value As PopupMenu Ptr)
 			FContextMenu = Value
 			If FContextMenu Then FContextMenu->ParentWindow = @This
+			#ifdef __USE_JNI__
+				'Android: the long press (or the right button of a mouse) opens the menu, so the view sends its touches
+				If FContextMenu <> 0 AndAlso FHandle <> 0 Then SetTouchEvent(IIf(layoutview, layoutview, FHandle))
+			#endif
 		End Property
 		
 		#ifdef __USE_GTK__
@@ -4794,7 +4819,8 @@ End Namespace
 	End Sub
 	
 	'Action: 0 - a button went down, 1 - up, 2 - the mouse moved (Button -1: no button is pressed), 3 - it left the view,
-	'4 - the wheel turned (Button: 1 - up, -1 - down), 5 - the horizontal wheel, 6 - the mouse stays (OnMouseHover, macOS).
+	'4 - the wheel turned (Button: 1 - up, -1 - down), 5 - the horizontal wheel, 6 - the mouse stays (OnMouseHover, macOS),
+	'7 - a press anywhere in the view (mffViewSetActivateEvent: CM_MOUSEACTIVATE).
 	'Button: 0 - left, 1 - right, 2 - middle
 	Sub mffOnMouse Cdecl Alias "mffOnMouse"(ByVal Ctrl As My.Sys.Forms.Control Ptr, ByVal Action As Long, ByVal Button As Long, ByVal x As Long, ByVal y As Long, ByVal Shift As Long) Export
 		If Ctrl = 0 Then Exit Sub
@@ -4827,6 +4853,9 @@ End Namespace
 			SendControlInputMessage(Ctrl, CM_MOUSEHWHEEL, Button, msg.lParam, x, y, Shift)
 		Case 6
 			If Ctrl->OnMouseHover Then Ctrl->OnMouseHover(*Ctrl->Designer, *Ctrl, Button, x, y, Shift)
+		Case 7
+			msg.Msg = CM_MOUSEACTIVATE
+			DispatchControlMessage(Ctrl, msg)
 		End Select
 	End Sub
 	
@@ -4943,7 +4972,8 @@ End Namespace
 	End Sub
 
 	'A touch of the view (mffActivity.setTouchEvent) is the left mouse button; a touch which goes down or moves
-	'points like the mouse (CM_MOUSEMOVE with no button: Chart shows its hot item). action: 0 - down, 1 - up, 2 - move, 3 - cancel
+	'points like the mouse (CM_MOUSEMOVE with no button: Chart shows its hot item). action: 0 - down, 1 - up, 2 - move, 3 - cancel,
+	'14 - a press anywhere in the layout (SetActivateEvent: CM_MOUSEACTIVATE)
 	Sub mffActivity_onViewTouch Alias AddToPackage(Package, mffActivity_onViewTouch) (ByVal env1 As JNIEnv Ptr, This_ As jobject, v As jobject, action As jint, x As jint, y As jint) Export
 		Dim As Integer ID = CallIntMethod(v, "android/view/View", "getId", "()I")
 		Dim As My.Sys.Forms.Control Ptr Ctrl = Handles.Item(ID)
@@ -4988,12 +5018,17 @@ End Namespace
 			Else
 				If Ctrl->OnMouseUp Then Ctrl->OnMouseUp(*Ctrl->Designer, *Ctrl, 1, ux, uy, 0)
 			End If
+			'The context menu of the control opens on the release of the right button like on Windows
+			If CBool(action = 7) AndAlso (Not msg.Handled) AndAlso CBool(Ctrl->ContextMenu <> 0) AndAlso (Not Ctrl->DesignMode) Then Ctrl->ContextMenu->Popup(x, y)
 		Case 8, 9
 			'A notch of the mouse wheel (8 - up, 9 - down) like WM_MOUSEWHEEL of Windows: 1 - up, -1 - down
 			SendControlInputMessage(Ctrl, CM_MOUSEWHEEL, IIf(action = 8, 1, -1), msg.lParam, ux, uy)
 		Case 10, 11
 			'A notch of the horizontal mouse wheel (10 - left, 11 - right)
 			SendControlInputMessage(Ctrl, CM_MOUSEHWHEEL, IIf(action = 10, 1, -1), msg.lParam, ux, uy)
+		Case 14
+			msg.Msg = CM_MOUSEACTIVATE
+			DispatchControlMessage(Ctrl, msg)
 		Case 12, 13
 			'A drag of a finger in a view which takes the text (12 - it begins, 13 - it moves; mffActivity.setTouchEvent):
 			'notches of the wheel like the ones of the code editor (3 lines, 3 characters of the font of the control), so the

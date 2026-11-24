@@ -22,7 +22,7 @@ Private Enum ButtonStyle
 End Enum
 
 Namespace My.Sys.Forms
-	'Looks like a push button and is used to begin, interrupt, or end a process (Windows, Linux, Android, Web).
+	'Looks like a push button and is used to begin, interrupt, or end a process (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type CommandButton Extends Control
 	Private:
 		FStyle      As ButtonStyle
@@ -45,17 +45,17 @@ Namespace My.Sys.Forms
 		'Returns/sets a graphic to be displayed in a control (Windows only).
 		Graphic     As My.Sys.Drawing.GraphicType
 		#ifndef ReadProperty_Off
-			'Reads value from the name of property (Windows, Linux, Android, Web).
+			'Reads value from the name of property (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Virtual Function ReadProperty(PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
-			'Writes value to the name of property (Windows, Linux, Android, Web).
+			'Writes value to the name of property (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		'Indicates whether a command button is the Cancel button on a form (Windows only).
 		Declare Property Cancel As Boolean
 		Declare Property Cancel(Value As Boolean)
-		'Returns/sets the caption of the control (Windows, Linux, Android, Web).
+		'Returns/sets the caption of the control (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Property Caption ByRef As WString
 		Declare Property Caption(ByRef Value As WString)
 		'Returns/sets the tab order of an object within its parent form (Windows only).
@@ -64,7 +64,7 @@ Namespace My.Sys.Forms
 		'Returns/sets a value indicating whether a user can use the TAB key to give the focus to an object (Windows only).
 		Declare Property TabStop As Boolean
 		Declare Property TabStop(Value As Boolean)
-		'Returns/sets the text contained in the control (Windows, Linux, Android, Web).
+		'Returns/sets the text contained in the control (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
 		'Determines which CommandButton control is the default command button on a form (Windows, Linux).

@@ -1153,6 +1153,68 @@ void mffViewSetHint(void *view, const char *text) {
 	if (v) [v setToolTip:[mffStr(text) length] ? mffStr(text) : nil];
 }
 
+/* The cursor of a view (Control.Cursor): a tracking area of the view sends cursorUpdate: to its MffCursorOwner,
+   which sets the NSCursor. The names are the CSS ones of Cursor.bi; macOS has no public cursor for wait, progress
+   and the diagonal sizes: they are the arrow */
+static char kMffCursorKey;
+
+@interface MffCursorOwner : NSObject
+@property (strong) NSCursor *cursor;
+@property (strong) NSTrackingArea *area;
+@end
+
+@implementation MffCursorOwner
+- (void)cursorUpdate:(NSEvent *)event {
+	(void)event;
+	[self.cursor set];
+}
+@end
+
+static NSCursor *mffCursorFromName(NSString *name) {
+	if ([name isEqualToString:@"pointer"]) return [NSCursor pointingHandCursor];
+	if ([name isEqualToString:@"text"]) return [NSCursor IBeamCursor];
+	if ([name isEqualToString:@"vertical-text"]) return [NSCursor IBeamCursorForVerticalLayout];
+	if ([name isEqualToString:@"crosshair"]) return [NSCursor crosshairCursor];
+	if ([name isEqualToString:@"not-allowed"] || [name isEqualToString:@"no-drop"]) return [NSCursor operationNotAllowedCursor];
+	if ([name isEqualToString:@"grab"] || [name isEqualToString:@"move"] || [name isEqualToString:@"all-scroll"]) return [NSCursor openHandCursor];
+	if ([name isEqualToString:@"grabbing"]) return [NSCursor closedHandCursor];
+	if ([name isEqualToString:@"ew-resize"] || [name isEqualToString:@"col-resize"]) return [NSCursor resizeLeftRightCursor];
+	if ([name isEqualToString:@"ns-resize"] || [name isEqualToString:@"row-resize"]) return [NSCursor resizeUpDownCursor];
+	if ([name isEqualToString:@"copy"]) return [NSCursor dragCopyCursor];
+	if ([name isEqualToString:@"alias"]) return [NSCursor dragLinkCursor];
+	if ([name isEqualToString:@"context-menu"]) return [NSCursor contextualMenuCursor];
+	return [NSCursor arrowCursor];
+}
+
+void mffViewSetCursor(void *view, const char *name) {
+	NSView *v = mffView(view);
+	if (!v && mffWindow(view)) v = [mffWindow(view) contentView];
+	if (!v) return;
+	MffCursorOwner *owner = objc_getAssociatedObject(v, &kMffCursorKey);
+	if (owner.area) [v removeTrackingArea:owner.area];
+	NSString *s = mffStr(name);
+	NSCursor *cursor = nil;
+	if ([s length] && ![s isEqualToString:@"default"]) {
+		if (!owner) {
+			owner = [[MffCursorOwner alloc] init];
+			objc_setAssociatedObject(v, &kMffCursorKey, owner, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+		}
+		cursor = mffCursorFromName(s);
+		owner.cursor = cursor;
+		owner.area = [[NSTrackingArea alloc] initWithRect:NSZeroRect options:NSTrackingCursorUpdate | NSTrackingActiveInKeyWindow | NSTrackingInVisibleRect owner:owner userInfo:nil];
+		[v addTrackingArea:owner.area];
+	} else if (owner) {
+		owner.area = nil;
+		owner.cursor = nil;
+	}
+	/* The mouse is over the view now: the cursor changes at once (e.g. crWait before a long work) */
+	NSWindow *w = [v window];
+	if (w && [w isKeyWindow]) {
+		NSPoint p = [v convertPoint:[w mouseLocationOutsideOfEventStream] fromView:nil];
+		if (NSPointInRect(p, [v visibleRect])) [cursor ? cursor : [NSCursor arrowCursor] set];
+	}
+}
+
 void mffViewSetVisible(void *view, int value) {
 	NSWindow *w = mffWindow(view);
 	if (w) {
@@ -1530,6 +1592,40 @@ void mffFormSetBorder(void *view, int style) {
 	[w setStyleMask:m];
 	[w setFrame:f display:YES];
 	mffSettingFrame = NO;
+}
+
+/* FormStyle fsStayOnTop: the level of the floating windows (over the normal windows of all programs, like
+   HWND_TOPMOST of Windows) */
+void mffFormSetOnTop(void *view, int onTop) {
+	NSWindow *w = mffWindow(view);
+	if (w) [w setLevel:onTop ? NSFloatingWindowLevel : NSNormalWindowLevel];
+}
+
+/* CM_MOUSEACTIVATE (mffOnMouse action 7): one local monitor of the presses of the program looks for a marked view
+   from the view under the mouse up to the window; the event goes on unchanged (to the view under the mouse) */
+static char kMffActivateKey;
+void mffViewSetActivateEvent(void *view) {
+	NSView *v = mffView(view);
+	if (!v) return;
+	objc_setAssociatedObject(v, &kMffActivateKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+	static id monitor = nil;
+	if (monitor) return;
+	monitor = [NSEvent addLocalMonitorForEventsMatchingMask:(NSEventMaskLeftMouseDown | NSEventMaskRightMouseDown | NSEventMaskOtherMouseDown) handler:^NSEvent *(NSEvent *e) {
+		NSView *content = [[e window] contentView];
+		if (!content) return e;
+		NSView *hit = [content hitTest:[[content superview] convertPoint:[e locationInWindow] fromView:nil]];
+		for (NSView *s = hit; s; s = [s superview]) {
+			if (objc_getAssociatedObject(s, &kMffActivateKey)) {
+				void *ctrl = mffGetCtrl(s);
+				if (ctrl) {
+					NSPoint p = [s convertPoint:[e locationInWindow] fromView:nil];
+					mffOnMouse(ctrl, 7, 0, (int)p.x, (int)p.y, 0);
+				}
+				break;
+			}
+		}
+		return e;
+	}];
 }
 
 void mffFormSetMainMenu(void *view, const char *items) {

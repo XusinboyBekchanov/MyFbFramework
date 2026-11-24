@@ -16,7 +16,7 @@
 Namespace My.Sys.Forms
 	#define QGroupBox(__Ptr__) (*Cast(GroupBox Ptr,__Ptr__))
 	
-	'Provides an identifiable grouping for controls (Windows, Linux, Web).
+	'Provides an identifiable grouping for controls (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type GroupBox Extends ContainerControl
 	Private:
 		FParentColor As Integer

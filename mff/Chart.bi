@@ -99,7 +99,7 @@ Namespace My.Sys.Forms
 	Private Const GDIP_OK As Long = &H0
 	
 	'`Chart` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`Chart` - The Chart control is a chart object that exposes events (Windows, Linux).
+	'`Chart` - The Chart control is a chart object that exposes events (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type Chart Extends Control
 	Private:
 		Type tItem

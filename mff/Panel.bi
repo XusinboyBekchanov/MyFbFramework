@@ -22,7 +22,7 @@ Namespace My.Sys.Forms
 		bvNone, bvLowered, bvRaised
 	End Enum
 	
-	'Used to group collections of controls (Windows, Linux, Android, Web).
+	'Used to group collections of controls (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type Panel Extends ContainerControl
 	Private:
 		FTopColor    As Integer

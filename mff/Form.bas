@@ -167,6 +167,8 @@ Namespace My.Sys.Forms
 					gtk_box_pack_start(GTK_BOX(widget), HeaderBarWidget, False, False, 0)
 				#endif
 				Base.ParentWidget = Value
+				'The form of the box in the client area of the MDI form (MDIArrange)
+				g_object_set_data(G_OBJECT(widget), "MFFControl", Cast(gpointer, @This))
 				BorderStyle = BorderStyle
 			End If
 		End Property
@@ -195,9 +197,7 @@ Namespace My.Sys.Forms
 				CaptionButtons = FormCaptionButton(Trim(Str(@This)), "Min", "Minimize", "min", FMinimizeBox) & _
 				FormCaptionButton(Trim(Str(@This)), "Max", "Maximize", "max", FMaximizeBox)
 			End If
-			If FFormStyle = fsMDIForm Then
-				Return "<div id=""" & Trim(Str(@This)) & "Client""></div>"
-			ElseIf Not FMainForm AndAlso CBool(FBorderStyle <> FormBorderStyle.None) Then
+			If Not FMainForm AndAlso CBool(FBorderStyle <> FormBorderStyle.None) Then
 				'BorderStyle None (a splash screen): no title bar. The title bar is above the client area of the
 				'form (.mffcaption of mff.html): the controls keep their places, Height is the one of the client area
 				Return "<div class=""mffcaption unselectable"" id=""" & Trim(Str(@This)) & "Header"">" & _
@@ -630,12 +630,658 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+		'MDI without the MDI windows of the system (Web, Android, macOS, iOS). The client area of an fsMDIForm is a
+		'control (Align alClient: the docked ToolBar, StatusBar stay around it) with the gray of the MDI client of Windows.
+		'An fsMDIChild shown with this form (Show(OwnerForm), Parent) is in it:
+		' - Web: the element of the form with its title bar (it moves the form, closes, minimizes, maximizes it);
+		' - Android, macOS, iOS: in a frame with a drawn title bar (the caption, the minimize, maximize and close buttons;
+		'   it moves the frame, a double click maximizes it). The frame has Left, Top, Width, Height of the form like the
+		'   window of an MDI child of Windows, the form is its client area under the title bar.
+		'A press on the title bar (Web: on the form) puts the form over the others and activates it (OnActivate,
+		'OnDeActivate of the one before, App.ActiveMDIChild); a closed form is hidden and gets OnDestroy like the window
+		'of an MDI child of Windows, Show shows it again. A minimized form is its title bar at the bottom of the client
+		'area (ArrangeIcons)
+		Const MDICaptionHeight = 24
+
+		'The form of a control of the client area of an MDI form (Web: the form, else: its frame), 0 - none
+		Private Function MDIChildOf(ByVal Ctrl As Control Ptr) As Form Ptr
+			If Ctrl = 0 Then Return 0
+			#ifdef __USE_WASM__
+				If Ctrl->ClassName = "Form" Then Return Cast(Form Ptr, Ctrl)
+			#else
+				If Ctrl->Name = "MDIFrame" Then Return Cast(Form Ptr, Ctrl->Designer)
+			#endif
+			Return 0
+		End Function
+	#endif
+
+	#ifndef __USE_WINAPI__
+		'The width of a minimized MDI child (its title bar) like on Windows
+		Const MDIMinimizedWidth = 160
+
+		'The MDI form of an fsMDIChild: its owner form (Show(OwnerForm), Parent) if it is an fsMDIForm, 0 - none
+		Private Function Form.MDIOwnerForm As Form Ptr
+			If FFormStyle <> FormStyles.fsMDIChild OrElse FDesignMode Then Return 0
+			If FMDIOwner = 0 AndAlso FParent <> 0 AndAlso *Cast(My.Sys.Object Ptr, FParent) Is Form Then
+				If Cast(Form Ptr, FParent)->FFormStyle = FormStyles.fsMDIForm Then FMDIOwner = Cast(Form Ptr, FParent)
+			End If
+			Return FMDIOwner
+		End Function
+
+		'The height of the minimized MDI child: its title bar with the border
+		Private Function Form.MDIMinimizedHeight As Integer
+			#ifdef __USE_GTK__
+				'The header bar of the box of the form in the client area (Form.ParentWidget)
+				Dim As Integer H
+				If HeaderBarWidget Then H = UnScaleY(gtk_widget_get_allocated_height(HeaderBarWidget))
+				Return IIf(H > 1, H, 30) + 2
+			#elseif defined(__USE_WASM__)
+				'The title bar (28 pixels, .mffcaption of mff.html) and the border
+				Return 29
+			#else
+				Return MDICaptionHeight + 2
+			#endif
+		End Function
+
+		'The bounds of the window of the form (with the title bar) in the client area of its MDI form
+		Private Sub Form.MDISetFrameBounds(ByVal iLeft As Integer, ByVal iTop As Integer, ByVal iWidth As Integer, ByVal iHeight As Integer)
+			#ifdef __USE_GTK__
+				'The box of the form (the header bar and the client area) in the layout of the client area
+				Dim As Form Ptr MDIForm = MDIOwnerForm
+				If MDIForm = 0 OrElse MDIForm->FClient = 0 OrElse widget = 0 Then Exit Sub
+				FLeft = iLeft: FTop = iTop: FWidth = iWidth: FHeight = iHeight
+				gtk_layout_move(GTK_LAYOUT(MDIForm->FClient), widget, ScaleX(iLeft), ScaleY(iTop))
+				gtk_widget_set_size_request(widget, ScaleX(iWidth), ScaleY(iHeight))
+			#elseif defined(__USE_WASM__)
+				'Top and Height of the element of a form are the ones with its title bar (ELEMENTSETBOUNDS)
+				SetBounds iLeft, iTop, iWidth, iHeight
+			#else
+				If FMDIFrame = 0 Then Exit Sub
+				FMDIFrame->SetBounds iLeft, iTop, iWidth, iHeight
+				FMDICaption->SetBounds 1, 1, Max(0, iWidth - 2), MDICaptionHeight
+				'A minimized form has the height 0 (only the title bar of the frame is seen)
+				SetBounds 1, MDICaptionHeight + 1, Max(0, iWidth - 2), Max(0, iHeight - MDICaptionHeight - 2)
+				FMDICaption->Repaint
+			#endif
+			RequestAlign
+		End Sub
+
+		'wsNormal, wsMinimized, wsMaximized of an MDI child: maximized it fills the client area of its MDI form (its title
+		'bar stays), minimized it is its title bar at the bottom of the client area (ArrangeIcons), normal it gets its
+		'bounds back
+		Private Sub Form.MDISetState(ByVal Value As WindowStates)
+			Dim As Form Ptr MDIForm = MDIOwnerForm
+			If MDIForm = 0 OrElse Value = FWindowState Then Exit Sub
+			If Value <> WindowStates.wsNormal AndAlso Value <> WindowStates.wsMinimized AndAlso Value <> WindowStates.wsMaximized Then Exit Sub
+			#ifdef __USE_GTK__
+				'The bounds of the normal state (the MDI of mff keeps them when the window moves, MDIShow, MDIArrange)
+				If FWindowState = WindowStates.wsNormal Then FMDIRestore(0) = FLeft: FMDIRestore(1) = FTop: FMDIRestore(2) = FWidth: FMDIRestore(3) = FHeight
+				'The client area of a minimized form is hidden (the size request of the box would be its height)
+				If GTK_IS_BOX(widget) Then
+					Dim As GtkWidget Ptr w
+					#ifdef __USE_GTK4__
+						w = gtk_widget_get_first_child(widget)
+						Do While w
+							If w <> HeaderBarWidget Then gtk_widget_set_visible(w, Value <> WindowStates.wsMinimized)
+							w = gtk_widget_get_next_sibling(w)
+						Loop
+					#else
+						Dim As GList Ptr List = gtk_container_get_children(GTK_CONTAINER(widget)), Item = List
+						Do While Item
+							w = Item->data
+							If w <> HeaderBarWidget Then gtk_widget_set_visible(w, Value <> WindowStates.wsMinimized)
+							Item = Item->next
+						Loop
+						g_list_free(List)
+					#endif
+				End If
+			#endif
+			FWindowState = Value
+			FMDIMaximized = Value = WindowStates.wsMaximized
+			Select Case Value
+			Case WindowStates.wsMaximized
+				Dim As Integer ClientWidth, ClientHeight
+				MDIForm->MDIClientSize ClientWidth, ClientHeight
+				MDISetFrameBounds 0, 0, ClientWidth, ClientHeight
+			Case WindowStates.wsNormal
+				MDISetFrameBounds FMDIRestore(0), FMDIRestore(1), FMDIRestore(2), FMDIRestore(3)
+			End Select
+			#ifdef __USE_WASM__
+				If FHandle Then SetCaptionState(FHandle, IIf(Value = WindowStates.wsMinimized, 1, IIf(Value = WindowStates.wsMaximized, 2, 0)))
+			#endif
+			'The minimized forms at the bottom (also the place of this one)
+			MDIForm->ArrangeIcons
+		End Sub
+	#endif
+
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+		Private Sub Form.MDICreateClient
+			If FMDIClient <> 0 OrElse FDesignMode OrElse FFormStyle <> FormStyles.fsMDIForm Then Exit Sub
+			FMDIClient = _New(Control)
+			With *FMDIClient
+				.Name = "MDIClient"
+				.Designer = @This
+				.BackColor = &hABABAB
+				.Align = DockStyle.alClient
+				.OnResize = @MDIClient_Resize
+				.Parent = @This
+			End With
+		End Sub
+
+		Private Sub Form.MDIShow
+			Dim As Form Ptr MDIForm = MDIOwnerForm
+			If MDIForm = 0 OrElse FMDIInShow Then Exit Sub
+			MDIForm->MDICreateClient
+			Dim As Control Ptr Client = MDIForm->FMDIClient
+			If Client = 0 Then Exit Sub
+			'The view of the form is made in the frame: CreateWnd shows it (Show) again
+			FMDIInShow = True
+			#ifdef __USE_WASM__
+				Dim As Boolean bNew = FHandle = 0
+			#else
+				Dim As Boolean bNew = FMDIFrame = 0
+			#endif
+			If bNew Then
+				'The window at Left, Top of the form; at 0, 0 the next place of a cascade like the MDI of Windows gives
+				Dim As Integer iLeft = FLeft, iTop = FTop, iWidth = FWidth, iHeight = FHeight
+				If iLeft = 0 AndAlso iTop = 0 Then
+					iLeft = (MDIForm->FMDICount Mod 8) * MDICaptionHeight
+					iTop = iLeft
+				End If
+				MDIForm->FMDICount += 1
+				FMDIRestore(0) = iLeft: FMDIRestore(1) = iTop: FMDIRestore(2) = iWidth: FMDIRestore(3) = iHeight
+				'The place is the one in the client area, not on the screen
+				Dim As Integer OldStartPosition = FStartPosition
+				FStartPosition = FormStartPosition.Manual
+				FVisible = True
+				#ifdef __USE_WASM__
+					'The element of the form is made in the element of the client area (OnShow: its load event)
+					FLeft = iLeft: FTop = iTop
+					Base.Parent = Client
+					If Client->Handle Then SetStyle(Client->Handle, "overflow", "hidden")
+				#else
+					#ifdef __USE_JNI__
+						'The layout is transparent without a color: the color of the dialogs of Windows (BTNFACE)
+						If FBackColor = -1 Then FBackColor = IIf(ActivityNightMode, &h121212, &hF0F0F0)
+					#endif
+					FMDIFrame = _New(Control)
+					With *FMDIFrame
+						.Name = "MDIFrame"
+						.Designer = @This
+						.BackColor = &h808080
+						.SetBounds iLeft, iTop, iWidth, iHeight
+					End With
+					FMDICaption = _New(Control)
+					With *FMDICaption
+						.Name = "MDICaption"
+						.Designer = @This
+						.OnPaint = @MDICaption_Paint
+						.OnMouseDown = @MDICaption_MouseDown
+						.OnMouseMove = @MDICaption_MouseMove
+						.OnMouseUp = @MDICaption_MouseUp
+						.OnDblClick = @MDICaption_DblClick
+						.SetBounds 1, 1, Max(0, iWidth - 2), MDICaptionHeight
+						.Parent = FMDIFrame
+					End With
+					FLeft = 1: FTop = MDICaptionHeight + 1: FWidth = Max(0, iWidth - 2): FHeight = Max(0, iHeight - MDICaptionHeight - 2)
+					Base.Parent = FMDIFrame
+					'The views of the frame, of its title bar and of the form are made in the client area
+					FMDIFrame->Parent = Client
+				#endif
+				FStartPosition = OldStartPosition
+				RequestAlign
+			Else
+				FVisible = True
+				#ifdef __USE_WASM__
+					SetVisible(FHandle, True)
+				#else
+					FMDIFrame->Visible = True
+				#endif
+			End If
+			FMDIInShow = False
+			'A press anywhere in the form (also on its controls, they get it too) activates it (CM_MOUSEACTIVATE); the view is
+			'made here or later, when the MDI form is shown (CreateWnd shows the form again)
+			#ifdef __USE_JNI__
+				If FHandle Then SetActivateEvent(FHandle)
+			#elseif defined(__USE_APPLE__)
+				If FHandle Then mffViewSetActivateEvent(FHandle)
+			#endif
+			If FMDIMaximized Then MDISetFrameBounds 0, 0, Client->Width, Client->Height
+			If FWindowState = WindowStates.wsMinimized Then MDIForm->ArrangeIcons
+			MDIActivate
+			#ifdef __USE_WASM__
+				'A new element raises OnShow with its load event (HandleIsAllocated)
+				If bNew Then Exit Sub
+			#endif
+			If OnShow Then OnShow(*Designer, This)
+		End Sub
+
+		Private Sub Form.MDIActivate
+			Dim As Form Ptr MDIForm = MDIOwnerForm
+			If MDIForm = 0 OrElse Not FVisible Then Exit Sub
+			MDIBringToFront
+			If MDIForm->FMDIActive = @This Then Exit Sub
+			Dim As Form Ptr OldActive = MDIForm->FMDIActive
+			MDIForm->FMDIActive = @This
+			If pApp Then pApp->ActiveMDIChild = @This
+			If OldActive AndAlso OldActive->FMDICaption Then OldActive->FMDICaption->Repaint
+			If FMDICaption Then FMDICaption->Repaint
+			If OldActive AndAlso OldActive->OnDeActivate Then OldActive->OnDeActivate(*OldActive->Designer, *OldActive)
+			If OnActivate Then OnActivate(*Designer, This)
+		End Sub
+
+		'The window of the form over the other ones in the client area. Web: z-index (a press on the form activates it:
+		'the element moved in the page (ElementZOrder) would not get the click of the press)
+		Private Sub Form.MDIBringToFront
+			Dim As Form Ptr MDIForm = MDIOwnerForm
+			If MDIForm = 0 Then Exit Sub
+			'Already over the other ones (a press in the active child): nothing is moved
+			If FMDIZOrder = MDIForm->FMDIZOrder AndAlso FMDIZOrder <> 0 Then Exit Sub
+			MDIForm->FMDIZOrder += 1
+			FMDIZOrder = MDIForm->FMDIZOrder
+			#ifdef __USE_WASM__
+				'Over .mffdialog (z-index 1000 of mff.html)
+				If FHandle Then SetStyle(FHandle, "z-index", Str(1000 + FMDIZOrder))
+			#else
+				If FMDIFrame Then FMDIFrame->BringToFront
+			#endif
+		End Sub
+		
+		#ifdef __USE_WASM__
+			'The page moved the element (dragElement of mff.js): its place is the one of the normal state
+			Private Sub Form.MDIDragEnd
+				If MDIOwnerForm = 0 OrElse FHandle = 0 Then Exit Sub
+				Dim As ZString Ptr pValue = GetAttribute(FHandle, "data-left")
+				FLeft = UnScaleX(ValInt(*pValue)): FreePtr(pValue)
+				pValue = GetAttribute(FHandle, "data-top")
+				FTop = UnScaleY(ValInt(*pValue)): FreePtr(pValue)
+				If FWindowState = WindowStates.wsNormal Then FMDIRestore(0) = FLeft: FMDIRestore(1) = FTop
+			End Sub
+		#endif
+		
+		'The close button of the title bar, CloseForm: Action of OnClose 0 - the form stays, 1 - it is closed (hidden,
+		'OnDestroy like the window of an MDI child of Windows), 2 - minimized, 3 - hidden
+		Private Sub Form.MDIClose
+			Dim As Integer Action = 1
+			If OnClose Then OnClose(*Designer, This, Action)
+			If Action = 0 Then Exit Sub
+			If Action = 2 Then MDISetState(WindowStates.wsMinimized): Exit Sub
+			MDIHide
+			If Action = 1 AndAlso OnDestroy Then OnDestroy(*Designer, This)
+		End Sub
+
+		'The window of the form is hidden, the form on the top of the others which are shown becomes active
+		Private Sub Form.MDIHide
+			If FVisible Then
+				If OnHide Then OnHide(*Designer, This)
+				FVisible = False
+				#ifdef __USE_WASM__
+					If FHandle Then SetVisible(FHandle, False)
+				#else
+					If FMDIFrame Then FMDIFrame->Visible = False
+				#endif
+			End If
+			Dim As Form Ptr MDIForm = MDIOwnerForm
+			If MDIForm = 0 Then Exit Sub
+			'The other minimized forms take the place of this one
+			If FWindowState = WindowStates.wsMinimized Then MDIForm->ArrangeIcons
+			If MDIForm->FMDIActive <> @This Then Exit Sub
+			MDIForm->FMDIActive = 0
+			If pApp AndAlso pApp->ActiveMDIChild = @This Then pApp->ActiveMDIChild = 0
+			If OnDeActivate Then OnDeActivate(*Designer, This)
+			'The one on the top (the last one of MDIChildList)
+			Dim As Form Ptr Children(Any)
+			Dim As Integer n = MDIForm->MDIChildList(Children(), 0)
+			If n > 0 Then Children(n - 1)->MDIActivate
+		End Sub
+
+		'The maximized forms follow the size of the client area, the minimized ones stay at its bottom
+		Private Sub Form.MDIClient_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+			For i As Integer = 0 To Sender.ControlCount - 1
+				Dim As Form Ptr frm = MDIChildOf(Sender.Controls[i])
+				If frm <> 0 AndAlso CBool(frm->FMDIMaximized) Then frm->MDISetFrameBounds 0, 0, Sender.Width, Sender.Height
+			Next
+			Cast(Form Ptr, @Designer)->ArrangeIcons
+		End Sub
+
+		#ifndef __USE_WASM__
+			'A button of the title bar: the window of the normal state (a square), the restore of a minimized or a
+			'maximized window (two squares)
+			Private Sub MDIDrawWindowGlyph(ByRef Canvas As My.Sys.Drawing.Canvas, ByVal x0 As Integer, ByVal y0 As Integer, ByVal x1 As Integer, ByVal y1 As Integer, ByVal TwoWindows As Boolean)
+				If TwoWindows Then
+					'The window behind
+					Canvas.Line x0 + 2, y0 - 2, x1 + 2, y0 - 2: Canvas.Line x1 + 2, y0 - 2, x1 + 2, y1 - 2
+					x1 -= 2: y0 += 1
+				End If
+				Canvas.Line x0, y0, x1, y0: Canvas.Line x1, y0, x1, y1
+				Canvas.Line x1, y1, x0, y1: Canvas.Line x0, y1, x0, y0
+			End Sub
+
+			'The title bar of the frame: the blue of the active window of Windows, the gray of the others. The buttons at
+			'the right: close, maximize (MaximizeBox), minimize (MinimizeBox)
+			Private Sub Form.MDICaption_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+				Dim As Form Ptr frm = Cast(Form Ptr, @Designer)
+				Dim As Boolean Active = frm->FMDIOwner <> 0 AndAlso frm->FMDIOwner->FMDIActive = frm
+				Dim As Integer W = Sender.Width, H = Sender.Height
+				Dim As Integer BackColor = IIf(Active, &hD77800, &hDCDCDC), TextColor = IIf(Active, &hFFFFFF, &h000000)
+				'The border of the filled rectangles is the pen
+				Canvas.Pen.Color = BackColor
+				Canvas.Line 0, 0, W, H, BackColor, "F"
+				Canvas.TextOut 6, (H - Canvas.TextHeight("Wg")) \ 2, frm->Text, TextColor, BackColor
+				'The places of the buttons (the place of the maximize button stays without MaximizeBox like on Windows)
+				Dim As Integer m = H \ 3, Buttons = IIf(frm->MinimizeBox, 3, IIf(frm->MaximizeBox, 2, 1))
+				'The text does not go under the buttons
+				Canvas.Line W - Buttons * H, 0, W, H, BackColor, "F"
+				Canvas.Pen.Color = TextColor
+				Canvas.Line W - H + m, m, W - m, H - m
+				Canvas.Line W - H + m, H - m, W - m, m
+				If frm->MaximizeBox Then MDIDrawWindowGlyph Canvas, W - 2 * H + m, m, W - H - m, H - m, frm->FWindowState = WindowStates.wsMaximized
+				If frm->MinimizeBox Then
+					If frm->FWindowState = WindowStates.wsMinimized Then
+						MDIDrawWindowGlyph Canvas, W - 3 * H + m, m, W - 2 * H - m, H - m, True
+					Else
+						Canvas.Line W - 3 * H + m, H - m, W - 2 * H - m, H - m
+					End If
+				End If
+			End Sub
+
+			'The button under x of the title bar: 1 - close, 2 - maximize, 4 - minimize, 0 - none (the title bar)
+			Private Function MDICaptionButton(ByVal frm As Form Ptr, ByVal x As Integer, ByVal W As Integer, ByVal H As Integer) As Integer
+				If x >= W - H Then Return 1
+				If CBool(x >= W - 2 * H) AndAlso CBool(x < W - H) AndAlso frm->MaximizeBox Then Return 2
+				If CBool(x >= W - 3 * H) AndAlso CBool(x < W - 2 * H) AndAlso frm->MinimizeBox Then Return 4
+				Return 0
+			End Function
+
+			'FMDIPressed: the button which is pressed, 3 - the title bar moves the frame
+			Private Sub Form.MDICaption_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+				Dim As Form Ptr frm = Cast(Form Ptr, @Designer)
+				frm->MDIActivate
+				If MouseButton <> 0 Then Exit Sub
+				frm->FMDIPressed = MDICaptionButton(frm, x, Sender.Width, Sender.Height)
+				If frm->FMDIPressed = 0 Then
+					frm->FMDIPressed = 3
+					frm->FMDIDragX = x
+					frm->FMDIDragY = y
+				End If
+			End Sub
+
+			Private Sub Form.MDICaption_MouseMove(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+				Dim As Form Ptr frm = Cast(Form Ptr, @Designer)
+				If frm->FMDIPressed <> 3 OrElse frm->FMDIMaximized OrElse frm->FMDIFrame = 0 Then Exit Sub
+				'x, y are in the title bar, which moves with the frame: the place of the press stays under the finger
+				Dim As Integer dx = x - frm->FMDIDragX, dy = y - frm->FMDIDragY
+				If dx = 0 AndAlso dy = 0 Then Exit Sub
+				With *frm->FMDIFrame
+					'The title bar stays in the client area (it can be pressed again)
+					.SetBounds .Left + dx, Max(0, .Top + dy), .Width, .Height
+					'The place of a minimized window is the one of ArrangeIcons
+					If frm->FWindowState = WindowStates.wsNormal Then frm->FMDIRestore(0) = .Left: frm->FMDIRestore(1) = .Top
+				End With
+			End Sub
+
+			Private Sub Form.MDICaption_MouseUp(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+				Dim As Form Ptr frm = Cast(Form Ptr, @Designer)
+				Dim As Integer Pressed = frm->FMDIPressed
+				frm->FMDIPressed = 0
+				'A button is clicked when the press is released on it
+				If y < 0 OrElse y > Sender.Height OrElse Pressed <> MDICaptionButton(frm, x, Sender.Width, Sender.Height) Then Exit Sub
+				Select Case Pressed
+				Case 1: frm->CloseForm
+				Case 2: frm->MDISetState(IIf(frm->FWindowState = WindowStates.wsMaximized, WindowStates.wsNormal, WindowStates.wsMaximized))
+				Case 4: frm->MDISetState(IIf(frm->FWindowState = WindowStates.wsMinimized, WindowStates.wsNormal, WindowStates.wsMinimized))
+				End Select
+			End Sub
+
+			'A double click maximizes the window or gives its normal state back (a minimized one: the normal state)
+			Private Sub Form.MDICaption_DblClick(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+				Dim As Form Ptr frm = Cast(Form Ptr, @Designer)
+				If frm->FWindowState <> WindowStates.wsNormal Then
+					frm->MDISetState(WindowStates.wsNormal)
+				ElseIf frm->MaximizeBox Then
+					frm->MDISetState(WindowStates.wsMaximized)
+				End If
+			End Sub
+		#endif
+	#endif
+
+	'The size of the client area of the MDI form
+	Private Sub Form.MDIClientSize(ByRef ClientWidth As Integer, ByRef ClientHeight As Integer)
+		ClientWidth = 0: ClientHeight = 0
+		#ifdef __USE_WINAPI__
+			Dim As RECT R
+			If FClient AndAlso GetClientRect(FClient, @R) Then ClientWidth = UnScaleX(R.Right): ClientHeight = UnScaleY(R.Bottom)
+		#elseif defined(__USE_GTK__)
+			If FClient Then ClientWidth = UnScaleX(gtk_widget_get_allocated_width(FClient)): ClientHeight = UnScaleY(gtk_widget_get_allocated_height(FClient))
+		#else
+			If FMDIClient Then ClientWidth = FMDIClient->Width: ClientHeight = FMDIClient->Height
+		#endif
+	End Sub
+
+	'The MDI children which are shown, the last one is on the top (Windows, GTK: the order of their windows). Filter: 0 -
+	'all of them, 1 - the ones which are not minimized, 2 - the minimized ones
+	Private Function Form.MDIChildList(Children() As Form Ptr, ByVal Filter As Integer) As Integer
+		Dim As Integer n
+		Erase Children
+		If FFormStyle <> FormStyles.fsMDIForm OrElse FDesignMode Then Return 0
+		#ifdef __USE_WINAPI__
+			If FClient = 0 Then Return 0
+			'GW_CHILD is the window on the top: the list begins with the last one (GW_HWNDLAST)
+			Dim As HWND h = GetWindow(GetWindow(FClient, GW_CHILD), GW_HWNDLAST)
+			Do While h
+				Dim As Form Ptr frm = GetProp(h, "MFFControl")
+				If frm <> 0 AndAlso IsWindowVisible(h) <> 0 AndAlso (Filter = 0 OrElse CBool(Filter = 2) = CBool(IsIconic(h) <> 0)) Then n += 1: ReDim Preserve Children(n - 1): Children(n - 1) = frm
+				h = GetWindow(h, GW_HWNDPREV)
+			Loop
+		#elseif defined(__USE_GTK__)
+			'The boxes of the forms in the layout of the client area (Form.ParentWidget)
+			If FClient = 0 Then Return 0
+			Dim As GtkWidget Ptr w
+			#ifdef __USE_GTK4__
+				w = gtk_widget_get_first_child(FClient)
+				Do While w
+					Dim As Form Ptr frm = g_object_get_data(G_OBJECT(w), "MFFControl")
+					If frm <> 0 AndAlso gtk_widget_get_visible(w) AndAlso (Filter = 0 OrElse CBool(Filter = 2) = CBool(frm->FWindowState = WindowStates.wsMinimized)) Then n += 1: ReDim Preserve Children(n - 1): Children(n - 1) = frm
+					w = gtk_widget_get_next_sibling(w)
+				Loop
+			#else
+				Dim As GList Ptr List = gtk_container_get_children(GTK_CONTAINER(FClient)), Item = List
+				Do While Item
+					w = Item->data
+					Dim As Form Ptr frm = g_object_get_data(G_OBJECT(w), "MFFControl")
+					If frm <> 0 AndAlso gtk_widget_get_visible(w) AndAlso (Filter = 0 OrElse CBool(Filter = 2) = CBool(frm->FWindowState = WindowStates.wsMinimized)) Then n += 1: ReDim Preserve Children(n - 1): Children(n - 1) = frm
+					Item = Item->next
+				Loop
+				g_list_free(List)
+			#endif
+		#else
+			'The MDI of mff: the forms (Web) or their frames in the client area
+			If FMDIClient = 0 Then Return 0
+			For i As Integer = 0 To FMDIClient->ControlCount - 1
+				Dim As Form Ptr frm = MDIChildOf(FMDIClient->Controls[i])
+				If frm <> 0 AndAlso frm->FVisible AndAlso (Filter = 0 OrElse CBool(Filter = 2) = CBool(frm->FWindowState = WindowStates.wsMinimized)) Then n += 1: ReDim Preserve Children(n - 1): Children(n - 1) = frm
+			Next
+			'The order over each other (MDIBringToFront)
+			For i As Integer = 1 To n - 1
+				Dim As Form Ptr frm = Children(i)
+				Dim As Integer j = i - 1
+				Do While j >= 0 AndAlso Children(j)->FMDIZOrder > frm->FMDIZOrder
+					Children(j + 1) = Children(j): j -= 1
+				Loop
+				Children(j + 1) = frm
+			Next
+		#endif
+		Return n
+	End Function
+
+	'Cascade (0), TileHorizontal (1), TileVertical (2) of the MDI children which are shown and not minimized, like
+	'WM_MDICASCADE, WM_MDITILE of Windows: a maximized child gets its normal state, the active child is the last one of
+	'the cascade (on the top)
+	Private Sub Form.MDIArrange(ByVal Kind As Integer)
+		If FFormStyle <> FormStyles.fsMDIForm OrElse FDesignMode Then Exit Sub
+		#ifdef __USE_WINAPI__
+			If FClient = 0 Then Exit Sub
+			Select Case Kind
+			Case 0: SendMessage FClient, WM_MDICASCADE, 0, 0
+			Case 1: SendMessage FClient, WM_MDITILE, MDITILE_HORIZONTAL, 0
+			Case 2: SendMessage FClient, WM_MDITILE, MDITILE_VERTICAL, 0
+			End Select
+		#else
+			Dim As Form Ptr Children(Any), Active = ActiveMDIChild
+			Dim As Integer n = MDIChildList(Children(), 1), ClientWidth, ClientHeight, CaptionHeight
+			MDIClientSize ClientWidth, ClientHeight
+			If n = 0 OrElse ClientWidth <= 0 OrElse ClientHeight <= 0 Then Exit Sub
+			'The minimized forms stay at the bottom: the others are above them
+			Dim As Integer IconsHeight = MDIIconsHeight
+			If IconsHeight < ClientHeight \ 2 Then ClientHeight -= IconsHeight
+			#ifdef __USE_GTK__
+				CaptionHeight = 24
+			#elseif defined(__USE_WASM__)
+				'The title bar of a form (.mffcaption of mff.html)
+				CaptionHeight = 28
+			#else
+				CaptionHeight = MDICaptionHeight
+			#endif
+			'The active child is the last one (on the top of the cascade)
+			For i As Integer = 0 To n - 2
+				If Children(i) = Active Then Swap Children(i), Children(n - 1): Exit For
+			Next
+			For i As Integer = 0 To n - 1
+				Dim As Integer x, y, W, H
+				Select Case Kind
+				Case 0
+					'Each next window one title bar lower and to the right: 3/4 of the client area, smaller (down to the half)
+					'when all of them do not fit, the cascade begins again at the top when the window would go out of it
+					W = Max(100, Max(ClientWidth \ 2, Min(ClientWidth * 3 \ 4, ClientWidth - (n - 1) * CaptionHeight)))
+					H = Max(80, Max(ClientHeight \ 2, Min(ClientHeight * 3 \ 4, ClientHeight - (n - 1) * CaptionHeight)))
+					Dim As Integer Steps = Max(1, (ClientHeight - H) \ CaptionHeight + 1)
+					x = (i Mod Steps) * CaptionHeight: y = x
+				Case Else
+					'Up to 3 windows in one row (TileVertical) or column (TileHorizontal), more in a grid of Int(Sqr(n))
+					'columns (rows) with the extra windows in the last ones
+					Dim As Integer Groups = IIf(n <= 3, 1, Int(Sqr(n))), Group, Index = i, Count
+					For Group = 0 To Groups - 1
+						Count = n \ Groups + IIf(Group >= Groups - n Mod Groups, 1, 0)
+						If Index < Count Then Exit For
+						Index -= Count
+					Next
+					If Kind = 1 Then
+						'Horizontal: the windows one under the other (the full width of their column)
+						W = ClientWidth \ Groups: x = Group * W
+						H = ClientHeight \ Count: y = Index * H
+					Else
+						'Vertical: the windows side by side (the full height of their row)
+						H = ClientHeight \ Groups: y = Group * H
+						W = ClientWidth \ Count: x = Index * W
+					End If
+				End Select
+				With *Children(i)
+					If .FMDIMaximized Then
+						.FMDIMaximized = False
+						#ifdef __USE_WASM__
+							If .FHandle Then SetCaptionState(.FHandle, 0)
+						#endif
+					End If
+					.FWindowState = WindowStates.wsNormal
+					.FMDIRestore(0) = x: .FMDIRestore(1) = y: .FMDIRestore(2) = W: .FMDIRestore(3) = H
+					.MDISetFrameBounds x, y, W, H
+					'The order of the cascade is the order over each other
+					#ifndef __USE_GTK__
+						.MDIBringToFront
+					#endif
+				End With
+			Next
+		#endif
+	End Sub
+
+	Private Sub Form.Cascade
+		MDIArrange 0
+	End Sub
+
+	Private Sub Form.TileHorizontal
+		MDIArrange 1
+	End Sub
+
+	Private Sub Form.TileVertical
+		MDIArrange 2
+	End Sub
+
+	'The minimized MDI children in rows at the bottom of the client area, from the left like WM_MDIICONARRANGE of Windows
+	Private Sub Form.ArrangeIcons
+		If FFormStyle <> FormStyles.fsMDIForm OrElse FDesignMode Then Exit Sub
+		#ifdef __USE_WINAPI__
+			If FClient Then SendMessage FClient, WM_MDIICONARRANGE, 0, 0
+		#else
+			Dim As Form Ptr Children(Any)
+			Dim As Integer n = MDIChildList(Children(), 2), ClientWidth, ClientHeight
+			If n = 0 Then Exit Sub
+			MDIClientSize ClientWidth, ClientHeight
+			Dim As Integer PerRow = Max(1, ClientWidth \ MDIMinimizedWidth), H = Children(0)->MDIMinimizedHeight
+			For i As Integer = 0 To n - 1
+				Children(i)->MDISetFrameBounds (i Mod PerRow) * MDIMinimizedWidth, ClientHeight - (i \ PerRow + 1) * H, MDIMinimizedWidth, H
+			Next
+		#endif
+	End Sub
+
+	#ifndef __USE_WINAPI__
+		'The height of the rows of the minimized MDI children at the bottom of the client area (ArrangeIcons)
+		Private Function Form.MDIIconsHeight As Integer
+			Dim As Form Ptr Children(Any)
+			Dim As Integer n = MDIChildList(Children(), 2), ClientWidth, ClientHeight
+			If n = 0 Then Return 0
+			MDIClientSize ClientWidth, ClientHeight
+			Dim As Integer PerRow = Max(1, ClientWidth \ MDIMinimizedWidth)
+			Return ((n - 1) \ PerRow + 1) * Children(0)->MDIMinimizedHeight
+		End Function
+	#endif
+
+	Private Property Form.ActiveMDIChild As Form Ptr
+		If FFormStyle <> FormStyles.fsMDIForm OrElse FDesignMode Then Return 0
+		#ifdef __USE_WINAPI__
+			If FClient = 0 Then Return 0
+			Dim As HWND h = Cast(HWND, SendMessage(FClient, WM_MDIGETACTIVE, 0, 0))
+			Return IIf(h, GetProp(h, "MFFControl"), 0)
+		#elseif defined(__USE_GTK__)
+			'The form which was activated last (App.ActiveMDIChild) when it is shown here, else the one on the top
+			Dim As Form Ptr Children(Any)
+			Dim As Integer n = MDIChildList(Children(), 0)
+			If n = 0 Then Return 0
+			For i As Integer = 0 To n - 1
+				If pApp <> 0 AndAlso Children(i) = pApp->ActiveMDIChild Then Return Children(i)
+			Next
+			Return Children(n - 1)
+		#else
+			Return FMDIActive
+		#endif
+	End Property
+
+	'CloseForm of each MDI child which is shown (the one on the top first, like Close All of the Window menu): OnClose
+	'of a form can keep it
+	Private Sub Form.CloseMDIChildren
+		Dim As Form Ptr Children(Any)
+		Dim As Integer n = MDIChildList(Children(), 0)
+		For i As Integer = n - 1 To 0 Step -1
+			Children(i)->CloseForm
+		Next
+	End Sub
+
 	Private Property Form.FormStyle(Value As FormStyles)
 		If Value = FFormStyle Then Exit Property
 		FFormStyle = Value
 		#ifdef __USE_JNI__
-			'Android has no MDI (fsMDIForm, fsMDIChild: normal forms); fsStayOnTop: over the other forms in its owner
+			'fsStayOnTop: over the other forms in its owner
 			If FHandle <> 0 AndAlso FMainForm = False Then FormSetOnTop(FHandle, Value = FormStyles.fsStayOnTop)
+		#elseif defined(__USE_WASM__)
+			'fsStayOnTop: the element of the form is over the other forms (z-index)
+			If FHandle Then SetStyle(FHandle, "z-index", IIf(Value = FormStyles.fsStayOnTop, "100", ""))
+		#elseif defined(__USE_APPLE__)
+			'fsStayOnTop: the floating level of the window (iOS: the view of the form over the other ones)
+			If FHandle Then mffFormSetOnTop(FHandle, IIf(Value = FormStyles.fsStayOnTop, 1, 0))
+		#endif
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+			'fsMDIForm, fsMDIChild: the MDI of mff (MDICreateClient, MDIShow); a form which is shown gets its client area now
+			If FHandle Then MDICreateClient
 		#endif
 		Select Case FFormStyle
 		Case 0 'fsNormal
@@ -695,9 +1341,17 @@ Namespace My.Sys.Forms
 			Else
 				Base.Parent = value
 			End If
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+			'An MDI child of an MDI form is shown in its client area (MDIShow): the MDI form is its owner
+			If CBool(FFormStyle = fsMDIChild) AndAlso CBool(value <> 0) AndAlso CBool(*value Is Form) AndAlso CBool(Cast(Form Ptr, value)->FFormStyle = fsMDIForm) Then
+				FParent = value
+				Exit Property
+			End If
+			Base.Parent = value
 		#else
 			Base.Parent = value
 		#endif
+		If value = 0 Then Exit Property
 		If *value Is Form Then
 			If Cast(Form Ptr, value)->FFormStyle = fsMDIForm Then
 				#ifdef __USE_GTK__
@@ -768,6 +1422,19 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Private Property Form.WindowState(Value As WindowStates)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+			'An MDI child is minimized and maximized in the client area of its MDI form, wsHide hides it
+			If MDIOwnerForm <> 0 AndAlso CBool(FMDIFrame <> 0 OrElse FHandle <> 0) Then
+				If Value = WindowStates.wsHide Then MDIHide Else MDISetState(Value)
+				Exit Property
+			End If
+		#elseif defined(__USE_GTK__)
+			'An MDI child (a box in the client area of its MDI form, not a window)
+			If MDIOwnerForm <> 0 AndAlso widget <> 0 AndAlso Not GTK_IS_WINDOW(widget) Then
+				If Value = WindowStates.wsHide Then Hide Else MDISetState(Value)
+				Exit Property
+			End If
+		#endif
 		#ifdef __USE_APPLE__
 			If Value = WindowStates.wsHide Then
 				Hide
@@ -1013,6 +1680,7 @@ Namespace My.Sys.Forms
 				With QForm(Sender.Child)
 					#ifdef __USE_WASM__
 						If .OnShow Then SetLoadEvent(.FHandle)
+						If .FFormStyle = FormStyles.fsStayOnTop Then SetStyle(.FHandle, "z-index", "100")
 						If .Icon.ResName <> "" Then SetFormIcon(.FHandle, FindIconFile(ToUtf8(.Icon.ResName)), .FMainForm)
 						'The main menu is a bar above the main form (SetMainMenu of mff_lib.js), its items are shown by OnMainMenu
 						If .FMainForm AndAlso .FMenu <> 0 Then
@@ -1188,6 +1856,13 @@ Namespace My.Sys.Forms
 	
 	Private Sub Form.ProcessMessage(ByRef msg As Message)
 		Dim As Integer Action = 1
+		#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+			'A press in the MDI child (also on its controls) activates it like the MDI of Windows
+			If msg.Msg = CM_MOUSEACTIVATE Then
+				MDIActivate
+				Exit Sub
+			End If
+		#endif
 		#ifdef __USE_JNI__
 			'The close button of the title bar of a second form or Back (mffActivity.formTitleBar)
 			If msg.Msg = CM_CHANGE AndAlso msg.wParam = -1 AndAlso CInt(FMainForm) = 0 Then
@@ -1814,6 +2489,11 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Private Sub Form.Show
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+			'An MDI child of an MDI form is in its client area, an MDI form makes its client area with its view
+			If MDIOwnerForm Then MDIShow: Exit Sub
+			MDICreateClient
+		#endif
 		#ifdef __USE_GTK__
 			RequestAlign
 			If widget Then
@@ -1990,6 +2670,7 @@ Namespace My.Sys.Forms
 			If FHandle = 0 Then Exit Sub
 			FVisible = True
 			mffFormSetBorder(FHandle, FBorderStyle)
+			If FFormStyle = FormStyles.fsStayOnTop Then mffFormSetOnTop(FHandle, 1)
 			If FWindowState = WindowStates.wsMinimized OrElse FWindowState = WindowStates.wsMaximized Then mffFormSetState(FHandle, IIf(FWindowState = WindowStates.wsMinimized, 1, 2))
 			If FMainForm AndAlso FMenu <> 0 Then MenuBarShow(FMenu)
 			mffFormShow(FHandle, 0)
@@ -2201,6 +2882,9 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub Form.Hide
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+			If MDIOwnerForm Then MDIHide: Exit Sub
+		#endif
 		#ifdef __USE_GTK__
 			If widget Then
 				#ifndef __USE_GTK2__
@@ -2287,6 +2971,9 @@ Namespace My.Sys.Forms
 	#endif
 	
 	Private Sub Form.CloseForm
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+			If MDIOwnerForm Then MDIClose: Exit Sub
+		#endif
 		#ifdef __USE_GTK__
 			'#ifdef __USE_GTK3__
 			'	gtk_window_close(Gtk_Window(widget))
@@ -2632,6 +3319,31 @@ Namespace My.Sys.Forms
 		'		#endif
 		This.Menu = 0
 		FMenuItems.Clear
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+			'The frame of an MDI child and its title bar, the client area of an MDI form
+			If FMDIOwner <> 0 AndAlso FMDIOwner->FMDIActive = @This Then FMDIOwner->FMDIActive = 0
+			If pApp AndAlso pApp->ActiveMDIChild = @This Then pApp->ActiveMDIChild = 0
+			If FMDIFrame Then
+				If FMDIFrame->Parent Then FMDIFrame->Parent->Remove FMDIFrame
+				FMDIFrame->Remove @This
+				FMDIFrame->Remove FMDICaption
+				FParent = 0
+				_Delete(FMDICaption)
+				_Delete(FMDIFrame)
+				FMDICaption = 0: FMDIFrame = 0
+			End If
+			If FMDIClient Then
+				'The MDI children stay (they are freed by their owners)
+				Do While FMDIClient->ControlCount > 0
+					Dim As Form Ptr frm = MDIChildOf(FMDIClient->Controls[0])
+					If frm Then frm->FMDIOwner = 0
+					FMDIClient->Remove FMDIClient->Controls[0]
+				Loop
+				Remove FMDIClient
+				_Delete(FMDIClient)
+				FMDIClient = 0
+			End If
+		#endif
 		#ifdef __USE_WINAPI__
 			If Accelerator Then DestroyAcceleratorTable(Accelerator)
 		#endif
@@ -2833,6 +3545,8 @@ End Namespace
 			Dim As My.Sys.Forms.Form Ptr frm = Cast(Any Ptr, Id)
 			'The close button of a designed form (the designer of the IDE) does not close it
 			If frm = 0 OrElse frm->DesignMode Then Exit Sub
+			'An MDI child is hidden in the client area of its MDI form (Form.MDIClose)
+			If frm->FormStyle = My.Sys.Forms.FormStyles.fsMDIChild Then frm->CloseForm: Exit Sub
 			Dim As Integer Action = 1
 			If frm AndAlso frm->OnClose Then frm->OnClose(*frm->Designer, *frm, Action)
 			Select Case Action
@@ -2988,10 +3702,13 @@ End Namespace
 		Return 0
 	End Function
 	
-	'The minimize (1) and maximize (2) buttons of the title bar (the double click on it: 2): the next state of the form
+	'The minimize (1) and maximize (2) buttons of the title bar (the double click on it: 2): the next state of the form;
+	'0 - a press on a form (mff_lib.js): an MDI child is activated; 3 - its title bar moved it
 	Sub OnCaptionButton(Id As Integer, Button As Integer) Export
 		Dim As My.Sys.Forms.Form Ptr frm = Cast(Any Ptr, Id)
 		If frm = 0 Then Exit Sub
+		If Button = 0 Then frm->MDIActivate: Exit Sub
+		If Button = 3 Then frm->MDIDragEnd: Exit Sub
 		If Button = 1 Then
 			frm->WindowState = IIf(frm->WindowState = My.Sys.Forms.WindowStates.wsMinimized, My.Sys.Forms.WindowStates.wsNormal, My.Sys.Forms.WindowStates.wsMinimized)
 		ElseIf frm->MaximizeBox Then

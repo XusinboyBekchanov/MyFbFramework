@@ -97,7 +97,7 @@ Namespace My.Sys.Forms
 	End Type
 	
 	'`ToolPalette` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`ToolPalette` - A tool palette with categories (Windows, Linux).
+	'`ToolPalette` - A tool palette with categories (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type ToolPalette Extends Control
 	Private:
 		FBitmapWidth    As Integer

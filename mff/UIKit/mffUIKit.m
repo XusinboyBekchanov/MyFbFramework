@@ -4,6 +4,7 @@
  * The main form fills the screen of the iPhone, the other forms are shown over it.
  */
 #import <UIKit/UIKit.h>
+#import <UIKit/UIGestureRecognizerSubclass.h>
 #import <WebKit/WebKit.h>
 #import <objc/runtime.h>
 #include <math.h>
@@ -1077,6 +1078,8 @@ char *mffViewGetText(void *view) {
 }
 
 void mffViewSetHint(void *view, const char *text) { (void)view; (void)text; }
+/* iOS has no mouse cursor */
+void mffViewSetCursor(void *view, const char *name) { (void)view; (void)name; }
 void mffViewSetVisible(void *view, int value) { mffView(view).hidden = !value; }
 void mffViewSetEnabled(void *view, int value) {
 	id o = mffObj(view);
@@ -1367,6 +1370,14 @@ int mffPositionGet(void *view) {
 	return 0;
 }
 
+/* fsStayOnTop (mffFormSetOnTop): the view of the form stays over the other forms in the root view */
+static char kMffOnTopKey;
+static void mffRaiseOnTop(UIView *root) {
+	for (UIView *s in [root.subviews copy]) {
+		if ([objc_getAssociatedObject(s, &kMffOnTopKey) boolValue]) [root bringSubviewToFront:s];
+	}
+}
+
 /* The main form is the view of the root controller; a form shown before the application runs waits for it */
 void mffFormShow(void *view, int modal) {
 	UIView *v = mffView(view);
@@ -1379,6 +1390,7 @@ void mffFormShow(void *view, int modal) {
 	if (!v.superview) {
 		UIView *root = mffMainWindow.rootViewController.view;
 		[root addSubview:v];
+		mffRaiseOnTop(root);
 		if (!mffMainFormView) mffMainFormView = v;
 		[root setNeedsLayout];
 		[root layoutIfNeeded];
@@ -1407,7 +1419,42 @@ void mffFormHide(void *view) {
 }
 void mffFormSetState(void *view, int state) { (void)view; (void)state; }
 void mffFormSetBorder(void *view, int style) { (void)view; (void)style; }
+/* iOS has one window: the view of the form is over the views of the other forms (a form shown later too) */
+void mffFormSetOnTop(void *view, int onTop) {
+	UIView *v = mffView(view);
+	if (!v) return;
+	objc_setAssociatedObject(v, &kMffOnTopKey, onTop ? @YES : nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+	if (onTop && v.superview) [v.superview bringSubviewToFront:v];
+}
 void mffFormSetMainMenu(void *view, const char *items) { (void)view; (void)items; }
+
+/* CM_MOUSEACTIVATE (mffOnMouse action 7): the recognizer gets the touch which begins in the view or in its subviews and
+   fails at once, the touch goes on unchanged (to the subview, to the other recognizers) */
+@interface MffActivateRecognizer : UIGestureRecognizer
+@end
+@implementation MffActivateRecognizer
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+	void *ctrl = mffGetCtrl(self.view);
+	if (ctrl) {
+		CGPoint p = [[touches anyObject] locationInView:self.view];
+		mffOnMouse(ctrl, 7, 0, (int)p.x, (int)p.y, 0);
+	}
+	self.state = UIGestureRecognizerStateFailed;
+}
+- (BOOL)canPreventGestureRecognizer:(UIGestureRecognizer *)other { return NO; }
+- (BOOL)canBePreventedByGestureRecognizer:(UIGestureRecognizer *)other { return NO; }
+@end
+
+void mffViewSetActivateEvent(void *view) {
+	UIView *v = mffView(view);
+	if (!v) return;
+	for (UIGestureRecognizer *g in v.gestureRecognizers) if ([g isKindOfClass:[MffActivateRecognizer class]]) return;
+	MffActivateRecognizer *g = [[MffActivateRecognizer alloc] initWithTarget:nil action:nil];
+	g.cancelsTouchesInView = NO;
+	g.delaysTouchesBegan = NO;
+	g.delaysTouchesEnded = NO;
+	[v addGestureRecognizer:g];
+}
 
 /* The editing of the text of a row of a table (TreeView.EditLabels): not on iOS yet */
 void mffTableSetEditable(void *Id, int Value) { (void)Id; (void)Value; }

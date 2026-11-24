@@ -108,7 +108,7 @@ End Enum
 Namespace My
 	#define QApplication(__Ptr__) (*Cast(Application Ptr,__Ptr__))
 	
-	'Provides methods and properties to manage an application, such as methods to start and stop an application, and properties to get information about an application. (Windows, Linux, Web, Android)
+	'Provides methods and properties to manage an application, such as methods to start and stop an application, and properties to get information about an application. (Windows, Linux, Android, Web, macOS, iOS)
 	Private Type Application Extends My.Sys.Object
 	Private:
 		FDarkMode       As Boolean
@@ -170,7 +170,7 @@ Namespace My
 		Declare Property DarkMode(Value As Boolean)
 		'The framework-wide default corner radius (a LOGICAL-pixel RADIUS) that
 		'every owner-drawn chrome follows unless it overrides its own; -1 puts
-		'every control back on its built-in default (Windows, Linux, Android, Web).
+		'every control back on its built-in default (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Property DefaultCornerRadius As Long
 		Declare Property DefaultCornerRadius(Value As Long)
 		Declare Function FileName ByRef As WString

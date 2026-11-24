@@ -104,11 +104,11 @@ Namespace My.Sys.Forms
 		Declare Function IsWindowsVistaOrHigher() As Boolean
 	Public:
 		#ifndef ReadProperty_Off
-			'Reads value from the name of property (Windows, Linux, Android, Web).
+			'Reads value from the name of property (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
-			'Writes value to the name of property (Windows, Linux, Android, Web).
+			'Writes value to the name of property (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		Icon            As My.Sys.Drawing.Icon

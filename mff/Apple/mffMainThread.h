@@ -12,6 +12,7 @@
 #define mffViewSetText real_mffViewSetText
 #define mffViewGetText real_mffViewGetText
 #define mffViewSetHint real_mffViewSetHint
+#define mffViewSetCursor real_mffViewSetCursor
 #define mffViewSetVisible real_mffViewSetVisible
 #define mffViewSetEnabled real_mffViewSetEnabled
 #define mffViewSetFocus real_mffViewSetFocus
@@ -47,6 +48,8 @@
 #define mffFormHide real_mffFormHide
 #define mffFormSetState real_mffFormSetState
 #define mffFormSetBorder real_mffFormSetBorder
+#define mffFormSetOnTop real_mffFormSetOnTop
+#define mffViewSetActivateEvent real_mffViewSetActivateEvent
 #define mffFormSetMainMenu real_mffFormSetMainMenu
 #define mffScreenSize real_mffScreenSize
 #define mffAppRun real_mffAppRun
@@ -128,6 +131,7 @@
 #undef mffViewSetText
 #undef mffViewGetText
 #undef mffViewSetHint
+#undef mffViewSetCursor
 #undef mffViewSetVisible
 #undef mffViewSetEnabled
 #undef mffViewSetFocus
@@ -163,6 +167,8 @@
 #undef mffFormHide
 #undef mffFormSetState
 #undef mffFormSetBorder
+#undef mffFormSetOnTop
+#undef mffViewSetActivateEvent
 #undef mffFormSetMainMenu
 #undef mffScreenSize
 #undef mffAppRun
@@ -243,6 +249,7 @@ int mffViewClientSize(void *view, int vertical) { if ([NSThread isMainThread]) r
 void mffViewSetText(void *view, const char *text) { if ([NSThread isMainThread]) real_mffViewSetText(view, text); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffViewSetText(view, text); }); }
 char *mffViewGetText(void *view) { if ([NSThread isMainThread]) return real_mffViewGetText(view); __block char *r_; dispatch_sync(dispatch_get_main_queue(), ^{ r_ = real_mffViewGetText(view); }); return r_; }
 void mffViewSetHint(void *view, const char *text) { if ([NSThread isMainThread]) real_mffViewSetHint(view, text); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffViewSetHint(view, text); }); }
+void mffViewSetCursor(void *view, const char *name) { if ([NSThread isMainThread]) real_mffViewSetCursor(view, name); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffViewSetCursor(view, name); }); }
 void mffViewSetVisible(void *view, int value) { if ([NSThread isMainThread]) real_mffViewSetVisible(view, value); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffViewSetVisible(view, value); }); }
 void mffViewSetEnabled(void *view, int value) { if ([NSThread isMainThread]) real_mffViewSetEnabled(view, value); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffViewSetEnabled(view, value); }); }
 void mffViewSetFocus(void *view) { if ([NSThread isMainThread]) real_mffViewSetFocus(view); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffViewSetFocus(view); }); }
@@ -278,6 +285,8 @@ void mffFormShow(void *view, int modal) { if ([NSThread isMainThread]) real_mffF
 void mffFormHide(void *view) { if ([NSThread isMainThread]) real_mffFormHide(view); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffFormHide(view); }); }
 void mffFormSetState(void *view, int state) { if ([NSThread isMainThread]) real_mffFormSetState(view, state); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffFormSetState(view, state); }); }
 void mffFormSetBorder(void *view, int style) { if ([NSThread isMainThread]) real_mffFormSetBorder(view, style); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffFormSetBorder(view, style); }); }
+void mffFormSetOnTop(void *view, int onTop) { if ([NSThread isMainThread]) real_mffFormSetOnTop(view, onTop); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffFormSetOnTop(view, onTop); }); }
+void mffViewSetActivateEvent(void *view) { if ([NSThread isMainThread]) real_mffViewSetActivateEvent(view); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffViewSetActivateEvent(view); }); }
 void mffFormSetMainMenu(void *view, const char *items) { if ([NSThread isMainThread]) real_mffFormSetMainMenu(view, items); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffFormSetMainMenu(view, items); }); }
 int mffScreenSize(int vertical) { if ([NSThread isMainThread]) return real_mffScreenSize(vertical); __block int r_; dispatch_sync(dispatch_get_main_queue(), ^{ r_ = real_mffScreenSize(vertical); }); return r_; }
 void mffAppRun(void) { if ([NSThread isMainThread]) real_mffAppRun(); else dispatch_sync(dispatch_get_main_queue(), ^{ real_mffAppRun(); }); }

@@ -9,7 +9,7 @@
 Namespace My.Sys.Forms
 	#define QContainerControl(__Ptr__) (*Cast(ContainerControl Ptr,__Ptr__))
 	
-	'Provides the base class for the containers (Windows, Linux, Android, Web).
+	'Provides the base class for the containers (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type ContainerControl Extends Control
 	Private:
 	Protected:
@@ -24,17 +24,17 @@ Namespace My.Sys.Forms
 			Declare Function RegisterClass(ByRef wClassName As WString, Obj As Any Ptr, WndProcAddr As Any Ptr = 0) As Boolean
 		#endif
 		#ifndef ReadProperty_Off
-			'Reads value from the name of property (Windows, Linux, Android, Web).
+			'Reads value from the name of property (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Virtual Function ReadProperty(ByRef PropertyName As String) As Any Ptr
 		#endif
 		#ifndef WriteProperty_Off
-			'Writes value to the name of property (Windows, Linux, Android, Web).
+			'Writes value to the name of property (Windows, Linux, Android, Web, macOS, iOS).
 			Declare Virtual Function WriteProperty(ByRef PropertyName As String, Value As Any Ptr) As Boolean
 		#endif
 		'Determines whether a control is automatically resized to display its entire contents (Windows, Linux).
 		Declare Virtual Property AutoSize As Boolean
 		Declare Virtual Property AutoSize(Value As Boolean)
-		'Returns/sets a value that determines whether an object is visible or hidden (Windows, Linux, Web).
+		'Returns/sets a value that determines whether an object is visible or hidden (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Virtual Property Visible As Boolean
 		Declare Virtual Property Visible(Value As Boolean)
 		Declare Operator Cast As Control Ptr

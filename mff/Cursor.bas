@@ -165,6 +165,9 @@ Namespace My.Sys.Drawing
 		WLet(FResName, Value)
 		#ifdef __USE_WASM__
 			If Ctrl AndAlso Ctrl->Handle Then SetStyle(Ctrl->Handle, "cursor", ToUtf8(Value))
+		#elseif defined(__USE_APPLE__)
+			'macOS: the NSCursor of the CSS name (iOS has no mouse cursor)
+			If Ctrl AndAlso Ctrl->Handle Then mffViewSetCursor(Ctrl->Handle, ToUtf8(Value))
 		#elseif defined(__USE_WINAPI__)
 			If (Not LoadFromResourceName(Value)) AndAlso (Not LoadFromResourceID(Val(Value))) Then
 				LoadFromFile(Value)
@@ -247,6 +250,12 @@ Namespace My.Sys.Drawing
 			If Value = 0 Then
 				WLet(FResName, "")
 				If Ctrl AndAlso Ctrl->Handle Then SetStyle(Ctrl->Handle, "cursor", "")
+			End If
+		#elseif defined(__USE_APPLE__)
+			'Cursor = 0 restores the default cursor (e.g. after crWait)
+			If Value = 0 Then
+				WLet(FResName, "")
+				If Ctrl AndAlso Ctrl->Handle Then mffViewSetCursor(Ctrl->Handle, "")
 			End If
 		#elseif defined(__USE_WINAPI__)
 			If Handle Then DestroyCursor(Handle)

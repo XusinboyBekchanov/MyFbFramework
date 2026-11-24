@@ -12,7 +12,7 @@
 #include once "Component.bi"
 
 Namespace My.Sys
-	'Provides static methods that facilitate transferring data to and from the system Clipboard (Windows, Linux).
+	'Provides static methods that facilitate transferring data to and from the system Clipboard (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type ClipboardType
 	Private:
 		FFormatCount As Integer

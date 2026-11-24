@@ -10,7 +10,7 @@ Namespace My.Sys.Forms
 	#define QLinkLabel(__Ptr__) (*Cast(LinkLabel Ptr, __Ptr__))
 	
 	'`LinkLabel` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`LinkLabel` - Represents a label control that can display hyperlinks (Windows, Linux).
+	'`LinkLabel` - Represents a label control that can display hyperlinks (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type LinkLabel Extends Control
 	Private:
 		#ifndef __USE_GTK__

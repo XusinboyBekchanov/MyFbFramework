@@ -13,7 +13,7 @@ Dim Shared TimersList As IntegerList
 
 Namespace My.Sys.Forms
 	
-	'A control which can execute code at regular intervals by causing a Timer event (Windows, Linux).
+	'A control which can execute code at regular intervals by causing a Timer event (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type TimerComponent Extends Component
 	Private:
 		FEnabled As Boolean

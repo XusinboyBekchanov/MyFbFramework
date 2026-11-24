@@ -29,6 +29,8 @@ int mffViewClientSize(void *view, int vertical);
 void mffViewSetText(void *view, const char *text);
 char *mffViewGetText(void *view);
 void mffViewSetHint(void *view, const char *text);
+/* The mouse cursor over the view: a CSS name of Cursor.bi (crHandPoint - "pointer", ...), "" - the default one (macOS) */
+void mffViewSetCursor(void *view, const char *name);
 void mffViewSetVisible(void *view, int value);
 void mffViewSetEnabled(void *view, int value);
 void mffViewSetFocus(void *view);
@@ -74,6 +76,10 @@ void mffFormSetState(void *view, int state);
 /* FormBorderStyle of Form.bi: 0 - None, 1 - SizableToolWindow, 2 - FixedToolWindow, 3 - Sizable,
    4 - Fixed3D, 5 - FixedSingle, 6 - FixedDialog */
 void mffFormSetBorder(void *view, int style);
+/* FormStyle fsStayOnTop: the window is over the other windows (macOS) */
+void mffFormSetOnTop(void *view, int onTop);
+/* A press anywhere in the view, also on its subviews (they get it too): mffOnMouse action 7 (an MDI child is activated) */
+void mffViewSetActivateEvent(void *view);
 void mffFormSetMainMenu(void *view, const char *items);
 int mffScreenSize(int vertical);
 /* macOS only: Icon.Handle is a retained NSImage of the file (NULL - not a picture); mffAppSetIcon puts it in the Dock,

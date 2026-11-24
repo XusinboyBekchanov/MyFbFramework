@@ -116,7 +116,7 @@ Namespace My.Sys.Forms
 	End Type
 	
 	'`TreeView` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`TreeView` - Represents a control that displays hierarchical data in a tree structure that has items that can expand and collapse (Windows, Linux, Web).
+	'`TreeView` - Represents a control that displays hierarchical data in a tree structure that has items that can expand and collapse (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type TreeView Extends Control
 	Private:
 		'FNodes        As List

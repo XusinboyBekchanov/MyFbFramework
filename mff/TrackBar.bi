@@ -29,7 +29,7 @@ Namespace My.Sys.Forms
 	End Enum
 	
 	'`TrackBar` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`TrackBar` - A trackbar is a window that contains a slider (sometimes called a thumb) in a channel, and optional tick marks (Windows, Linux).
+	'`TrackBar` - A trackbar is a window that contains a slider (sometimes called a thumb) in a channel, and optional tick marks (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type TrackBar Extends Control
 	Private:
 		FPosition         As Integer

@@ -510,25 +510,19 @@ Private Sub MDIMainType.mnuView_Click(ByRef Sender As MenuItem)
 End Sub
 
 Private Sub MDIMainType.mnuWindow_Click(ByRef Sender As MenuItem)
-	Dim h As HWND
-	
 	Select Case Sender.Name
 	Case "mnuWindowClose"
-		h = Cast(HWND, SendMessage(FClient, WM_MDIGETACTIVE, 0, 0))
-		If h Then SendMessage(h, WM_CLOSE, 0, 0)
+		If ActiveMDIChild Then ActiveMDIChild->CloseForm
 	Case "mnuWindowCloseAll"
-		Do
-			h = Cast(HWND, SendMessage(FClient, WM_MDIGETACTIVE, 0, 0))
-			If h Then SendMessage(h, WM_CLOSE, 0, 0)
-		Loop While (h)
+		CloseMDIChildren
 	Case "mnuWindowCascade"
-		SendMessage FClient, WM_MDICASCADE, 0, 0
+		Cascade
 	Case "mnuWindowArrangeIcons"
-		SendMessage FClient, WM_MDIICONARRANGE, 0, 0
+		ArrangeIcons
 	Case "mnuWindowTileHorizontal"
-		SendMessage FClient, WM_MDITILE, MDITILE_HORIZONTAL, 0
+		TileHorizontal
 	Case "mnuWindowTileVertical"
-		SendMessage FClient, WM_MDITILE, MDITILE_VERTICAL, 0
+		TileVertical
 	Case "mnuWindowMore"
 		
 	Case Else

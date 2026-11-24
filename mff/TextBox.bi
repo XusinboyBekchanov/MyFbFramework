@@ -25,7 +25,7 @@ Namespace My.Sys.Forms
 	End Enum
 	
 	'`TextBox` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`TextBox` - Displays information entered at design time by the user, or in code at run time (Windows, Linux, Android, Web).
+	'`TextBox` - Displays information entered at design time by the user, or in code at run time (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type TextBox Extends Control
 	Private:
 	Protected:
@@ -124,7 +124,7 @@ Namespace My.Sys.Forms
 		Declare Property Alignment As AlignmentConstants
 		'Gets or sets the horizontal alignment of text in the TextBox.
 		Declare Property Alignment(Value As AlignmentConstants)
-		'Returns/sets a value that determines whether an object can respond to user-generated events (Windows, Linux).
+		'Returns/sets a value that determines whether an object can respond to user-generated events (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Virtual Property Enabled As Boolean
 		Declare Virtual Property Enabled(Value As Boolean)
 		Declare Property BorderStyle As BorderStyles

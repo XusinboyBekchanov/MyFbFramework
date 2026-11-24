@@ -10,7 +10,7 @@ Namespace My.Sys.Forms
 	#define QRichTextBox(__Ptr__) (*Cast(RichTextBox Ptr,__Ptr__))
 	
 	'`RichTextBox` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`RichTextBox` - The RichTextBox control enables you to display or edit flow content including paragraphs, images, tables, and more (Windows, Linux).
+	'`RichTextBox` - The RichTextBox control enables you to display or edit flow content including paragraphs, images, tables, and more (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type RichTextBox Extends TextBox
 	Private:
 		#ifndef __USE_GTK__
@@ -87,7 +87,7 @@ Namespace My.Sys.Forms
 		Declare Function FindPrev(ByRef Value As WString = "") As Boolean
 		'Scrolls to last visible line.
 		Declare Function BottomLine As Integer
-		'Returns/sets a value that determines whether an object can respond to user-generated events (Windows, Linux).
+		'Returns/sets a value that determines whether an object can respond to user-generated events (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Virtual Property Enabled As Boolean
 		Declare Virtual Property Enabled(Value As Boolean)
 		Declare Property SelAlignment As AlignmentConstants

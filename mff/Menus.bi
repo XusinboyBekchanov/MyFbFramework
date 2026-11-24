@@ -55,7 +55,7 @@ Namespace My.Sys.Forms
 	Const MIM_APPLYTOSUBMENUS = &H80000000
 	Const MIM_MENUDATA        = &H00000008
 	
-	'`MenuItem` - Represents an individual element in menu structures with hierarchical submenu support and action binding (Windows, Linux).
+	'`MenuItem` - Represents an individual element in menu structures with hierarchical submenu support and action binding (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type MenuItem Extends My.Sys.Object
 	Private:
 		Declare Static Sub BitmapChanged(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Drawing.BitmapType)
@@ -252,7 +252,7 @@ Namespace My.Sys.Forms
 		OnClick As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem)
 	End Type
 	
-	'`Menu` - Base class for menu containers supporting hierarchical item management and visual customization (Windows, Linux).
+	'`Menu` - Base class for menu containers supporting hierarchical item management and visual customization (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type Menu Extends Component
 	Private:
 		FCount   As Integer
@@ -374,7 +374,7 @@ Namespace My.Sys.Forms
 		OnActivate As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Menu)
 	End Type
 	
-	'Represents the menu structure of a form (Windows, Linux).
+	'Represents the menu structure of a form (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type MainMenu Extends Menu
 	Private:
 	Protected:
@@ -397,7 +397,7 @@ Namespace My.Sys.Forms
 		Declare Destructor
 	End Type
 	
-	'Represents a context menu (Windows, Linux).
+	'Represents a context menu (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type PopupMenu Extends Menu
 	Private:
 	Protected:

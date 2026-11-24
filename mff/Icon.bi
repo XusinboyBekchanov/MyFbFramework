@@ -25,7 +25,7 @@
 #endif
 
 Namespace My.Sys.Drawing
-	'Represents a icon, which is a small bitmap image that is used to represent an object (Windows, Linux).
+	'Represents a icon, which is a small bitmap image that is used to represent an object (Windows, Linux, Web, macOS).
 	Private Type Icon Extends My.Sys.Object
 	Private:
 		FWidth  As Integer

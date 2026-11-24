@@ -111,6 +111,8 @@
 	Declare Sub ElementSetBounds(Id As Any Ptr, ByVal iLeft As Integer, ByVal iTop As Integer, ByVal iWidth As Integer, ByVal iHeight As Integer)
 	Declare Sub ElementSetEnabled(Id As Any Ptr, Value As Boolean)
 	Declare Sub ElementSetFocus(Id As Any Ptr)
+	'1 - the element Id (or an element in it) has the focus (document.activeElement)
+	Declare Function ElementHasFocus(Id As Any Ptr) As Integer
 	Declare Sub SetInnerText(Id As Any Ptr, Value As String)
 	Declare Sub SetInnerTextByStringId(Id As String, Value As String)
 	Declare Sub InsertSelectItem(Id As Any Ptr, ByVal Index As Integer, Text As String)
@@ -435,6 +437,9 @@ Const HELP_SETPOPUP_POS = &Hd
 	'The horizontal mouse wheel (Android: also a drag of a finger in a view which takes the text): wParam - 1 left,
 	'-1 right; lParam - the point like CM_MOUSE*
 	#define CM_MOUSEHWHEEL 40045
+	'A press anywhere in the view of the control, also on its child views (Android: SetActivateEvent, Apple:
+	'mffViewSetActivateEvent): the press still goes to the child, an MDI child of mff is activated (Form.ProcessMessage)
+	#define CM_MOUSEACTIVATE 40046
 	#define MffPoint(x, y) ((CLng(y) Shl 16) Or (CLng(x) And &hFFFF))
 	#define MffPointX(lParam) CShort((lParam) And &hFFFF)
 	#define MffPointY(lParam) CShort(((lParam) Shr 16) And &hFFFF)
@@ -568,6 +573,7 @@ Const HELP_SETPOPUP_POS = &Hd
 	Declare Sub CanvasRepaint(Id As Any Ptr)
 	'The touches of the view go to the exported mffActivity_onViewTouch (CM_MOUSE* and the OnMouse* events)
 	Declare Sub SetTouchEvent(Id As Any Ptr)
+	Declare Sub SetActivateEvent(Id As Any Ptr)
 	'The keys of the view go to the native side (onViewKey); TextInput - the view takes the text of the soft keyboard (an MffLayout)
 	Declare Sub SetKeyEvent(Id As Any Ptr, TextInput As Boolean)
 	'ImageBox, Picture: a picture file (Web: a URL; Android: a file or an asset), stretched or centered

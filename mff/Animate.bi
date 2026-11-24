@@ -41,7 +41,7 @@ Namespace My.Sys.Forms
 	End Enum
 	
 	'`Animate` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`Animate` - An animate control is a window that displays an Audio-Video Interleaved (AVI) clip (Windows, Linux).
+	'`Animate` - An animate control is a window that displays an Audio-Video Interleaved (AVI) clip (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type Animate Extends Control
 	Private:
 		FFrameCount     As Double
