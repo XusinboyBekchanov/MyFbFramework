@@ -1882,7 +1882,7 @@ Namespace My.Sys.Forms
 						If OnMouseDown Then OnMouseDown(*Designer, This, Button - 1, ex, ey, State)
 						'The menu of the control is opened when the button is released: not the own menu of the widget
 						'(the menu of GtkTextView)
-						If Button = 3 AndAlso ContextMenu <> 0 AndAlso Not FDesignMode Then Message.Result = True
+						If CBool(Button = 3) AndAlso CBool(ContextMenu <> 0) AndAlso Not FDesignMode Then Message.Result = True
 					End If
 				Case GDK_2BUTTON_PRESS
 					If OnDblClick Then OnDblClick(*Designer, This)
@@ -1966,7 +1966,7 @@ Namespace My.Sys.Forms
 					DownButton = e->button.button - 1
 					'The menu of the control is opened when the button is released: not the own menu of the widget (the
 					'menu of GtkTextView, it is opened by the press)
-					If e->button.button = 3 AndAlso ContextMenu <> 0 AndAlso Not FDesignMode Then Message.Result = True
+					If CBool(e->button.button = 3) AndAlso CBool(ContextMenu <> 0) AndAlso Not FDesignMode Then Message.Result = True
 					#ifdef __USE_GTK4__
 						If gtk_widget_get_window(widget) = e->motion.window Then
 							If OnMouseDown Then OnMouseDown(*Designer, This, e->button.button - 1, e->button.x, e->button.y, e->button.state)

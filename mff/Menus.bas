@@ -1219,7 +1219,7 @@ Namespace My.Sys.Forms
 			#else
 				'gtk_check_menu_item_set_active activates the item only when its state changes: the flag which skips this
 				'activation (it is not a click) is set only then, else it would skip the next click of the user
-				If GTK_IS_CHECK_MENU_ITEM(Widget) AndAlso CBool(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(Widget)) <> 0) <> value Then
+				If CBool(GTK_IS_CHECK_MENU_ITEM(Widget)) AndAlso CBool(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(Widget)) <> 0) <> value Then
 					FMenuItemChecked = True
 					gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(Widget), value)
 				End If
