@@ -637,6 +637,53 @@ static NSInteger mffClickedRow(NSTableView *t) {
 }
 @end
 
+/* ScrollControl: a scroll view, its controls are in the document view (flipped like MffView). The document has the size
+   of the visible area or more, up to the right and the bottom edge of the controls: it is computed again after a control
+   was added, removed or moved (mffViewSetBounds) and after a new size of the scroll view, once for all of them */
+@interface MffScrollDocument : MffView
+@property (nonatomic) BOOL mffUpdatePending;
+- (void)mffScheduleUpdate;
+@end
+
+@interface MffScrollControl : NSScrollView
+@end
+
+@implementation MffScrollDocument
+- (void)didAddSubview:(NSView *)v { [super didAddSubview:v]; [self mffScheduleUpdate]; }
+- (void)willRemoveSubview:(NSView *)v { [super willRemoveSubview:v]; [self mffScheduleUpdate]; }
+- (void)mffScheduleUpdate {
+	if (self.mffUpdatePending) return;
+	self.mffUpdatePending = YES;
+	__weak MffScrollDocument *me = self;
+	dispatch_async(dispatch_get_main_queue(), ^{
+		MffScrollDocument *d = me;
+		if (!d) return;
+		d.mffUpdatePending = NO;
+		[d mffUpdateSize];
+	});
+}
+- (void)mffUpdateSize {
+	NSScrollView *s = [self enclosingScrollView];
+	if (!s) return;
+	NSSize c = [s contentSize];
+	CGFloat w = c.width, h = c.height;
+	for (NSView *v in [self subviews]) {
+		if ([v isHidden]) continue;
+		w = MAX(w, NSMaxX([v frame]));
+		h = MAX(h, NSMaxY([v frame]));
+	}
+	if (!NSEqualSizes([self frame].size, NSMakeSize(w, h))) [self setFrameSize:NSMakeSize(w, h)];
+}
+@end
+
+@implementation MffScrollControl
+- (BOOL)isFlipped { return YES; }
+- (void)setFrameSize:(NSSize)s {
+	[super setFrameSize:s];
+	if ([[self documentView] isKindOfClass:[MffScrollDocument class]]) [(MffScrollDocument *)[self documentView] mffScheduleUpdate];
+}
+@end
+
 /* The object of a handle: the NSWindow of a form or a view */
 static id mffObj(void *view) {
 	return (__bridge id)view;
@@ -1049,6 +1096,17 @@ void *mffViewCreate(const char *kind, void *ctrl) {
 		MffScrollBar *s = [[MffScrollBar alloc] initWithFrame:r];
 		s.mffMax = 10;
 		obj = s;
+	} else if ([k isEqualToString:@"ScrollControl"]) {
+		MffScrollControl *s = [[MffScrollControl alloc] initWithFrame:r];
+		[s setHasVerticalScroller:YES];
+		[s setHasHorizontalScroller:YES];
+		[s setAutohidesScrollers:YES];
+		[s setDrawsBackground:NO];
+		MffScrollDocument *d = [[MffScrollDocument alloc] initWithFrame:r];
+		/* A press on the free place of the control: its mouse events */
+		mffSetCtrl(d, ctrl);
+		[s setDocumentView:d];
+		obj = s;
 	} else if ([k isEqualToString:@"TrackBar"]) {
 		NSSlider *s = [[NSSlider alloc] initWithFrame:r];
 		[s setMinValue:0];
@@ -1087,6 +1145,7 @@ void *mffViewLayout(void *view) {
 	id o = mffObj(view);
 	if ([o isKindOfClass:[NSWindow class]]) return (__bridge void *)[(NSWindow *)o contentView];
 	if ([o isKindOfClass:[NSBox class]]) return (__bridge void *)[(NSBox *)o contentView];
+	if ([o isKindOfClass:[MffScrollControl class]]) return (__bridge void *)[(MffScrollControl *)o documentView];
 	return view;
 }
 
@@ -1114,10 +1173,18 @@ void mffViewSetBounds(void *view, int x, int y, int w, int h) {
 	if (!v) return;
 	/* The parent of the view is flipped (MffView): the coordinates are from its top left corner */
 	NSRect f = NSMakeRect(x, y, w, h);
-	if (!NSEqualRects(f, [v frame])) [v setFrame:f];
+	if (NSEqualRects(f, [v frame])) return;
+	[v setFrame:f];
+	/* A control of a ScrollControl: the size of the document */
+	if ([[v superview] isKindOfClass:[MffScrollDocument class]]) [(MffScrollDocument *)[v superview] mffScheduleUpdate];
 }
 
 int mffViewClientSize(void *view, int vertical) {
+	/* ScrollControl: the visible area (the document can be larger) */
+	if ([mffObj(view) isKindOfClass:[MffScrollControl class]]) {
+		NSSize c = [(MffScrollControl *)mffObj(view) contentSize];
+		return (int)(vertical ? c.height : c.width);
+	}
 	NSView *v = (__bridge NSView *)mffViewLayout(view);
 	if (![v isKindOfClass:[NSView class]]) return -1;
 	return (int)(vertical ? [v bounds].size.height : [v bounds].size.width);
@@ -1258,6 +1325,7 @@ void mffViewSetBackColor(void *view, int color) {
 		[(NSWindow *)o setBackgroundColor:color < 0 ? [NSColor windowBackgroundColor] : mffColor(color)];
 		o = [(NSWindow *)o contentView];
 	}
+	if ([o isKindOfClass:[MffScrollControl class]]) o = [(MffScrollControl *)o documentView];
 	if ([o isKindOfClass:[MffView class]]) {
 		((MffView *)o).mffBackColor = color < 0 ? nil : mffColor(color);
 		[(NSView *)o setNeedsDisplay:YES];

@@ -574,6 +574,7 @@ Const HELP_SETPOPUP_POS = &Hd
 	'The touches of the view go to the exported mffActivity_onViewTouch (CM_MOUSE* and the OnMouse* events)
 	Declare Sub SetTouchEvent(Id As Any Ptr)
 	Declare Sub SetActivateEvent(Id As Any Ptr)
+	Declare Sub SetTouchArea(Id As Any Ptr, Extra As Integer)
 	'The keys of the view go to the native side (onViewKey); TextInput - the view takes the text of the soft keyboard (an MffLayout)
 	Declare Sub SetKeyEvent(Id As Any Ptr, TextInput As Boolean)
 	'ImageBox, Picture: a picture file (Web: a URL; Android: a file or an asset), stretched or centered

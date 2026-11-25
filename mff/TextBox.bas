@@ -1496,6 +1496,12 @@ Namespace My.Sys.Forms
 						'End If
 					#elseif defined(__USE_JNI__)
 						If .FMultiline Then .Multiline = True
+						'SearchBox: the search glass and the clear button (mffEditText.setSearchLook; not in an older mffEditText.java)
+						If .ClassName = "SearchBox" AndAlso .FHandle <> 0 AndAlso env <> 0 Then
+							Dim As jmethodID SearchLook = GetMethodID(*.FClassAncestor, "setSearchLook", "()V")
+							If (*env)->ExceptionCheck(env) Then (*env)->ExceptionClear(env)
+							If SearchLook Then (*env)->CallVoidMethod(env, .FHandle, SearchLook)
+						End If
 					#elseif defined(__USE_WASM__)
 						If .FReadOnly Then SetReadOnly(.FHandle, True)
 					#elseif defined(__USE_APPLE__)

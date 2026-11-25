@@ -907,6 +907,45 @@ static UITableView *mffTable(void *view) {
 }
 @end
 
+/* ScrollControl: a scroll view with the controls in it. contentSize is the visible size or more, up to the right and the
+   bottom edge of the controls: it is computed again after a control was added, removed or moved (mffViewSetBounds) and
+   after a new size of the scroll view, once for all of them */
+@interface MffScrollControl : UIScrollView
+@property (nonatomic) BOOL mffUpdatePending;
+- (void)mffScheduleUpdate;
+@end
+
+@implementation MffScrollControl
+- (void)didAddSubview:(UIView *)v { [super didAddSubview:v]; [self mffScheduleUpdate]; }
+- (void)willRemoveSubview:(UIView *)v { [super willRemoveSubview:v]; [self mffScheduleUpdate]; }
+- (void)setFrame:(CGRect)f {
+	BOOL resized = !CGSizeEqualToSize(f.size, self.frame.size);
+	[super setFrame:f];
+	if (resized) [self mffScheduleUpdate];
+}
+- (void)mffScheduleUpdate {
+	if (self.mffUpdatePending) return;
+	self.mffUpdatePending = YES;
+	__weak MffScrollControl *me = self;
+	dispatch_async(dispatch_get_main_queue(), ^{
+		MffScrollControl *s = me;
+		if (!s) return;
+		s.mffUpdatePending = NO;
+		[s mffUpdateSize];
+	});
+}
+- (void)mffUpdateSize {
+	CGFloat w = self.bounds.size.width, h = self.bounds.size.height;
+	/* The controls (not the scroll indicators of the view) */
+	for (UIView *v in self.subviews) {
+		if (v.hidden || !mffGetCtrl(v)) continue;
+		w = MAX(w, CGRectGetMaxX(v.frame));
+		h = MAX(h, CGRectGetMaxY(v.frame));
+	}
+	if (!CGSizeEqualToSize(self.contentSize, CGSizeMake(w, h))) self.contentSize = CGSizeMake(w, h);
+}
+@end
+
 void *mffViewCreate(const char *kind, void *ctrl) {
 	NSString *k = mffStr(kind);
 	CGRect r = CGRectMake(0, 0, 100, 30);
@@ -998,6 +1037,11 @@ void *mffViewCreate(const char *kind, void *ctrl) {
 		MffScrollBar *s = [[MffScrollBar alloc] initWithFrame:r];
 		s.mffMax = 10;
 		obj = s;
+	} else if ([k isEqualToString:@"ScrollControl"]) {
+		MffScrollControl *s = [[MffScrollControl alloc] initWithFrame:r];
+		/* A button in it is pressed at once, a drag scrolls (also one which begins on a control) */
+		s.delaysContentTouches = NO;
+		obj = s;
 	} else if ([k isEqualToString:@"TrackBar"]) {
 		UISlider *s = [[UISlider alloc] initWithFrame:r];
 		s.minimumValue = 0;
@@ -1045,7 +1089,10 @@ void mffViewSetBounds(void *view, int x, int y, int w, int h) {
 	}
 	if (!v) return;
 	CGRect f = CGRectMake(x, y, w, h);
-	if (!CGRectEqualToRect(f, v.frame)) v.frame = f;
+	if (CGRectEqualToRect(f, v.frame)) return;
+	v.frame = f;
+	/* A control of a ScrollControl: its contentSize */
+	if ([v.superview isKindOfClass:[MffScrollControl class]]) [(MffScrollControl *)v.superview mffScheduleUpdate];
 }
 
 int mffViewClientSize(void *view, int vertical) {

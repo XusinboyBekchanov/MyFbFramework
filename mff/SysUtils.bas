@@ -493,6 +493,12 @@ End Namespace
 		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("setActivateEvent", "(Landroid/view/View;)V"), Id)
 	End Sub
 
+	'A press up to Extra pixels around the view (not in another view over it) goes to the view (a thin Splitter)
+	Sub SetTouchArea(Id As Any Ptr, Extra As Integer)
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
+		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("setTouchArea", "(Landroid/view/View;I)V"), Id, CInt(Extra))
+	End Sub
+
 	Sub SetKeyEvent(Id As Any Ptr, TextInput As Boolean)
 		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Exit Sub
 		(*env)->CallVoidMethod(env, Activity, ActivityMethodID("setKeyEvent", "(Landroid/view/View;Z)V"), Id, CUByte(IIf(TextInput, 1, 0)))

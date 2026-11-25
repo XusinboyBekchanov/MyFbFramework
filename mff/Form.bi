@@ -329,7 +329,8 @@ Namespace My.Sys.Forms
 		Declare Property ActiveMDIChild As Form Ptr
 		'Centers the position of the form within the bounds of the parent form (Windows, Linux, Android, Web, macOS, iOS).
 		Declare Sub CenterToParent
-		'Centers the form on the current screen (Windows, Linux, macOS, iOS).
+		'Centers the form on the current screen (Windows, Linux, Android, Web, macOS, iOS). An MDI child of mff in the
+		'client area; Android: a form fills the screen, only an MDI child is centered.
 		Declare Sub CenterToScreen(ByVal ScrLeft As Integer = 0, ByVal ScrTop As Integer = 0, ByVal ScrWidth As Integer = 0, ByVal ScrHeight As Integer = 0)
 		Declare Constructor
 		Declare Destructor

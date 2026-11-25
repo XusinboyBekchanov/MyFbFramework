@@ -3104,16 +3104,52 @@ Namespace My.Sys.Forms
 				This.Top  = ScrTop + (ScrHeight - This.Height) \ 2
 			End If
 			Move This.Left, This.Top, This.Width, This.Height
-		#elseif defined(__USE_APPLE__)
-			If ScrHeight <> 0 OrElse ScrWidth <> 0 Then
-				FStartPosition = FormStartPosition.Manual
-				Move ScrLeft + (ScrWidth - This.Width) \ 2, ScrTop + (ScrHeight - This.Height) \ 2, This.Width, This.Height
-			ElseIf FHandle Then
-				Move (mffScreenSize(0) - This.Width) \ 2, (mffScreenSize(1) - This.Height) \ 2, This.Width, This.Height
-			Else
-				'The window is made in the middle of the screen (CreateWnd)
-				FStartPosition = FormStartPosition.CenterScreen
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+			Dim As Form Ptr MDIForm = MDIOwnerForm
+			If MDIForm <> 0 AndAlso ScrHeight = 0 AndAlso ScrWidth = 0 Then
+				'An MDI child: its window (of the normal state) in the middle of the client area
+				Dim As Integer ClientWidth, ClientHeight
+				MDIForm->MDIClientSize ClientWidth, ClientHeight
+				Dim As Integer W = IIf(FMDIRestore(2) > 0, FMDIRestore(2), FWidth), H = IIf(FMDIRestore(3) > 0, FMDIRestore(3), FHeight)
+				Dim As Integer x = Max(0, (ClientWidth - W) \ 2), y = Max(0, (ClientHeight - H) \ 2)
+				FMDIRestore(0) = x: FMDIRestore(1) = y
+				#ifdef __USE_WASM__
+					Dim As Boolean bShown = FHandle <> 0
+				#else
+					Dim As Boolean bShown = FMDIFrame <> 0
+				#endif
+				If Not bShown Then
+					'MDIShow makes the window at this place
+					FLeft = x: FTop = y
+				ElseIf FWindowState = WindowStates.wsNormal Then
+					MDISetFrameBounds x, y, W, H
+				End If
+				Exit Sub
 			End If
+			#ifdef __USE_APPLE__
+				If ScrHeight <> 0 OrElse ScrWidth <> 0 Then
+					FStartPosition = FormStartPosition.Manual
+					Move ScrLeft + (ScrWidth - This.Width) \ 2, ScrTop + (ScrHeight - This.Height) \ 2, This.Width, This.Height
+				ElseIf FHandle Then
+					Move (mffScreenSize(0) - This.Width) \ 2, (mffScreenSize(1) - This.Height) \ 2, This.Width, This.Height
+				Else
+					'The window is made in the middle of the screen (CreateWnd)
+					FStartPosition = FormStartPosition.CenterScreen
+				End If
+			#else
+				If ScrHeight = 0 AndAlso ScrWidth = 0 Then
+					#ifdef __USE_WASM__
+						'The page is the screen: a form which is not made yet is made in its middle (CreateWnd)
+						If FHandle = 0 Then FStartPosition = FormStartPosition.CenterScreen: Exit Sub
+						ScrWidth = UnScaleX(GetDocumentWidth()): ScrHeight = UnScaleY(GetDocumentHeight())
+					#else
+						'The main form (the Activity) and a second form (FormActivity) fill the screen
+						Exit Sub
+					#endif
+				End If
+				FStartPosition = FormStartPosition.Manual
+				Move ScrLeft + Max(0, (ScrWidth - This.Width) \ 2), ScrTop + Max(0, (ScrHeight - This.Height) \ 2), This.Width, This.Height
+			#endif
 		#endif
 	End Sub
 	

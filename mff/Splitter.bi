@@ -25,11 +25,11 @@ Namespace My.Sys.Forms
 	End Enum
 	
 	'`Splitter` is a Control within the MyFbFramework, part of the freeBasic framework.
-	'`Splitter` - Represents a splitter control that enables the user to resize docked controls (Windows, Linux, Android, Web).
+	'`Splitter` - Represents a splitter control that enables the user to resize docked controls (Windows, Linux, Android, Web, macOS, iOS).
 	Private Type Splitter Extends Control
 	Private:
 		FOldParentProc  As Any Ptr
-		#ifdef __USE_WASM__
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		#endif
 		#ifndef __USE_GTK__

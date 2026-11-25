@@ -1487,6 +1487,9 @@ public class mffActivity extends AppCompatActivity implements View.OnClickListen
         // setActivateEvent: a press anywhere in the layout (also on its child views) goes to the native side first
         // (onViewTouch 14: CM_MOUSEACTIVATE, an MDI child is activated), the press goes on unchanged
         boolean activateEvent;
+        // setTouchArea: the views (a thin Splitter) which get a press also up to some pixels around them
+        static final java.util.WeakHashMap<View, Integer> touchAreas = new java.util.WeakHashMap<>();
+        View touchAreaTarget;
 
         public MffLayout(Context context) {
             super(context);
@@ -1497,6 +1500,33 @@ public class mffActivity extends AppCompatActivity implements View.OnClickListen
         public boolean dispatchTouchEvent(android.view.MotionEvent e) {
             if (activateEvent && e.getActionMasked() == android.view.MotionEvent.ACTION_DOWN && getContext() instanceof mffActivity)
                 ((mffActivity) getContext()).onViewTouch(this, 14, (int) e.getX(), (int) e.getY());
+            if (!touchAreas.isEmpty() || touchAreaTarget != null) {
+                int action = e.getActionMasked();
+                if (action == android.view.MotionEvent.ACTION_DOWN) {
+                    touchAreaTarget = null;
+                    float x = e.getX() + getScrollX(), y = e.getY() + getScrollY();
+                    for (int i = getChildCount() - 1; i >= 0; i--) {
+                        View c = getChildAt(i);
+                        Integer extra = touchAreas.get(c);
+                        if (extra == null || c.getVisibility() != View.VISIBLE) continue;
+                        // in the view itself the touch goes to it anyway
+                        if (x >= c.getLeft() && x < c.getRight() && y >= c.getTop() && y < c.getBottom()) break;
+                        if (x >= c.getLeft() - extra && x < c.getRight() + extra && y >= c.getTop() - extra && y < c.getBottom() + extra) {
+                            touchAreaTarget = c;
+                            break;
+                        }
+                    }
+                }
+                if (touchAreaTarget != null) {
+                    View t = touchAreaTarget;
+                    if (action == android.view.MotionEvent.ACTION_UP || action == android.view.MotionEvent.ACTION_CANCEL) touchAreaTarget = null;
+                    android.view.MotionEvent c = android.view.MotionEvent.obtain(e);
+                    c.offsetLocation(getScrollX() - t.getLeft(), getScrollY() - t.getTop());
+                    t.dispatchTouchEvent(c);
+                    c.recycle();
+                    return true;
+                }
+            }
             return super.dispatchTouchEvent(e);
         }
 
@@ -2889,6 +2919,11 @@ public class mffActivity extends AppCompatActivity implements View.OnClickListen
     // The right button of Windows (the context menu of the designer, MouseButton 1): the right button of a mouse, or a
     // long press without moving (the press so far is released first, the rest of the touch is not sent). Actions of
     // onViewTouch: 6 - the right button is pressed, 7 - it is released
+    // A press up to extra pixels around the view goes to it (MffLayout.touchAreas): a thin Splitter for a finger
+    public void setTouchArea(View v, int extra) {
+        MffLayout.touchAreas.put(v, extra);
+    }
+
     // CM_MOUSEACTIVATE of a press anywhere in the layout (MffLayout.activateEvent)
     public void setActivateEvent(View v) {
         if (v instanceof MffLayout) ((MffLayout) v).activateEvent = true;

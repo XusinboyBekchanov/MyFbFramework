@@ -180,6 +180,30 @@ Namespace My.Sys.Forms
 					Message.Msg = IIf(DragState = 1, SPLITTER_PRESS, IIf(DragState = 2, SPLITTER_MOVE, SPLITTER_RELEASE))
 					Message.Handled = True
 				End If
+			#elseif defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+				'Android, macOS, iOS: the left button (a finger) of the view. The splitter moves with the drag: the distance
+				'from the press is in the pixels of the parent (the point in the splitter and its place)
+				Static As Long xPress, yPress
+				Select Case Message.Msg
+				Case CM_MOUSEDOWN, CM_MOUSEMOVE, CM_MOUSEUP, CM_MOUSELEAVE
+					Dim As Long px = MffPointX(Message.lParam) + ScaleX(This.Left), py = MffPointY(Message.lParam) + ScaleY(This.Top)
+					Select Case Message.Msg
+					Case CM_MOUSEDOWN
+						If Message.wParam = 0 Then
+							xPress = px: yPress = py: xCur = 0: yCur = 0
+							Message.Msg = SPLITTER_PRESS
+						End If
+					Case CM_MOUSEMOVE
+						If down1 = 1 Then xCur = px - xPress: yCur = py - yPress: Message.Msg = SPLITTER_MOVE
+					Case CM_MOUSEUP
+						If Message.wParam = 0 Then Message.Msg = SPLITTER_RELEASE
+					#ifdef __USE_JNI__
+					Case CM_MOUSELEAVE
+						'The touch was cancelled
+						Message.Msg = SPLITTER_RELEASE
+					#endif
+					End Select
+				End Select
 			#endif
 			Select Case Message.Msg
 		#endif
@@ -401,9 +425,14 @@ Namespace My.Sys.Forms
 		Base.ProcessMessage(Message)
 	End Sub
 	
-	#ifdef __USE_WASM__
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
 		Private Sub Splitter.HandleIsAllocated(ByRef Sender As Control)
-			If Sender.Child Then SetDragEvent(Sender.Handle)
+			#ifdef __USE_WASM__
+				If Sender.Child Then SetDragEvent(Sender.Handle)
+			#else
+				'The splitter is thin for a finger: a press up to 8 dp from it goes to it (mffActivity.setTouchArea)
+				If Sender.Handle Then SetTouchArea(Sender.Handle, Sender.ScaleX(8))
+			#endif
 		End Sub
 	#endif
 	
@@ -479,6 +508,11 @@ Namespace My.Sys.Forms
 				.OnHandleIsAllocated = @HandleIsAllocated
 			#elseif defined(__USE_JNI__)
 				WLet(FClassAncestor, "mff:Layout")
+				.OnHandleIsAllocated = @HandleIsAllocated
+			#endif
+			#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+				'The drag: CM_MOUSE* (Android: the touches of the view)
+				FMouseEvents = True
 			#endif
 			.Width     = 3
 			.Align     = SplitterAlignmentConstants.alLeft
