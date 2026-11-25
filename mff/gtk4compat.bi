@@ -2649,22 +2649,9 @@ Private Function gtk_separator_tool_item_new() As GtkWidget Ptr
 	Return item
 End Function
 
-' Flat toggle buttons show the checked state hardly: like the toggle tool buttons of GTK3 they are shown pressed
-Private Sub gtk4compat_tool_toggle_css()
-	Dim As GdkDisplay Ptr display = gdk_display_get_default()
-	If display = 0 OrElse g_object_get_data(G_OBJECT(display), "mff-tool-toggle-css") <> 0 Then Exit Sub
-	Dim As GtkCssProvider Ptr provider = gtk_css_provider_new()
-	gtk4compat_css_provider_load_from_string(provider, "button.mff-tool-toggle:checked { background-color: alpha(currentColor, 0.18); box-shadow: inset 0 0 0 1px alpha(currentColor, 0.35); }")
-	gtk_style_context_add_provider_for_display(display, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION)
-	g_object_set_data_full(G_OBJECT(display), "mff-tool-toggle-css", provider, Cast(GDestroyNotify, @g_object_unref))
-End Sub
-
+' The checked toggle tool buttons have the look of the theme (no CSS of their own)
 Private Sub gtk4compat_tool_button_setup(ByVal item As GtkWidget Ptr, ByVal Kind As Integer, ByVal icon_widget As GtkWidget Ptr, ByVal label As Const gchar Ptr)
 	gtk_button_set_has_frame(GTK_BUTTON(item), False)
-	If Kind = MFF_TOOL_KIND_TOGGLE OrElse Kind = MFF_TOOL_KIND_RADIO Then
-		gtk_widget_add_css_class(item, "mff-tool-toggle")
-		gtk4compat_tool_toggle_css
-	End If
 	gtk_widget_set_focus_on_click(item, False)
 	g_object_set_data(G_OBJECT(item), "mff-tool-kind", Cast(gpointer, Kind))
 	Dim As GtkWidget Ptr box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4)

@@ -133,6 +133,8 @@ Namespace My.Sys.Forms
 				'The item is an action of the menus which show it (Widget, Box, Icon and Label are 0)
 				FCheckable As Boolean
 				FAction As GSimpleAction Ptr
+				'Columns of the items of the same menu: 1 - the mark (check or radio), 2 - the icon
+				FModelColumns As Integer
 				Declare Function ModelActionName() As String
 				Declare Sub ModelEnsureAction()
 				Declare Sub ModelChanged()

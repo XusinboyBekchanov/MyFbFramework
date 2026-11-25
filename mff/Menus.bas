@@ -688,24 +688,35 @@ Namespace My.Sys.Forms
 			gtk_actionable_set_action_name(GTK_ACTIONABLE(Button), StrPtr(DetailedAction))
 			g_signal_connect(Button, "clicked", G_CALLBACK(@ModelCustomClicked), NULL)
 			Dim As GtkWidget Ptr Box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6)
-			If FCheckable OrElse FRadioItem Then
-				Dim As String MarkIcon = IIf(FRadioItem, "media-record-symbolic", "object-select-symbolic")
-				Dim As GtkWidget Ptr Mark = gtk_image_new_from_icon_name(StrPtr(MarkIcon))
+			' The columns are the same for all items of the menu (the texts start at the same place)
+			If FModelColumns And 1 Then
+				Dim As GtkWidget Ptr Mark
+				If FCheckable OrElse FRadioItem Then
+					Dim As String MarkIcon = IIf(FRadioItem, "media-record-symbolic", "object-select-symbolic")
+					Mark = gtk_image_new_from_icon_name(StrPtr(MarkIcon))
+					ModelCheckUpdate G_OBJECT(FAction), NULL, Mark
+					' Disconnected when the mark is destroyed (the widgets are created again for every model)
+					g_signal_connect_object(FAction, "notify::state", G_CALLBACK(@ModelCheckUpdate), Mark, 0)
+				Else
+					Mark = gtk_image_new()
+				End If
 				gtk_image_set_pixel_size(GTK_IMAGE(Mark), 16)
+				gtk_widget_set_size_request(Mark, 16, 16)
 				gtk_box_append(GTK_BOX(Box), Mark)
-				ModelCheckUpdate G_OBJECT(FAction), NULL, Mark
-				' Disconnected when the mark is destroyed (the widgets are created again for every model)
-				g_signal_connect_object(FAction, "notify::state", G_CALLBACK(@ModelCheckUpdate), Mark, 0)
 			End If
-			Dim As GtkWidget Ptr Img
-			If WGet(FImageKey) <> "" Then
-				Img = gtk_image_new_from_icon_name(ToUtf8(WGet(FImageKey)))
-			Else
-				Img = gtk_image_new()
+			If FModelColumns And 2 Then
+				Dim As GtkWidget Ptr Img
+				If WGet(FImageKey) <> "" Then
+					Img = gtk_image_new_from_icon_name(ToUtf8(WGet(FImageKey)))
+				Else
+					Img = gtk_image_new()
+				End If
+				gtk_image_set_pixel_size(GTK_IMAGE(Img), 16)
+				gtk_widget_set_size_request(Img, 16, 16)
+				gtk_box_append(GTK_BOX(Box), Img)
 			End If
-			gtk_image_set_pixel_size(GTK_IMAGE(Img), 16)
-			gtk_widget_set_size_request(Img, 16, 16)
-			gtk_box_append(GTK_BOX(Box), Img)
+			' The submenu items (GtkModelButton) of the menu get the same indent (see MenuModelAlignItems)
+			g_object_set_data(G_OBJECT(Button), "mff-indent", Cast(gpointer, Cast(UInteger, IIf(FModelColumns And 1, 22, 0) + IIf(FModelColumns And 2, 22, 0))))
 			Dim As GtkWidget Ptr Lbl = gtk_label_new_with_mnemonic(ToUtf8(WGet(FText)))
 			gtk_label_set_xalign(GTK_LABEL(Lbl), 0.0)
 			gtk_widget_set_hexpand(Lbl, True)
@@ -727,6 +738,16 @@ Namespace My.Sys.Forms
 		' after the model is set (see Menu.ModelRebuild)
 		Private Sub MenuItem.ModelFill(gm As GMenu Ptr, ByRef Prefix As String, Group As GSimpleActionGroup Ptr, Items As PMenuItem Ptr, ItemsCount As Integer, MenuBar As Boolean, ByRef Customs As List)
 			Dim As GMenu Ptr Section = IIf(MenuBar, gm, g_menu_new())
+			' Mark and icon columns only when an item of this menu needs them
+			Dim As Integer Columns
+			If Not MenuBar Then
+				For i As Integer = 0 To ItemsCount - 1
+					Dim As MenuItem Ptr mi = Items[i]
+					If mi = 0 OrElse mi->FVisible = False OrElse mi->FCount > 0 OrElse WGet(mi->FCaption) = "-" Then Continue For
+					If mi->FCheckable OrElse mi->FRadioItem Then Columns Or= 1
+					If WGet(mi->FImageKey) <> "" Then Columns Or= 2
+				Next
+			End If
 			For i As Integer = 0 To ItemsCount - 1
 				Dim As MenuItem Ptr mi = Items[i]
 				If mi = 0 Then Continue For
@@ -751,6 +772,7 @@ Namespace My.Sys.Forms
 						gmi = g_menu_item_new(ToUtf8(WGet(mi->FText)), NULL)
 						Dim As String CustomId = mi->ModelCustomId
 						g_menu_item_set_attribute_value(gmi, "custom", g_variant_new_string(StrPtr(CustomId)))
+						mi->FModelColumns = Columns
 						Customs.Add mi
 					End If
 				End If
@@ -846,7 +868,9 @@ Namespace My.Sys.Forms
 			If display = 0 OrElse g_object_get_data(G_OBJECT(display), "mff-menu-css") <> 0 Then Exit Sub
 			g_object_set_data(G_OBJECT(display), "mff-menu-css", Cast(gpointer, 1))
 			Dim As GtkCssProvider Ptr Provider = gtk_css_provider_new()
+			' No border on the custom items: their texts start where the texts of GtkModelButton start
 			Dim As String Css = "popover.menu button.menuitem, popover.menu modelbutton { min-height: 0; padding: 3px 8px; }" & _
+				"popover.menu button.menuitem { border-width: 0; }" & _
 				"popover.menu separator { margin-top: 2px; margin-bottom: 2px; }" & _
 				"popover.menu contents { padding: 3px; }"
 			gtk_css_provider_load_from_data(Provider, StrPtr(Css), -1)
@@ -922,6 +946,64 @@ Namespace My.Sys.Forms
 			Wend
 		End Sub
 		
+		' The page of a popover (sliding submenus are pages of a GtkStack)
+		Private Function MenuModelPage(w As GtkWidget Ptr) As GtkWidget Ptr
+			Dim As GtkWidget Ptr p = gtk_widget_get_parent(w)
+			While p <> 0 AndAlso GTK_IS_STACK(p) = 0 AndAlso GTK_IS_POPOVER(p) = 0
+				w = p
+				p = gtk_widget_get_parent(w)
+			Wend
+			Return w
+		End Function
+
+		Private Sub MenuModelCollectItems(w As GtkWidget Ptr, ByRef Customs As List, ByRef ModelButtons As List)
+			If w = 0 Then Exit Sub
+			Dim As Const gchar Ptr CssName = gtk_widget_get_css_name(w)
+			If g_object_get_data(G_OBJECT(w), "mff-indent") <> 0 Then
+				Customs.Add w
+			ElseIf CssName <> 0 AndAlso *CssName = "modelbutton" AndAlso gtk_widget_has_css_class(w, "title") = 0 Then
+				' The back item of a submenu (title) stays centered
+				ModelButtons.Add w
+			End If
+			Dim As GtkWidget Ptr c = gtk_widget_get_first_child(w)
+			While c
+				MenuModelCollectItems c, Customs, ModelButtons
+				c = gtk_widget_get_next_sibling(c)
+			Wend
+		End Sub
+
+		Private Function MenuModelFindLabel(w As GtkWidget Ptr) As GtkWidget Ptr
+			Dim As GtkWidget Ptr c = gtk_widget_get_first_child(w), l
+			While c
+				If GTK_IS_LABEL(c) Then Return c
+				If GTK_IS_POPOVER(c) = 0 Then
+					l = MenuModelFindLabel(c)
+					If l Then Return l
+				End If
+				c = gtk_widget_get_next_sibling(c)
+			Wend
+			Return 0
+		End Function
+
+		' The texts of the submenu items (GtkModelButton) start after the mark and icon columns of the custom items of the same menu
+		Private Sub MenuModelAlignItems(Root As GtkWidget Ptr)
+			Dim As List Customs, ModelButtons
+			MenuModelCollectItems Root, Customs, ModelButtons
+			For i As Integer = 0 To ModelButtons.Count - 1
+				Dim As GtkWidget Ptr mb = ModelButtons.Items[i]
+				Dim As GtkWidget Ptr Page = MenuModelPage(mb)
+				Dim As Integer Indent
+				For j As Integer = 0 To Customs.Count - 1
+					If MenuModelPage(Customs.Items[j]) = Page Then
+						Dim As Integer CustomIndent = Cast(UInteger, g_object_get_data(G_OBJECT(Customs.Items[j]), "mff-indent"))
+						If CustomIndent > Indent Then Indent = CustomIndent
+					End If
+				Next
+				Dim As GtkWidget Ptr Lbl = MenuModelFindLabel(mb)
+				If Lbl Then gtk_widget_set_margin_start(Lbl, Indent)
+			Next
+		End Sub
+
 		Private Sub Menu.ModelRebuild()
 			If FModelIdle Then
 				g_source_remove_(FModelIdle)
@@ -976,6 +1058,7 @@ Namespace My.Sys.Forms
 					g_object_unref(ItemWidget)
 				End If
 			Next
+			MenuModelAlignItems Widget
 			If GTK_IS_POPOVER_MENU_BAR(Widget) Then MenuBarHookItems Widget
 		End Sub
 	#endif
